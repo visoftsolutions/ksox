@@ -1,0 +1,25 @@
+services:
+  server:
+    container_name: ksox-server
+    hostname: ksox-server
+    build:
+      context: server
+  
+  web:
+    container_name: ksox-web
+    hostname: ksox-web
+    build:
+      context: web
+    depends_on:
+      - server
+  
+  proxy:
+    container_name: ksox-proxy
+    hostname: ksox-proxy
+    build:
+      context: proxy
+    depends_on:
+      - server
+      - web
+    ports:
+      - 8080:80
