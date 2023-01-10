@@ -1,5 +1,5 @@
 [package]
-name = "server"
+name = "engine"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,7 +7,9 @@ edition = "2021"
 
 [dependencies]
 axum = { version = "0.6.1", features = ["http2"] }
-serde = "1.0.151"
+futures = "0.3.25"
+serde = "1.0.152"
 tokio = { version = "1.23.0", features = ["full"] }
+tokio-stream = "0.1.11"
 tracing = "0.1.37"
 tracing-subscriber = "0.3.16"
