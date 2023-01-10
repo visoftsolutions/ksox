@@ -3,10 +3,7 @@ pub mod cancel_order;
 pub mod open_orders;
 pub mod submit_order;
 
-use axum::{
-    routing::get,
-    Router,
-};
+use axum::{routing::get, Router};
 
 pub fn router() -> Router {
     Router::new()

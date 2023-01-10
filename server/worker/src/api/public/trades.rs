@@ -1,6 +1,6 @@
 use axum::{
-    headers::UserAgent,
     extract::TypedHeader,
+    headers::UserAgent,
     response::sse::{Event, Sse},
 };
 use futures::stream::{self, Stream};
@@ -8,7 +8,7 @@ use std::{convert::Infallible, time::Duration};
 use tokio_stream::StreamExt as _;
 
 pub async fn root(
-    TypedHeader(user_agent): TypedHeader<UserAgent>
+    TypedHeader(user_agent): TypedHeader<UserAgent>,
 ) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     println!("`{}` connected", user_agent.as_str());
 

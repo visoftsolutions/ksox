@@ -1,17 +1,23 @@
-use axum::{
-    routing::get,
-    Router,
-};
-use std::net::SocketAddr;
-
 mod api;
+mod models;
+mod redis;
 mod shutdown_signal;
 
+use anyhow::{Ok, Result};
+use axum::{routing::get, Router};
+use models::AppState;
+use std::net::SocketAddr;
+
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
 
+    let app_state = AppState {
+        session_store: redis::database::get_redis_client()?,
+    };
+
     let app = Router::new()
+        .with_state(app_state)
         .route("/", get(root))
         .nest("/private", api::private::router())
         .nest("/public", api::public::router());
@@ -24,8 +30,9 @@ async fn main() {
         .with_graceful_shutdown(async {
             shutdown_signal::listen().await;
         })
-        .await
-        .unwrap();
+        .await?;
+
+    Ok(())
 }
 
 async fn root() -> &'static str {
