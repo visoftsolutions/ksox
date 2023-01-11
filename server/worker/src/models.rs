@@ -5,8 +5,9 @@ use axum::{
     RequestPartsExt,
 };
 use http::{request::Parts, StatusCode};
-use redis::{AsyncCommands, Expiry};
+use redis::{AsyncCommands, Expiry, FromRedisValue, RedisError, ErrorKind};
 use serde::{Deserialize, Serialize};
+use ethereum_types::U256;
 
 static COOKIE_NAME: &str = "SESSION";
 
@@ -22,12 +23,23 @@ impl FromRef<AppState> for redis::Client {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct User {
-    id: u128,
+pub struct UserId(U256);
+
+impl FromRedisValue for UserId {
+    fn from_redis_value(v: &redis::Value) -> redis::RedisResult<Self> {
+        match *v {
+            redis::Value::Data(ref bytes) => Ok(UserId(U256::from_little_endian(bytes))),
+            _ => Err(RedisError::from((
+                ErrorKind::TypeError,
+                "Response was of incompatible type",
+                format!("{:?} (response was {:?})", "Response not convertable to U256", v),
+            ))),
+        }
+    }
 }
 
 #[async_trait]
-impl<S> FromRequestParts<S> for User
+impl<S> FromRequestParts<S> for UserId
 where
     redis::Client: FromRef<S>,
     S: Send + Sync,
@@ -65,7 +77,7 @@ where
                     .unwrap()
             })?;
 
-        let id: u128 = store
+        let id: UserId = store
             .get_ex(session_id, Expiry::EX(3600))
             .await
             .map_err(|e| {
@@ -75,6 +87,6 @@ where
                     .unwrap()
             })?;
 
-        Ok(User { id })
+        Ok(id)
     }
 }

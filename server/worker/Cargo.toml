@@ -18,3 +18,4 @@ tracing = "0.1.37"
 tracing-subscriber = "0.3.16"
 redis = { version = "0.22", features = ["tokio-comp"] }
 anyhow = "1.0.68"
+ethereum-types = "0.14.1"
