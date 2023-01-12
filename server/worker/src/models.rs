@@ -4,10 +4,10 @@ use axum::{
     response::Response,
     RequestPartsExt,
 };
-use http::{request::Parts, StatusCode};
-use redis::{AsyncCommands, Expiry, FromRedisValue, RedisError, ErrorKind};
-use serde::{Deserialize, Serialize};
 use ethereum_types::U256;
+use http::{request::Parts, StatusCode};
+use redis::{AsyncCommands, ErrorKind, Expiry, FromRedisValue, RedisError};
+use serde::{Deserialize, Serialize};
 
 static COOKIE_NAME: &str = "SESSION";
 
@@ -32,7 +32,10 @@ impl FromRedisValue for UserId {
             _ => Err(RedisError::from((
                 ErrorKind::TypeError,
                 "Response was of incompatible type",
-                format!("{:?} (response was {:?})", "Response not convertable to U256", v),
+                format!(
+                    "{:?} (response was {:?})",
+                    "Response not convertable to U256", v
+                ),
             ))),
         }
     }

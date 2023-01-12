@@ -7,15 +7,18 @@ edition = "2021"
 
 [dependencies]
 axum = { version = "0.6.2", features = ["http2", "headers"] }
-futures = "0.3"
-headers = "0.3"
-oauth2 = "4.3"
-http = "0.2"
-tokio-stream = "0.1"
-serde = "1.0"
-tokio = { version = "1.24", features = ["full"] }
+futures = "0.3.25"
+headers = "0.3.8"
+oauth2 = "4.3.0"
+http = "0.2.8"
+tokio-stream = "0.1.11"
+serde = "1.0.152"
+tokio = { version = "1.24.1", features = ["full"] }
 tracing = "0.1.37"
 tracing-subscriber = "0.3.16"
-redis = { version = "0.22", features = ["tokio-comp"] }
+redis = { version = "0.22.2", features = ["tokio-comp"] }
 anyhow = "1.0.68"
 ethereum-types = "0.14.1"
+rand = "0.8.5"
+ethers-core = "1.0.2"
+prefix-hex = "0.5.0"
