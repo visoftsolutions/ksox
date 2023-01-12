@@ -34,7 +34,7 @@ impl FromRedisValue for UserId {
                 "Response was of incompatible type",
                 format!(
                     "{:?} (response was {:?})",
-                    "Response not convertable to U256", v
+                    "Response type not UserId compatible.", v
                 ),
             ))),
         }

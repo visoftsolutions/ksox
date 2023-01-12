@@ -17,9 +17,8 @@ async fn main() -> Result<()> {
     };
 
     let app = Router::new()
-        .with_state(app_state)
         .route("/", get(root))
-        .nest("/auth", api::auth::router())
+        .nest("/auth", api::auth::router(&app_state))
         .nest("/private", api::private::router())
         .nest("/public", api::public::router());
 
