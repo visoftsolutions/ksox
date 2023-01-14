@@ -20,7 +20,7 @@ services:
 
   server:
     container_name: ksox-server
-    hostname: ksox-server
+    hostname: ksox-worker
     build:
       context: server
     depends_on:

@@ -1901,29 +1901,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "server"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "ethereum-types",
- "ethers-core",
- "futures",
- "headers",
- "http",
- "oauth2",
- "prefix-hex",
- "rand",
- "redis",
- "serde",
- "serde_with",
- "tokio",
- "tokio-stream",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "sha1"
 version = "0.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2819,6 +2796,29 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "80d0f4e272c85def139476380b12f9ac60926689dd2e01d4923222f40580869d"
 dependencies = [
  "winapi",
+]
+
+[[package]]
+name = "worker"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "ethereum-types",
+ "ethers-core",
+ "futures",
+ "headers",
+ "http",
+ "oauth2",
+ "prefix-hex",
+ "rand",
+ "redis",
+ "serde",
+ "serde_with",
+ "tokio",
+ "tokio-stream",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
