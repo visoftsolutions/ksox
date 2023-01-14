@@ -1,4 +1,1 @@
-
-struct User {
-
-}
+struct User {}

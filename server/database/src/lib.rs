@@ -2,7 +2,6 @@ mod managers;
 mod projections;
 use ethereum_types::Address;
 
-
 pub fn add(left: usize, right: usize) -> usize {
     left + right
 }
@@ -18,7 +17,5 @@ mod tests {
     }
 
     #[test]
-    fn address_parse() {
-        
-    }
+    fn address_parse() {}
 }

@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
 use ethereum_types::Address as EthereumTypesAddress;
-use sqlx::{Type, Postgres, postgres::PgTypeInfo};
+use sqlx::{postgres::PgTypeInfo, Postgres, Type};
 
 pub struct Address(EthereumTypesAddress);
 

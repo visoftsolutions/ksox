@@ -1,10 +1,7 @@
 mod depth;
 mod trades;
 
-use axum::{
-    routing::get,
-    Router,
-};
+use axum::{routing::get, Router};
 
 pub fn router() -> Router {
     Router::new()

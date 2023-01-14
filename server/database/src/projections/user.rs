@@ -1,6 +1,6 @@
-use sqlx::types::Uuid;
-use chrono::{DateTime, Utc};
 use crate::managers::types::Address;
+use chrono::{DateTime, Utc};
+use sqlx::types::Uuid;
 
 pub struct User {
     pub id: Uuid,

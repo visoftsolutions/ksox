@@ -1,6 +1,6 @@
-use sqlx::types::Uuid;
 use chrono::{DateTime, Utc};
 use ethereum_types::U256;
+use sqlx::types::Uuid;
 
 pub struct Trade {
     id: Uuid,

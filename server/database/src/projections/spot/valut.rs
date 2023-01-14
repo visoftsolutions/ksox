@@ -1,5 +1,5 @@
-use sqlx::types::Uuid;
 use ethereum_types::U256;
+use sqlx::types::Uuid;
 
 pub struct Valut {
     id: Uuid,

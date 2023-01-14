@@ -1,5 +1,5 @@
-use sqlx::types::Uuid;
 use chrono::{DateTime, Utc};
+use sqlx::types::Uuid;
 
 pub struct Asset {
     id: Uuid,
