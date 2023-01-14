@@ -3,9 +3,10 @@ pub mod models;
 use super::AppError;
 use crate::models::AppState;
 use axum::{extract::Json, extract::State, routing::get, routing::post, Router};
+use ethers_core::types::Signature;
 use models::*;
 use redis::AsyncCommands;
-use std::ops::Deref;
+use std::{ops::Deref, str::FromStr};
 
 pub fn router(app_state: &AppState) -> Router {
     Router::new()
@@ -44,8 +45,8 @@ async fn validate_signature(
     let nonce = redis_conn
         .get_del::<String, Nonce>(format!("auth:nonce:{:02X?}", payload.address))
         .await?;
-    payload
-        .signature
+
+    Signature::from_str(payload.signature.as_str())?
         .verify(nonce.deref().as_slice(), payload.address)?;
 
     let session_id = SessionId::new(32);

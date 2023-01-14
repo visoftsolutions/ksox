@@ -1,4 +1,4 @@
-use ethers_core::types::{Address, Signature};
+use ethers_core::types::Address;
 use rand::RngCore;
 use redis::{ErrorKind, FromRedisValue, RedisError, RedisWrite, ToRedisArgs, Value};
 use serde::{Deserialize, Serialize};
@@ -119,7 +119,7 @@ pub struct GenerateNonceResponse {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidateSignatureRequest {
     pub address: Address,
-    pub signature: Signature,
+    pub signature: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

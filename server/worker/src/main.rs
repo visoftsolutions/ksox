@@ -13,7 +13,7 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
 
     let app_state = AppState {
-        session_store: redis::database::get_redis_client()?,
+        session_store: redis::get_redis_client()?,
     };
 
     let app = Router::new()
