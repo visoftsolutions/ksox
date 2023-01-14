@@ -208,12 +208,12 @@ where
 
         let session_id = cookies
             .get(COOKIE_NAME)
-            .ok_or(
+            .ok_or_else(|| {
                 Response::builder()
                     .status(StatusCode::UNAUTHORIZED)
                     .body("no session cookie".to_string())
-                    .unwrap(),
-            )?
+                    .unwrap()
+            })?
             .to_string();
 
         let mut store = redis::Client::from_ref(state)
