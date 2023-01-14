@@ -1,6 +1,5 @@
 mod managers;
 mod projections;
-use ethereum_types::Address;
 
 pub fn add(left: usize, right: usize) -> usize {
     left + right
@@ -8,6 +7,10 @@ pub fn add(left: usize, right: usize) -> usize {
 
 #[cfg(test)]
 mod tests {
+    use crate::managers::types::EvmAddress;
+    use crate::projections::user::User;
+    use sqlx::PgPool;
+
     use super::*;
 
     #[test]
@@ -16,6 +19,14 @@ mod tests {
         assert_eq!(result, 4);
     }
 
-    #[test]
-    fn address_parse() {}
+    #[tokio::test]
+    async fn address_parse() {
+        let db = PgPool::connect(std::env!("DATABASE_URL")).await.unwrap();
+
+        let query = sqlx::query_as!(
+            User,
+            r#"SELECT users.id, users.created_at, users.address as "address: EvmAddress" FROM users"#
+        ).fetch_all(&db).await;
+        println!("query result: {:?}", query);
+    }
 }

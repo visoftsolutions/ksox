@@ -1,0 +1,2 @@
+[env]
+DATABASE_URL="postgresql://ksoxuser:ksoxuserp4ssword@localhost:5432/ksox"

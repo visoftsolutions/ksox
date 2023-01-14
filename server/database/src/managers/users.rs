@@ -14,7 +14,7 @@ impl UsersManager {
     pub async fn get_all(&self) -> Vec<User> {
         // let query = sqlx::query_as!(
         //     User,
-        //     "SELECT * FROM users;"
+        //     "SELECT id, created_at, address FROM users;"
         // );
 
         Vec::new()

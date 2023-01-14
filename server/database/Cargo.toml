@@ -8,4 +8,6 @@ edition = "2021"
 [dependencies]
 chrono = "0.4.23"
 ethereum-types = "0.14.1"
-sqlx = { version = "0.6.2", features = ["postgres", "uuid", "runtime-tokio-rustls", "time", "chrono"] }
+prefix-hex = "0.5.0"
+sqlx = { version = "0.6.2", features = ["all", "runtime-tokio-rustls"] }
+tokio = { version = "1.24.1", features = ["full"] }
