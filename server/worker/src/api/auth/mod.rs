@@ -3,10 +3,9 @@ pub mod models;
 use super::AppError;
 use crate::models::AppState;
 use axum::{extract::Json, extract::State, routing::get, routing::post, Router};
-use ethers_core::types::Signature;
 use models::*;
 use redis::AsyncCommands;
-use std::{ops::Deref, str::FromStr};
+use std::ops::Deref;
 
 pub fn router(app_state: &AppState) -> Router {
     Router::new()
@@ -46,15 +45,16 @@ async fn validate_signature(
         .get_del::<String, Nonce>(format!("auth:nonce:{:02X?}", payload.address))
         .await?;
 
-    Signature::from_str(payload.signature.as_str())?
+    payload
+        .signature
         .verify(nonce.deref().as_slice(), payload.address)?;
 
     let session_id = SessionId::new(32);
-    let user_id = SessionId::new(32); // TODO contact db to get user id
+    let user_id = UserId::new(128);
     redis_conn
         .set_ex(
-            format!("auth:session_id:{:02X?}", session_id.deref().as_slice()),
-            user_id,
+            format!("auth:session_id:{session_id}"),
+            format!("{user_id}"),
             SESSION_EXPIRATION_TIME,
         )
         .await?;

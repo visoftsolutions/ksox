@@ -19,8 +19,8 @@ async fn main() -> Result<()> {
     let app = Router::new()
         .route("/", get(root))
         .nest("/auth", api::auth::router(&app_state))
-        .nest("/private", api::private::router())
-        .nest("/public", api::public::router());
+        .nest("/private", api::private::router(&app_state))
+        .nest("/public", api::public::router(&app_state));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));
     tracing::info!("listening on {}", addr);
