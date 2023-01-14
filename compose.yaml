@@ -1,9 +1,22 @@
 services:
+  postgres:
+    container_name: ksox-postgres
+    hostname: ksox-postgres
+    image: postgres
+    environment:
+      - POSTGRES_USER=ksoxuser
+      - POSTGRES_PASSWORD=ksoxuserp4ssword
+      - POSTGRES_DB=ksox
+    ports:
+      - "5432:5432"
+
   server:
     container_name: ksox-server
     hostname: ksox-server
     build:
       context: server
+    depends_on:
+      - postgres
   
   web:
     container_name: ksox-web

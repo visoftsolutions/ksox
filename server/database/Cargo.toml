@@ -1,0 +1,11 @@
+[package]
+name = "database"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono = "0.4.23"
+ethereum-types = "0.14.1"
+sqlx = { version = "0.6.2", features = ["postgres", "uuid", "runtime-tokio-rustls", "time", "chrono"] }

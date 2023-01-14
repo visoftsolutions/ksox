@@ -1,9 +1,10 @@
 use axum::Router;
 use std::net::SocketAddr;
 
-mod serializer;
-mod matching_engine;
 mod deserializer;
+mod managers;
+mod matching_engine;
+mod serializer;
 mod shutdown_signal;
 
 #[tokio::main]
