@@ -18,13 +18,35 @@ services:
     depends_on:
       - postgres
   
+  # engine:
+  #   container_name: ksox-engine
+  #   hostname: ksox-engine
+  #   build:
+  #     context: server/engine
+
+  redis:
+    container_name: ksox-redis
+    hostname: ksox-redis
+    image: redis/redis-stack
+    ports:
+      - 6379:6379
+      - 8001:8001
+    
+  worker:
+    container_name: ksox-worker
+    hostname: ksox-worker
+    build:
+      context: server/worker
+    depends_on:
+      - redis
+  
   web:
     container_name: ksox-web
     hostname: ksox-web
     build:
       context: web
     depends_on:
-      - server
+      - worker
   
   proxy:
     container_name: ksox-proxy
@@ -32,7 +54,7 @@ services:
     build:
       context: proxy
     depends_on:
-      - server
+      - worker
       - web
     ports:
-      - 8080:80
+      - 7979:80
