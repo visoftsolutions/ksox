@@ -13,8 +13,8 @@ impl Deref for Address {
     }
 }
 
-impl Type<Postgres> for Address {
-    fn type_info() -> <Postgres as sqlx::Database>::TypeInfo {
-        "CHAR(42)"
-    }
-}
+// impl Type<Postgres> for Address {
+//     fn type_info() -> <Postgres as sqlx::Database>::TypeInfo {
+//         "CHAR(42)"
+//     }
+// }

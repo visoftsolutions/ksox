@@ -390,14 +390,6 @@ dependencies = [
 ]
 
 [[package]]
-<<<<<<< HEAD:server/Cargo.lock
-name = "database"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "ethereum-types",
- "sqlx",
-=======
 name = "darling"
 version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -430,7 +422,15 @@ dependencies = [
  "darling_core",
  "quote",
  "syn",
->>>>>>> 5136512 (auth endpoints tested and refactored):server/worker/Cargo.lock
+]
+
+[[package]]
+name = "database"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "ethereum-types",
+ "sqlx",
 ]
 
 [[package]]
@@ -1885,7 +1885,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with_macros",
- "time",
+ "time 0.3.17",
 ]
 
 [[package]]
@@ -2144,7 +2144,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
-<<<<<<< HEAD:server/Cargo.lock
 name = "stringprep"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2153,12 +2152,12 @@ dependencies = [
  "unicode-bidi",
  "unicode-normalization",
 ]
-=======
+
+[[package]]
 name = "strsim"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
->>>>>>> 5136512 (auth endpoints tested and refactored):server/worker/Cargo.lock
 
 [[package]]
 name = "strum"
@@ -2251,7 +2250,6 @@ dependencies = [
 
 [[package]]
 name = "time"
-<<<<<<< HEAD:server/Cargo.lock
 version = "0.1.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b797afad3f312d1c66a56d11d0316f916356d11bd158fbc6ca6389ff6bf805a"
@@ -2263,8 +2261,6 @@ dependencies = [
 
 [[package]]
 name = "time"
-=======
->>>>>>> 5136512 (auth endpoints tested and refactored):server/worker/Cargo.lock
 version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a561bf4617eebd33bca6434b988f39ed798e527f51a1e797d0ee4f61c0a38376"
