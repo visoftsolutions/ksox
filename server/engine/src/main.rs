@@ -1,8 +1,8 @@
+#![allow(dead_code)]
 use axum::Router;
 use std::net::SocketAddr;
 
 mod deserializer;
-mod managers;
 mod matching_engine;
 mod serializer;
 mod shutdown_signal;

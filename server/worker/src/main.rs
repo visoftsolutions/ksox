@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 mod api;
 mod models;
 mod redis;

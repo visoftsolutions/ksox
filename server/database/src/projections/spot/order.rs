@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
-use ethereum_types::U256;
-use sqlx::types::Uuid;
+use sqlx::{postgres::types::PgMoney, types::Uuid, Type};
 
+#[derive(Debug, Type)]
 pub enum Status {
     Active,
     PartiallyFilled,
@@ -10,12 +10,12 @@ pub enum Status {
 }
 
 pub struct Order {
-    id: Uuid,
-    created_at: DateTime<Utc>,
-    user_id: Uuid,
-    status: Status,
-    quote_asset_id: Uuid,
-    base_asset_id: Uuid,
-    quote_asset_volume: U256,
-    base_asset_price: f64,
+    pub id: Uuid,
+    pub created_at: DateTime<Utc>,
+    pub user_id: Uuid,
+    pub status: Status,
+    pub quote_asset_id: Uuid,
+    pub base_asset_id: Uuid,
+    pub quote_asset_volume: PgMoney,
+    pub base_asset_price: f64,
 }

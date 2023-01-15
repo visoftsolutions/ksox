@@ -2,8 +2,8 @@ use std::ops::Deref;
 
 use ethereum_types::Address as AddressFromEthereumTypes;
 use sqlx::{
-    postgres::{PgArgumentBuffer, PgValueRef, PgTypeInfo},
-    Decode, Encode, Postgres, Type,
+    postgres::{PgArgumentBuffer, PgValueRef},
+    Decode, Encode, Postgres,
 };
 
 #[derive(Debug)]

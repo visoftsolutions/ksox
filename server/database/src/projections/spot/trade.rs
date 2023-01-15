@@ -1,14 +1,13 @@
 use chrono::{DateTime, Utc};
-use ethereum_types::U256;
-use sqlx::types::Uuid;
+use sqlx::{postgres::types::PgMoney, types::Uuid};
 
 pub struct Trade {
-    id: Uuid,
-    created_at: DateTime<Utc>,
-    taker_id: Uuid,
-    order_id: Uuid,
-    taker_quote_volume: U256,
-    maker_quote_volume: U256,
-    taker_base_volume: U256,
-    maker_base_volume: U256,
+    pub id: Uuid,
+    pub created_at: DateTime<Utc>,
+    pub taker_id: Uuid,
+    pub order_id: Uuid,
+    pub taker_quote_volume: PgMoney,
+    pub maker_quote_volume: PgMoney,
+    pub taker_base_volume: PgMoney,
+    pub maker_base_volume: PgMoney,
 }

@@ -1,9 +1,8 @@
-use ethereum_types::U256;
-use sqlx::types::Uuid;
+use sqlx::{postgres::types::PgMoney, types::Uuid};
 
 pub struct Valut {
-    id: Uuid,
-    user_id: Uuid,
-    asset_id: Uuid,
-    balance: U256,
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub asset_id: Uuid,
+    pub balance: PgMoney,
 }
