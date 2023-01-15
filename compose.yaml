@@ -7,6 +7,8 @@ services:
       - POSTGRES_USER=ksoxuser
       - POSTGRES_PASSWORD=ksoxuserp4ssword
       - POSTGRES_DB=ksox
+    volumes:
+      - ./migrations:/docker-entrypoint-initdb.d
     ports:
       - "5432:5432"
   
@@ -18,13 +20,19 @@ services:
       - 6379:6379
       - 8001:8001
 
-  server:
-    container_name: ksox-server
+  worker:
+    container_name: ksox-worker
     hostname: ksox-worker
     build:
       context: server
-    depends_on:
-      - postgres
+      dockerfile: ./worker.dockerfile
+  
+  engine:
+    container_name: ksox-engine
+    hostname: ksox-engine
+    build:
+      context: server
+      dockerfile: ./engine.dockerfile
 
   web:
     container_name: ksox-web
@@ -32,7 +40,7 @@ services:
     build:
       context: web
     depends_on:
-      - server
+      - worker
   
   proxy:
     container_name: ksox-proxy
@@ -40,7 +48,7 @@ services:
     build:
       context: proxy
     depends_on:
-      - server
+      - worker
       - web
     ports:
       - 7979:80

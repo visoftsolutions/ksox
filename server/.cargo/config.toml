@@ -1,2 +1,3 @@
 [env]
-DATABASE_URL="postgresql://ksoxuser:ksoxuserp4ssword@localhost:5432/ksox"
+REDIS_URL="redis://ksox-redis/"
+DATABASE_URL="postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres:5432/ksox"
