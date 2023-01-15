@@ -10,7 +10,9 @@ mod tests {
 
     #[tokio::test]
     async fn basic_users_manager_query() {
-        let database = PgPool::connect(std::env!("DATABASE_URL")).await.unwrap();
+        let database = PgPool::connect(std::env::var("DATABASE_URL").unwrap_or_default().as_str())
+            .await
+            .unwrap();
 
         let user_manager = UsersManager::new(database);
 

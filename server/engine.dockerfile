@@ -21,4 +21,3 @@ FROM debian:buster-slim AS engine-runtime
 WORKDIR /app
 COPY --from=builder /app/target/release/engine /usr/local/bin
 ENTRYPOINT [ "/usr/local/bin/engine" ]
-

@@ -15,7 +15,7 @@ async fn main() {
         .merge(deserializer::router())
         .merge(serializer::router());
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 80));
     tracing::info!("listening on {}", addr);
 
     axum::Server::bind(&addr)
