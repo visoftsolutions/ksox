@@ -1,16 +1,16 @@
 use std::ops::Deref;
 
-use ethereum_types::Address as AddressFromEthereumTypes;
+use ethereum_types::Address;
 use sqlx::{
     postgres::{PgArgumentBuffer, PgValueRef},
     Decode, Encode, Postgres,
 };
 
 #[derive(Debug)]
-pub struct EvmAddress(pub AddressFromEthereumTypes);
+pub struct EvmAddress(pub Address);
 
 impl Deref for EvmAddress {
-    type Target = AddressFromEthereumTypes;
+    type Target = Address;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -28,7 +28,7 @@ impl TryFrom<String> for EvmAddress {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let bytes = prefix_hex::decode::<[u8; 20]>(value.as_str())?;
-        Ok(EvmAddress(AddressFromEthereumTypes::from_slice(&bytes)))
+        Ok(EvmAddress(Address::from_slice(&bytes)))
     }
 }
 
@@ -36,7 +36,7 @@ impl Decode<'_, Postgres> for EvmAddress {
     fn decode(value: PgValueRef) -> std::result::Result<Self, sqlx::error::BoxDynError> {
         let bytes =
             prefix_hex::decode::<[u8; 20]>(value.as_str()?).map_err(|error| error.to_string())?;
-        Ok(EvmAddress(AddressFromEthereumTypes::from_slice(&bytes)))
+        Ok(EvmAddress(Address::from_slice(&bytes)))
     }
 }
 
