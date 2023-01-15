@@ -4,7 +4,7 @@ use std::pin::Pin;
 
 use crate::{managers::types::EvmAddress, projections::user::User};
 
-struct UsersManager {
+pub struct UsersManager {
     database: PgPool,
 }
 

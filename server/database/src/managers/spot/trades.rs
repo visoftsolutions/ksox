@@ -4,7 +4,7 @@ use std::pin::Pin;
 
 use crate::projections::spot::trade::Trade;
 
-struct TradesManager {
+pub struct TradesManager {
     database: PgPool,
 }
 

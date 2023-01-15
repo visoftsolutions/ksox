@@ -1,10 +1,11 @@
 -- Add migration script here
 
-CREATE DOMAIN evm_address AS char(42);
+CREATE DOMAIN evm_address AS CHAR(42);
+CREATE DOMAIN evm_decimal AS NUMERIC(78, 18) CHECK (VALUE >= 0);
 
 CREATE TABLE "users" (
   "id" uuid PRIMARY KEY NOT NULL,
-  "created_at" timestamptz NOT NULL,
+  "created_at" TIMESTAMPTZ NOT NULL,
   "address" evm_address UNIQUE NOT NULL
 );
 
@@ -21,36 +22,36 @@ CREATE TABLE "spot"."valuts" (
   "id" uuid PRIMARY KEY NOT NULL,
   "user_id" uuid NOT NULL,
   "asset_id" uuid NOT NULL,
-  "balance" money NOT NULL
+  "balance" evm_decimal NOT NULL
 );
 
 CREATE TABLE "spot"."assets" (
   "id" uuid PRIMARY KEY NOT NULL,
-  "created_at" timestamptz NOT NULL,
+  "created_at" TIMESTAMPTZ NOT NULL,
   "name" varchar NOT NULL,
   "symbol" varchar NOT NULL
 );
 
 CREATE TABLE "spot"."orders" (
   "id" uuid PRIMARY KEY NOT NULL,
-  "created_at" timestamptz NOT NULL,
+  "created_at" TIMESTAMPTZ NOT NULL,
   "user_id" uuid NOT NULL,
   "status" spot.products_status NOT NULL,
   "quote_asset_id" uuid NOT NULL,
   "base_asset_id" uuid NOT NULL,
-  "quote_asset_volume" money NOT NULL,
+  "quote_asset_volume" evm_decimal NOT NULL,
   "base_asset_price" float8 NOT NULL
 );
 
 CREATE TABLE "spot"."trades" (
   "id" uuid PRIMARY KEY NOT NULL,
-  "created_at" timestamptz NOT NULL,
+  "created_at" TIMESTAMPTZ NOT NULL,
   "taker_id" uuid NOT NULL,
   "order_id" uuid NOT NULL,
-  "taker_quote_volume" money NOT NULL,
-  "taker_base_volume" money NOT NULL,
-  "maker_quote_volume" money NOT NULL,
-  "maker_base_volume" money NOT NULL
+  "taker_quote_volume" evm_decimal NOT NULL,
+  "taker_base_volume" evm_decimal NOT NULL,
+  "maker_quote_volume" evm_decimal NOT NULL,
+  "maker_base_volume" evm_decimal NOT NULL
 );
 
 ALTER TABLE "spot"."valuts" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");

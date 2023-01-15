@@ -4,7 +4,7 @@ use std::pin::Pin;
 
 use crate::projections::spot::asset::Asset;
 
-struct AssetsManager {
+pub struct AssetsManager {
     database: PgPool,
 }
 

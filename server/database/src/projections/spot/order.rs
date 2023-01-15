@@ -1,5 +1,8 @@
 use chrono::{DateTime, Utc};
-use sqlx::{postgres::types::PgMoney, types::Uuid, Type};
+use sqlx::{
+    types::{BigDecimal, Uuid},
+    Type,
+};
 
 #[derive(Debug, Type)]
 pub enum Status {
@@ -16,6 +19,6 @@ pub struct Order {
     pub status: Status,
     pub quote_asset_id: Uuid,
     pub base_asset_id: Uuid,
-    pub quote_asset_volume: PgMoney,
+    pub quote_asset_volume: BigDecimal,
     pub base_asset_price: f64,
 }

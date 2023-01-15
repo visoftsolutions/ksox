@@ -4,7 +4,7 @@ use std::pin::Pin;
 
 use crate::projections::spot::order::{Order, Status};
 
-struct OrdersManager {
+pub struct OrdersManager {
     database: PgPool,
 }
 

@@ -4,21 +4,20 @@ mod projections;
 
 #[cfg(test)]
 mod tests {
-    use crate::managers::types::EvmAddress;
-    use crate::projections::user::User;
-    use futures::{Stream, StreamExt};
-    use sqlx::{PgPool, Result};
-    use std::pin::Pin;
+    use crate::managers::users::UsersManager;
+    use futures::StreamExt;
+    use sqlx::PgPool;
 
     #[tokio::test]
-    async fn address_parse() {
-        let db = PgPool::connect(std::env!("DATABASE_URL")).await.unwrap();
+    async fn basic_users_manager_query() {
+        let database = PgPool::connect(std::env!("DATABASE_URL")).await.unwrap();
 
-        let mut query: Pin<Box<dyn Stream<Item = Result<User>> + Send + '_>> = sqlx::query_as!(
-            User,
-            r#"SELECT users.id, users.created_at, users.address as "address: EvmAddress" FROM users"#
-        ).fetch(&db);
+        let user_manager = UsersManager::new(database);
 
-        println!("query result: {:?}", query.next().await);
+        let mut query = user_manager.get_all().await;
+
+        let result = query.next().await;
+
+        println!("query result: {:?}", result);
     }
 }
