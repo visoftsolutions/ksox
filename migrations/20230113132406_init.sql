@@ -1,11 +1,11 @@
 -- Add migration script here
-
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE DOMAIN evm_address AS CHAR(42);
 CREATE DOMAIN evm_decimal AS NUMERIC(78, 18) CHECK (VALUE >= 0);
 
 CREATE TABLE "users" (
-  "id" uuid PRIMARY KEY NOT NULL,
-  "created_at" TIMESTAMPTZ NOT NULL,
+  "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4 (),
+  "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "address" evm_address UNIQUE NOT NULL
 );
 

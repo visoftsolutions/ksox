@@ -2,8 +2,8 @@ use std::ops::Deref;
 
 use ethereum_types::Address;
 use sqlx::{
-    postgres::{PgArgumentBuffer, PgValueRef},
-    Decode, Encode, Postgres,
+    postgres::{PgArgumentBuffer, PgValueRef, PgTypeInfo},
+    Decode, Encode, Postgres, Type
 };
 
 #[derive(Debug)]
@@ -47,5 +47,11 @@ impl Encode<'_, Postgres> for EvmAddress {
 
     fn encode_by_ref(&self, buf: &mut PgArgumentBuffer) -> sqlx::encode::IsNull {
         <&str as Encode<Postgres>>::encode_by_ref(&self.to_string().as_str(), buf)
+    }
+}
+
+impl Type<Postgres> for EvmAddress {
+    fn type_info() -> PgTypeInfo {
+        PgTypeInfo::with_name("evm_address")
     }
 }
