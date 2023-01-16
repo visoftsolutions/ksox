@@ -238,6 +238,38 @@
     },
     "query": "\n            SELECT\n                users.id,\n                users.created_at,\n                users.address as \"address: EvmAddress\"\n            FROM users\n            "
   },
+  "88efb40bec0759abe2102cf5608f5c80e5525b8b11dfcfecc4399fbb1e1161cc": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "address: EvmAddress",
+          "ordinal": 2,
+          "type_info": "Bpchar"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Bpchar"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO \n                users \n                (address) VALUES ($1)\n                RETURNING id, created_at, address as \"address: EvmAddress\"\n            "
+  },
   "8cf465b819d07777d723ee084f737b1c29158aba3cfdae9f0ac099a431ca2dbf": {
     "describe": {
       "columns": [
