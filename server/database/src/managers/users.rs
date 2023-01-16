@@ -66,12 +66,9 @@ impl UsersManager {
         .fetch(&self.database)
     }
 
-    pub async fn create(
-        &self,
-        evm_address: EvmAddress,
-    ) -> core::result::Result<User, sqlx::Error> {
+    pub async fn insert(&self, evm_address: EvmAddress) -> Result<User> {
         let evm_address_string = evm_address.to_string();
-        Ok(sqlx::query_as!(
+        sqlx::query_as!(
             User,
             r#"
             INSERT INTO 
@@ -81,6 +78,7 @@ impl UsersManager {
             "#,
             evm_address_string.as_str()
         )
-        .fetch_one(&self.database).await?)
+        .fetch_one(&self.database)
+        .await
     }
 }

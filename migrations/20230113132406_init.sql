@@ -1,12 +1,10 @@
 -- Add migration script here
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE DOMAIN evm_address AS CHAR(42);
-CREATE DOMAIN evm_decimal AS NUMERIC(78, 18) CHECK (VALUE >= 0);
 
 CREATE TABLE "users" (
-  "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4 (),
+  "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "address" evm_address UNIQUE NOT NULL
+  "address" CHAR(42) UNIQUE NOT NULL
 );
 
 CREATE SCHEMA "spot";
@@ -19,39 +17,39 @@ CREATE TYPE "spot"."products_status" AS ENUM (
 );
 
 CREATE TABLE "spot"."valuts" (
-  "id" uuid PRIMARY KEY NOT NULL,
+  "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "user_id" uuid NOT NULL,
   "asset_id" uuid NOT NULL,
-  "balance" evm_decimal NOT NULL
+  "balance" NUMERIC(78, 18) NOT NULL CHECK ("balance" >= 0) DEFAULT 0
 );
 
 CREATE TABLE "spot"."assets" (
-  "id" uuid PRIMARY KEY NOT NULL,
-  "created_at" TIMESTAMPTZ NOT NULL,
+  "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "name" varchar NOT NULL,
   "symbol" varchar NOT NULL
 );
 
 CREATE TABLE "spot"."orders" (
-  "id" uuid PRIMARY KEY NOT NULL,
-  "created_at" TIMESTAMPTZ NOT NULL,
+  "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "user_id" uuid NOT NULL,
   "status" spot.products_status NOT NULL,
   "quote_asset_id" uuid NOT NULL,
   "base_asset_id" uuid NOT NULL,
-  "quote_asset_volume" evm_decimal NOT NULL,
+  "quote_asset_volume" NUMERIC(78, 18) NOT NULL CHECK ("quote_asset_volume" >= 0),
   "base_asset_price" float8 NOT NULL
 );
 
 CREATE TABLE "spot"."trades" (
-  "id" uuid PRIMARY KEY NOT NULL,
-  "created_at" TIMESTAMPTZ NOT NULL,
+  "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "taker_id" uuid NOT NULL,
   "order_id" uuid NOT NULL,
-  "taker_quote_volume" evm_decimal NOT NULL,
-  "taker_base_volume" evm_decimal NOT NULL,
-  "maker_quote_volume" evm_decimal NOT NULL,
-  "maker_base_volume" evm_decimal NOT NULL
+  "taker_quote_volume" NUMERIC(78, 18) NOT NULL CHECK ("taker_quote_volume" >= 0),
+  "taker_base_volume" NUMERIC(78, 18) NOT NULL CHECK ("taker_base_volume" >= 0),
+  "maker_quote_volume" NUMERIC(78, 18) NOT NULL CHECK ("maker_quote_volume" >= 0),
+  "maker_base_volume" NUMERIC(78, 18) NOT NULL CHECK ("maker_base_volume" >= 0)
 );
 
 ALTER TABLE "spot"."valuts" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
