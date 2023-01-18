@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 pub mod managers;
 pub mod projections;
+pub mod types;
 
 pub use sqlx;
 

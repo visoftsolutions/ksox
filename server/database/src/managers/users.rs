@@ -2,7 +2,7 @@ use futures::Stream;
 use sqlx::{postgres::PgPool, types::Uuid, Result};
 use std::pin::Pin;
 
-use crate::managers::types::EvmAddress;
+use crate::types::EvmAddress;
 use crate::projections::user::User;
 
 #[derive(Debug, Clone)]

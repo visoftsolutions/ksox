@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::managers::types::EvmAddress;
+use crate::types::EvmAddress;
 use chrono::{DateTime, Utc};
 use sqlx::{postgres::PgRow, types::Uuid, FromRow, Result, Row};
 

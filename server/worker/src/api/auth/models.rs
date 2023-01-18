@@ -1,4 +1,4 @@
-use database::managers::types::EvmAddress;
+use database::types::EvmAddress;
 use database::sqlx::types::Uuid;
 use ethers_core::types::Signature;
 use rand::RngCore;
