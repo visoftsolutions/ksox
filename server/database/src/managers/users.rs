@@ -48,10 +48,7 @@ impl UsersManager {
         .fetch(&self.database)
     }
 
-    pub async fn get_by_evm_address(
-        &self,
-        evm_address: EvmAddress,
-    ) -> Pin<Box<dyn Stream<Item = Result<User>> + Send + '_>> {
+    pub async fn get_by_evm_address(&self, evm_address: EvmAddress) -> Result<User> {
         let evm_address_string = evm_address.to_string();
         sqlx::query_as!(
             User,
@@ -65,7 +62,8 @@ impl UsersManager {
             "#,
             evm_address_string.as_str()
         )
-        .fetch(&self.database)
+        .fetch_one(&self.database)
+        .await
     }
 
     pub async fn insert(&self, evm_address: EvmAddress) -> Result<User> {

@@ -10,6 +10,7 @@ use axum::{
     response::Response,
     RequestPartsExt,
 };
+use bytes::{Bytes, BytesMut};
 use cache::redis::{
     AsyncCommands, Client, Expiry, FromRedisValue, RedisError, RedisResult, RedisWrite,
     ToRedisArgs, Value,
@@ -21,19 +22,16 @@ use rand::RngCore;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, DisplayFromStr};
 
-pub const NONCE_EXPIRATION_TIME: usize = 60; // in secodns
-pub const SESSION_EXPIRATION_TIME: usize = 3600; // in secodns
-static COOKIE_NAME: &str = "session_id";
+use super::{COOKIE_NAME, SESSION_EXPIRATION_TIME};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Nonce(Vec<u8>);
+#[derive(Debug, Clone)]
+pub struct Nonce(Bytes);
 
 impl Nonce {
     pub fn new(size: usize) -> Self {
-        let mut nonce = Vec::<u8>::new();
-        nonce.resize(size, 0);
-        rand::thread_rng().fill_bytes(nonce.as_mut_slice());
-        Self(nonce)
+        let mut bytes = BytesMut::with_capacity(size);
+        rand::thread_rng().fill_bytes(bytes.as_mut());
+        Self(bytes.into())
     }
 }
 
@@ -41,18 +39,22 @@ impl FromStr for Nonce {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self(prefix_hex::decode(s).map_err(anyhow::Error::msg)?))
+        Ok(Self(
+            prefix_hex::decode::<Vec<u8>>(s)
+                .map_err(anyhow::Error::msg)?
+                .into(),
+        ))
     }
 }
 
 impl std::fmt::Display for Nonce {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", prefix_hex::encode(self.0.clone()))
+        write!(f, "{}", prefix_hex::encode(self.0.as_ref()))
     }
 }
 
 impl Deref for Nonce {
-    type Target = Vec<u8>;
+    type Target = Bytes;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -81,21 +83,14 @@ impl ToRedisArgs for Nonce {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SessionId(Vec<u8>);
+#[derive(Debug, Clone)]
+pub struct SessionId(Bytes);
 // [u8; 32]
 impl SessionId {
     pub fn new(size: usize) -> Self {
-        let mut nonce = Vec::<u8>::new();
-        nonce.resize(size, 0);
-        rand::thread_rng().fill_bytes(nonce.as_mut_slice());
-        Self(nonce)
-    }
-}
-
-impl From<Vec<u8>> for SessionId {
-    fn from(value: Vec<u8>) -> Self {
-        Self(value)
+        let mut bytes = BytesMut::with_capacity(size);
+        rand::thread_rng().fill_bytes(bytes.as_mut());
+        Self(bytes.into())
     }
 }
 
@@ -103,18 +98,22 @@ impl FromStr for SessionId {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self(prefix_hex::decode(s).map_err(anyhow::Error::msg)?))
+        Ok(Self(
+            prefix_hex::decode::<Vec<u8>>(s)
+                .map_err(anyhow::Error::msg)?
+                .into(),
+        ))
     }
 }
 
 impl std::fmt::Display for SessionId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", prefix_hex::encode(self.0.clone()))
+        write!(f, "{}", prefix_hex::encode(self.0.as_ref()))
     }
 }
 
 impl Deref for SessionId {
-    type Target = Vec<u8>;
+    type Target = Bytes;
 
     fn deref(&self) -> &Self::Target {
         &self.0

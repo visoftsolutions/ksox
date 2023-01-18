@@ -8,12 +8,15 @@ use axum::{
     Router,
 };
 use cache::redis::{AsyncCommands, Client};
-use database::{managers::users::UsersManager, projections::user::User};
-use futures::StreamExt;
+use database::{managers::users::UsersManager, sqlx::error::Error};
 use models::*;
 
 use super::AppError;
 use crate::models::AppState;
+
+pub const NONCE_EXPIRATION_TIME: usize = 60; // in secodns
+pub const SESSION_EXPIRATION_TIME: usize = 3600; // in secodns
+pub const COOKIE_NAME: &str = "session_id";
 
 pub fn router(app_state: &AppState) -> Router {
     Router::new()
@@ -56,29 +59,25 @@ async fn validate_signature(
 
     payload
         .signature
-        .verify(nonce.deref().as_slice(), payload.address.clone())?;
+        .verify(nonce.deref().as_ref(), payload.address.clone())?;
 
     let session_id = SessionId::new(32);
 
-    let mut users_stream = users_manager
+    let user = match users_manager
         .get_by_evm_address(payload.address.clone())
-        .await;
-    let user = users_stream.next().await;
-    if users_stream.next().await.is_some() {
-        return Err(AppError(anyhow::Error::msg(
-            "Multple users with same EvmAddresses",
-        )));
-    }
-
-    let db_user: User = match user {
-        Some(user) => user?,
-        None => users_manager.insert(payload.address).await?,
-    };
+        .await
+    {
+        Ok(user) => Ok(user),
+        Err(err) => match err {
+            Error::RowNotFound => users_manager.insert(payload.address).await,
+            _ => Err(err),
+        },
+    }?;
 
     redis_conn
         .set_ex(
             format!("auth:session_id:{session_id}"),
-            format!("{}", db_user.id),
+            format!("{}", user.id),
             SESSION_EXPIRATION_TIME,
         )
         .await?;
