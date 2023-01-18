@@ -1,14 +1,15 @@
 #![allow(dead_code)]
 mod api;
 mod models;
-mod redis;
 mod shutdown_signal;
+
+use std::net::SocketAddr;
 
 use anyhow::{Ok, Result};
 use axum::{routing::get, Router};
+use cache::get_client;
 use database::{managers::users::UsersManager, sqlx::PgPool};
 use models::AppState;
-use std::net::SocketAddr;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -18,7 +19,7 @@ async fn main() -> Result<()> {
         PgPool::connect(std::env::var("DATABASE_URL").unwrap_or_default().as_str()).await?;
 
     let app_state = AppState {
-        session_store: redis::get_redis_client()?,
+        session_store: get_client()?,
         users_manager: UsersManager::new(database),
     };
 

@@ -7,9 +7,10 @@ pub use sqlx;
 
 #[cfg(test)]
 mod tests {
-    use crate::managers::users::UsersManager;
     use futures::StreamExt;
     use sqlx::PgPool;
+
+    use crate::managers::users::UsersManager;
 
     #[tokio::test]
     async fn basic_users_manager_query() {

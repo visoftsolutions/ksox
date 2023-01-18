@@ -19,6 +19,7 @@ impl Deref for EvmAddress {
 
 impl FromStr for EvmAddress {
     type Err = anyhow::Error;
+
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let bytes = prefix_hex::decode::<[u8; 20]>(s).map_err(anyhow::Error::msg)?;
         Ok(Self(Address::from_slice(&bytes)))

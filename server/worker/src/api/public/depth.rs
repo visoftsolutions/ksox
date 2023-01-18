@@ -1,10 +1,11 @@
+use std::{convert::Infallible, time::Duration};
+
 use axum::{
     extract::TypedHeader,
     headers::UserAgent,
     response::sse::{Event, Sse},
 };
 use futures::stream::{self, Stream};
-use std::{convert::Infallible, time::Duration};
 use tokio_stream::StreamExt as _;
 
 pub async fn root(

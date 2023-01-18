@@ -3,8 +3,9 @@ pub mod cancel_order;
 pub mod open_orders;
 pub mod submit_order;
 
-use crate::models::AppState;
 use axum::{routing::get, Router};
+
+use crate::models::AppState;
 
 pub fn router(app_state: &AppState) -> Router {
     Router::new()

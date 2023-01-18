@@ -1,13 +1,14 @@
 use axum::extract::FromRef;
+use cache::redis::Client;
 use database::managers::users::UsersManager;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub session_store: redis::Client,
+    pub session_store: Client,
     pub users_manager: UsersManager,
 }
 
-impl FromRef<AppState> for redis::Client {
+impl FromRef<AppState> for Client {
     fn from_ref(state: &AppState) -> Self {
         state.session_store.clone()
     }

@@ -1,7 +1,3 @@
 [workspace]
 
-members = [
-    "database",
-    "engine",
-    "worker",
-]
+members = ["cache", "database", "engine", "worker"]

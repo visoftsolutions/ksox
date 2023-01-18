@@ -4,12 +4,15 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+anyhow = "1.0.68"
 chrono = "0.4.23"
 ethereum-types = "0.14.1"
 futures = "0.3.25"
 prefix-hex = "0.5.0"
-sqlx = { version = "0.6.2", features = ["all", "runtime-tokio-rustls", "offline"] }
+sqlx = { version = "0.6.2", features = [
+    "all",
+    "runtime-tokio-rustls",
+    "offline",
+] }
 tokio = { version = "1.24.1", features = ["full"] }
-anyhow = "1.0.68"

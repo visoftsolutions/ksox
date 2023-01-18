@@ -1,6 +1,7 @@
 #![allow(dead_code)]
-use axum::Router;
 use std::net::SocketAddr;
+
+use axum::Router;
 
 mod deserializer;
 mod matching_engine;

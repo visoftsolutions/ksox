@@ -1,6 +1,7 @@
+use std::pin::Pin;
+
 use futures::Stream;
 use sqlx::{postgres::PgPool, types::Uuid, Result};
-use std::pin::Pin;
 
 use crate::projections::spot::trade::Trade;
 

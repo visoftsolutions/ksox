@@ -1,9 +1,9 @@
-use futures::Stream;
-use sqlx::{postgres::PgPool, types::Uuid, Result};
 use std::pin::Pin;
 
-use crate::types::EvmAddress;
-use crate::projections::user::User;
+use futures::Stream;
+use sqlx::{postgres::PgPool, types::Uuid, Result};
+
+use crate::{projections::user::User, types::EvmAddress};
 
 #[derive(Debug, Clone)]
 pub struct UsersManager {

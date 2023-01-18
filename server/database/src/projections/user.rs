@@ -1,8 +1,9 @@
 use std::str::FromStr;
 
-use crate::types::EvmAddress;
 use chrono::{DateTime, Utc};
 use sqlx::{postgres::PgRow, types::Uuid, FromRow, Result, Row};
+
+use crate::types::EvmAddress;
 
 #[derive(Debug)]
 pub struct User {

@@ -1,13 +1,19 @@
 pub mod models;
 
-use super::AppError;
-use crate::models::AppState;
-use axum::{extract::Json, extract::State, routing::get, routing::post, Router};
+use std::ops::Deref;
+
+use axum::{
+    extract::{Json, State},
+    routing::{get, post},
+    Router,
+};
+use cache::redis::{AsyncCommands, Client};
 use database::{managers::users::UsersManager, projections::user::User};
 use futures::StreamExt;
 use models::*;
-use redis::AsyncCommands;
-use std::ops::Deref;
+
+use super::AppError;
+use crate::models::AppState;
 
 pub fn router(app_state: &AppState) -> Router {
     Router::new()
@@ -38,7 +44,7 @@ async fn generate_nonce(
 }
 
 async fn validate_signature(
-    State(session_store): State<redis::Client>,
+    State(session_store): State<Client>,
     State(users_manager): State<UsersManager>,
     Json(payload): Json<ValidateSignatureRequest>,
 ) -> Result<Json<ValidateSignatureResponse>, AppError> {

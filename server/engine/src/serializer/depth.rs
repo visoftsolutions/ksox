@@ -1,6 +1,7 @@
+use std::{convert::Infallible, time::Duration};
+
 use axum::response::sse::{Event, Sse};
 use futures::{stream, Stream};
-use std::{convert::Infallible, time::Duration};
 use tokio_stream::StreamExt;
 
 pub async fn depth() -> Sse<impl Stream<Item = Result<Event, Infallible>>> {

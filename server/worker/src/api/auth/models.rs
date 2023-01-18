@@ -1,12 +1,8 @@
-use database::types::EvmAddress;
-use database::sqlx::types::Uuid;
-use ethers_core::types::Signature;
-use rand::RngCore;
-use redis::{FromRedisValue, RedisError, RedisWrite, ToRedisArgs, Value};
-use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, DisplayFromStr};
-use std::io::{Error, ErrorKind};
-use std::{ops::Deref, str::FromStr};
+use std::{
+    io::{Error, ErrorKind},
+    ops::Deref,
+    str::FromStr,
+};
 
 use axum::{
     async_trait,
@@ -14,8 +10,16 @@ use axum::{
     response::Response,
     RequestPartsExt,
 };
+use cache::redis::{
+    AsyncCommands, Client, Expiry, FromRedisValue, RedisError, RedisResult, RedisWrite,
+    ToRedisArgs, Value,
+};
+use database::{sqlx::types::Uuid, types::EvmAddress};
+use ethers_core::types::Signature;
 use http::{request::Parts, StatusCode};
-use redis::{AsyncCommands, Expiry};
+use rand::RngCore;
+use serde::{Deserialize, Serialize};
+use serde_with::{serde_as, DisplayFromStr};
 
 pub const NONCE_EXPIRATION_TIME: usize = 60; // in secodns
 pub const SESSION_EXPIRATION_TIME: usize = 3600; // in secodns
@@ -35,6 +39,7 @@ impl Nonce {
 
 impl FromStr for Nonce {
     type Err = anyhow::Error;
+
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Self(prefix_hex::decode(s).map_err(anyhow::Error::msg)?))
     }
@@ -48,13 +53,14 @@ impl std::fmt::Display for Nonce {
 
 impl Deref for Nonce {
     type Target = Vec<u8>;
+
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
 impl FromRedisValue for Nonce {
-    fn from_redis_value(v: &Value) -> redis::RedisResult<Self> {
+    fn from_redis_value(v: &Value) -> RedisResult<Self> {
         match *v {
             Value::Data(ref bytes) => match String::from_utf8(bytes.clone()) {
                 Ok(string) => Self::from_str(string.as_str())
@@ -95,6 +101,7 @@ impl From<Vec<u8>> for SessionId {
 
 impl FromStr for SessionId {
     type Err = anyhow::Error;
+
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Self(prefix_hex::decode(s).map_err(anyhow::Error::msg)?))
     }
@@ -108,13 +115,14 @@ impl std::fmt::Display for SessionId {
 
 impl Deref for SessionId {
     type Target = Vec<u8>;
+
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
 impl FromRedisValue for SessionId {
-    fn from_redis_value(v: &Value) -> redis::RedisResult<Self> {
+    fn from_redis_value(v: &Value) -> RedisResult<Self> {
         match *v {
             Value::Data(ref bytes) => match String::from_utf8(bytes.clone()) {
                 Ok(string) => Self::from_str(string.as_str())
@@ -140,6 +148,7 @@ pub struct UserId(Uuid);
 
 impl FromStr for UserId {
     type Err = anyhow::Error;
+
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Self(Uuid::from_str(s)?))
     }
@@ -153,13 +162,14 @@ impl std::fmt::Display for UserId {
 
 impl Deref for UserId {
     type Target = Uuid;
+
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
 impl FromRedisValue for UserId {
-    fn from_redis_value(v: &Value) -> redis::RedisResult<Self> {
+    fn from_redis_value(v: &Value) -> RedisResult<Self> {
         match *v {
             Value::Data(ref bytes) => match String::from_utf8(bytes.clone()) {
                 Ok(string) => Self::from_str(string.as_str())
@@ -183,7 +193,7 @@ impl ToRedisArgs for UserId {
 #[async_trait]
 impl<S> FromRequestParts<S> for UserId
 where
-    redis::Client: FromRef<S>,
+    Client: FromRef<S>,
     S: Send + Sync,
 {
     type Rejection = Response<String>;
@@ -209,7 +219,7 @@ where
             })?
             .to_string();
 
-        let mut store = redis::Client::from_ref(state)
+        let mut store = Client::from_ref(state)
             .get_async_connection()
             .await
             .map_err(|e| {

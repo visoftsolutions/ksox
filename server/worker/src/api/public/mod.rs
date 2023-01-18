@@ -4,8 +4,9 @@ pub mod ohlc;
 pub mod regex_search;
 pub mod trades;
 
-use crate::models::AppState;
 use axum::{routing::get, Router};
+
+use crate::models::AppState;
 
 pub fn router(app_state: &AppState) -> Router {
     Router::new()
