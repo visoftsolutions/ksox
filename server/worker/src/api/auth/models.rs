@@ -1,4 +1,6 @@
-use ethers_core::types::{Address, Signature};
+use database::managers::types::EvmAddress;
+use database::sqlx::types::Uuid;
+use ethers_core::types::Signature;
 use rand::RngCore;
 use redis::{FromRedisValue, RedisError, RedisWrite, ToRedisArgs, Value};
 use serde::{Deserialize, Serialize};
@@ -133,33 +135,24 @@ impl ToRedisArgs for SessionId {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserId(Vec<u8>);
-
-impl UserId {
-    pub fn new(size: usize) -> Self {
-        let mut nonce = Vec::<u8>::new();
-        nonce.resize(size, 0);
-        rand::thread_rng().fill_bytes(nonce.as_mut_slice());
-        Self(nonce)
-    }
-}
+#[derive(Debug, Clone)]
+pub struct UserId(Uuid);
 
 impl FromStr for UserId {
     type Err = anyhow::Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self(prefix_hex::decode(s).map_err(anyhow::Error::msg)?))
+        Ok(Self(Uuid::from_str(s)?))
     }
 }
 
 impl std::fmt::Display for UserId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", prefix_hex::encode(self.0.clone()))
+        write!(f, "{}", self.0)
     }
 }
 
 impl Deref for UserId {
-    type Target = Vec<u8>;
+    type Target = Uuid;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
@@ -243,13 +236,15 @@ where
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde_as]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct GenerateNonceRequest {
-    pub address: Address,
+    #[serde_as(as = "DisplayFromStr")]
+    pub address: EvmAddress,
 }
 
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct GenerateNonceResponse {
     #[serde_as(as = "DisplayFromStr")]
     pub nonce: Nonce,
@@ -257,15 +252,16 @@ pub struct GenerateNonceResponse {
 }
 
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ValidateSignatureRequest {
-    pub address: Address,
+    #[serde_as(as = "DisplayFromStr")]
+    pub address: EvmAddress,
     #[serde_as(as = "DisplayFromStr")]
     pub signature: Signature,
 }
 
 #[serde_as]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ValidateSignatureResponse {
     #[serde_as(as = "DisplayFromStr")]
     pub session_id: SessionId,

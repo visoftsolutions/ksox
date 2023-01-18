@@ -1,6 +1,8 @@
 #![allow(dead_code)]
-mod managers;
-mod projections;
+pub mod managers;
+pub mod projections;
+
+pub use sqlx;
 
 #[cfg(test)]
 mod tests {

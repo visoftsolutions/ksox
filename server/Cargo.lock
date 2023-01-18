@@ -539,6 +539,7 @@ dependencies = [
 name = "database"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "chrono",
  "ethereum-types",
  "futures",
@@ -3285,6 +3286,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",
+ "database",
  "ethereum-types",
  "ethers-core",
  "futures",

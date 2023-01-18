@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::{ops::Deref, str::FromStr};
 
 use ethereum_types::Address;
 use sqlx::{
@@ -6,7 +6,7 @@ use sqlx::{
     Decode, Encode, Postgres,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct EvmAddress(pub Address);
 
 impl Deref for EvmAddress {
@@ -17,18 +17,23 @@ impl Deref for EvmAddress {
     }
 }
 
-impl ToString for EvmAddress {
-    fn to_string(&self) -> String {
-        prefix_hex::encode(self.0.as_bytes())
+impl FromStr for EvmAddress {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let bytes = prefix_hex::decode::<[u8; 20]>(s).map_err(anyhow::Error::msg)?;
+        Ok(Self(Address::from_slice(&bytes)))
     }
 }
 
-impl TryFrom<String> for EvmAddress {
-    type Error = prefix_hex::Error;
+impl std::fmt::Display for EvmAddress {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", prefix_hex::encode(self.as_bytes()))
+    }
+}
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        let bytes = prefix_hex::decode::<[u8; 20]>(value.as_str())?;
-        Ok(EvmAddress(Address::from_slice(&bytes)))
+impl From<EvmAddress> for ethereum_types::H160 {
+    fn from(val: EvmAddress) -> Self {
+        val.0
     }
 }
 

@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::managers::types::EvmAddress;
 use chrono::{DateTime, Utc};
 use sqlx::{postgres::PgRow, types::Uuid, FromRow, Result, Row};
@@ -12,7 +14,7 @@ pub struct User {
 impl FromRow<'_, PgRow> for User {
     fn from_row(row: &PgRow) -> Result<Self> {
         let evm_address =
-            EvmAddress::try_from(row.try_get::<'_, String, _>("address")?).map_err(|e| {
+            EvmAddress::from_str(&row.try_get::<'_, String, _>("address")?).map_err(|e| {
                 sqlx::Error::Decode(Box::new(std::io::Error::new(
                     std::io::ErrorKind::InvalidData,
                     e.to_string(),
