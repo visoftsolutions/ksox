@@ -41,7 +41,6 @@ cargo make partial
 make sure database is running
 ```
 cargo sqlx prepare --database-url postgresql://ksoxuser:ksoxuserp4ssword@localhost/ksox
-<<<<<<< HEAD
 ```
 
 ## sort all Cargo.toml files in workspace
@@ -55,6 +54,3 @@ make sure you are in workspace root folder
 ```
 cargo +nightly udeps
 ```
-=======
-```
->>>>>>> d16756e (endpoints impl -- not finished)
