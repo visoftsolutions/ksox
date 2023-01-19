@@ -1,25 +1,67 @@
 services:
-  server:
-    container_name: ksox-server
-    hostname: ksox-server
+  postgres:
+    container_name: ksox-postgres
+    hostname: ksox-postgres
+    image: postgres
+    environment:
+      - POSTGRES_USER=ksoxuser
+      - POSTGRES_PASSWORD=ksoxuserp4ssword
+      - POSTGRES_DB=ksox
+    volumes:
+      - ./migrations:/docker-entrypoint-initdb.d
+    ports:
+      - 5432:5432
+
+  redis:
+    container_name: ksox-redis
+    hostname: ksox-redis
+    image: redis/redis-stack
+    ports:
+      - 6379:6379
+      - 8001:8001
+
+  engine:
+    container_name: ksox-engine
+    hostname: ksox-engine
     build:
       context: server
-  
+      dockerfile: ./engine.dockerfile
+    environment:
+      - DATABASE_URL=postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox
+      - REDIS_URL=redis://ksox-redis/
+    depends_on:
+      - postgres
+      - redis
+
+  worker:
+    container_name: ksox-worker
+    hostname: ksox-worker
+    build:
+      context: server
+      dockerfile: ./worker.dockerfile
+    environment:
+      - DATABASE_URL=postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox
+      - REDIS_URL=redis://ksox-redis/
+    depends_on:
+      - postgres
+      - redis
+      - engine
+
   web:
     container_name: ksox-web
     hostname: ksox-web
     build:
       context: web
     depends_on:
-      - server
-  
+      - worker
+
   proxy:
     container_name: ksox-proxy
     hostname: ksox-proxy
     build:
       context: proxy
     depends_on:
-      - server
+      - worker
       - web
     ports:
-      - 8080:80
+      - 7979:80

@@ -1,0 +1,3 @@
+[env]
+REDIS_URL="redis://localhost/"
+DATABASE_URL="postgresql://ksoxuser:ksoxuserp4ssword@localhost/ksox"
