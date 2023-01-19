@@ -7,8 +7,8 @@ use axum::{
     routing::{get, post},
     Router,
 };
-use cache::redis::{AsyncCommands, Client};
-use database::{managers::users::UsersManager, sqlx::error::Error};
+use cache::redis::AsyncCommands;
+use database::sqlx::error::Error;
 use models::*;
 
 use super::AppError;
@@ -47,11 +47,10 @@ async fn generate_nonce(
 }
 
 async fn validate_signature(
-    State(session_store): State<Client>,
-    State(users_manager): State<UsersManager>,
+    State(state): State<AppState>,
     Json(payload): Json<ValidateSignatureRequest>,
 ) -> Result<Json<ValidateSignatureResponse>, AppError> {
-    let mut redis_conn = session_store.get_async_connection().await?;
+    let mut redis_conn = state.session_store.get_async_connection().await?;
 
     let nonce = redis_conn
         .get_del::<String, Nonce>(format!("auth:nonce:{:02X?}", payload.address.clone()))
@@ -63,13 +62,14 @@ async fn validate_signature(
 
     let session_id = SessionId::new(32);
 
-    let user = match users_manager
+    let user = match state
+        .users_manager
         .get_by_evm_address(payload.address.clone())
         .await
     {
         Ok(user) => Ok(user),
         Err(err) => match err {
-            Error::RowNotFound => users_manager.insert(payload.address).await,
+            Error::RowNotFound => state.users_manager.insert(payload.address).await,
             _ => Err(err),
         },
     }?;

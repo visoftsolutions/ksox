@@ -85,7 +85,6 @@ impl ToRedisArgs for Nonce {
 
 #[derive(Debug, Clone)]
 pub struct SessionId(Bytes);
-// [u8; 32]
 impl SessionId {
     pub fn new(size: usize) -> Self {
         let mut bytes = BytesMut::with_capacity(size);

@@ -5,6 +5,7 @@ use sqlx::{postgres::PgPool, types::Uuid, Result};
 
 use crate::projections::spot::trade::Trade;
 
+#[derive(Debug, Clone)]
 pub struct TradesManager {
     database: PgPool,
 }
