@@ -35,7 +35,7 @@ async fn generate_nonce(
         .get_async_connection()
         .await?
         .set_ex(
-            format!("auth:nonce:{:02X?}", payload.address),
+            format!("auth:nonce:{}", payload.address),
             nonce.clone(),
             NONCE_EXPIRATION_TIME,
         )
@@ -53,7 +53,7 @@ async fn validate_signature(
     let mut redis_conn = state.session_store.get_async_connection().await?;
 
     let nonce = redis_conn
-        .get_del::<String, Nonce>(format!("auth:nonce:{:02X?}", payload.address.clone()))
+        .get_del::<String, Nonce>(format!("auth:nonce:{}", payload.address.clone()))
         .await?;
 
     payload
