@@ -23,12 +23,13 @@ cargo install sqlx-cli
 cargo install cargo-make
 cargo install cargo-udeps
 cargo install cargo-sort
+rustup toolchain install nightly
 ```
 
 ## run total check
-ideally run this before commit
+ideally run this before commit, make sure you have nightly toolchain installed
 ```
-cargo make
+cargo +nightly make
 ```
 
 ## sqlx-prepare offline data

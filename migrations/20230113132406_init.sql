@@ -26,8 +26,8 @@ CREATE TABLE "spot"."valuts" (
 CREATE TABLE "spot"."assets" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "name" varchar NOT NULL,
-  "symbol" varchar NOT NULL
+  "name" VARCHAR NOT NULL,
+  "symbol" VARCHAR NOT NULL
 );
 
 CREATE TABLE "spot"."orders" (

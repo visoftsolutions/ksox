@@ -678,7 +678,6 @@ dependencies = [
 name = "engine"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "axum",
  "futures",
  "serde",

@@ -3,12 +3,12 @@ default_to_workspace = false
 
 [tasks.run_db]
 script = '''
-docker compose up --wait postgres
+sudo docker compose up --wait postgres
 '''
 
 [tasks.stop_db]
 script = '''
-docker compose stop postgres
+sudo docker compose stop postgres
 '''
 
 [tasks.check]
