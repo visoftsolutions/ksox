@@ -1,19 +1,12 @@
-use std::{convert::Infallible, time::Duration};
+use tokio_stream::wrappers::ReceiverStream;
+use tonic::{Request, Response, Status};
 
-use axum::response::sse::{Event, Sse};
-use futures::{stream, Stream};
-use tokio_stream::StreamExt;
+use crate::base::{DrainTradesRequest, DrainTradesResponse};
 
-pub async fn trades() -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
-    let data = "hi from trades!";
+type DrainTradesStream = ReceiverStream<Result<DrainTradesResponse, Status>>;
 
-    let stream = stream::repeat_with(move || Event::default().data(data))
-        .map(Ok)
-        .throttle(Duration::from_secs(1));
-
-    Sse::new(stream).keep_alive(
-        axum::response::sse::KeepAlive::new()
-            .interval(Duration::from_secs(1))
-            .text("keep-alive-text"),
-    )
+async fn drain_trades(
+    _request: Request<DrainTradesRequest>,
+) -> Result<Response<DrainTradesStream>, Status> {
+    unimplemented!()
 }

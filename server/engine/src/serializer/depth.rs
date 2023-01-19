@@ -1,19 +1,12 @@
-use std::{convert::Infallible, time::Duration};
+use tokio_stream::wrappers::ReceiverStream;
+use tonic::{Request, Response, Status};
 
-use axum::response::sse::{Event, Sse};
-use futures::{stream, Stream};
-use tokio_stream::StreamExt;
+use crate::base::{DrainOrderBookRequest, DrainOrderBookResponse};
 
-pub async fn depth() -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
-    let data = "hi from depth!";
+type DrainOrderBookStream = ReceiverStream<Result<DrainOrderBookResponse, Status>>;
 
-    let stream = stream::repeat_with(move || Event::default().data(data))
-        .map(Ok)
-        .throttle(Duration::from_secs(1));
-
-    Sse::new(stream).keep_alive(
-        axum::response::sse::KeepAlive::new()
-            .interval(Duration::from_secs(1))
-            .text("keep-alive-text"),
-    )
+async fn drain_order_book(
+    _request: Request<DrainOrderBookRequest>,
+) -> Result<Response<DrainOrderBookStream>, Status> {
+    unimplemented!()
 }
