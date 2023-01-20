@@ -24,6 +24,7 @@ cargo install cargo-make
 cargo install cargo-udeps
 cargo install cargo-sort
 rustup toolchain install nightly
+sudo apt-get install protobuf-compiler
 ```
 
 ## run total check
