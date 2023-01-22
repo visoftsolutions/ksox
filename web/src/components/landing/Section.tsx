@@ -28,7 +28,7 @@ export default function Section(
 
         <A
           href="/learn-more"
-          class="[color:#A697C6] [font-family:'Lexend'] [font-style:normal] [font-weight:500] [font-size:16px] [line-height:20px]"
+          class="text-text-faded [font-family:'Lexend'] [font-style:normal] [font-weight:500] [font-size:16px] [line-height:20px] transition-colors hover:text-text-white"
         >
           Learn more
         </A>

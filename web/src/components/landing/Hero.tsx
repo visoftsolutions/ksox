@@ -5,8 +5,8 @@ export default function Hero() {
   return (
     <div class="flex justify-between">
       <div class="flex flex-col justify-between">
-        <span class="[color:#EBEBEB] [font-family:'Lexend'] [font-style:normal] [font-weight:700] [font-size:52px] [line-height:60px]">
-          Keep <span class="[color:#00AB82]">Safely</span> On eXchange
+        <span class="text-text-white [font-family:'Lexend'] [font-style:normal] [font-weight:700] [font-size:52px] [line-height:60px]">
+          Keep <span class="text-secondary">Safely</span> On eXchange
         </span>
 
         <span class="[color:#776A92] [font-family:'Lexend'] [font-style:normal] [font-weight:300] [font-size:20px] [line-height:24px]">
@@ -19,18 +19,18 @@ export default function Hero() {
         <div class="flex items-start gap-[24px]">
           <A
             href="/app"
-            class="bg-[#5532B9] [border-radius:100px] p-[10px_32px]"
+            class="bg-primary text-text-white [border-radius:100px] p-[10px_32px] hover:bg-text-white hover:text-primary transition-colors"
           >
-            <span class="[color:#EBEBEB] [font-family:'Lexend'] [font-style:normal] [font-weight:500] [font-size:20px] [line-height:25px]">
+            <span class="[font-family:'Lexend'] [font-style:normal] [font-weight:500] [font-size:20px] [line-height:25px]">
               Launch App
             </span>
           </A>
 
           <A
             href="/learn-more"
-            class="[border:1.5px_solid_#EBEBEB] [border-radius:100px] p-[10px_32px]"
+            class="text-text-white [border:1.5px_solid_#EBEBEB] [border-radius:100px] p-[10px_32px] hover:bg-text-white hover:text-primary transition-colors"
           >
-            <span class="[color:#EBEBEB] [font-family:'Lexend'] [font-style:normal] [font-weight:500] [font-size:20px] [line-height:25px]">
+            <span class="[font-family:'Lexend'] [font-style:normal] [font-weight:500] [font-size:20px] [line-height:25px]hover:bg-[#EBEBEB]">
               Learn more
             </span>
           </A>
