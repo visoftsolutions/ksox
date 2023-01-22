@@ -1,7 +1,8 @@
-FROM rust AS chef 
-# We only pay the installation cost once, 
+FROM rust:slim-bullseye AS chef
+# We only pay the installation cost once,
 # it will be cached from the second build onwards
-RUN cargo install cargo-chef 
+RUN apt-get update && apt-get install -y protobuf-compiler libprotobuf-dev
+RUN cargo install cargo-chef
 WORKDIR /app
 
 FROM chef AS planner
