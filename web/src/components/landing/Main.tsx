@@ -10,6 +10,8 @@ export default function Main() {
 
       <Section
         class="mb-[128px]"
+        sectionId="section-1"
+        sectionToId="section-2"
         imagePath="/about01.png"
         imageClass="w-[590px] h-[480px] px-[20px]"
         text0="Why KSOX is so good?"
@@ -22,6 +24,8 @@ export default function Main() {
 
       <Section
         class="mb-[128px] flex-row-reverse"
+        sectionId="section-2"
+        sectionToId="section-3"
         imagePath="/about02a.png"
         imageClass="w-[590px] h-[480px] px-[20px]"
         text0="KSOX is zk-STARK powered"
@@ -35,6 +39,7 @@ export default function Main() {
 
       <Section
         class="mb-[128px]"
+        sectionId="section-3"
         imagePath="/about03.png"
         imageClass="w-[590px] h-[377px]"
         text0="Why KSOX is so good?"

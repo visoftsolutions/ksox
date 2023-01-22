@@ -13,10 +13,13 @@ export default function MainMenu() {
           Contact
         </span>
       </A>
-      <A href="/app" class="text-text-white bg-primary transition-colors hover:bg-text-white hover:text-primary [border-radius:100px] p-[8px_20px]">
-          <span class=" [font-family:'Lexend'] [font-style:normal] [font-weight:500] [font-size:16px] [line-height:20px]">
-            Get Started
-          </span>
+      <A
+        href="/app"
+        class="text-text-white bg-primary transition-colors hover:bg-text-white hover:text-primary [border-radius:100px] p-[8px_20px]"
+      >
+        <span class=" [font-family:'Lexend'] [font-style:normal] [font-weight:500] [font-size:16px] [line-height:20px]">
+          Get Started
+        </span>
       </A>
     </div>
   );

@@ -9,7 +9,7 @@ export default function Hero() {
           Keep <span class="text-secondary">Safely</span> On eXchange
         </span>
 
-        <span class="[color:#776A92] [font-family:'Lexend'] [font-style:normal] [font-weight:300] [font-size:20px] [line-height:24px]">
+        <span class="text-text-faded [font-family:'Lexend'] [font-style:normal] [font-weight:300] [font-size:20px] [line-height:24px]">
           Powered by STARK a Scalable Transparent Argument of Knowledge for
           computation integrity
         </span>
@@ -27,7 +27,7 @@ export default function Hero() {
           </A>
 
           <A
-            href="/learn-more"
+            href="#section-1"
             class="text-text-white [border:1.5px_solid_#EBEBEB] [border-radius:100px] p-[10px_32px] hover:bg-text-white hover:text-primary transition-colors"
           >
             <span class="[font-family:'Lexend'] [font-style:normal] [font-weight:500] [font-size:20px] [line-height:25px]hover:bg-[#EBEBEB]">
