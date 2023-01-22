@@ -29,7 +29,7 @@ pub struct Nonce(Bytes);
 
 impl Nonce {
     pub fn new(size: usize) -> Self {
-        let mut bytes = BytesMut::with_capacity(size);
+        let mut bytes = BytesMut::zeroed(size);
         rand::thread_rng().fill_bytes(bytes.as_mut());
         Self(bytes.into())
     }
@@ -49,7 +49,7 @@ impl FromStr for Nonce {
 
 impl std::fmt::Display for Nonce {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", prefix_hex::encode(self.0.as_ref()))
+        write!(f, "{}", prefix_hex::encode(self.0.to_vec()))
     }
 }
 
@@ -85,10 +85,9 @@ impl ToRedisArgs for Nonce {
 
 #[derive(Debug, Clone)]
 pub struct SessionId(Bytes);
-// [u8; 32]
 impl SessionId {
     pub fn new(size: usize) -> Self {
-        let mut bytes = BytesMut::with_capacity(size);
+        let mut bytes = BytesMut::zeroed(size);
         rand::thread_rng().fill_bytes(bytes.as_mut());
         Self(bytes.into())
     }
@@ -108,7 +107,7 @@ impl FromStr for SessionId {
 
 impl std::fmt::Display for SessionId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", prefix_hex::encode(self.0.as_ref()))
+        write!(f, "{}", prefix_hex::encode(self.0.to_vec()))
     }
 }
 

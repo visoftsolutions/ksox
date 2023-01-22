@@ -1,10 +1,11 @@
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use sqlx::{
     types::{BigDecimal, Uuid},
     Type,
 };
 
-#[derive(Debug, Type)]
+#[derive(Debug, Type, Serialize, Deserialize)]
 pub enum Status {
     Active,
     PartiallyFilled,
@@ -12,6 +13,7 @@ pub enum Status {
     Cancelled,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Order {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,

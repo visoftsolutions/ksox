@@ -1,3 +1,14 @@
-pub async fn root() -> &'static str {
-    "assets endpoint"
+use axum::{extract::State, Json};
+use database::projections::spot::asset::Asset;
+use futures::StreamExt;
+
+use crate::{api::AppError, AppState};
+
+pub async fn root(State(state): State<AppState>) -> Result<Json<Vec<Asset>>, AppError> {
+    let mut stream = state.assets_manager.get_all().await;
+    let mut vec = Vec::<Asset>::new();
+    while let Some(res) = stream.next().await {
+        vec.push(res?);
+    }
+    Ok(Json(vec))
 }

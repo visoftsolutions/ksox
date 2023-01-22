@@ -110,6 +110,44 @@
     },
     "query": "\n            SELECT\n                spot.valuts.id,\n                spot.valuts.user_id,\n                spot.valuts.asset_id,\n                spot.valuts.balance\n            FROM spot.valuts\n            WHERE id = $1\n            "
   },
+  "4468bd5fa509ac1480179970df92fc1116f82acbe950d3a0a9bea49ebb668443": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 1,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "asset_id",
+          "ordinal": 2,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "balance",
+          "ordinal": 3,
+          "type_info": "Numeric"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                spot.valuts.id,\n                spot.valuts.user_id,\n                spot.valuts.asset_id,\n                spot.valuts.balance\n            FROM spot.valuts\n            WHERE user_id = $1\n            "
+  },
   "55cb7514410ceec7a46cc957172ae76d8ce76e2a47d0767262f4485bd6b0f174": {
     "describe": {
       "columns": [
@@ -379,6 +417,80 @@
       }
     },
     "query": "\n            SELECT\n                spot.orders.id,\n                spot.orders.created_at,\n                spot.orders.user_id,\n                spot.orders.status as \"status: Status\",\n                spot.orders.quote_asset_id,\n                spot.orders.base_asset_id,\n                spot.orders.quote_asset_volume,\n                spot.orders.base_asset_price\n            FROM spot.orders\n            WHERE id = $1\n            "
+  },
+  "ae3c3c4980ec5cae09349195ad907bb19fe815f3c7cb6a2fbdaa8783237e96ff": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 2,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "status: Status",
+          "ordinal": 3,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "active",
+                  "partially_filled",
+                  "filled",
+                  "cancelled"
+                ]
+              },
+              "name": "products_status"
+            }
+          }
+        },
+        {
+          "name": "quote_asset_id",
+          "ordinal": 4,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "base_asset_id",
+          "ordinal": 5,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "quote_asset_volume",
+          "ordinal": 6,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "base_asset_price",
+          "ordinal": 7,
+          "type_info": "Float8"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                spot.orders.id,\n                spot.orders.created_at,\n                spot.orders.user_id,\n                spot.orders.status as \"status: Status\",\n                spot.orders.quote_asset_id,\n                spot.orders.base_asset_id,\n                spot.orders.quote_asset_volume,\n                spot.orders.base_asset_price\n            FROM spot.orders\n            WHERE user_id = $1\n            "
   },
   "cbc485d6c580d869c06d7a43d024b303b649eb06b8be5fd48b2073c44c674734": {
     "describe": {

@@ -1,16 +1,6 @@
 [config]
 default_to_workspace = false
 
-[tasks.run_db]
-script = '''
-sudo docker compose up --wait postgres
-'''
-
-[tasks.stop_db]
-script = '''
-sudo docker compose stop postgres
-'''
-
 [tasks.check]
 command = "cargo"
 args = ["check"]
@@ -35,8 +25,21 @@ args = ["sort", "-w"]
 command = "cargo"
 args = ["udeps"]
 
+[tasks.run_db]
+script = '''
+sudo docker compose up --wait postgres
+'''
+
+[tasks.stop_db]
+script = '''
+sudo docker compose stop postgres
+'''
+
 [tasks.total]
 dependencies = ["run_db","check" ,"build", "fmt", "clippy", "sort", "udeps", "stop_db"]
+
+[tasks.partial]
+dependencies = ["run_db","build", "fmt", "clippy", "stop_db"]
 
 [tasks.default]
 alias = "total"

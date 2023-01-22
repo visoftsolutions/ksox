@@ -1,11 +1,17 @@
 use axum::extract::FromRef;
 use cache::redis::Client;
-use database::managers::users::UsersManager;
+use database::managers::{
+    spot::{assets::AssetsManager, orders::OrdersManager, valuts::ValutsManager},
+    users::UsersManager,
+};
 
 #[derive(Clone)]
 pub struct AppState {
     pub session_store: Client,
     pub users_manager: UsersManager,
+    pub assets_manager: AssetsManager,
+    pub valuts_manager: ValutsManager,
+    pub orders_manager: OrdersManager,
 }
 
 impl FromRef<AppState> for Client {

@@ -24,12 +24,18 @@ cargo install cargo-make
 cargo install cargo-udeps
 cargo install cargo-sort
 rustup toolchain install nightly
+sudo apt-get install protobuf-compiler
 ```
 
 ## run total check
 ideally run this before commit, make sure you have nightly toolchain installed
 ```
 cargo +nightly make
+```
+
+## run partial check
+```
+cargo make partial
 ```
 
 ## sqlx-prepare offline data

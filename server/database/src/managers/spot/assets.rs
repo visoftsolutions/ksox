@@ -5,6 +5,7 @@ use sqlx::{postgres::PgPool, types::Uuid, Result};
 
 use crate::projections::spot::asset::Asset;
 
+#[derive(Debug, Clone)]
 pub struct AssetsManager {
     database: PgPool,
 }

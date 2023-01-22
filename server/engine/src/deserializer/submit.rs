@@ -1,5 +1,7 @@
-use axum::response;
+use tonic::{Request, Response, Status};
 
-pub async fn submit() -> response::Result<String> {
-    Ok("you called submit!".into())
+use crate::base::{CancelRequest, CancelResponse};
+
+async fn cancel(_request: Request<CancelRequest>) -> Result<Response<CancelResponse>, Status> {
+    unimplemented!()
 }

@@ -8,7 +8,13 @@ use std::net::SocketAddr;
 use anyhow::{Ok, Result};
 use axum::{routing::get, Router};
 use cache::get_client;
-use database::{managers::users::UsersManager, sqlx::PgPool};
+use database::{
+    managers::{
+        spot::{assets::AssetsManager, orders::OrdersManager, valuts::ValutsManager},
+        users::UsersManager,
+    },
+    sqlx::PgPool,
+};
 use models::AppState;
 
 #[tokio::main]
@@ -20,7 +26,10 @@ async fn main() -> Result<()> {
 
     let app_state = AppState {
         session_store: get_client()?,
-        users_manager: UsersManager::new(database),
+        users_manager: UsersManager::new(database.clone()),
+        assets_manager: AssetsManager::new(database.clone()),
+        valuts_manager: ValutsManager::new(database.clone()),
+        orders_manager: OrdersManager::new(database),
     };
 
     let app = Router::new()
