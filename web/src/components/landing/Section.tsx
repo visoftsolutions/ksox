@@ -1,4 +1,3 @@
-import { JSXElement } from "solid-js";
 import { A } from "solid-start";
 import { DefaultProps } from "../interfaces";
 
@@ -31,7 +30,7 @@ export default function Section(
 
           <A
             href={`#${props.sectionToId}`}
-            class="text-text-faded [font-family:'Lexend'] [font-style:normal] [font-weight:500] [font-size:16px] [line-height:20px] transition-colors hover:text-text-white"
+            class="text-text-faded transition-colors [font-family:'Lexend'] [font-style:normal] [font-weight:500] [font-size:16px] [line-height:20px] hover:text-text-white"
           >
             Learn more
           </A>

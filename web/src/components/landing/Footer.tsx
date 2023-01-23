@@ -11,10 +11,10 @@ export default function Footer(props: DefaultProps) {
         to learn more abut the project
       </span>
 
-      <div class="flex justify-between mt-[48px] gap-[72px]">
+      <div class="mt-[48px] flex justify-between gap-[72px]">
         <div class="flex flex-col items-center">
           <img class="mb-[12px]" src="/phone-icon.svg" />
-          <span class="text-white [font-family:'Lexend'] [font-style:normal] [font-weight:500] [font-size:20px] [line-height:25px]">
+          <span class="text-white [font-family:'Lexend'] [font-style:normal] [font-size:20px] [font-weight:500] [line-height:25px]">
             +48 601-356-047
           </span>
           <span class="text-text-faded [font-family:'Lexend'] [font-style:normal] [font-weight:300] [font-size:16px] [line-height:20px]">
@@ -24,7 +24,7 @@ export default function Footer(props: DefaultProps) {
 
         <div class="flex flex-col items-center">
           <img class="mb-[12px]" src="/mail-icon.svg" />
-          <span class="text-white [font-family:'Lexend'] [font-style:normal] [font-weight:500] [font-size:20px] [line-height:25px]">
+          <span class="text-white [font-family:'Lexend'] [font-style:normal] [font-size:20px] [font-weight:500] [line-height:25px]">
             ksox.exchange@proton.me
           </span>
           <span class="text-text-faded [font-family:'Lexend'] [font-style:normal] [font-weight:300] [font-size:16px] [line-height:20px]">
@@ -35,7 +35,7 @@ export default function Footer(props: DefaultProps) {
         <div class="flex flex-col items-center">
           <img class="mb-[12px]" src="/mail-icon.svg" />
           <A
-            class="text-white [font-family:'Lexend'] [font-style:normal] [font-weight:500] [font-size:20px] [line-height:25px]"
+            class="text-white [font-family:'Lexend'] [font-style:normal] [font-size:20px] [font-weight:500] [line-height:25px]"
             href="https://twitter.com/KsoxExchange"
             target="_blank"
           >

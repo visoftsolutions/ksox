@@ -4,8 +4,8 @@ import Footer from "~/components/landing/Footer";
 
 export default function Landing() {
   return (
-    <div class="bg-background-landing min-w-fit">
-      <div class="max-w-[1200px] min-w-[900px] min-h-screen m-auto flex flex-col">
+    <div class="min-w-fit bg-background-landing">
+      <div class="m-auto flex min-h-screen min-w-[900px] max-w-[1200px] flex-col">
         <Header />
         <Main />
         <Footer class="mb-[170px]" />

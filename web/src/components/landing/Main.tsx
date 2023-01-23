@@ -6,7 +6,7 @@ export default function Main() {
     <main class="flex-1">
       <Hero />
 
-      <hr class="[border:1px_solid_#202020] mt-[144px] mb-[128px]" />
+      <hr class="mt-[144px] mb-[128px] [border:1px_solid_#202020]" />
 
       <Section
         class="mb-[128px]"
@@ -51,7 +51,7 @@ export default function Main() {
         enforce desired quality.
       </Section>
 
-      <hr class="[border:1px_solid_#202020] mt-[144px] mb-[128px]" />
+      <hr class="mt-[144px] mb-[128px] [border:1px_solid_#202020]" />
     </main>
   );
 }
