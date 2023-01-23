@@ -34,12 +34,12 @@ export default function Footer(props: DefaultProps) {
           </div>
 
           <div class="flex flex-col items-center">
-            <img class="mb-[12px]" src="/mail-icon.svg" />
             <A
-              class="text-footer-element font-medium text-white"
+              class="flex flex-col items-center text-footer-element font-medium text-white"
               href="https://twitter.com/KsoxExchange"
               target="_blank"
             >
+              <img class="mb-[12px]" src="/twitter-icon.svg" />
               KsoxExchange
             </A>
             <span class="text-footer-element-light font-light text-text-faded">
