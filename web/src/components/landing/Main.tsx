@@ -40,6 +40,7 @@ export default function Main() {
       <Section
         class="mb-[128px]"
         sectionId="section-3"
+        sectionToId="section-4"
         imagePath="/about03.png"
         imageClass="w-[590px] h-[377px]"
         text0="Why KSOX is so good?"
@@ -51,7 +52,7 @@ export default function Main() {
         enforce desired quality.
       </Section>
 
-      <hr class="mt-[144px] mb-[128px] [border:1px_solid_#202020]" />
+      <hr class="mt-[144px] mb-[88px] [border:1px_solid_#202020]" />
     </main>
   );
 }

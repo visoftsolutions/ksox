@@ -16,21 +16,21 @@ export default function Section(
       <div class={`${props.class} flex justify-between gap-[32px]`}>
         <img class={props.imageClass} src={props.imagePath} />
         <div class="flex flex-col items-start gap-[27px]">
-          <span class="text-secondary [font-family:'Lexend'] [font-style:normal] [font-weight:700] [font-size:20px] [line-height:32px]">
+          <span class="text-section-beginning font-bold text-secondary">
             {props.text0}
           </span>
 
-          <span class="text-text-white [font-family:'Lexend'] [font-style:normal] [font-weight:700] [font-size:36px] [line-height:48px]">
+          <span class="text-section-title font-bold text-text-white">
             {props.text1}
           </span>
 
-          <span class="text-text-faded [font-family:'Lexend'] [font-style:normal] [font-weight:300] [font-size:20px] [line-height:32px]">
+          <span class="text-section-main font-light text-text-light">
             {props.children}
           </span>
 
           <A
             href={`#${props.sectionToId}`}
-            class="text-text-faded transition-colors [font-family:'Lexend'] [font-style:normal] [font-weight:500] [font-size:16px] [line-height:20px] hover:text-text-white"
+            class="text-section-button font-medium text-text-faded transition-colors hover:text-text-white"
           >
             Learn more
           </A>

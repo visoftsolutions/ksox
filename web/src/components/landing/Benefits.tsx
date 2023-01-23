@@ -2,7 +2,7 @@ import Benefit from "./Benefit";
 
 export default function Benefits() {
   return (
-    <div class="flex flex-col items-start gap-[4px]">
+    <div class="flex flex-col items-start gap-[4px] text-hero-benefit text-text-white">
       <Benefit>Smart-contracts for keeping users' balances</Benefit>
 
       <Benefit>

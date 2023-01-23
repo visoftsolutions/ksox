@@ -5,8 +5,8 @@ export default function NotFound() {
     <div class="min-w-fit bg-background-landing">
       <div class="m-auto flex min-h-screen min-w-[900px] max-w-[1200px] flex-col">
         <Header />
-        <div class="flex h-screen items-center justify-center bg-background-landing">
-          <span class="text-text-white [font-family:'Lexend'] [font-style:normal] [font-weight:700] [font-size:36px] [line-height:48px]">
+        <div class="mt-32 flex h-screen justify-center bg-background-landing">
+          <span class="text-5xl text-text-white">
             We are working on that...
           </span>
         </div>
