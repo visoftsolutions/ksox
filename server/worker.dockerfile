@@ -1,7 +1,11 @@
 FROM rust AS chef 
 # We only pay the installation cost once, 
 # it will be cached from the second build onwards
-RUN cargo install cargo-chef 
+RUN rustup toolchain install nightly
+RUN rustup default nightly
+RUN apt-get update
+RUN apt-get install -y protobuf-compiler
+RUN cargo install cargo-chef  
 WORKDIR /app
 
 FROM chef AS planner
