@@ -6,7 +6,7 @@ import Spacing from "~/components/Spacing";
 export default function Landing() {
   return (
     <div class="bg-background">
-      <div class="flex min-h-screen flex-col p-6">
+      <div class="m-auto flex min-h-screen max-w-7xl flex-col p-6">
         <Header />
         <Spacing class="h-12" />
         <Main />
