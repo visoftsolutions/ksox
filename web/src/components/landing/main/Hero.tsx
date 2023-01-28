@@ -6,7 +6,7 @@ import Spacing from "../../Spacing";
 
 export default function Hero() {
   return (
-    <div class="flex flex-col justify-center text-white md:flex-row-reverse">
+    <div class="flex flex-col items-center text-white md:flex-row-reverse">
       <div>
         <img src="/gfx/laptop.png" class="mx-auto" />
       </div>

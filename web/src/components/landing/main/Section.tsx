@@ -16,7 +16,7 @@ export default function Section(
           <img src={props.imagePath} />
         </div>
 
-        <Spacing class="w-96 max-md:hidden" />
+        <Spacing class="h-8 max-md:w-96" />
 
         <div class="flex flex-col items-start gap-7">
           {props.children}
