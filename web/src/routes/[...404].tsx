@@ -2,13 +2,11 @@ import Header from "~/components/landing/Header";
 
 export default function NotFound() {
   return (
-    <div class="min-w-fit bg-background-landing">
-      <div class="m-auto flex min-h-screen min-w-[900px] max-w-[1200px] flex-col">
+    <div class="bg-background">
+      <div class="flex min-h-screen flex-col p-6">
         <Header />
-        <div class="mt-32 flex h-screen justify-center bg-background-landing">
-          <span class="text-5xl text-text-white">
-            We are working on that...
-          </span>
+        <div class="mt-32 flex justify-center text-center text-5xl text-white">
+          We are working on that...
         </div>
       </div>
     </div>

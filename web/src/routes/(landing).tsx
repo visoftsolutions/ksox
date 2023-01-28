@@ -1,14 +1,18 @@
+import Footer from "~/components/landing/Footer";
 import Header from "~/components/landing/Header";
 import Main from "~/components/landing/Main";
-import Footer from "~/components/landing/Footer";
+import Spacing from "~/components/Spacing";
 
 export default function Landing() {
   return (
-    <div class="min-w-fit bg-background-landing">
-      <div class="m-auto flex min-h-screen min-w-[900px] max-w-[1200px] flex-col font-lexend">
+    <div class="bg-background">
+      <div class="flex min-h-screen flex-col p-6">
         <Header />
+        <Spacing class="h-12" />
         <Main />
-        <Footer class="mb-[170px]" />
+        <Spacing class="h-12" />
+        <Footer />
+        <Spacing class="h-20" />
       </div>
     </div>
   );

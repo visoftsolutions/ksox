@@ -1,0 +1,13 @@
+import Spacing from "../../Spacing";
+import LaunchAppButton from "./LaunchAppButton";
+import LearnMoreButton from "./LearnMoreButton";
+
+export default function Buttons() {
+  return (
+    <div class="flex justify-center lg:gap-6 max-lg:flex-col items-center">
+      <LaunchAppButton />
+      <Spacing class="h-4" />
+      <LearnMoreButton />
+    </div>
+  );
+}
