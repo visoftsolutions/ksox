@@ -3,7 +3,7 @@ use std::pin::Pin;
 use futures::Stream;
 use sqlx::{postgres::PgPool, types::Uuid, Result};
 
-use crate::{projections::user::User, types::EvmAddress};
+use crate::{projections::user::User, traits::manager::Manager, types::EvmAddress};
 
 #[derive(Debug, Clone)]
 pub struct UsersManager {
@@ -13,39 +13,6 @@ pub struct UsersManager {
 impl UsersManager {
     pub fn new(database: PgPool) -> Self {
         UsersManager { database }
-    }
-
-    pub async fn get_all(&self) -> Pin<Box<dyn Stream<Item = Result<User>> + Send + '_>> {
-        sqlx::query_as!(
-            User,
-            r#"
-            SELECT
-                users.id,
-                users.created_at,
-                users.address as "address: EvmAddress"
-            FROM users
-            "#
-        )
-        .fetch(&self.database)
-    }
-
-    pub async fn get_by_id(
-        &self,
-        id: Uuid,
-    ) -> Pin<Box<dyn Stream<Item = Result<User>> + Send + '_>> {
-        sqlx::query_as!(
-            User,
-            r#"
-            SELECT
-                users.id,
-                users.created_at,
-                users.address as "address: EvmAddress"
-            FROM users
-            WHERE users.id = $1
-            "#,
-            id
-        )
-        .fetch(&self.database)
     }
 
     pub async fn get_by_evm_address(&self, evm_address: EvmAddress) -> Result<User> {
@@ -66,7 +33,7 @@ impl UsersManager {
         .await
     }
 
-    pub async fn insert(&self, evm_address: EvmAddress) -> Result<User> {
+    pub async fn insert_with_evmaddress(&self, evm_address: EvmAddress) -> Result<User> {
         let evm_address_string = evm_address.to_string();
         sqlx::query_as!(
             User,
@@ -79,6 +46,55 @@ impl UsersManager {
             evm_address_string.as_str()
         )
         .fetch_one(&self.database)
+        .await
+    }
+}
+
+impl Manager<User> for UsersManager {
+    async fn get_all(&self) -> Pin<Box<dyn Stream<Item = Result<User>> + Send + '_>> {
+        sqlx::query_as!(
+            User,
+            r#"
+            SELECT
+                users.id,
+                users.created_at,
+                users.address as "address: EvmAddress"
+            FROM users
+            "#
+        )
+        .fetch(&self.database)
+    }
+
+    async fn get_by_id(&self, id: Uuid) -> Result<User> {
+        sqlx::query_as!(
+            User,
+            r#"
+            SELECT
+                users.id,
+                users.created_at,
+                users.address as "address: EvmAddress"
+            FROM users
+            WHERE users.id = $1
+            "#,
+            id
+        )
+        .fetch_one(&self.database)
+        .await
+    }
+
+    async fn insert(&self, element: User) -> Result<sqlx::postgres::PgQueryResult> {
+        let address_string = element.address.to_string();
+        sqlx::query!(
+            r#"
+            INSERT INTO
+                users
+                (id, created_at, address) VALUES ($1, $2, $3)
+            "#,
+            element.id,
+            element.created_at,
+            address_string
+        )
+        .execute(&self.database)
         .await
     }
 }

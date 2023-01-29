@@ -5,7 +5,7 @@ use sqlx::{postgres::PgRow, types::Uuid, FromRow, Result, Row};
 
 use crate::types::EvmAddress;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct User {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,

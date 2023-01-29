@@ -69,7 +69,12 @@ async fn validate_signature(
     {
         Ok(user) => Ok(user),
         Err(err) => match err {
-            Error::RowNotFound => state.users_manager.insert(payload.address).await,
+            Error::RowNotFound => {
+                state
+                    .users_manager
+                    .insert_with_evmaddress(payload.address)
+                    .await
+            }
             _ => Err(err),
         },
     }?;

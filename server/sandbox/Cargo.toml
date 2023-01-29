@@ -1,5 +1,5 @@
 [package]
-name = "repository"
+name = "sandbox"
 version = "0.1.0"
 edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -7,12 +7,8 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.68"
 database = { path = "../database" }
-linked-hash-map = "0.5.6"
-sqlx = { version = "0.6.2", features = [
-    "all",
-    "runtime-tokio-rustls",
-    "offline",
-] }
+repository = { path = "../repository" }
 tokio = { version = "1.24.2", features = ["full"] }
 tracing = "0.1.37"
+tracing-subscriber = "0.3.16"
 uuid = { version = "1.2.2", features = ["serde", "v4"] }

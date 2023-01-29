@@ -1,7 +1,11 @@
 use std::pin::Pin;
 
 use futures::Stream;
-use sqlx::{postgres::PgPool, types::Uuid, Result};
+use sqlx::{
+    postgres::{PgPool, PgQueryResult},
+    types::Uuid,
+    Result,
+};
 
 use crate::{projections::spot::trade::Trade, traits::manager::Manager};
 
@@ -36,7 +40,7 @@ impl Manager<Trade> for TradesManager {
         .fetch(&self.database)
     }
 
-    async fn get_by_id(&self, id: Uuid) -> Pin<Box<dyn Stream<Item = Result<Trade>> + Send + '_>> {
+    async fn get_by_id(&self, id: Uuid) -> Result<Trade> {
         sqlx::query_as!(
             Trade,
             r#"
@@ -54,6 +58,27 @@ impl Manager<Trade> for TradesManager {
                 "#,
             id
         )
-        .fetch(&self.database)
+        .fetch_one(&self.database)
+        .await
+    }
+
+    async fn insert(&self, element: Trade) -> Result<PgQueryResult> {
+        sqlx::query!(
+            r#"
+            INSERT INTO
+                spot.trades
+                (id, created_at, taker_id, order_id, taker_quote_volume, maker_quote_volume, taker_base_volume, maker_base_volume) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            "#,
+            element.id,
+            element.created_at,
+            element.taker_id,
+            element.order_id,
+            element.taker_quote_volume,
+            element.maker_quote_volume,
+            element.taker_base_volume,
+            element.maker_base_volume
+        )
+        .execute(&self.database)
+        .await
     }
 }

@@ -5,15 +5,20 @@ use sqlx::{
     Type,
 };
 
-#[derive(Debug, Type, Serialize, Deserialize)]
+#[derive(Debug, Type, Serialize, Deserialize, Clone)]
+#[sqlx(type_name = "products_status")]
 pub enum Status {
+    #[sqlx(rename = "active")]
     Active,
+    #[sqlx(rename = "partially_filled")]
     PartiallyFilled,
+    #[sqlx(rename = "filled")]
     Filled,
+    #[sqlx(rename = "cancelled")]
     Cancelled,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Order {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,

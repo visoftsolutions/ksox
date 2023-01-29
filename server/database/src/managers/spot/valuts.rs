@@ -1,7 +1,11 @@
 use std::pin::Pin;
 
 use futures::Stream;
-use sqlx::{postgres::PgPool, types::Uuid, Result};
+use sqlx::{
+    postgres::{PgPool, PgQueryResult},
+    types::Uuid,
+    Result,
+};
 
 use crate::{projections::spot::valut::Valut, traits::manager::Manager};
 
@@ -52,7 +56,7 @@ impl Manager<Valut> for ValutsManager {
         .fetch(&self.database)
     }
 
-    async fn get_by_id(&self, id: Uuid) -> Pin<Box<dyn Stream<Item = Result<Valut>> + Send + '_>> {
+    async fn get_by_id(&self, id: Uuid) -> Result<Valut> {
         sqlx::query_as!(
             Valut,
             r#"
@@ -66,6 +70,23 @@ impl Manager<Valut> for ValutsManager {
                 "#,
             id
         )
-        .fetch(&self.database)
+        .fetch_one(&self.database)
+        .await
+    }
+
+    async fn insert(&self, element: Valut) -> Result<PgQueryResult> {
+        sqlx::query!(
+            r#"
+            INSERT INTO
+                spot.valuts
+                (id, user_id, asset_id, balance) VALUES ($1, $2, $3, $4)
+            "#,
+            element.id,
+            element.user_id,
+            element.asset_id,
+            element.balance
+        )
+        .execute(&self.database)
+        .await
     }
 }

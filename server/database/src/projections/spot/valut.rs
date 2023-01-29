@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use sqlx::types::{BigDecimal, Uuid};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Valut {
     pub id: Uuid,
     pub user_id: Uuid,

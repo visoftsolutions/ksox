@@ -1,7 +1,11 @@
 use std::pin::Pin;
 
 use futures::Stream;
-use sqlx::{postgres::PgPool, types::Uuid, Result};
+use sqlx::{
+    postgres::{PgPool, PgQueryResult},
+    types::Uuid,
+    Result,
+};
 
 use crate::{
     projections::spot::order::{Order, Status},
@@ -63,7 +67,7 @@ impl Manager<Order> for OrdersManager {
         .fetch(&self.database)
     }
 
-    async fn get_by_id(&self, id: Uuid) -> Pin<Box<dyn Stream<Item = Result<Order>> + Send + '_>> {
+    async fn get_by_id(&self, id: Uuid) -> Result<Order> {
         sqlx::query_as!(
             Order,
             r#"
@@ -81,6 +85,27 @@ impl Manager<Order> for OrdersManager {
                 "#,
             id
         )
-        .fetch(&self.database)
+        .fetch_one(&self.database)
+        .await
+    }
+
+    async fn insert(&self, element: Order) -> Result<PgQueryResult> {
+        sqlx::query!(
+            r#"
+            INSERT INTO
+                spot.orders
+                (id, created_at, user_id, status, quote_asset_id, base_asset_id, quote_asset_volume, base_asset_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            "#,
+            element.id,
+            element.created_at,
+            element.user_id,
+            element.status as Status,
+            element.quote_asset_id,
+            element.base_asset_id,
+            element.quote_asset_volume,
+            element.base_asset_price,
+        )
+        .execute(&self.database)
+        .await
     }
 }

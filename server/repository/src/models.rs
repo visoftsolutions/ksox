@@ -1,7 +1,10 @@
-use std::{borrow::Borrow, collections::hash_map::RandomState, hash::Hash, marker::Sync};
+use std::{
+    borrow::Borrow, collections::hash_map::RandomState, fmt::Debug, hash::Hash, marker::Sync,
+};
 
 use database::traits::manager::Manager;
 use linked_hash_map::LinkedHashMap;
+use sqlx::types::Uuid;
 
 use crate::dbworker::{
     models::{DBWorkerRequest, DBWorkerResponse},
@@ -11,18 +14,20 @@ use crate::dbworker::{
 #[derive(Debug)]
 pub struct Repository<K, V>
 where
-    K: Hash + Eq + Send + Sync + 'static,
-    V: Send + Sync + 'static,
+    K: Hash + Eq + Send + Sync + Debug + 'static,
+    V: Send + Sync + Debug + 'static,
+    Uuid: From<K>,
 {
     capacity: usize,
-    dbworker: DBWorker<K, V>,
+    pub dbworker: DBWorker<K, V>,
     store: LinkedHashMap<K, V, RandomState>,
 }
 
 impl<K, V> Repository<K, V>
 where
-    K: Hash + Eq + Send + Sync + Clone + 'static,
-    V: Send + Sync + Clone + 'static,
+    K: Hash + Eq + Send + Sync + Clone + Debug + 'static,
+    V: Send + Sync + Clone + Debug + 'static,
+    Uuid: From<K>,
 {
     pub fn new<M>(capacity: usize, db_manager: M) -> Self
     where
@@ -70,34 +75,52 @@ where
         Ok(self.store.contains_key(k))
     }
 
-    pub fn get(&mut self, k: K) -> Result<Option<V>, anyhow::Error> {
+    pub async fn get(&mut self, k: K) -> Result<Option<&V>, anyhow::Error> {
         // If value is found, it is moved to the end of the list.
-        Ok(match self.store.get_refresh(&k) {
-            Some(v) => Some(v.clone()),
-            None => {
-                self.dbworker.dbworker_tx.send(DBWorkerRequest::Get(k))?;
-                match self.dbworker.dbworker_rx.recv()? {
-                    DBWorkerResponse::Some(v) => Some(v),
-                    DBWorkerResponse::None => None,
-                }
+        if self.store.contains_key(&k) {
+            Ok(match self.store.get_refresh(&k) {
+                Some(v) => Some(&*v),
+                None => None,
+            })
+        } else {
+            self.dbworker
+                .dbworker_tx
+                .send(DBWorkerRequest::Get(k.clone()))
+                .await?;
+            match self.dbworker.dbworker_rx.recv().await {
+                Some(msg) => match msg {
+                    DBWorkerResponse::Some(v) => {
+                        self.store.insert(k.clone(), v);
+                        Ok(self.store.get(&k))
+                    }
+                    DBWorkerResponse::None => Ok(None),
+                },
+                None => Ok(None),
             }
-        })
+        }
     }
 
-    pub fn insert(&mut self, k: K, v: V) -> Result<(), anyhow::Error> {
+    pub async fn insert(&mut self, k: K, v: V) -> Result<(), anyhow::Error> {
         // Whatever if value is found or not it pushes element to the end of the list
-        self.store.insert(k.clone(), v.clone());
+        self.store.insert(k, v.clone());
         if self.store.len() > self.capacity {
             self.store.pop_front();
         }
         Ok(self
             .dbworker
             .dbworker_tx
-            .send(DBWorkerRequest::Insert(k, v))?)
+            .send(DBWorkerRequest::Insert(v))
+            .await?)
     }
+}
 
-    pub fn drop(mut self) -> Result<(), anyhow::Error> {
-        self.clear();
-        self.dbworker.drop()
+impl<K, V> Drop for Repository<K, V>
+where
+    K: Hash + Eq + Send + Sync + Debug + 'static,
+    V: Send + Sync + Debug + 'static,
+    Uuid: From<K>,
+{
+    fn drop(&mut self) {
+        self.store.clear();
     }
 }

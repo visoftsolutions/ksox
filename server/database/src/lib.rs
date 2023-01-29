@@ -13,7 +13,7 @@ mod tests {
     use futures::StreamExt;
     use sqlx::PgPool;
 
-    use crate::managers::users::UsersManager;
+    use crate::{managers::users::UsersManager, traits::manager::Manager};
 
     #[tokio::test]
     async fn basic_users_manager_query() {

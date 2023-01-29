@@ -110,6 +110,25 @@
     },
     "query": "\n            SELECT\n                spot.valuts.id,\n                spot.valuts.user_id,\n                spot.valuts.asset_id,\n                spot.valuts.balance\n            FROM spot.valuts\n            WHERE user_id = $1\n            "
   },
+  "461e6ff6a4195b35236274232840dbd83dc67bfbbb590c11322b886fb85a6f7f": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Timestamptz",
+          "Uuid",
+          "Uuid",
+          "Numeric",
+          "Numeric",
+          "Numeric",
+          "Numeric"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO\n                spot.trades\n                (id, created_at, taker_id, order_id, taker_quote_volume, maker_quote_volume, taker_base_volume, maker_base_volume) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)\n            "
+  },
   "575062e50e4be3d670b76702d008060b590969b156fa9b39b9f9a5db5ad8ff48": {
     "describe": {
       "columns": [
@@ -238,6 +257,37 @@
     },
     "query": "\n            SELECT\n                users.id,\n                users.created_at,\n                users.address as \"address: EvmAddress\"\n            FROM users\n            "
   },
+  "7d9d0c727d83edefbf72496dd37210b12c2aa513448f3989a0516453bb6804dc": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Timestamptz",
+          "Uuid",
+          {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "active",
+                  "partially_filled",
+                  "filled",
+                  "cancelled"
+                ]
+              },
+              "name": "products_status"
+            }
+          },
+          "Uuid",
+          "Uuid",
+          "Numeric",
+          "Float8"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO\n                spot.orders\n                (id, created_at, user_id, status, quote_asset_id, base_asset_id, quote_asset_volume, base_asset_price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)\n            "
+  },
   "88efb40bec0759abe2102cf5608f5c80e5525b8b11dfcfecc4399fbb1e1161cc": {
     "describe": {
       "columns": [
@@ -305,6 +355,21 @@
       }
     },
     "query": "\n            SELECT\n                spot.valuts.id,\n                spot.valuts.user_id,\n                spot.valuts.asset_id,\n                spot.valuts.balance\n            FROM spot.valuts\n            "
+  },
+  "96b8d43f2b77b59c0e047f1fbb2ad19a3f6f15407324328a2ff2e5b0ce202fe4": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid",
+          "Uuid",
+          "Numeric"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO\n                spot.valuts\n                (id, user_id, asset_id, balance) VALUES ($1, $2, $3, $4)\n            "
   },
   "ac38e866f0c7425c6c23686090391cb6afcf5dd3794cba32eb3da2c676350968": {
     "describe": {
@@ -453,6 +518,21 @@
       }
     },
     "query": "\n            SELECT\n                spot.orders.id,\n                spot.orders.created_at,\n                spot.orders.user_id,\n                spot.orders.status as \"status: Status\",\n                spot.orders.quote_asset_id,\n                spot.orders.base_asset_id,\n                spot.orders.quote_asset_volume,\n                spot.orders.base_asset_price\n            FROM spot.orders\n            WHERE user_id = $1\n            "
+  },
+  "ae67217607c44bf759cd1846ff0c435800ef71c55bdec7ec02a568fbec643fbe": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Timestamptz",
+          "Varchar",
+          "Varchar"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO \n                spot.assets \n                (id, created_at, name, symbol) VALUES ($1, $2, $3, $4)\n            "
   },
   "bfa5047e8a8288b16afc66ab6788a2aa0693d66ef7d59d3b1583cd3741b93504": {
     "describe": {
