@@ -640,6 +640,20 @@
     },
     "query": "\n            SELECT\n                spot.assets.id,\n                spot.assets.created_at,\n                spot.assets.name,\n                spot.assets.symbol\n            FROM spot.assets\n            "
   },
+  "e53cb29b2863c758edc2ab7c13dff96579f44a53824812b985c18f5fddda24cc": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Timestamptz",
+          "Bpchar"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO\n                users\n                (id, created_at, address) VALUES ($1, $2, $3)\n            "
+  },
   "e907c795629e066d6e178d421aa183cf31a6450510a993c5e3440c3afdb33c28": {
     "describe": {
       "columns": [
