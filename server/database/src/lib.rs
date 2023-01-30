@@ -1,6 +1,9 @@
 #![allow(dead_code)]
+#![allow(incomplete_features)]
+#![feature(async_fn_in_trait)]
 pub mod managers;
 pub mod projections;
+pub mod traits;
 pub mod types;
 
 pub use sqlx;
@@ -10,7 +13,7 @@ mod tests {
     use futures::StreamExt;
     use sqlx::PgPool;
 
-    use crate::managers::users::UsersManager;
+    use crate::{managers::users::UsersManager, traits::manager::Manager};
 
     #[tokio::test]
     async fn basic_users_manager_query() {
