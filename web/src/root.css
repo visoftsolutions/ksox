@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+@layer base {
+  @font-face {
+    font-family: "Lexend";
+    src: url("/fonts/lexend.ttf") format("truetype");
+  }
+
+  @font-face {
+    font-family: "Inter";
+    src: url("/fonts/inter.ttf") format("truetype");
+  }
+}

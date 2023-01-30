@@ -1,5 +1,5 @@
-FROM rust AS chef 
-# We only pay the installation cost once, 
+FROM rust:slim-bullseye AS chef
+# We only pay the installation cost once,
 # it will be cached from the second build onwards
 RUN rustup toolchain install nightly
 RUN rustup default nightly
