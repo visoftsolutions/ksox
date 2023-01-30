@@ -6,6 +6,7 @@ import {
   FileRoutes,
   Head,
   Html,
+  Link,
   Meta,
   Routes,
   Scripts,
@@ -20,6 +21,9 @@ export default function Root() {
         <Title>KSOX - Cryptocurrency Exchange & Payment Processor</Title>
         <Meta charset="utf-8" />
         <Meta name="viewport" content="width=device-width, initial-scale=1" />
+        <Link rel="manifest" href="/manifest.webmanifest" />
+        <Link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png" />
+        <script src="/registerSW.js" />
       </Head>
       <Body>
         <Suspense>

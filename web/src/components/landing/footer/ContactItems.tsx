@@ -5,17 +5,6 @@ import ContactItem from "./ContactItem";
 export default function ContactItems() {
   return (
     <div class="flex flex-col justify-between lg:flex-row lg:gap-[4.5rem]">
-      <ContactItem imageSrc="/gfx/phone-icon.svg">
-        <p class="font-lexend text-footer-element font-medium text-text-1">
-          +48 601-356-047
-        </p>
-        <p class="font-lexend text-footer-element-light font-light text-text-2">
-          call us maybe
-        </p>
-      </ContactItem>
-
-      <Spacing class="h-12" />
-
       <ContactItem imageSrc="/gfx/mail-icon.svg">
         <p class="font-lexend text-footer-element font-medium text-text-1">
           ksox.exchange@proton.me
@@ -33,7 +22,7 @@ export default function ContactItems() {
             KSOX - Exchange
           </p>
           <p class="font-lexend text-footer-element-light font-light text-text-2">
-            stay tuned
+            keep in touch
           </p>
         </ContactItem>
       </A>
