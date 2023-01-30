@@ -19,10 +19,15 @@ const pwaOptions: Partial<VitePWAOptions> = {
     description: "KSOX - Cryptocurrency Exchange & Payment Processor",
     icons: [
       {
+        src: "/pwa/mstile-150x150-darkbg.png",
+        sizes: "150x150",
+        type: "image/png",
+        purpose: "maskable",
+      },
+      {
         src: "/pwa/android-chrome-192x192.png",
         sizes: "192x192",
         type: "image/png",
-        purpose: "maskable",
       },
       {
         src: "/pwa/android-chrome-512x512.png",
