@@ -21,6 +21,7 @@ export default function Root() {
         <Title>KSOX - Cryptocurrency Exchange & Payment Processor</Title>
         <Meta charset="utf-8" />
         <Meta name="viewport" content="width=device-width, initial-scale=1" />
+        <Meta name="theme-color" content="#0F0D12"/>
         <Link rel="manifest" href="/manifest.webmanifest" />
         <Link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png" />
         <script src="/registerSW.js" />
