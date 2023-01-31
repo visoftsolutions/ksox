@@ -23,7 +23,7 @@ export default function Section(
 
           <A
             href={`#${props.sectionToId}`}
-            class="text-section-button font-medium text-links transition-colors hover:text-text-1"
+            class="text-section-button font-bold text-links transition-colors hover:text-text-1"
           >
             Learn more
           </A>
