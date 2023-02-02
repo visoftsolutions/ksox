@@ -2,15 +2,17 @@ import { defineConfig } from "vite";
 import solid from "solid-start/vite";
 import { VitePWA } from "vite-plugin-pwa";
 import type { VitePWAOptions } from "vite-plugin-pwa";
+import { createHash, randomBytes } from "crypto";
+
+const buildHash = createHash("md5").update(randomBytes(20)).digest("hex");
 
 const pwaOptions: Partial<VitePWAOptions> = {
   registerType: "autoUpdate",
   workbox: {
-    globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
-    additionalManifestEntries: [
-      { revision: null, url: "/" },
-      { revision: null, url: "index.html" },
-    ],
+    globPatterns: ["**/*.{js,css,html,ico,png,svg,ttf}"],
+    navigateFallback: null,
+    cleanupOutdatedCaches: true,
+    additionalManifestEntries: [{ revision: buildHash, url: "/" }],
   },
   manifest: {
     theme_color: "#0F0D12",
