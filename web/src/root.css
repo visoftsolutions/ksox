@@ -17,3 +17,21 @@ html {
     src: url("/fonts/inter.ttf") format("truetype");
   }
 }
+
+@layer utilities {
+  ::-webkit-scrollbar {
+    @apply w-1 h-1
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-background;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary bg-opacity-50 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary bg-opacity-80;
+  }
+}
