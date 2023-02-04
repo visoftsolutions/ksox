@@ -4,9 +4,11 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-use database::traits::manager::Manager;
+use database::{
+    sqlx::{error::Error, types::Uuid},
+    traits::manager::Manager,
+};
 use models::{DBWorkerRequest, DBWorkerResponse};
-use sqlx::types::Uuid;
 use tokio::sync::mpsc::{channel, Receiver, Sender};
 
 #[derive(Debug)]
@@ -81,7 +83,7 @@ where
                         res_tx.send(DBWorkerResponse::Some(v)).await?;
                     }
                     Err(err) => match err {
-                        sqlx::Error::RowNotFound => {
+                        Error::RowNotFound => {
                             res_tx.send(DBWorkerResponse::None).await?;
                         }
                         _ => {

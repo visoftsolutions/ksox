@@ -2,9 +2,8 @@ use std::{
     borrow::Borrow, collections::hash_map::RandomState, fmt::Debug, hash::Hash, marker::Sync,
 };
 
-use database::traits::manager::Manager;
+use database::{sqlx::types::Uuid, traits::manager::Manager};
 use linked_hash_map::LinkedHashMap;
-use sqlx::types::Uuid;
 
 use crate::dbworker::{
     models::{DBWorkerRequest, DBWorkerResponse},

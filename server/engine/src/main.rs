@@ -1,4 +1,17 @@
-#![allow(dead_code)]
+#![allow(dead_code)] //TODO remove !!
+#![allow(unused_variables)] //TODO remove !!
+
+pub mod base {
+    tonic::include_proto!("server.engine.base");
+}
+
+mod dbworker;
+mod deserializer;
+mod matching_engine;
+mod repository;
+mod serializer;
+mod shutdown_signal;
+
 use std::net::SocketAddr;
 
 use anyhow::{Ok, Result};
@@ -9,15 +22,6 @@ use base::{
 };
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::{transport::Server, Request, Response, Status};
-
-pub mod base {
-    tonic::include_proto!("server.engine.base");
-}
-
-mod deserializer;
-mod matching_engine;
-mod serializer;
-mod shutdown_signal;
 
 #[derive(Debug, Default)]
 pub struct EngineService;

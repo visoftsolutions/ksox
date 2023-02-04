@@ -6,6 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 anyhow = "1.0.68"
+database = { path = "../database" }
+linked-hash-map = "0.5.6"
 prost = "0.11.6"
 serde = "1.0.152"
 tokio = { version = "1.23.0", features = ["full"] }
