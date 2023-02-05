@@ -1,5 +1,6 @@
 #![allow(dead_code)] //TODO remove !!
 #![allow(unused_variables)] //TODO remove !!
+#![feature(let_chains)]
 
 pub mod base {
     tonic::include_proto!("server.engine.base");

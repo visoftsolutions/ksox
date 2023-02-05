@@ -10,7 +10,7 @@ use sqlx::{
 
 use crate::{
     projections::spot::order::{Order, Status},
-    traits::{manager::Manager, ordered_manager::OrderedManager},
+    traits::manager::Manager,
 };
 
 #[derive(Debug, Clone)]
@@ -43,6 +43,74 @@ impl OrdersManager {
             WHERE user_id = $1
             "#,
             id
+        )
+        .fetch(&self.database)
+    }
+
+    pub fn get_ordered_asc_less(
+        &self,
+        base_asset_id: Uuid,
+        quote_asset_id: Uuid,
+        base_asset_volume: BigDecimal,
+        quote_asset_volume: BigDecimal,
+    ) -> Pin<Box<dyn Stream<Item = Result<Order>> + Send + '_>> {
+        sqlx::query_as!(
+            Order,
+            r#"
+            SELECT
+                id,
+                created_at,
+                user_id,
+                status as "status: Status",
+                quote_asset_id,
+                base_asset_id,
+                quote_asset_volume,
+                base_asset_volume
+            FROM spot.orders
+            WHERE quote_asset_id = $1
+            AND base_asset_id = $2
+            AND spot.orders.status IN ('active', 'partially_filled')
+            AND $3 * base_asset_volume <= quote_asset_volume * $4
+            ORDER BY (base_asset_volume / quote_asset_volume) ASC
+            "#,
+            quote_asset_id,
+            base_asset_id,
+            quote_asset_volume,
+            base_asset_volume
+        )
+        .fetch(&self.database)
+    }
+
+    pub fn get_ordered_desc_less(
+        &self,
+        base_asset_id: Uuid,
+        quote_asset_id: Uuid,
+        base_asset_volume: BigDecimal,
+        quote_asset_volume: BigDecimal,
+    ) -> Pin<Box<dyn Stream<Item = Result<Order>> + Send + '_>> {
+        sqlx::query_as!(
+            Order,
+            r#"
+            SELECT
+                id,
+                created_at,
+                user_id,
+                status as "status: Status",
+                quote_asset_id,
+                base_asset_id,
+                quote_asset_volume,
+                base_asset_volume
+            FROM spot.orders
+            WHERE quote_asset_id = $1
+            AND base_asset_id = $2
+            AND spot.orders.status IN ('active', 'partially_filled')
+            AND $3 * base_asset_volume <= quote_asset_volume * $4
+            ORDER BY (base_asset_volume / quote_asset_volume) DESC
+            "#,
+            quote_asset_id,
+            base_asset_id,
+            quote_asset_volume,
+            base_asset_volume
         )
         .fetch(&self.database)
     }
@@ -140,6 +208,7 @@ impl Manager<Order> for OrdersManager {
         .execute(&self.database)
         .await
     }
+
     async fn delete(&self, element: Order) -> Result<PgQueryResult> {
         sqlx::query!(
             r#"
@@ -152,107 +221,5 @@ impl Manager<Order> for OrdersManager {
         )
         .execute(&self.database)
         .await
-    }
-}
-
-impl OrderedManager<Order, BigDecimal> for OrdersManager {
-    fn get_ordered_asc_less(
-        &self,
-        less_than: BigDecimal,
-    ) -> Pin<Box<dyn Stream<Item = Result<Order>> + Send + '_>> {
-        sqlx::query_as!(
-            Order,
-            r#"
-            SELECT
-                id,
-                created_at,
-                user_id,
-                status as "status: Status",
-                quote_asset_id,
-                base_asset_id,
-                quote_asset_volume,
-                base_asset_volume
-            FROM spot.orders
-            WHERE spot.orders.status IN ('active', 'partially_filled') AND (base_asset_volume / quote_asset_volume) <= $1
-            ORDER BY (base_asset_volume / quote_asset_volume) ASC
-            "#,
-            less_than
-        )
-        .fetch(&self.database)
-    }
-
-    fn get_ordered_desc_less(
-        &self,
-        less_than: BigDecimal,
-    ) -> Pin<Box<dyn Stream<Item = Result<Order>> + Send + '_>> {
-        sqlx::query_as!(
-            Order,
-            r#"
-            SELECT
-                id,
-                created_at,
-                user_id,
-                status as "status: Status",
-                quote_asset_id,
-                base_asset_id,
-                quote_asset_volume,
-                base_asset_volume
-            FROM spot.orders
-            WHERE spot.orders.status IN ('active', 'partially_filled') AND (base_asset_volume / quote_asset_volume) <= $1
-            ORDER BY (base_asset_volume / quote_asset_volume) DESC
-            "#,
-            less_than
-        )
-        .fetch(&self.database)
-    }
-
-    fn get_ordered_asc_higher(
-        &self,
-        higher_then: BigDecimal,
-    ) -> Pin<Box<dyn Stream<Item = Result<Order>> + Send + '_>> {
-        sqlx::query_as!(
-            Order,
-            r#"
-            SELECT
-                id,
-                created_at,
-                user_id,
-                status as "status: Status",
-                quote_asset_id,
-                base_asset_id,
-                quote_asset_volume,
-                base_asset_volume
-            FROM spot.orders
-            WHERE spot.orders.status IN ('active', 'partially_filled') AND (base_asset_volume / quote_asset_volume) > $1
-            ORDER BY (base_asset_volume / quote_asset_volume) ASC
-            "#,
-            higher_then
-        )
-        .fetch(&self.database)
-    }
-
-    fn get_ordered_desc_higher(
-        &self,
-        higher_then: BigDecimal,
-    ) -> Pin<Box<dyn Stream<Item = Result<Order>> + Send + '_>> {
-        sqlx::query_as!(
-            Order,
-            r#"
-            SELECT
-                id,
-                created_at,
-                user_id,
-                status as "status: Status",
-                quote_asset_id,
-                base_asset_id,
-                quote_asset_volume,
-                base_asset_volume
-            FROM spot.orders
-            WHERE spot.orders.status IN ('active', 'partially_filled') AND (base_asset_volume / quote_asset_volume) > $1
-            ORDER BY (base_asset_volume / quote_asset_volume) DESC
-            "#,
-            higher_then
-        )
-        .fetch(&self.database)
     }
 }

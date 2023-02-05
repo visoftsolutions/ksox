@@ -92,6 +92,7 @@ impl Manager<Asset> for AssetsManager {
         .execute(&self.database)
         .await
     }
+
     async fn delete(&self, element: Asset) -> Result<PgQueryResult> {
         sqlx::query!(
             r#"

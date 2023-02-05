@@ -112,6 +112,7 @@ impl Manager<Valut> for ValutsManager {
         .execute(&self.database)
         .await
     }
+
     async fn delete(&self, element: Valut) -> Result<PgQueryResult> {
         sqlx::query!(
             r#"

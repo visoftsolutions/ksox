@@ -1,6 +1,5 @@
 use std::pin::Pin;
 
-use chrono::{DateTime, Utc};
 use futures::Stream;
 use sqlx::{
     postgres::{PgPool, PgQueryResult},
@@ -8,10 +7,7 @@ use sqlx::{
     Result,
 };
 
-use crate::{
-    projections::spot::trade::Trade,
-    traits::{manager::Manager, ordered_manager::OrderedManager},
-};
+use crate::{projections::spot::trade::Trade, traits::manager::Manager};
 
 #[derive(Debug, Clone)]
 pub struct TradesManager {
@@ -21,6 +17,58 @@ pub struct TradesManager {
 impl TradesManager {
     pub fn new(database: PgPool) -> Self {
         TradesManager { database }
+    }
+
+    fn get_ordered_asc(
+        &self,
+        user_id: Uuid,
+    ) -> Pin<Box<dyn Stream<Item = Result<Trade>> + Send + '_>> {
+        sqlx::query_as!(
+            Trade,
+            r#"
+            SELECT
+                spot.trades.id,
+                spot.trades.created_at,
+                spot.trades.taker_id,
+                spot.trades.order_id,
+                spot.trades.taker_quote_volume,
+                spot.trades.taker_base_volume,
+                spot.trades.maker_quote_volume,
+                spot.trades.maker_base_volume
+            FROM spot.trades
+            JOIN spot.orders ON spot.trades.order_id = spot.orders.id
+            WHERE spot.orders.user_id = $1
+            ORDER BY created_at ASC
+            "#,
+            user_id
+        )
+        .fetch(&self.database)
+    }
+
+    fn get_ordered_desc(
+        &self,
+        user_id: Uuid,
+    ) -> Pin<Box<dyn Stream<Item = Result<Trade>> + Send + '_>> {
+        sqlx::query_as!(
+            Trade,
+            r#"
+            SELECT
+                spot.trades.id,
+                spot.trades.created_at,
+                spot.trades.taker_id,
+                spot.trades.order_id,
+                spot.trades.taker_quote_volume,
+                spot.trades.taker_base_volume,
+                spot.trades.maker_quote_volume,
+                spot.trades.maker_base_volume
+            FROM spot.trades
+            JOIN spot.orders ON spot.trades.order_id = spot.orders.id
+            WHERE spot.orders.user_id = $1
+            ORDER BY created_at DESC
+            "#,
+            user_id
+        )
+        .fetch(&self.database)
     }
 }
 
@@ -116,6 +164,7 @@ impl Manager<Trade> for TradesManager {
         .execute(&self.database)
         .await
     }
+
     async fn delete(&self, element: Trade) -> Result<PgQueryResult> {
         sqlx::query!(
             r#"
@@ -128,107 +177,5 @@ impl Manager<Trade> for TradesManager {
         )
         .execute(&self.database)
         .await
-    }
-}
-
-impl OrderedManager<Trade, DateTime<Utc>> for TradesManager {
-    fn get_ordered_asc_less(
-        &self,
-        less_then: DateTime<Utc>,
-    ) -> Pin<Box<dyn Stream<Item = Result<Trade>> + Send + '_>> {
-        sqlx::query_as!(
-            Trade,
-            r#"
-            SELECT
-                id,
-                created_at,
-                taker_id,
-                order_id,
-                taker_quote_volume,
-                taker_base_volume,
-                maker_quote_volume,
-                maker_base_volume
-            FROM spot.trades
-            WHERE created_at <= $1
-            ORDER BY created_at ASC
-            "#,
-            less_then
-        )
-        .fetch(&self.database)
-    }
-
-    fn get_ordered_desc_less(
-        &self,
-        less_then: DateTime<Utc>,
-    ) -> Pin<Box<dyn Stream<Item = Result<Trade>> + Send + '_>> {
-        sqlx::query_as!(
-            Trade,
-            r#"
-            SELECT
-                id,
-                created_at,
-                taker_id,
-                order_id,
-                taker_quote_volume,
-                taker_base_volume,
-                maker_quote_volume,
-                maker_base_volume
-            FROM spot.trades
-            WHERE created_at <= $1
-            ORDER BY created_at DESC
-            "#,
-            less_then
-        )
-        .fetch(&self.database)
-    }
-
-    fn get_ordered_asc_higher(
-        &self,
-        higher_then: DateTime<Utc>,
-    ) -> Pin<Box<dyn Stream<Item = Result<Trade>> + Send + '_>> {
-        sqlx::query_as!(
-            Trade,
-            r#"
-            SELECT
-                id,
-                created_at,
-                taker_id,
-                order_id,
-                taker_quote_volume,
-                taker_base_volume,
-                maker_quote_volume,
-                maker_base_volume
-            FROM spot.trades
-            WHERE created_at > $1
-            ORDER BY created_at ASC
-            "#,
-            higher_then
-        )
-        .fetch(&self.database)
-    }
-
-    fn get_ordered_desc_higher(
-        &self,
-        higher_then: DateTime<Utc>,
-    ) -> Pin<Box<dyn Stream<Item = Result<Trade>> + Send + '_>> {
-        sqlx::query_as!(
-            Trade,
-            r#"
-            SELECT
-                id,
-                created_at,
-                taker_id,
-                order_id,
-                taker_quote_volume,
-                taker_base_volume,
-                maker_quote_volume,
-                maker_base_volume
-            FROM spot.trades
-            WHERE created_at > $1
-            ORDER BY created_at DESC
-            "#,
-            higher_then
-        )
-        .fetch(&self.database)
     }
 }
