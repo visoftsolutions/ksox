@@ -140,6 +140,19 @@ impl Manager<Order> for OrdersManager {
         .execute(&self.database)
         .await
     }
+    async fn delete(&self, element: Order) -> Result<PgQueryResult> {
+        sqlx::query!(
+            r#"
+            DELETE FROM 
+                spot.orders 
+            WHERE
+                id = $1
+            "#,
+            element.id,
+        )
+        .execute(&self.database)
+        .await
+    }
 }
 
 impl OrderedManager<Order, BigDecimal> for OrdersManager {

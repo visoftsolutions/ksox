@@ -5,10 +5,8 @@ pub mod base {
     tonic::include_proto!("server.engine.base");
 }
 
-mod dbworker;
 mod deserializer;
 mod matching_engine;
-mod repository;
 mod serializer;
 mod shutdown_signal;
 

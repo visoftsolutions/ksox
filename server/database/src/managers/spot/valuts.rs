@@ -112,4 +112,17 @@ impl Manager<Valut> for ValutsManager {
         .execute(&self.database)
         .await
     }
+    async fn delete(&self, element: Valut) -> Result<PgQueryResult> {
+        sqlx::query!(
+            r#"
+            DELETE FROM 
+                spot.valuts 
+            WHERE
+                id = $1
+            "#,
+            element.id,
+        )
+        .execute(&self.database)
+        .await
+    }
 }

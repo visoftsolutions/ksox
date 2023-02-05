@@ -124,6 +124,19 @@ impl Manager<User> for UsersManager {
         .execute(&self.database)
         .await
     }
+    async fn delete(&self, element: User) -> Result<sqlx::postgres::PgQueryResult> {
+        sqlx::query!(
+            r#"
+            DELETE FROM 
+                users
+            WHERE
+                id = $1
+            "#,
+            element.id,
+        )
+        .execute(&self.database)
+        .await
+    }
 }
 
 impl OrderedManager<User, DateTime<Utc>> for UsersManager {

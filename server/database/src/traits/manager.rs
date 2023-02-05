@@ -8,4 +8,5 @@ pub trait Manager<T> {
     async fn get_by_id(&self, id: Uuid) -> Result<T>;
     async fn insert(&self, element: T) -> Result<PgQueryResult>;
     async fn update(&self, element: T) -> Result<PgQueryResult>;
+    async fn delete(&self, element: T) -> Result<PgQueryResult>;
 }

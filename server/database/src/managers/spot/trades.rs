@@ -116,6 +116,19 @@ impl Manager<Trade> for TradesManager {
         .execute(&self.database)
         .await
     }
+    async fn delete(&self, element: Trade) -> Result<PgQueryResult> {
+        sqlx::query!(
+            r#"
+            DELETE FROM 
+                spot.trades 
+            WHERE
+                id = $1
+            "#,
+            element.id,
+        )
+        .execute(&self.database)
+        .await
+    }
 }
 
 impl OrderedManager<Trade, DateTime<Utc>> for TradesManager {
