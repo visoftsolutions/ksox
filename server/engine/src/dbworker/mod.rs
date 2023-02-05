@@ -92,7 +92,13 @@ where
                         }
                     },
                 };
-            }
+            },
+            DBWorkerRequest::Update(v) => {
+                tracing::info!("DBWorkerRequest::Update");
+                if let Err(err) = db_manager.update(v).await {
+                    tracing::error!("{err}");
+                }
+            },
             DBWorkerRequest::TerminateThread => {
                 tracing::info!("DBWorkerRequest::TerminateThread");
                 break;

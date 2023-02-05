@@ -2,6 +2,7 @@
 pub enum DBWorkerRequest<K, V> {
     Insert(V),
     Get(K),
+    Update(V),
     TerminateThread,
 }
 
