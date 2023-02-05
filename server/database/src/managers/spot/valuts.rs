@@ -27,10 +27,10 @@ impl ValutsManager {
             Valut,
             r#"
             SELECT
-                spot.valuts.id,
-                spot.valuts.user_id,
-                spot.valuts.asset_id,
-                spot.valuts.balance
+                id,
+                user_id,
+                asset_id,
+                balance
             FROM spot.valuts
             WHERE user_id = $1
             "#,
@@ -41,15 +41,15 @@ impl ValutsManager {
 }
 
 impl Manager<Valut> for ValutsManager {
-    async fn get_all(&self) -> Pin<Box<dyn Stream<Item = Result<Valut>> + Send + '_>> {
+    fn get_all(&self) -> Pin<Box<dyn Stream<Item = Result<Valut>> + Send + '_>> {
         sqlx::query_as!(
             Valut,
             r#"
             SELECT
-                spot.valuts.id,
-                spot.valuts.user_id,
-                spot.valuts.asset_id,
-                spot.valuts.balance
+                id,
+                user_id,
+                asset_id,
+                balance
             FROM spot.valuts
             "#
         )
@@ -60,14 +60,14 @@ impl Manager<Valut> for ValutsManager {
         sqlx::query_as!(
             Valut,
             r#"
-                SELECT
-                    spot.valuts.id,
-                    spot.valuts.user_id,
-                    spot.valuts.asset_id,
-                    spot.valuts.balance
-                FROM spot.valuts
-                WHERE id = $1
-                "#,
+            SELECT
+                id,
+                user_id,
+                asset_id,
+                balance
+            FROM spot.valuts
+            WHERE id = $1
+            "#,
             id
         )
         .fetch_one(&self.database)
@@ -79,7 +79,30 @@ impl Manager<Valut> for ValutsManager {
             r#"
             INSERT INTO
                 spot.valuts
-                (id, user_id, asset_id, balance) VALUES ($1, $2, $3, $4)
+                (id, user_id, asset_id, balance)
+            VALUES
+                ($1, $2, $3, $4)
+            "#,
+            element.id,
+            element.user_id,
+            element.asset_id,
+            element.balance
+        )
+        .execute(&self.database)
+        .await
+    }
+
+    async fn update(&self, element: Valut) -> Result<PgQueryResult> {
+        sqlx::query!(
+            r#"
+            UPDATE 
+                spot.valuts 
+            SET
+                user_id = $2,
+                asset_id = $3,
+                balance = $4
+            WHERE
+                id = $1
             "#,
             element.id,
             element.user_id,

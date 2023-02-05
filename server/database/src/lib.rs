@@ -23,7 +23,7 @@ mod tests {
 
         let user_manager = UsersManager::new(database);
 
-        let mut query = user_manager.get_all().await;
+        let mut query = user_manager.get_all();
 
         let result = query.next().await;
 

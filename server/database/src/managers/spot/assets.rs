@@ -21,15 +21,15 @@ impl AssetsManager {
 }
 
 impl Manager<Asset> for AssetsManager {
-    async fn get_all(&self) -> Pin<Box<dyn Stream<Item = Result<Asset>> + Send + '_>> {
+    fn get_all(&self) -> Pin<Box<dyn Stream<Item = Result<Asset>> + Send + '_>> {
         sqlx::query_as!(
             Asset,
             r#"
             SELECT
-                spot.assets.id,
-                spot.assets.created_at,
-                spot.assets.name,
-                spot.assets.symbol
+                id,
+                created_at,
+                name,
+                symbol
             FROM spot.assets
             "#
         )
@@ -40,14 +40,14 @@ impl Manager<Asset> for AssetsManager {
         sqlx::query_as!(
             Asset,
             r#"
-                SELECT
-                    spot.assets.id,
-                    spot.assets.created_at,
-                    spot.assets.name,
-                    spot.assets.symbol
-                FROM spot.assets
-                WHERE spot.assets.id = $1
-                "#,
+            SELECT
+                id,
+                created_at,
+                name,
+                symbol
+            FROM spot.assets
+            WHERE spot.assets.id = $1
+            "#,
             id
         )
         .fetch_one(&self.database)
@@ -59,7 +59,30 @@ impl Manager<Asset> for AssetsManager {
             r#"
             INSERT INTO 
                 spot.assets 
-                (id, created_at, name, symbol) VALUES ($1, $2, $3, $4)
+                (id, created_at, name, symbol)
+            VALUES
+                ($1, $2, $3, $4)
+            "#,
+            element.id,
+            element.created_at,
+            element.name,
+            element.symbol
+        )
+        .execute(&self.database)
+        .await
+    }
+
+    async fn update(&self, element: Asset) -> Result<PgQueryResult> {
+        sqlx::query!(
+            r#"
+            UPDATE 
+                spot.assets 
+            SET
+                created_at = $2,
+                name = $3,
+                symbol = $4
+            WHERE
+                id = $1
             "#,
             element.id,
             element.created_at,

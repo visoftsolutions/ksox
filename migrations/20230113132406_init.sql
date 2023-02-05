@@ -38,7 +38,7 @@ CREATE TABLE "spot"."orders" (
   "quote_asset_id" uuid NOT NULL,
   "base_asset_id" uuid NOT NULL,
   "quote_asset_volume" NUMERIC(78, 18) NOT NULL CHECK ("quote_asset_volume" >= 0),
-  "base_asset_price" float8 NOT NULL
+  "base_asset_volume" NUMERIC(78, 18) NOT NULL CHECK ("base_asset_volume" >= 0)
 );
 
 CREATE TABLE "spot"."trades" (

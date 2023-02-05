@@ -27,5 +27,5 @@ pub struct Order {
     pub quote_asset_id: Uuid,
     pub base_asset_id: Uuid,
     pub quote_asset_volume: BigDecimal,
-    pub base_asset_price: f64,
+    pub base_asset_volume: BigDecimal,
 }

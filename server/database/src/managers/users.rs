@@ -1,9 +1,14 @@
 use std::pin::Pin;
 
+use chrono::{DateTime, Utc};
 use futures::Stream;
 use sqlx::{postgres::PgPool, types::Uuid, Result};
 
-use crate::{projections::user::User, traits::manager::Manager, types::EvmAddress};
+use crate::{
+    projections::user::User,
+    traits::{manager::Manager, ordered_manager::OrderedManager},
+    types::EvmAddress,
+};
 
 #[derive(Debug, Clone)]
 pub struct UsersManager {
@@ -51,7 +56,7 @@ impl UsersManager {
 }
 
 impl Manager<User> for UsersManager {
-    async fn get_all(&self) -> Pin<Box<dyn Stream<Item = Result<User>> + Send + '_>> {
+    fn get_all(&self) -> Pin<Box<dyn Stream<Item = Result<User>> + Send + '_>> {
         sqlx::query_as!(
             User,
             r#"
@@ -88,7 +93,9 @@ impl Manager<User> for UsersManager {
             r#"
             INSERT INTO
                 users
-                (id, created_at, address) VALUES ($1, $2, $3)
+                (id, created_at, address)
+            VALUES
+                ($1, $2, $3)
             "#,
             element.id,
             element.created_at,
@@ -96,5 +103,107 @@ impl Manager<User> for UsersManager {
         )
         .execute(&self.database)
         .await
+    }
+
+    async fn update(&self, element: User) -> Result<sqlx::postgres::PgQueryResult> {
+        let address_string = element.address.to_string();
+        sqlx::query!(
+            r#"
+            UPDATE 
+                users
+            SET
+                created_at = $2,
+                address = $3
+            WHERE
+                id = $1
+            "#,
+            element.id,
+            element.created_at,
+            address_string
+        )
+        .execute(&self.database)
+        .await
+    }
+}
+
+impl OrderedManager<User, DateTime<Utc>> for UsersManager {
+    fn get_ordered_asc_less(
+        &self,
+        less_then: DateTime<Utc>,
+    ) -> Pin<Box<dyn Stream<Item = Result<User>> + Send + '_>> {
+        sqlx::query_as!(
+            User,
+            r#"
+            SELECT
+                id,
+                created_at,
+                address as "address: EvmAddress"
+            FROM users
+            WHERE created_at <= $1
+            ORDER BY created_at ASC
+            "#,
+            less_then
+        )
+        .fetch(&self.database)
+    }
+
+    fn get_ordered_desc_less(
+        &self,
+        less_then: DateTime<Utc>,
+    ) -> Pin<Box<dyn Stream<Item = Result<User>> + Send + '_>> {
+        sqlx::query_as!(
+            User,
+            r#"
+            SELECT
+                users.id,
+                users.created_at,
+                users.address as "address: EvmAddress"
+            FROM users
+            WHERE created_at <= $1
+            ORDER BY created_at DESC
+            "#,
+            less_then
+        )
+        .fetch(&self.database)
+    }
+
+    fn get_ordered_asc_higher(
+        &self,
+        higher_then: DateTime<Utc>,
+    ) -> Pin<Box<dyn Stream<Item = Result<User>> + Send + '_>> {
+        sqlx::query_as!(
+            User,
+            r#"
+            SELECT
+                id,
+                created_at,
+                address as "address: EvmAddress"
+            FROM users
+            WHERE created_at > $1
+            ORDER BY created_at ASC
+            "#,
+            higher_then
+        )
+        .fetch(&self.database)
+    }
+
+    fn get_ordered_desc_higher(
+        &self,
+        higher_then: DateTime<Utc>,
+    ) -> Pin<Box<dyn Stream<Item = Result<User>> + Send + '_>> {
+        sqlx::query_as!(
+            User,
+            r#"
+            SELECT
+                id,
+                created_at,
+                address as "address: EvmAddress"
+            FROM users
+            WHERE created_at > $1
+            ORDER BY created_at DESC
+            "#,
+            higher_then
+        )
+        .fetch(&self.database)
     }
 }
