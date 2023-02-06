@@ -1,3 +1,4 @@
+use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::types::Uuid;
@@ -8,4 +9,6 @@ pub struct Asset {
     pub created_at: DateTime<Utc>,
     pub name: String,
     pub symbol: String,
+    pub maker_fee: BigDecimal,
+    pub taker_fee: BigDecimal,
 }

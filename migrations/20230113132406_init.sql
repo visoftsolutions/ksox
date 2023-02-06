@@ -27,7 +27,9 @@ CREATE TABLE "spot"."assets" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "name" VARCHAR NOT NULL,
-  "symbol" VARCHAR NOT NULL
+  "symbol" VARCHAR NOT NULL,
+  "maker_fee" NUMERIC(78, 18) NOT NULL CHECK ("maker_fee" >= 0) DEFAULT 0,
+  "taker_fee" NUMERIC(78, 18) NOT NULL CHECK ("taker_fee" >= 0) DEFAULT 0
 );
 
 CREATE TABLE "spot"."orders" (

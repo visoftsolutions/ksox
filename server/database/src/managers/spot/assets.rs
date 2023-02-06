@@ -29,7 +29,9 @@ impl Manager<Asset> for AssetsManager {
                 id,
                 created_at,
                 name,
-                symbol
+                symbol,
+                maker_fee,
+                taker_fee
             FROM spot.assets
             "#
         )
@@ -44,7 +46,9 @@ impl Manager<Asset> for AssetsManager {
                 id,
                 created_at,
                 name,
-                symbol
+                symbol,
+                maker_fee,
+                taker_fee
             FROM spot.assets
             WHERE spot.assets.id = $1
             "#,
@@ -59,14 +63,16 @@ impl Manager<Asset> for AssetsManager {
             r#"
             INSERT INTO 
                 spot.assets 
-                (id, created_at, name, symbol)
+                (id, created_at, name, symbol, maker_fee, taker_fee)
             VALUES
-                ($1, $2, $3, $4)
+                ($1, $2, $3, $4, $5, $6)
             "#,
             element.id,
             element.created_at,
             element.name,
-            element.symbol
+            element.symbol,
+            element.maker_fee,
+            element.taker_fee
         )
         .execute(&self.database)
         .await
@@ -80,14 +86,18 @@ impl Manager<Asset> for AssetsManager {
             SET
                 created_at = $2,
                 name = $3,
-                symbol = $4
+                symbol = $4,
+                maker_fee = $5,
+                taker_fee = $6
             WHERE
                 id = $1
             "#,
             element.id,
             element.created_at,
             element.name,
-            element.symbol
+            element.symbol,
+            element.maker_fee,
+            element.taker_fee
         )
         .execute(&self.database)
         .await
