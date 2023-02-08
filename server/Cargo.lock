@@ -574,6 +574,7 @@ dependencies = [
  "chrono",
  "ethereum-types",
  "futures",
+ "num-bigint",
  "prefix-hex",
  "serde",
  "serde_json",
@@ -707,6 +708,7 @@ dependencies = [
  "anyhow",
  "database",
  "futures",
+ "num-bigint",
  "prost",
  "serde",
  "tokio",
@@ -1557,6 +1559,7 @@ dependencies = [
  "autocfg",
  "num-integer",
  "num-traits",
+ "serde",
 ]
 
 [[package]]

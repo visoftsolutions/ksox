@@ -1,5 +1,6 @@
 use std::pin::Pin;
 
+use bigdecimal::BigDecimal;
 use futures::Stream;
 use sqlx::{
     postgres::{PgPool, PgQueryResult},
@@ -7,7 +8,7 @@ use sqlx::{
     Result,
 };
 
-use crate::{projections::spot::trade::Trade, traits::manager::Manager};
+use crate::{projections::spot::trade::Trade, traits::manager::Manager, types::Volume};
 
 #[derive(Debug, Clone)]
 pub struct TradesManager {
@@ -31,10 +32,10 @@ impl TradesManager {
                 spot.trades.created_at,
                 spot.trades.taker_id,
                 spot.trades.order_id,
-                spot.trades.taker_quote_volume,
-                spot.trades.taker_base_volume,
-                spot.trades.maker_quote_volume,
-                spot.trades.maker_base_volume
+                spot.trades.taker_quote_volume as "taker_quote_volume: Volume",
+                spot.trades.taker_base_volume as "taker_base_volume: Volume",
+                spot.trades.maker_quote_volume as "maker_quote_volume: Volume",
+                spot.trades.maker_base_volume as "maker_base_volume: Volume"
             FROM spot.trades
             JOIN spot.orders ON spot.trades.order_id = spot.orders.id
             WHERE spot.orders.user_id = $1
@@ -57,10 +58,10 @@ impl TradesManager {
                 spot.trades.created_at,
                 spot.trades.taker_id,
                 spot.trades.order_id,
-                spot.trades.taker_quote_volume,
-                spot.trades.taker_base_volume,
-                spot.trades.maker_quote_volume,
-                spot.trades.maker_base_volume
+                spot.trades.taker_quote_volume as "taker_quote_volume: Volume",
+                spot.trades.taker_base_volume as "taker_base_volume: Volume",
+                spot.trades.maker_quote_volume as "maker_quote_volume: Volume",
+                spot.trades.maker_base_volume as "maker_base_volume: Volume"
             FROM spot.trades
             JOIN spot.orders ON spot.trades.order_id = spot.orders.id
             WHERE spot.orders.user_id = $1
@@ -82,10 +83,10 @@ impl Manager<Trade> for TradesManager {
                 created_at,
                 taker_id,
                 order_id,
-                taker_quote_volume,
-                taker_base_volume,
-                maker_quote_volume,
-                maker_base_volume
+                spot.trades.taker_quote_volume as "taker_quote_volume: Volume",
+                spot.trades.taker_base_volume as "taker_base_volume: Volume",
+                spot.trades.maker_quote_volume as "maker_quote_volume: Volume",
+                spot.trades.maker_base_volume as "maker_base_volume: Volume"
             FROM spot.trades
             "#
         )
@@ -101,10 +102,10 @@ impl Manager<Trade> for TradesManager {
                 created_at,
                 taker_id,
                 order_id,
-                taker_quote_volume,
-                taker_base_volume,
-                maker_quote_volume,
-                maker_base_volume
+                spot.trades.taker_quote_volume as "taker_quote_volume: Volume",
+                spot.trades.taker_base_volume as "taker_base_volume: Volume",
+                spot.trades.maker_quote_volume as "maker_quote_volume: Volume",
+                spot.trades.maker_base_volume as "maker_base_volume: Volume"
             FROM spot.trades
             WHERE id = $1
             "#,
@@ -115,6 +116,10 @@ impl Manager<Trade> for TradesManager {
     }
 
     async fn insert(&self, element: Trade) -> Result<PgQueryResult> {
+        let taker_quote_volume: BigDecimal = element.taker_quote_volume.into();
+        let maker_quote_volume: BigDecimal = element.maker_quote_volume.into();
+        let taker_base_volume: BigDecimal = element.taker_base_volume.into();
+        let maker_base_volume: BigDecimal = element.maker_base_volume.into();
         sqlx::query!(
             r#"
             INSERT INTO
@@ -127,16 +132,20 @@ impl Manager<Trade> for TradesManager {
             element.created_at,
             element.taker_id,
             element.order_id,
-            element.taker_quote_volume,
-            element.maker_quote_volume,
-            element.taker_base_volume,
-            element.maker_base_volume
+            taker_quote_volume,
+            maker_quote_volume,
+            taker_base_volume,
+            maker_base_volume
         )
         .execute(&self.database)
         .await
     }
 
     async fn update(&self, element: Trade) -> Result<PgQueryResult> {
+        let taker_quote_volume: BigDecimal = element.taker_quote_volume.into();
+        let maker_quote_volume: BigDecimal = element.maker_quote_volume.into();
+        let taker_base_volume: BigDecimal = element.taker_base_volume.into();
+        let maker_base_volume: BigDecimal = element.maker_base_volume.into();
         sqlx::query!(
             r#"
             UPDATE 
@@ -156,10 +165,10 @@ impl Manager<Trade> for TradesManager {
             element.created_at,
             element.taker_id,
             element.order_id,
-            element.taker_quote_volume,
-            element.maker_quote_volume,
-            element.taker_base_volume,
-            element.maker_base_volume
+            taker_quote_volume,
+            maker_quote_volume,
+            taker_base_volume,
+            maker_base_volume
         )
         .execute(&self.database)
         .await

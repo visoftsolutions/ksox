@@ -1,9 +1,8 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::{
-    types::{BigDecimal, Uuid},
-    Type,
-};
+use sqlx::{types::Uuid, Type};
+
+use crate::types::Volume;
 
 #[derive(Debug, Type, Serialize, Deserialize, Clone)]
 #[sqlx(type_name = "products_status")]
@@ -26,6 +25,6 @@ pub struct Order {
     pub status: Status,
     pub quote_asset_id: Uuid,
     pub base_asset_id: Uuid,
-    pub quote_asset_volume: BigDecimal,
-    pub base_asset_volume: BigDecimal,
+    pub quote_asset_volume: Volume,
+    pub base_asset_volume: Volume,
 }

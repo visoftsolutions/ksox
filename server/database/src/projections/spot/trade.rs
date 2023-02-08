@@ -1,6 +1,8 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::types::{BigDecimal, Uuid};
+use sqlx::types::Uuid;
+
+use crate::types::Volume;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Trade {
@@ -8,8 +10,8 @@ pub struct Trade {
     pub created_at: DateTime<Utc>,
     pub taker_id: Uuid,
     pub order_id: Uuid,
-    pub taker_quote_volume: BigDecimal,
-    pub maker_quote_volume: BigDecimal,
-    pub taker_base_volume: BigDecimal,
-    pub maker_base_volume: BigDecimal,
+    pub taker_quote_volume: Volume,
+    pub maker_quote_volume: Volume,
+    pub taker_base_volume: Volume,
+    pub maker_base_volume: Volume,
 }

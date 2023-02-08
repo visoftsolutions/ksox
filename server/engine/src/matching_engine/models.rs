@@ -1,14 +1,15 @@
 use database::{
     projections::spot::{order::Order, trade::Trade},
-    sqlx::types::{BigDecimal, Uuid},
+    sqlx::types::Uuid,
+    types::Volume,
 };
 
 pub struct MatchingEngineRequest {
     pub user_id: Uuid,
     pub base_asset_id: Uuid,
     pub quote_asset_id: Uuid,
-    pub base_asset_volume: BigDecimal,
-    pub quote_asset_volume: BigDecimal,
+    pub base_asset_volume: Volume,
+    pub quote_asset_volume: Volume,
 }
 
 pub struct MatchingEngineResponse {

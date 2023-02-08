@@ -11,6 +11,7 @@ use sqlx::{
 use crate::{
     projections::spot::order::{Order, Status},
     traits::manager::Manager,
+    types::Volume,
 };
 
 #[derive(Debug, Clone)]
@@ -37,8 +38,8 @@ impl OrdersManager {
                 status as "status: Status",
                 quote_asset_id,
                 base_asset_id,
-                quote_asset_volume,
-                base_asset_volume
+                quote_asset_volume as "quote_asset_volume: Volume",
+                base_asset_volume as "base_asset_volume: Volume"
             FROM spot.orders
             WHERE user_id = $1
             "#,
@@ -51,9 +52,11 @@ impl OrdersManager {
         &self,
         base_asset_id: Uuid,
         quote_asset_id: Uuid,
-        base_asset_volume: BigDecimal,
-        quote_asset_volume: BigDecimal,
+        base_asset_volume: Volume,
+        quote_asset_volume: Volume,
     ) -> Pin<Box<dyn Stream<Item = Result<Order>> + Send + '_>> {
+        let quote_asset_volume: BigDecimal = quote_asset_volume.into();
+        let base_asset_volume: BigDecimal = base_asset_volume.into();
         sqlx::query_as!(
             Order,
             r#"
@@ -64,8 +67,8 @@ impl OrdersManager {
                 status as "status: Status",
                 quote_asset_id,
                 base_asset_id,
-                quote_asset_volume,
-                base_asset_volume
+                quote_asset_volume as "quote_asset_volume: Volume",
+                base_asset_volume as "base_asset_volume: Volume"
             FROM spot.orders
             WHERE quote_asset_id = $1
             AND base_asset_id = $2
@@ -85,9 +88,11 @@ impl OrdersManager {
         &self,
         base_asset_id: Uuid,
         quote_asset_id: Uuid,
-        base_asset_volume: BigDecimal,
-        quote_asset_volume: BigDecimal,
+        base_asset_volume: Volume,
+        quote_asset_volume: Volume,
     ) -> Pin<Box<dyn Stream<Item = Result<Order>> + Send + '_>> {
+        let quote_asset_volume: BigDecimal = quote_asset_volume.into();
+        let base_asset_volume: BigDecimal = base_asset_volume.into();
         sqlx::query_as!(
             Order,
             r#"
@@ -98,8 +103,8 @@ impl OrdersManager {
                 status as "status: Status",
                 quote_asset_id,
                 base_asset_id,
-                quote_asset_volume,
-                base_asset_volume
+                quote_asset_volume as "quote_asset_volume: Volume",
+                base_asset_volume as "base_asset_volume: Volume"
             FROM spot.orders
             WHERE quote_asset_id = $1
             AND base_asset_id = $2
@@ -128,8 +133,8 @@ impl Manager<Order> for OrdersManager {
                 status as "status: Status",
                 quote_asset_id,
                 base_asset_id,
-                quote_asset_volume,
-                base_asset_volume
+                quote_asset_volume as "quote_asset_volume: Volume",
+                base_asset_volume as "base_asset_volume: Volume"
             FROM spot.orders
             "#
         )
@@ -147,8 +152,8 @@ impl Manager<Order> for OrdersManager {
                 status as "status: Status",
                 quote_asset_id,
                 base_asset_id,
-                quote_asset_volume,
-                base_asset_volume
+                quote_asset_volume as "quote_asset_volume: Volume",
+                base_asset_volume as "base_asset_volume: Volume"
             FROM spot.orders
             WHERE id = $1
             "#,
@@ -159,6 +164,8 @@ impl Manager<Order> for OrdersManager {
     }
 
     async fn insert(&self, element: Order) -> Result<PgQueryResult> {
+        let quote_asset_volume: BigDecimal = element.quote_asset_volume.into();
+        let base_asset_volume: BigDecimal = element.base_asset_volume.into();
         sqlx::query!(
             r#"
             INSERT INTO
@@ -173,14 +180,16 @@ impl Manager<Order> for OrdersManager {
             element.status as Status,
             element.quote_asset_id,
             element.base_asset_id,
-            element.quote_asset_volume,
-            element.base_asset_volume,
+            quote_asset_volume,
+            base_asset_volume
         )
         .execute(&self.database)
         .await
     }
 
     async fn update(&self, element: Order) -> Result<PgQueryResult> {
+        let quote_asset_volume: BigDecimal = element.quote_asset_volume.into();
+        let base_asset_volume: BigDecimal = element.base_asset_volume.into();
         sqlx::query!(
             r#"
             UPDATE 
@@ -202,8 +211,8 @@ impl Manager<Order> for OrdersManager {
             element.status as Status,
             element.quote_asset_id,
             element.base_asset_id,
-            element.quote_asset_volume,
-            element.base_asset_volume,
+            quote_asset_volume,
+            base_asset_volume
         )
         .execute(&self.database)
         .await

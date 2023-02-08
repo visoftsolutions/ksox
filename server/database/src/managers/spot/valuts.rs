@@ -1,5 +1,6 @@
 use std::pin::Pin;
 
+use bigdecimal::BigDecimal;
 use futures::Stream;
 use sqlx::{
     postgres::{PgPool, PgQueryResult},
@@ -7,7 +8,7 @@ use sqlx::{
     Result,
 };
 
-use crate::{projections::spot::valut::Valut, traits::manager::Manager};
+use crate::{projections::spot::valut::Valut, traits::manager::Manager, types::Volume};
 
 #[derive(Debug, Clone)]
 pub struct ValutsManager {
@@ -30,7 +31,7 @@ impl ValutsManager {
                 id,
                 user_id,
                 asset_id,
-                balance
+                balance as "balance: Volume"
             FROM spot.valuts
             WHERE user_id = $1
             "#,
@@ -49,7 +50,7 @@ impl Manager<Valut> for ValutsManager {
                 id,
                 user_id,
                 asset_id,
-                balance
+                balance as "balance: Volume"
             FROM spot.valuts
             "#
         )
@@ -64,7 +65,7 @@ impl Manager<Valut> for ValutsManager {
                 id,
                 user_id,
                 asset_id,
-                balance
+                balance as "balance: Volume"
             FROM spot.valuts
             WHERE id = $1
             "#,
@@ -75,6 +76,7 @@ impl Manager<Valut> for ValutsManager {
     }
 
     async fn insert(&self, element: Valut) -> Result<PgQueryResult> {
+        let balance: BigDecimal = element.balance.into();
         sqlx::query!(
             r#"
             INSERT INTO
@@ -86,13 +88,14 @@ impl Manager<Valut> for ValutsManager {
             element.id,
             element.user_id,
             element.asset_id,
-            element.balance
+            balance
         )
         .execute(&self.database)
         .await
     }
 
     async fn update(&self, element: Valut) -> Result<PgQueryResult> {
+        let balance: BigDecimal = element.balance.into();
         sqlx::query!(
             r#"
             UPDATE 
@@ -107,7 +110,7 @@ impl Manager<Valut> for ValutsManager {
             element.id,
             element.user_id,
             element.asset_id,
-            element.balance
+            balance
         )
         .execute(&self.database)
         .await
