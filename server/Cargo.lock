@@ -579,6 +579,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
+ "thiserror",
  "tokio",
  "uuid",
 ]
@@ -711,6 +712,7 @@ dependencies = [
  "num-bigint",
  "prost",
  "serde",
+ "thiserror",
  "tokio",
  "tokio-stream",
  "tonic",

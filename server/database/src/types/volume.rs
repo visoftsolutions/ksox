@@ -26,7 +26,7 @@ impl FromStr for Volume {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self(BigInt::from_str(&s)?))
+        Ok(Self(BigInt::from_str(s)?))
     }
 }
 
@@ -48,9 +48,15 @@ impl From<BigInt> for Volume {
     }
 }
 
-impl Into<BigDecimal> for Volume {
-    fn into(self) -> BigDecimal {
-        BigDecimal::from(self.0)
+impl From<Volume> for BigInt {
+    fn from(val: Volume) -> Self {
+        val.0
+    }
+}
+
+impl From<Volume> for BigDecimal {
+    fn from(val: Volume) -> Self {
+        BigDecimal::from(val.0)
     }
 }
 
@@ -107,6 +113,13 @@ impl Mul for Volume {
     }
 }
 
+impl Mul<BigInt> for Volume {
+    type Output = Self;
+    fn mul(self, rhs: BigInt) -> Self::Output {
+        Volume(self.0 * rhs)
+    }
+}
+
 impl MulAssign for Volume {
     fn mul_assign(&mut self, rhs: Self) {
         self.0 *= rhs.0;
@@ -120,6 +133,13 @@ impl Div for Volume {
     }
 }
 
+impl Div<BigInt> for Volume {
+    type Output = Self;
+    fn div(self, rhs: BigInt) -> Self::Output {
+        Volume(self.0 / rhs)
+    }
+}
+
 impl DivAssign for Volume {
     fn div_assign(&mut self, rhs: Self) {
         self.0 /= rhs.0;
@@ -128,6 +148,6 @@ impl DivAssign for Volume {
 
 impl CheckedDiv for Volume {
     fn checked_div(&self, v: &Self) -> Option<Self> {
-        self.0.checked_div(&v.0).map(|val| Volume(val))
+        self.0.checked_div(&v.0).map(Volume)
     }
 }
