@@ -22,6 +22,8 @@ use self::{
 };
 pub mod errors;
 pub mod models;
+#[cfg(test)]
+mod tests;
 
 pub struct MatchingEngine {
     orders_manager: OrdersManager,
@@ -76,7 +78,7 @@ impl MatchingEngine {
         .await
     }
 
-    async fn matching_loop(
+    pub async fn matching_loop(
         request_user_id: Uuid,
         request_quote_asset_id: Uuid,
         request_base_asset_id: Uuid,
@@ -91,8 +93,16 @@ impl MatchingEngine {
 
         // buy as much base asset volume as passible with given quote asset volume
         //  && taker_quote_asset_volume_left > BigInt::from(0).into()
-        while let Some(maker_order) = available_maker_orders.next().await {
+        while let Some(maker_order) = available_maker_orders.next().await && taker_quote_asset_volume_left > BigInt::from(0).into() {
             let maker_order = maker_order?;
+            if maker_order.quote_asset_volume.to_owned() * request_quote_asset_volume.to_owned()
+                < maker_order.base_asset_volume.to_owned() * request_base_asset_volume.to_owned()
+                || request_base_asset_id != maker_order.quote_asset_id
+                || request_quote_asset_id != maker_order.base_asset_id
+            {
+                // reject maker_order price too high or ids invalid
+                continue;
+            }
             let (taker_base_asset_volume_given, taker_quote_asset_volume_taken) =
                 if taker_quote_asset_volume_left >= maker_order.base_asset_volume {
                     // eat whole maker_order
@@ -125,9 +135,11 @@ impl MatchingEngine {
                 taker_id: request_user_id,
                 order_id: maker_order.id,
                 taker_quote_volume: taker_quote_asset_volume_taken,
-                taker_base_volume: taker_base_asset_volume_given * (BigInt::from(1) - taker_fee.to_owned()),
+                taker_base_volume: taker_base_asset_volume_given.to_owned()
+                    - (taker_base_asset_volume_given * taker_fee.to_owned()),
                 maker_quote_volume: maker_quote_asset_volume_taken,
-                maker_base_volume: maker_base_asset_volume_given * (BigInt::from(1) - maker_fee.to_owned()),
+                maker_base_volume: maker_base_asset_volume_given.to_owned()
+                    - (maker_base_asset_volume_given * maker_fee.to_owned()),
             });
         }
 

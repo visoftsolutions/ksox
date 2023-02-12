@@ -12,9 +12,23 @@ pub struct MatchingEngineRequest {
     pub quote_asset_volume: Volume,
 }
 
+#[derive(Debug)]
 pub struct MatchingEngineResponse {
     pub orders: Vec<Order>,
     pub trades: Vec<Trade>,
+}
+
+impl std::fmt::Display for MatchingEngineResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "MatchingEngineResponse:
+        orders: {:?}
+        trades: {:?}
+        ",
+            self.orders, self.trades
+        )
+    }
 }
 
 impl MatchingEngineResponse {
