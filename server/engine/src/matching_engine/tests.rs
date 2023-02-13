@@ -4,7 +4,7 @@ use database::{
         types::{chrono::Utc, Uuid},
         Error,
     },
-    types::{Fraction, Volume},
+    types::Volume,
 };
 use futures::{executor::block_on, stream};
 use num_bigint::BigInt;
