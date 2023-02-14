@@ -16,6 +16,8 @@ use proptest::{
 
 use super::MatchingEngine;
 
+const CASES: u32 = 10000000;
+
 #[tokio::test]
 async fn test_two_matching_orders() {
     let request_user_id = Uuid::new_v4();
@@ -76,8 +78,6 @@ async fn test_two_matching_orders() {
     assert_eq!(result.trades[1].taker_base_volume, BigInt::from(72).into());
     assert_eq!(result.trades[1].maker_base_volume, BigInt::from(81).into());
 }
-
-const CASES: u32 = 10000000;
 
 #[test]
 fn proctest_req_filled_by_matching_order() {
@@ -157,21 +157,25 @@ fn proctest_req_filled_by_matching_order() {
                     maker_fee_denum,
                     maker_fee_num,
                 )| {
-                    let taker_fee: Fraction =
-                        (BigInt::from(taker_fee_num), BigInt::from(taker_fee_denum))
-                            .try_into()
-                            .unwrap();
-                    let maker_fee: Fraction =
-                        (BigInt::from(maker_fee_num), BigInt::from(maker_fee_denum))
-                            .try_into()
-                            .unwrap();
                     (
-                        Just(request_quote_asset_volume),
-                        Just(request_base_asset_volume),
-                        Just(maker_quote_asset_volume),
-                        Just(maker_base_asset_volume),
-                        Just(taker_fee),
-                        Just(maker_fee),
+                        Just(Volume::from(BigInt::from(request_quote_asset_volume))),
+                        Just(Volume::from(BigInt::from(request_base_asset_volume))),
+                        Just(Volume::from(BigInt::from(maker_quote_asset_volume))),
+                        Just(Volume::from(BigInt::from(maker_base_asset_volume))),
+                        Just(
+                            TryInto::<Fraction>::try_into((
+                                BigInt::from(maker_fee_num),
+                                BigInt::from(maker_fee_denum),
+                            ))
+                            .unwrap(),
+                        ),
+                        Just(
+                            TryInto::<Fraction>::try_into((
+                                BigInt::from(maker_fee_num),
+                                BigInt::from(maker_fee_denum),
+                            ))
+                            .unwrap(),
+                        ),
                     )
                 },
             )
@@ -185,8 +189,8 @@ fn proctest_req_filled_by_matching_order() {
                     maker_fee,
                 )| {
                     (
-                        Just(Volume::from(BigInt::from(request_quote_asset_volume))),
-                        Just(Volume::from(BigInt::from(request_base_asset_volume))),
+                        Just(request_quote_asset_volume),
+                        Just(request_base_asset_volume),
                         Just(Order {
                             id: Uuid::new_v4(),
                             created_at: Utc::now(),
@@ -194,8 +198,8 @@ fn proctest_req_filled_by_matching_order() {
                             status: Status::Active,
                             quote_asset_id: request_base_asset_id,
                             base_asset_id: request_quote_asset_id,
-                            quote_asset_volume: BigInt::from(maker_quote_asset_volume).into(),
-                            base_asset_volume: BigInt::from(maker_base_asset_volume).into(),
+                            quote_asset_volume: maker_quote_asset_volume,
+                            base_asset_volume: maker_base_asset_volume,
                         }),
                         Just(taker_fee),
                         Just(maker_fee),
@@ -345,21 +349,25 @@ fn proctest_no_trade_with_not_matching_order() {
                     maker_fee_denum,
                     maker_fee_num,
                 )| {
-                    let taker_fee: Fraction =
-                        (BigInt::from(taker_fee_num), BigInt::from(taker_fee_denum))
-                            .try_into()
-                            .unwrap();
-                    let maker_fee: Fraction =
-                        (BigInt::from(maker_fee_num), BigInt::from(maker_fee_denum))
-                            .try_into()
-                            .unwrap();
                     (
-                        Just(request_quote_asset_volume),
-                        Just(request_base_asset_volume),
-                        Just(maker_quote_asset_volume),
-                        Just(maker_base_asset_volume),
-                        Just(taker_fee),
-                        Just(maker_fee),
+                        Just(Volume::from(BigInt::from(request_quote_asset_volume))),
+                        Just(Volume::from(BigInt::from(request_base_asset_volume))),
+                        Just(Volume::from(BigInt::from(maker_quote_asset_volume))),
+                        Just(Volume::from(BigInt::from(maker_base_asset_volume))),
+                        Just(
+                            TryInto::<Fraction>::try_into((
+                                BigInt::from(maker_fee_num),
+                                BigInt::from(maker_fee_denum),
+                            ))
+                            .unwrap(),
+                        ),
+                        Just(
+                            TryInto::<Fraction>::try_into((
+                                BigInt::from(maker_fee_num),
+                                BigInt::from(maker_fee_denum),
+                            ))
+                            .unwrap(),
+                        ),
                     )
                 },
             )
@@ -373,8 +381,8 @@ fn proctest_no_trade_with_not_matching_order() {
                     maker_fee,
                 )| {
                     (
-                        Just(Volume::from(BigInt::from(request_quote_asset_volume))),
-                        Just(Volume::from(BigInt::from(request_base_asset_volume))),
+                        Just(request_quote_asset_volume),
+                        Just(request_base_asset_volume),
                         Just(Order {
                             id: Uuid::new_v4(),
                             created_at: Utc::now(),
@@ -382,8 +390,8 @@ fn proctest_no_trade_with_not_matching_order() {
                             status: Status::Active,
                             quote_asset_id: request_base_asset_id,
                             base_asset_id: request_quote_asset_id,
-                            quote_asset_volume: BigInt::from(maker_quote_asset_volume).into(),
-                            base_asset_volume: BigInt::from(maker_base_asset_volume).into(),
+                            quote_asset_volume: maker_quote_asset_volume,
+                            base_asset_volume: maker_base_asset_volume,
                         }),
                         Just(taker_fee),
                         Just(maker_fee),
