@@ -114,8 +114,8 @@ impl MatchingEngine {
                     // eat maker_order partially
                     // round strategy floor (taker in unfavorable position)
                     (
-                        (taker_quote_asset_volume_left.to_owned() * maker_order.base_asset_volume)
-                            .checked_div(&maker_order.quote_asset_volume)
+                        (taker_quote_asset_volume_left.to_owned() * maker_order.quote_asset_volume)
+                            .checked_div(&maker_order.base_asset_volume)
                             .ok_or(MatchingEngineError::DivisionByZero)?
                             .into(),
                         taker_quote_asset_volume_left.to_owned(),

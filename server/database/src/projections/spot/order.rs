@@ -4,7 +4,7 @@ use sqlx::{types::Uuid, Type};
 
 use crate::types::Volume;
 
-#[derive(Debug, Type, Serialize, Deserialize, Clone)]
+#[derive(Debug, Type, Serialize, Deserialize, Clone, PartialEq)]
 #[sqlx(type_name = "products_status")]
 pub enum Status {
     #[sqlx(rename = "active")]
