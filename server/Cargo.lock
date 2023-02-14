@@ -728,6 +728,7 @@ dependencies = [
  "proptest",
  "proptest-derive",
  "prost",
+ "seq-macro",
  "serde",
  "thiserror",
  "tokio",
@@ -2436,6 +2437,12 @@ dependencies = [
  "subtle",
  "zeroize",
 ]
+
+[[package]]
+name = "seq-macro"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1685deded9b272198423bdbdb907d8519def2f26cf3699040e54e8c4fbd5c5ce"
 
 [[package]]
 name = "serde"
