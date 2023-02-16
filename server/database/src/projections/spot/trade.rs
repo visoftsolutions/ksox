@@ -11,7 +11,7 @@ pub struct Trade {
     pub taker_id: Uuid,
     pub order_id: Uuid,
     pub taker_quote_volume: Volume,
-    pub maker_quote_volume: Volume,
     pub taker_base_volume: Volume,
+    pub maker_quote_volume: Volume,
     pub maker_base_volume: Volume,
 }
