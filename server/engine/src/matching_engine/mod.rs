@@ -88,7 +88,9 @@ impl MatchingEngine {
         taker_fee: Fraction,
         maker_fee: Fraction,
     ) -> Result<MatchingEngineResponse, MatchingEngineError> {
-        if request_quote_asset_volume <= Volume::from(BigInt::from(0)) || request_base_asset_volume <= Volume::from(BigInt::from(0)) {
+        if request_quote_asset_volume <= Volume::from(BigInt::from(0))
+            || request_base_asset_volume <= Volume::from(BigInt::from(0))
+        {
             return Err(MatchingEngineError::VolumeIsZero);
         }
 

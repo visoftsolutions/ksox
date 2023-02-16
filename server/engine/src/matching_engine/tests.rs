@@ -19,7 +19,7 @@ use tokio_stream::StreamExt;
 use super::MatchingEngine;
 
 // maximum 1000000000
-const CASES: u32 = 100000;
+const CASES: u32 = 1000000;
 const MAX_LOCAL_REJECTS: u32 = CASES * 3;
 
 fn arb_fee(denum: u16) -> BoxedStrategy<Fraction> {
@@ -559,7 +559,7 @@ seq!(N in 0x000..0x00f {
 
         TestRunner::new(Config {
             cases: CASES,
-            max_local_rejects: u32::MAX,
+            max_local_rejects: MAX_LOCAL_REJECTS*50,
             ..Config::default()
         })
         .run(
