@@ -88,6 +88,10 @@ impl MatchingEngine {
         taker_fee: Fraction,
         maker_fee: Fraction,
     ) -> Result<MatchingEngineResponse, MatchingEngineError> {
+        if request_quote_asset_volume <= Volume::from(BigInt::from(0)) || request_base_asset_volume <= Volume::from(BigInt::from(0)) {
+            return Err(MatchingEngineError::VolumeIsZero);
+        }
+
         let mut response = MatchingEngineResponse::new();
         let mut taker_quote_asset_volume_left = request_quote_asset_volume.to_owned();
 
@@ -97,10 +101,12 @@ impl MatchingEngine {
             let maker_order = maker_order?;
             if maker_order.quote_asset_volume.to_owned() * request_quote_asset_volume.to_owned()
                 < maker_order.base_asset_volume.to_owned() * request_base_asset_volume.to_owned()
-                || request_base_asset_id != maker_order.quote_asset_id
                 || request_quote_asset_id != maker_order.base_asset_id
+                || request_base_asset_id != maker_order.quote_asset_id
+                || request_quote_asset_volume <= Volume::from(BigInt::from(0))
+                || request_base_asset_volume <= Volume::from(BigInt::from(0))
             {
-                // reject maker_order price too high or ids invalid
+                // reject maker_order price too high or ids invalid or volume less or equal then zero
                 continue;
             }
             let (taker_base_asset_volume_given, taker_quote_asset_volume_taken) =
