@@ -1,9 +1,9 @@
 use std::pin::Pin;
 
 use bigdecimal::BigDecimal;
-use futures::Stream;
+use futures::{FutureExt, Stream, StreamExt};
 use sqlx::{
-    postgres::{PgPool, PgQueryResult},
+    postgres::{PgListener, PgPool, PgQueryResult},
     types::Uuid,
     Result,
 };
@@ -11,7 +11,7 @@ use sqlx::{
 use crate::{
     projections::spot::order::{Order, Status},
     traits::table_manager::TableManager,
-    types::Volume,
+    types::{NotifyTrigger, SubscribeStream, Volume},
 };
 
 #[derive(Debug, Clone)]
@@ -118,6 +118,72 @@ impl OrdersManager {
             base_asset_volume
         )
         .fetch(&self.database)
+    }
+
+    pub async fn create_notify_trigger(&self, id: Uuid) -> Result<NotifyTrigger> {
+        sqlx::query!(
+            r#"
+            SELECT create_orders_notify_trigger($1)
+            "#,
+            id
+        )
+        .execute(&self.database)
+        .await?;
+
+        let db = self.database.clone();
+        let fut = async move {
+            sqlx::query!(
+                r#"
+                SELECT drop_orders_notify_trigger($1)
+                "#,
+                id
+            )
+            .execute(&db)
+            .await
+        };
+
+        Ok(NotifyTrigger::new(
+            format!("orders_notify_channel_id_{id}"),
+            fut.boxed(),
+        ))
+    }
+
+    pub async fn get_and_subscribe(&self, user_id: Uuid) -> Result<SubscribeStream<Order>> {
+        let mut listener = PgListener::connect_with(&self.database).await?;
+        let notify_trigger = self.create_notify_trigger(user_id).await?;
+        listener.listen(&notify_trigger.channel_name).await?;
+
+        let subscribe_stream = listener.into_stream().map(|element| {
+            element.and_then(|val| {
+                println!("{}", val.payload());
+                serde_json::from_str::<Order>(val.payload())
+                    .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
+            })
+        });
+
+        let fetch_stream = sqlx::query_as!(
+            Order,
+            r#"
+            SELECT
+                id,
+                created_at,
+                user_id,
+                status as "status: Status",
+                quote_asset_id,
+                base_asset_id,
+                quote_asset_volume as "quote_asset_volume: Volume",
+                base_asset_volume as "base_asset_volume: Volume"
+            FROM spot.orders
+            WHERE user_id = $1
+            "#,
+            user_id
+        )
+        .fetch(&self.database);
+
+        Ok(SubscribeStream::new(
+            notify_trigger,
+            Box::pin(fetch_stream.chain(subscribe_stream)),
+        ))
     }
 }
 

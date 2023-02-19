@@ -9,14 +9,6 @@ use sqlx::{
 #[derive(Debug, Clone)]
 pub struct EvmAddress(pub Address);
 
-impl Deref for EvmAddress {
-    type Target = Address;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
 impl FromStr for EvmAddress {
     type Err = anyhow::Error;
 
@@ -35,6 +27,14 @@ impl std::fmt::Display for EvmAddress {
 impl From<EvmAddress> for ethereum_types::H160 {
     fn from(val: EvmAddress) -> Self {
         val.0
+    }
+}
+
+impl Deref for EvmAddress {
+    type Target = Address;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 

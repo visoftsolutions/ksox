@@ -76,6 +76,34 @@ impl TradesManager {
         .fetch(&self.database)
     }
 
+    pub async fn create_notify_trigger(&self, id: Uuid) -> Result<NotifyTrigger> {
+        sqlx::query!(
+            r#"
+            SELECT create_trades_notify_trigger($1)
+            "#,
+            id
+        )
+        .execute(&self.database)
+        .await?;
+
+        let db = self.database.clone();
+        let fut = async move {
+            sqlx::query!(
+                r#"
+                SELECT drop_trades_notify_trigger($1)
+                "#,
+                id
+            )
+            .execute(&db)
+            .await
+        };
+
+        Ok(NotifyTrigger::new(
+            format!("trades_notify_channel_id_{id}"),
+            fut.boxed(),
+        ))
+    }
+
     pub async fn get_and_subscribe(&self, taker_id: Uuid) -> Result<SubscribeStream<Trade>> {
         let mut listener = PgListener::connect_with(&self.database).await?;
         let notify_trigger = self.create_notify_trigger(taker_id).await?;
@@ -111,34 +139,6 @@ impl TradesManager {
         Ok(SubscribeStream::new(
             notify_trigger,
             Box::pin(fetch_stream.chain(subscribe_stream)),
-        ))
-    }
-
-    pub async fn create_notify_trigger(&self, id: Uuid) -> Result<crate::types::NotifyTrigger> {
-        sqlx::query!(
-            r#"
-            SELECT create_trades_notify_trigger($1)
-            "#,
-            id
-        )
-        .execute(&self.database)
-        .await?;
-
-        let db = self.database.clone();
-        let fut = async move {
-            sqlx::query!(
-                r#"
-                SELECT drop_trades_notify_trigger($1)
-                "#,
-                id
-            )
-            .execute(&db)
-            .await
-        };
-
-        Ok(NotifyTrigger::new(
-            format!("trades_notify_channel_id_{id}"),
-            fut.boxed(),
         ))
     }
 }

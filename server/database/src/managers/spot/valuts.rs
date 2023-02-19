@@ -1,14 +1,18 @@
 use std::pin::Pin;
 
 use bigdecimal::BigDecimal;
-use futures::Stream;
+use futures::{FutureExt, Stream, StreamExt};
 use sqlx::{
-    postgres::{PgPool, PgQueryResult},
+    postgres::{PgListener, PgPool, PgQueryResult},
     types::Uuid,
     Result,
 };
 
-use crate::{projections::spot::valut::Valut, traits::table_manager::TableManager, types::Volume};
+use crate::{
+    projections::spot::valut::Valut,
+    traits::table_manager::TableManager,
+    types::{NotifyTrigger, SubscribeStream, Volume},
+};
 
 #[derive(Debug, Clone)]
 pub struct ValutsManager {
@@ -38,6 +42,68 @@ impl ValutsManager {
             id
         )
         .fetch(&self.database)
+    }
+
+    pub async fn create_notify_trigger(&self, id: Uuid) -> Result<NotifyTrigger> {
+        sqlx::query!(
+            r#"
+            SELECT create_valuts_notify_trigger($1)
+            "#,
+            id
+        )
+        .execute(&self.database)
+        .await?;
+
+        let db = self.database.clone();
+        let fut = async move {
+            sqlx::query!(
+                r#"
+                SELECT drop_valuts_notify_trigger($1)
+                "#,
+                id
+            )
+            .execute(&db)
+            .await
+        };
+
+        Ok(NotifyTrigger::new(
+            format!("valuts_notify_channel_id_{id}"),
+            fut.boxed(),
+        ))
+    }
+
+    pub async fn get_and_subscribe(&self, user_id: Uuid) -> Result<SubscribeStream<Valut>> {
+        let mut listener = PgListener::connect_with(&self.database).await?;
+        let notify_trigger = self.create_notify_trigger(user_id).await?;
+        listener.listen(&notify_trigger.channel_name).await?;
+
+        let subscribe_stream = listener.into_stream().map(|element| {
+            element.and_then(|val| {
+                println!("{}", val.payload());
+                serde_json::from_str::<Valut>(val.payload())
+                    .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
+            })
+        });
+
+        let fetch_stream = sqlx::query_as!(
+            Valut,
+            r#"
+            SELECT
+                id,
+                user_id,
+                asset_id,
+                balance as "balance: Volume"
+            FROM spot.valuts
+            WHERE user_id = $1
+            "#,
+            user_id
+        )
+        .fetch(&self.database);
+
+        Ok(SubscribeStream::new(
+            notify_trigger,
+            Box::pin(fetch_stream.chain(subscribe_stream)),
+        ))
     }
 }
 

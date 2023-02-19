@@ -5,7 +5,7 @@ use std::{
 
 use bigdecimal::{num_traits::CheckedDiv, BigDecimal};
 use num_bigint::{BigInt, ToBigInt};
-use serde::{Deserialize, Serialize, de};
+use serde::{Deserialize, Serialize};
 use sqlx::{
     postgres::{PgArgumentBuffer, PgValueRef},
     Decode, Encode, Postgres,
@@ -13,31 +13,6 @@ use sqlx::{
 
 #[derive(Debug, Clone, Eq, PartialEq, PartialOrd, Ord)]
 pub struct Volume(BigInt);
-
-impl Serialize for Volume {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: serde::Serializer {
-        BigDecimal::serialize(&BigDecimal::from((&self.0).clone()), serializer)
-    }
-}
-
-impl<'de> Deserialize<'de> for Volume {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: serde::Deserializer<'de> {
-        let decimal = BigDecimal::deserialize(deserializer)?;
-        Ok(Self::from(decimal.as_bigint_and_exponent().0))
-    }
-}
-
-impl Deref for Volume {
-    type Target = BigInt;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
 
 impl FromStr for Volume {
     type Err = anyhow::Error;
@@ -74,6 +49,36 @@ impl From<Volume> for BigInt {
 impl From<Volume> for BigDecimal {
     fn from(val: Volume) -> Self {
         BigDecimal::from(val.0)
+    }
+}
+
+impl Deref for Volume {
+    type Target = BigInt;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl Serialize for Volume {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        BigDecimal::serialize(&BigDecimal::from(self.0.clone()), serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for Volume {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Ok(Self::from(
+            BigDecimal::deserialize(deserializer)?
+                .as_bigint_and_exponent()
+                .0,
+        ))
     }
 }
 
