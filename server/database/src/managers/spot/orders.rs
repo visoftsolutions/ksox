@@ -10,7 +10,7 @@ use sqlx::{
 
 use crate::{
     projections::spot::order::{Order, Status},
-    traits::manager::Manager,
+    traits::table_manager::TableManager,
     types::Volume,
 };
 
@@ -121,7 +121,7 @@ impl OrdersManager {
     }
 }
 
-impl Manager<Order> for OrdersManager {
+impl TableManager<Order> for OrdersManager {
     fn get_all(&self) -> Pin<Box<dyn Stream<Item = Result<Order>> + Send + '_>> {
         sqlx::query_as!(
             Order,

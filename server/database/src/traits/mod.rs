@@ -1,3 +1,3 @@
-pub mod manager;
+pub mod table_manager;
 
-pub use manager::Manager;
+pub use table_manager::TableManager;

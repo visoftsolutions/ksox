@@ -8,7 +8,7 @@ use sqlx::{
     Result,
 };
 
-use crate::{projections::spot::asset::Asset, traits::manager::Manager, types::Volume};
+use crate::{projections::spot::asset::Asset, traits::table_manager::TableManager, types::Volume};
 
 #[derive(Debug, Clone)]
 pub struct AssetsManager {
@@ -21,7 +21,7 @@ impl AssetsManager {
     }
 }
 
-impl Manager<Asset> for AssetsManager {
+impl TableManager<Asset> for AssetsManager {
     fn get_all(&self) -> Pin<Box<dyn Stream<Item = Result<Asset>> + Send + '_>> {
         sqlx::query_as!(
             Asset,

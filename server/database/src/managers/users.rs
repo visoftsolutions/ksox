@@ -3,7 +3,7 @@ use std::pin::Pin;
 use futures::Stream;
 use sqlx::{postgres::PgPool, types::Uuid, Result};
 
-use crate::{projections::user::User, traits::manager::Manager, types::EvmAddress};
+use crate::{projections::user::User, traits::table_manager::TableManager, types::EvmAddress};
 
 #[derive(Debug, Clone)]
 pub struct UsersManager {
@@ -50,7 +50,7 @@ impl UsersManager {
     }
 }
 
-impl Manager<User> for UsersManager {
+impl TableManager<User> for UsersManager {
     fn get_all(&self) -> Pin<Box<dyn Stream<Item = Result<User>> + Send + '_>> {
         sqlx::query_as!(
             User,

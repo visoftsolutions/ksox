@@ -1,5 +1,5 @@
 use axum::{extract::State, Json};
-use database::{projections::spot::asset::Asset, traits::manager::Manager};
+use database::{projections::spot::asset::Asset, traits::table_manager::TableManager};
 use futures::StreamExt;
 
 use crate::{api::AppError, AppState};

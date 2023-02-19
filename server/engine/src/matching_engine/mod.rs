@@ -10,7 +10,7 @@ use database::{
         types::{chrono::Utc, Uuid},
         Error, Pool, Postgres,
     },
-    traits::manager::Manager,
+    traits::table_manager::TableManager,
     types::{Fraction, Volume},
 };
 use futures::{Stream, StreamExt};

@@ -1,14 +1,18 @@
 use std::pin::Pin;
 
 use bigdecimal::BigDecimal;
-use futures::Stream;
+use futures::{FutureExt, Stream, StreamExt};
 use sqlx::{
-    postgres::{PgPool, PgQueryResult},
+    postgres::{PgListener, PgPool, PgQueryResult},
     types::Uuid,
     Result,
 };
 
-use crate::{projections::spot::trade::Trade, traits::manager::Manager, types::Volume};
+use crate::{
+    projections::spot::trade::Trade,
+    traits::table_manager::TableManager,
+    types::{NotifyTrigger, SubscribeStream, Volume},
+};
 
 #[derive(Debug, Clone)]
 pub struct TradesManager {
@@ -20,7 +24,7 @@ impl TradesManager {
         TradesManager { database }
     }
 
-    fn get_ordered_asc(
+    pub fn get_ordered_asc(
         &self,
         user_id: Uuid,
     ) -> Pin<Box<dyn Stream<Item = Result<Trade>> + Send + '_>> {
@@ -46,7 +50,7 @@ impl TradesManager {
         .fetch(&self.database)
     }
 
-    fn get_ordered_desc(
+    pub fn get_ordered_desc(
         &self,
         user_id: Uuid,
     ) -> Pin<Box<dyn Stream<Item = Result<Trade>> + Send + '_>> {
@@ -71,9 +75,74 @@ impl TradesManager {
         )
         .fetch(&self.database)
     }
+
+    pub async fn get_and_subscribe(&self, taker_id: Uuid) -> Result<SubscribeStream<Trade>> {
+        let mut listener = PgListener::connect_with(&self.database).await?;
+        let notify_trigger = self.create_notify_trigger(taker_id).await?;
+        listener.listen(&notify_trigger.channel_name).await?;
+
+        let subscribe_stream = listener.into_stream().map(|element| {
+            element.and_then(|val| {
+                serde_json::from_str::<Trade>(val.payload())
+                    .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
+            })
+        });
+
+        let fetch_stream = sqlx::query_as!(
+            Trade,
+            r#"
+            SELECT
+                id,
+                created_at,
+                taker_id,
+                order_id,
+                spot.trades.taker_quote_volume as "taker_quote_volume: Volume",
+                spot.trades.taker_base_volume as "taker_base_volume: Volume",
+                spot.trades.maker_quote_volume as "maker_quote_volume: Volume",
+                spot.trades.maker_base_volume as "maker_base_volume: Volume"
+            FROM spot.trades
+            WHERE taker_id = $1
+            "#,
+            taker_id
+        )
+        .fetch(&self.database);
+
+        Ok(SubscribeStream::new(
+            notify_trigger,
+            Box::pin(fetch_stream.chain(subscribe_stream)),
+        ))
+    }
+
+    pub async fn create_notify_trigger(&self, id: Uuid) -> Result<crate::types::NotifyTrigger> {
+        sqlx::query!(
+            r#"
+            SELECT create_trades_notify_trigger($1)
+            "#,
+            id
+        )
+        .execute(&self.database)
+        .await?;
+
+        let db = self.database.clone();
+        let fut = async move {
+            sqlx::query!(
+                r#"
+                SELECT drop_trades_notify_trigger($1)
+                "#,
+                id
+            )
+            .execute(&db)
+            .await
+        };
+
+        Ok(NotifyTrigger::new(
+            format!("trades_notify_channel_id_{id}"),
+            fut.boxed(),
+        ))
+    }
 }
 
-impl Manager<Trade> for TradesManager {
+impl TableManager<Trade> for TradesManager {
     fn get_all(&self) -> Pin<Box<dyn Stream<Item = Result<Trade>> + Send + '_>> {
         sqlx::query_as!(
             Trade,

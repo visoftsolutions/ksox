@@ -8,7 +8,7 @@ use sqlx::{
     Result,
 };
 
-use crate::{projections::spot::valut::Valut, traits::manager::Manager, types::Volume};
+use crate::{projections::spot::valut::Valut, traits::table_manager::TableManager, types::Volume};
 
 #[derive(Debug, Clone)]
 pub struct ValutsManager {
@@ -41,7 +41,7 @@ impl ValutsManager {
     }
 }
 
-impl Manager<Valut> for ValutsManager {
+impl TableManager<Valut> for ValutsManager {
     fn get_all(&self) -> Pin<Box<dyn Stream<Item = Result<Valut>> + Send + '_>> {
         sqlx::query_as!(
             Valut,

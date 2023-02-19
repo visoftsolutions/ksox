@@ -1,6 +1,10 @@
 pub mod evm_address;
 pub mod fraction;
+pub mod notify_trigger;
+pub mod subscribe_stream;
 pub mod volume;
 pub use evm_address::EvmAddress;
 pub use fraction::Fraction;
+pub use notify_trigger::NotifyTrigger;
+pub use subscribe_stream::SubscribeStream;
 pub use volume::Volume;

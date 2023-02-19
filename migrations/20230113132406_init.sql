@@ -69,3 +69,40 @@ ALTER TABLE "spot"."orders" ADD FOREIGN KEY ("base_asset_id") REFERENCES "spot".
 ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("taker_id") REFERENCES "users" ("id");
 
 ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("order_id") REFERENCES "spot"."orders" ("id");
+
+CREATE OR REPLACE FUNCTION notify()
+RETURNS TRIGGER AS $$
+BEGIN
+  PERFORM pg_notify(TG_ARGV[0], row_to_json(NEW)::text);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION create_trades_notify_trigger(id uuid)
+RETURNS VOID AS
+$BODY$
+BEGIN
+  EXECUTE format('
+    CREATE OR REPLACE TRIGGER trades_notify_trigger_id_%s
+    AFTER INSERT OR UPDATE ON spot.trades
+    FOR EACH ROW
+    WHEN (NEW.taker_id = ''%s'')
+    EXECUTE FUNCTION notify(''trades_notify_channel_id_%s'');', 
+    replace(id::text, '-'::text,'_'::text), id::text, id::text);
+END;
+$BODY$ LANGUAGE plpgsql;
+
+CREATE FUNCTION drop_trades_notify_trigger(id uuid)
+RETURNS VOID AS
+$BODY$
+DECLARE
+  listener_count integer;
+BEGIN
+  SELECT count(*) INTO listener_count FROM pg_stat_activity WHERE lower(query) LIKE '%listen%trades_notify_trigger_id_'|| id::text ||'%';
+  IF listener_count = 0 THEN
+    EXECUTE format('
+      DROP TRIGGER trades_notify_trigger_id_%s ON spot.trades;', 
+      replace(id::text, '-'::text,'_'::text));
+  END IF;
+END;
+$BODY$ LANGUAGE plpgsql;
