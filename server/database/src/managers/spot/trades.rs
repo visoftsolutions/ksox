@@ -12,6 +12,7 @@ use crate::{
     projections::spot::trade::Trade,
     traits::table_manager::TableManager,
     types::{NotifyTrigger, SubscribeStream, Volume},
+    utils::trigger_name,
 };
 
 #[derive(Debug, Clone)]
@@ -76,37 +77,41 @@ impl TradesManager {
         .fetch(&self.database)
     }
 
-    pub async fn create_notify_trigger(&self, id: Uuid) -> Result<NotifyTrigger> {
+    pub async fn create_notify_trigger_for_taker(&self, taker_id: Uuid) -> Result<NotifyTrigger> {
+        let trigger_name = trigger_name("spot_trades_notify_trigger_for_taker", vec![taker_id]);
         sqlx::query!(
             r#"
-            SELECT create_trades_notify_trigger($1)
+            SELECT create_spot_trades_notify_trigger_for_taker($1, $2)
             "#,
-            id
+            trigger_name,
+            taker_id
         )
         .execute(&self.database)
         .await?;
 
         let db = self.database.clone();
+        let trigger_name_clone = trigger_name.clone();
         let fut = async move {
             sqlx::query!(
                 r#"
-                SELECT drop_trades_notify_trigger($1)
+                SELECT drop_spot_trades_notify_trigger_for_taker($1, $2)
                 "#,
-                id
+                trigger_name_clone,
+                taker_id
             )
             .execute(&db)
             .await
         };
 
-        Ok(NotifyTrigger::new(
-            format!("trades_notify_channel_id_{id}"),
-            fut.boxed(),
-        ))
+        Ok(NotifyTrigger::new(format!("c_{trigger_name}"), fut.boxed()))
     }
 
-    pub async fn get_and_subscribe(&self, taker_id: Uuid) -> Result<SubscribeStream<Trade>> {
+    pub async fn get_and_subscribe_for_taker(
+        &self,
+        taker_id: Uuid,
+    ) -> Result<SubscribeStream<Trade>> {
         let mut listener = PgListener::connect_with(&self.database).await?;
-        let notify_trigger = self.create_notify_trigger(taker_id).await?;
+        let notify_trigger = self.create_notify_trigger_for_taker(taker_id).await?;
         listener.listen(&notify_trigger.channel_name).await?;
 
         let subscribe_stream = listener.into_stream().map(|element| {

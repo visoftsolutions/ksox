@@ -81,89 +81,138 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE FUNCTION create_valuts_notify_trigger(id uuid)
+CREATE FUNCTION create_spot_valuts_notify_trigger_for_user(trigger_name text, user_id uuid)
 RETURNS VOID AS
 $BODY$
+DECLARE
+  trigger_truncated_name text := LEFT(format('t_%s', trigger_name), 63);
+  channel_truncated_name text := LEFT(format('c_%s', trigger_name), 63);
 BEGIN
   EXECUTE format('
-    CREATE OR REPLACE TRIGGER valuts_notify_trigger_id_%s
+    CREATE OR REPLACE TRIGGER %s
     AFTER INSERT OR UPDATE ON spot.valuts
     FOR EACH ROW
     WHEN (NEW.user_id = ''%s'')
-    EXECUTE FUNCTION notify(''valuts_notify_channel_id_%s'');', 
-    replace(id::text, '-'::text,'_'::text), id::text, id::text);
+    EXECUTE FUNCTION notify(''%s'');', 
+    trigger_truncated_name, user_id::text, channel_truncated_name);
 END;
 $BODY$ LANGUAGE plpgsql;
 
-CREATE FUNCTION drop_valuts_notify_trigger(id uuid)
+CREATE FUNCTION drop_spot_valuts_notify_trigger_for_user(trigger_name text, user_id uuid)
 RETURNS VOID AS
 $BODY$
 DECLARE
   listener_count integer;
+  trigger_truncated_name text := LEFT(format('t_%s', trigger_name), 63);
+  channel_truncated_name text := LEFT(format('c_%s', trigger_name), 63);
 BEGIN
-  SELECT count(*) INTO listener_count FROM pg_stat_activity WHERE lower(query) LIKE '%listen%valuts_notify_trigger_id_'|| id::text ||'%';
+  SELECT count(*) INTO listener_count FROM pg_stat_activity WHERE lower(query) LIKE '%listen%'|| channel_truncated_name ||'%';
   IF listener_count = 0 THEN
     EXECUTE format('
-      DROP TRIGGER valuts_notify_trigger_id_%s ON spot.valuts;', 
-      replace(id::text, '-'::text,'_'::text));
+      DROP TRIGGER %s ON spot.valuts;', 
+      trigger_truncated_name);
   END IF;
 END;
 $BODY$ LANGUAGE plpgsql;
 
-CREATE FUNCTION create_orders_notify_trigger(id uuid)
+CREATE FUNCTION create_spot_orders_notify_trigger_for_user(trigger_name text, user_id uuid)
 RETURNS VOID AS
 $BODY$
+DECLARE
+  trigger_truncated_name text := LEFT(format('t_%s', trigger_name), 63);
+  channel_truncated_name text := LEFT(format('c_%s', trigger_name), 63);
 BEGIN
   EXECUTE format('
-    CREATE OR REPLACE TRIGGER orders_notify_trigger_id_%s
+    CREATE OR REPLACE TRIGGER %s
     AFTER INSERT OR UPDATE ON spot.orders
     FOR EACH ROW
     WHEN (NEW.user_id = ''%s'')
-    EXECUTE FUNCTION notify(''orders_notify_channel_id_%s'');', 
-    replace(id::text, '-'::text,'_'::text), id::text, id::text);
+    EXECUTE FUNCTION notify(''%s'');', 
+    trigger_truncated_name, user_id::text, channel_truncated_name);
 END;
 $BODY$ LANGUAGE plpgsql;
 
-CREATE FUNCTION drop_orders_notify_trigger(id uuid)
+CREATE FUNCTION drop_spot_orders_notify_trigger_for_user(trigger_name text, user_id uuid)
 RETURNS VOID AS
 $BODY$
 DECLARE
   listener_count integer;
+  trigger_truncated_name text := LEFT(format('t_%s', trigger_name), 63);
+  channel_truncated_name text := LEFT(format('c_%s', trigger_name), 63);
 BEGIN
-  SELECT count(*) INTO listener_count FROM pg_stat_activity WHERE lower(query) LIKE '%listen%orders_notify_trigger_id_'|| id::text ||'%';
+  SELECT count(*) INTO listener_count FROM pg_stat_activity WHERE lower(query) LIKE '%listen%'|| channel_truncated_name ||'%';
   IF listener_count = 0 THEN
     EXECUTE format('
-      DROP TRIGGER orders_notify_trigger_id_%s ON spot.orders;', 
-      replace(id::text, '-'::text,'_'::text));
+      DROP TRIGGER %s ON spot.orders;', 
+      trigger_truncated_name);
   END IF;
 END;
 $BODY$ LANGUAGE plpgsql;
 
-CREATE FUNCTION create_trades_notify_trigger(id uuid)
+CREATE FUNCTION create_spot_orders_notify_trigger_for_asset_pair(trigger_name text, quote_asset_id uuid, base_asset_id uuid)
 RETURNS VOID AS
 $BODY$
+DECLARE
+  trigger_truncated_name text := LEFT(format('t_%s', trigger_name), 63);
+  channel_truncated_name text := LEFT(format('c_%s', trigger_name), 63);
 BEGIN
   EXECUTE format('
-    CREATE OR REPLACE TRIGGER trades_notify_trigger_id_%s
-    AFTER INSERT OR UPDATE ON spot.trades
+    CREATE OR REPLACE TRIGGER %s
+    AFTER INSERT OR UPDATE ON spot.orders
     FOR EACH ROW
-    WHEN (NEW.taker_id = ''%s'')
-    EXECUTE FUNCTION notify(''trades_notify_channel_id_%s'');', 
-    replace(id::text, '-'::text,'_'::text), id::text, id::text);
+    WHEN (NEW.quote_asset_id = ''%s'' AND NEW.base_asset_id = ''%s'')
+    EXECUTE FUNCTION notify(''%s'');', 
+    trigger_truncated_name, quote_asset_id::text, base_asset_id::text, channel_truncated_name);
 END;
 $BODY$ LANGUAGE plpgsql;
 
-CREATE FUNCTION drop_trades_notify_trigger(id uuid)
+CREATE FUNCTION drop_spot_orders_notify_trigger_for_asset_pair(trigger_name text, quote_asset_id uuid, base_asset_id uuid)
 RETURNS VOID AS
 $BODY$
 DECLARE
   listener_count integer;
+  trigger_truncated_name text := LEFT(format('t_%s', trigger_name), 63);
+  channel_truncated_name text := LEFT(format('c_%s', trigger_name), 63);
 BEGIN
-  SELECT count(*) INTO listener_count FROM pg_stat_activity WHERE lower(query) LIKE '%listen%trades_notify_trigger_id_'|| id::text ||'%';
+  SELECT count(*) INTO listener_count FROM pg_stat_activity WHERE lower(query) LIKE '%listen%'|| channel_truncated_name ||'%';
   IF listener_count = 0 THEN
     EXECUTE format('
-      DROP TRIGGER trades_notify_trigger_id_%s ON spot.trades;', 
-      replace(id::text, '-'::text,'_'::text));
+      DROP TRIGGER %s ON spot.orders;', 
+      trigger_truncated_name);
+  END IF;
+END;
+$BODY$ LANGUAGE plpgsql;
+
+CREATE FUNCTION create_spot_trades_notify_trigger_for_taker(trigger_name text, taker_id uuid)
+RETURNS VOID AS
+$BODY$
+DECLARE
+  trigger_truncated_name text := LEFT(format('t_%s', trigger_name), 63);
+  channel_truncated_name text := LEFT(format('c_%s', trigger_name), 63);
+BEGIN
+  EXECUTE format('
+    CREATE OR REPLACE TRIGGER %s
+    AFTER INSERT OR UPDATE ON spot.trades
+    FOR EACH ROW
+    WHEN (NEW.taker_id = ''%s'')
+    EXECUTE FUNCTION notify(''%s'');', 
+    trigger_truncated_name, taker_id::text, channel_truncated_name);
+END;
+$BODY$ LANGUAGE plpgsql;
+
+CREATE FUNCTION drop_spot_trades_notify_trigger_for_taker(trigger_name text, taker_id uuid)
+RETURNS VOID AS
+$BODY$
+DECLARE
+  listener_count integer;
+  trigger_truncated_name text := LEFT(format('t_%s', trigger_name), 63);
+  channel_truncated_name text := LEFT(format('c_%s', trigger_name), 63);
+BEGIN
+  SELECT count(*) INTO listener_count FROM pg_stat_activity WHERE lower(query) LIKE '%listen%'|| channel_truncated_name ||'%';
+  IF listener_count = 0 THEN
+    EXECUTE format('
+      DROP TRIGGER %s ON spot.trades;', 
+      trigger_truncated_name);
   END IF;
 END;
 $BODY$ LANGUAGE plpgsql;

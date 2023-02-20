@@ -7,6 +7,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.68"
 bigdecimal = { version = "0.3.0", features = ["serde"] }
+bytes = "1.4.0"
 chrono = { version = "0.4.23", features = ["serde"] }
 ethereum-types = "0.14.1"
 futures = "0.3.25"
@@ -14,6 +15,7 @@ num-bigint = { version = "0.4.3", features = ["serde"] }
 prefix-hex = "0.5.0"
 serde = "1.0.152"
 serde_json = "1.0.91"
+sha2 = "0.10.6"
 sqlx = { version = "0.6.2", features = [
     "all",
     "runtime-tokio-rustls",

@@ -62,26 +62,6 @@
     },
     "query": "\n            SELECT\n                spot.trades.id,\n                spot.trades.created_at,\n                spot.trades.taker_id,\n                spot.trades.order_id,\n                spot.trades.taker_quote_volume as \"taker_quote_volume: Volume\",\n                spot.trades.taker_base_volume as \"taker_base_volume: Volume\",\n                spot.trades.maker_quote_volume as \"maker_quote_volume: Volume\",\n                spot.trades.maker_base_volume as \"maker_base_volume: Volume\"\n            FROM spot.trades\n            JOIN spot.orders ON spot.trades.order_id = spot.orders.id\n            WHERE spot.orders.user_id = $1\n            ORDER BY created_at DESC\n            "
   },
-  "0996caa9f8b808340ace0515285939a97389684ea9edb6ca64d97651869a68be": {
-    "describe": {
-      "columns": [
-        {
-          "name": "drop_valuts_notify_trigger",
-          "ordinal": 0,
-          "type_info": "Void"
-        }
-      ],
-      "nullable": [
-        null
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      }
-    },
-    "query": "\n                SELECT drop_valuts_notify_trigger($1)\n                "
-  },
   "19e766491b4a597a95a71ea2f2630b5b9535b632d7dcc0120aa2aa5223aa4f9f": {
     "describe": {
       "columns": [],
@@ -278,11 +258,11 @@
     },
     "query": "\n            SELECT\n                id,\n                created_at,\n                taker_id,\n                order_id,\n                spot.trades.taker_quote_volume as \"taker_quote_volume: Volume\",\n                spot.trades.taker_base_volume as \"taker_base_volume: Volume\",\n                spot.trades.maker_quote_volume as \"maker_quote_volume: Volume\",\n                spot.trades.maker_base_volume as \"maker_base_volume: Volume\"\n            FROM spot.trades\n            WHERE taker_id = $1\n            "
   },
-  "2cc8c28c294e222bdff3a35fdec589309317ba1924dbae6e0f86f6b0c9134553": {
+  "324603a854660f3bdf440cf5048d39fd244b55c82afc6d33dd941fa531d9384f": {
     "describe": {
       "columns": [
         {
-          "name": "drop_trades_notify_trigger",
+          "name": "drop_spot_orders_notify_trigger_for_user",
           "ordinal": 0,
           "type_info": "Void"
         }
@@ -292,11 +272,33 @@
       ],
       "parameters": {
         "Left": [
+          "Text",
           "Uuid"
         ]
       }
     },
-    "query": "\n                SELECT drop_trades_notify_trigger($1)\n                "
+    "query": "\n                SELECT drop_spot_orders_notify_trigger_for_user($1, $2)\n                "
+  },
+  "347c7e5b19d13f4e939c6a3af4fd69521ce3539b7749853dc6cde040240d9b2e": {
+    "describe": {
+      "columns": [
+        {
+          "name": "create_spot_trades_notify_trigger_for_taker",
+          "ordinal": 0,
+          "type_info": "Void"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT create_spot_trades_notify_trigger_for_taker($1, $2)\n            "
   },
   "382fa9dcecf4eeb2f40a9cb0cd2c91a4042a5c0bbab048edcb42a4d17bff42dc": {
     "describe": {
@@ -460,6 +462,102 @@
     },
     "query": "\n            UPDATE \n                spot.trades \n            SET\n                created_at = $2,\n                taker_id = $3,\n                order_id = $4,\n                taker_quote_volume = $5,\n                maker_quote_volume = $6,\n                taker_base_volume = $7,\n                maker_base_volume = $8\n            WHERE\n                id = $1\n            "
   },
+  "5fb99fc39e3b899803c8fa16fe80f34ae737ccf53ee7c3cb2dd3de8753e66a9b": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 2,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "status: Status",
+          "ordinal": 3,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "active",
+                  "partially_filled",
+                  "filled",
+                  "cancelled"
+                ]
+              },
+              "name": "products_status"
+            }
+          }
+        },
+        {
+          "name": "quote_asset_id",
+          "ordinal": 4,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "base_asset_id",
+          "ordinal": 5,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "quote_asset_volume: Volume",
+          "ordinal": 6,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "base_asset_volume: Volume",
+          "ordinal": 7,
+          "type_info": "Numeric"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                created_at,\n                user_id,\n                status as \"status: Status\",\n                quote_asset_id,\n                base_asset_id,\n                quote_asset_volume as \"quote_asset_volume: Volume\",\n                base_asset_volume as \"base_asset_volume: Volume\"\n            FROM spot.orders\n            WHERE quote_asset_id = $1 AND quote_asset_id = $2\n            "
+  },
+  "611c856053aef96ce2e91ce95633e571682b38e4f2a6853a28e1f5a7c27ceb62": {
+    "describe": {
+      "columns": [
+        {
+          "name": "create_spot_orders_notify_trigger_for_user",
+          "ordinal": 0,
+          "type_info": "Void"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT create_spot_orders_notify_trigger_for_user($1, $2)\n            "
+  },
   "7704bcb350dd8f0ec74341233b5e7f38f20f7589b5ad3064047a0c9c96d212a1": {
     "describe": {
       "columns": [
@@ -517,11 +615,11 @@
     },
     "query": "\n            DELETE FROM \n                spot.valuts \n            WHERE\n                id = $1\n            "
   },
-  "7c9a49f47756278ba84086b799807c82096535649366b04446abbb544e2ae631": {
+  "818033add96b71dbc2d4c20ee29f3ddf7303cc5bc6948db38febae8af3993217": {
     "describe": {
       "columns": [
         {
-          "name": "create_valuts_notify_trigger",
+          "name": "drop_spot_orders_notify_trigger_for_asset_pair",
           "ordinal": 0,
           "type_info": "Void"
         }
@@ -531,11 +629,13 @@
       ],
       "parameters": {
         "Left": [
+          "Text",
+          "Uuid",
           "Uuid"
         ]
       }
     },
-    "query": "\n            SELECT create_valuts_notify_trigger($1)\n            "
+    "query": "\n                SELECT drop_spot_orders_notify_trigger_for_asset_pair($1, $2, $3)\n                "
   },
   "848519fb3712eb6cb95690d793e9f1640f8d5a2ecaa0b731bd28da91339c2334": {
     "describe": {
@@ -965,6 +1065,49 @@
     },
     "query": "\n            SELECT\n                id,\n                created_at,\n                user_id,\n                status as \"status: Status\",\n                quote_asset_id,\n                base_asset_id,\n                quote_asset_volume as \"quote_asset_volume: Volume\",\n                base_asset_volume as \"base_asset_volume: Volume\"\n            FROM spot.orders\n            "
   },
+  "951fc5186321fb5676440c6e95f5979d268058196c59b563618a42bd873a5831": {
+    "describe": {
+      "columns": [
+        {
+          "name": "drop_spot_trades_notify_trigger_for_taker",
+          "ordinal": 0,
+          "type_info": "Void"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n                SELECT drop_spot_trades_notify_trigger_for_taker($1, $2)\n                "
+  },
+  "95d3773c9bff16748ed68acff7c9737b5061481569167b122818bb952ef0f102": {
+    "describe": {
+      "columns": [
+        {
+          "name": "create_spot_orders_notify_trigger_for_asset_pair",
+          "ordinal": 0,
+          "type_info": "Void"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Uuid",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT create_spot_orders_notify_trigger_for_asset_pair($1, $2, $3)\n            "
+  },
   "99b81baeaea8f9ca25a6f7269bad73928dc1bb8a1a217505c5a36029ffa6dcea": {
     "describe": {
       "columns": [
@@ -1101,11 +1244,11 @@
     },
     "query": "\n            INSERT INTO \n                spot.assets \n                (id, created_at, name, symbol, maker_fee_num, maker_fee_denum, taker_fee_num, taker_fee_denum)\n            VALUES\n                ($1, $2, $3, $4, $5, $6, $7, $8)\n            "
   },
-  "b55c27b0e1ff75f9e75d4424b67a5d3214be60d86a2278b7425a7b78d73ccab1": {
+  "cb77519d1f05ea0a8b40a7f9f6448f56dc32316d7309e0fe37b1dbf74e8fa5b1": {
     "describe": {
       "columns": [
         {
-          "name": "drop_orders_notify_trigger",
+          "name": "create_spot_valuts_notify_trigger_for_user",
           "ordinal": 0,
           "type_info": "Void"
         }
@@ -1115,31 +1258,12 @@
       ],
       "parameters": {
         "Left": [
+          "Text",
           "Uuid"
         ]
       }
     },
-    "query": "\n                SELECT drop_orders_notify_trigger($1)\n                "
-  },
-  "c9e717fb329766092296314eaef72f138b4f5f8d7ad3c3c210e9ea7832a099fc": {
-    "describe": {
-      "columns": [
-        {
-          "name": "create_orders_notify_trigger",
-          "ordinal": 0,
-          "type_info": "Void"
-        }
-      ],
-      "nullable": [
-        null
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      }
-    },
-    "query": "\n            SELECT create_orders_notify_trigger($1)\n            "
+    "query": "\n            SELECT create_spot_valuts_notify_trigger_for_user($1, $2)\n            "
   },
   "cbc485d6c580d869c06d7a43d024b303b649eb06b8be5fd48b2073c44c674734": {
     "describe": {
@@ -1366,26 +1490,6 @@
     },
     "query": "\n            SELECT\n                id,\n                created_at,\n                user_id,\n                status as \"status: Status\",\n                quote_asset_id,\n                base_asset_id,\n                quote_asset_volume as \"quote_asset_volume: Volume\",\n                base_asset_volume as \"base_asset_volume: Volume\"\n            FROM spot.orders\n            WHERE id = $1\n            "
   },
-  "e741e5e93979f42b204b7ec2c703c51a3a2338aca32a857ae4de908feeefe407": {
-    "describe": {
-      "columns": [
-        {
-          "name": "create_trades_notify_trigger",
-          "ordinal": 0,
-          "type_info": "Void"
-        }
-      ],
-      "nullable": [
-        null
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      }
-    },
-    "query": "\n            SELECT create_trades_notify_trigger($1)\n            "
-  },
   "ec34df0eb52a27ebf20a543310861b7aafc9cd2192d86757b8b2742af2abefe0": {
     "describe": {
       "columns": [
@@ -1417,5 +1521,26 @@
       }
     },
     "query": "\n            SELECT\n                users.id,\n                users.created_at,\n                users.address as \"address: EvmAddress\"\n            FROM users\n            WHERE users.id = $1\n            "
+  },
+  "fde53d87e27436896d0c02784a457a816edd7000d51f24e3e1b57481f59c3490": {
+    "describe": {
+      "columns": [
+        {
+          "name": "drop_spot_valuts_notify_trigger_for_user",
+          "ordinal": 0,
+          "type_info": "Void"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n                SELECT drop_spot_valuts_notify_trigger_for_user($1, $2)\n                "
   }
 }

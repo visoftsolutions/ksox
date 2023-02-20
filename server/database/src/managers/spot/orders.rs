@@ -12,6 +12,7 @@ use crate::{
     projections::spot::order::{Order, Status},
     traits::table_manager::TableManager,
     types::{NotifyTrigger, SubscribeStream, Volume},
+    utils::trigger_name,
 };
 
 #[derive(Debug, Clone)]
@@ -120,37 +121,41 @@ impl OrdersManager {
         .fetch(&self.database)
     }
 
-    pub async fn create_notify_trigger(&self, id: Uuid) -> Result<NotifyTrigger> {
+    pub async fn create_notify_trigger_for_user(&self, user_id: Uuid) -> Result<NotifyTrigger> {
+        let trigger_name = trigger_name("spot_orders_notify_trigger_for_user", vec![user_id]);
         sqlx::query!(
             r#"
-            SELECT create_orders_notify_trigger($1)
+            SELECT create_spot_orders_notify_trigger_for_user($1, $2)
             "#,
-            id
+            trigger_name,
+            user_id
         )
         .execute(&self.database)
         .await?;
 
         let db = self.database.clone();
+        let trigger_name_clone = trigger_name.clone();
         let fut = async move {
             sqlx::query!(
                 r#"
-                SELECT drop_orders_notify_trigger($1)
+                SELECT drop_spot_orders_notify_trigger_for_user($1, $2)
                 "#,
-                id
+                trigger_name_clone,
+                user_id
             )
             .execute(&db)
             .await
         };
 
-        Ok(NotifyTrigger::new(
-            format!("orders_notify_channel_id_{id}"),
-            fut.boxed(),
-        ))
+        Ok(NotifyTrigger::new(format!("c_{trigger_name}"), fut.boxed()))
     }
 
-    pub async fn get_and_subscribe(&self, user_id: Uuid) -> Result<SubscribeStream<Order>> {
+    pub async fn get_and_subscribe_for_user(
+        &self,
+        user_id: Uuid,
+    ) -> Result<SubscribeStream<Order>> {
         let mut listener = PgListener::connect_with(&self.database).await?;
-        let notify_trigger = self.create_notify_trigger(user_id).await?;
+        let notify_trigger = self.create_notify_trigger_for_user(user_id).await?;
         listener.listen(&notify_trigger.channel_name).await?;
 
         let subscribe_stream = listener.into_stream().map(|element| {
@@ -176,6 +181,88 @@ impl OrdersManager {
             WHERE user_id = $1
             "#,
             user_id
+        )
+        .fetch(&self.database);
+
+        Ok(SubscribeStream::new(
+            notify_trigger,
+            Box::pin(fetch_stream.chain(subscribe_stream)),
+        ))
+    }
+
+    pub async fn create_notify_trigger_for_asset_pair(
+        &self,
+        quote_asset_id: Uuid,
+        base_asset_id: Uuid,
+    ) -> Result<NotifyTrigger> {
+        let trigger_name = trigger_name(
+            "spot_orders_notify_trigger_for_asset_pair",
+            vec![quote_asset_id, base_asset_id],
+        );
+        sqlx::query!(
+            r#"
+            SELECT create_spot_orders_notify_trigger_for_asset_pair($1, $2, $3)
+            "#,
+            trigger_name,
+            quote_asset_id,
+            base_asset_id
+        )
+        .execute(&self.database)
+        .await?;
+
+        let db = self.database.clone();
+        let trigger_name_clone = trigger_name.clone();
+        let fut = async move {
+            sqlx::query!(
+                r#"
+                SELECT drop_spot_orders_notify_trigger_for_asset_pair($1, $2, $3)
+                "#,
+                trigger_name_clone,
+                quote_asset_id,
+                base_asset_id
+            )
+            .execute(&db)
+            .await
+        };
+
+        Ok(NotifyTrigger::new(format!("c_{trigger_name}"), fut.boxed()))
+    }
+
+    pub async fn get_and_subscribe_for_asset_pair(
+        &self,
+        quote_asset_id: Uuid,
+        base_asset_id: Uuid,
+    ) -> Result<SubscribeStream<Order>> {
+        let mut listener = PgListener::connect_with(&self.database).await?;
+        let notify_trigger = self
+            .create_notify_trigger_for_asset_pair(quote_asset_id, base_asset_id)
+            .await?;
+        listener.listen(&notify_trigger.channel_name).await?;
+
+        let subscribe_stream = listener.into_stream().map(|element| {
+            element.and_then(|val| {
+                serde_json::from_str::<Order>(val.payload())
+                    .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
+            })
+        });
+
+        let fetch_stream = sqlx::query_as!(
+            Order,
+            r#"
+            SELECT
+                id,
+                created_at,
+                user_id,
+                status as "status: Status",
+                quote_asset_id,
+                base_asset_id,
+                quote_asset_volume as "quote_asset_volume: Volume",
+                base_asset_volume as "base_asset_volume: Volume"
+            FROM spot.orders
+            WHERE quote_asset_id = $1 AND quote_asset_id = $2
+            "#,
+            quote_asset_id,
+            base_asset_id
         )
         .fetch(&self.database);
 
