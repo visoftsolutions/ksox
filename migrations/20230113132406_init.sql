@@ -70,6 +70,9 @@ ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("taker_id") REFERENCES "users" ("id
 
 ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("order_id") REFERENCES "spot"."orders" ("id");
 
+CREATE UNIQUE INDEX valuts_userid_assetid_pair_unique ON "spot"."valuts" (user_id, asset_id)
+WHERE user_id IS NOT NULL AND asset_id IS NOT NULL;
+
 CREATE OR REPLACE FUNCTION notify()
 RETURNS TRIGGER AS $$
 BEGIN

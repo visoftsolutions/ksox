@@ -79,7 +79,6 @@ impl ValutsManager {
 
         let subscribe_stream = listener.into_stream().map(|element| {
             element.and_then(|val| {
-                println!("{}", val.payload());
                 serde_json::from_str::<Valut>(val.payload())
                     .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
             })

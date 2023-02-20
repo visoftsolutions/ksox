@@ -7,12 +7,16 @@ use crate::types::Volume;
 #[derive(Debug, Type, Serialize, Deserialize, Clone, PartialEq)]
 #[sqlx(type_name = "products_status")]
 pub enum Status {
+    #[serde(rename = "active")]
     #[sqlx(rename = "active")]
     Active,
+    #[serde(rename = "partially_filled")]
     #[sqlx(rename = "partially_filled")]
     PartiallyFilled,
+    #[serde(rename = "filled")]
     #[sqlx(rename = "filled")]
     Filled,
+    #[serde(rename = "cancelled")]
     #[sqlx(rename = "cancelled")]
     Cancelled,
 }
