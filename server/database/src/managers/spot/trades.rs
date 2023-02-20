@@ -94,10 +94,9 @@ impl TradesManager {
         let fut = async move {
             sqlx::query!(
                 r#"
-                SELECT drop_spot_trades_notify_trigger_for_taker($1, $2)
+                SELECT drop_spot_trades_notify_trigger_for_taker($1)
                 "#,
-                trigger_name_clone,
-                taker_id
+                trigger_name_clone
             )
             .execute(&db)
             .await
@@ -137,6 +136,87 @@ impl TradesManager {
             WHERE taker_id = $1
             "#,
             taker_id
+        )
+        .fetch(&self.database);
+
+        Ok(SubscribeStream::new(
+            notify_trigger,
+            Box::pin(fetch_stream.chain(subscribe_stream)),
+        ))
+    }
+
+    pub async fn create_notify_trigger_for_asset_pair(
+        &self,
+        quote_asset_id: Uuid,
+        base_asset_id: Uuid,
+    ) -> Result<NotifyTrigger> {
+        let trigger_name = trigger_name(
+            "spot_trades_notify_trigger_for_asset_pair",
+            vec![quote_asset_id, base_asset_id],
+        );
+        sqlx::query!(
+            r#"
+            SELECT create_spot_trades_notify_trigger_for_asset_pair($1, $2, $3)
+            "#,
+            trigger_name,
+            quote_asset_id,
+            base_asset_id
+        )
+        .execute(&self.database)
+        .await?;
+
+        let db = self.database.clone();
+        let trigger_name_clone = trigger_name.clone();
+        let fut = async move {
+            sqlx::query!(
+                r#"
+                SELECT drop_spot_trades_notify_trigger_for_asset_pair($1)
+                "#,
+                trigger_name_clone
+            )
+            .execute(&db)
+            .await
+        };
+
+        Ok(NotifyTrigger::new(format!("c_{trigger_name}"), fut.boxed()))
+    }
+
+    pub async fn get_and_subscribe_for_asset_pair(
+        &self,
+        quote_asset_id: Uuid,
+        base_asset_id: Uuid,
+    ) -> Result<SubscribeStream<Trade>> {
+        let mut listener = PgListener::connect_with(&self.database).await?;
+        let notify_trigger = self
+            .create_notify_trigger_for_asset_pair(quote_asset_id, base_asset_id)
+            .await?;
+        listener.listen(&notify_trigger.channel_name).await?;
+
+        let subscribe_stream = listener.into_stream().map(|element| {
+            element.and_then(|val| {
+                serde_json::from_str::<Trade>(val.payload())
+                    .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
+            })
+        });
+
+        let fetch_stream = sqlx::query_as!(
+            Trade,
+            r#"
+            SELECT
+                spot.trades.id,
+                spot.trades.created_at,
+                spot.trades.taker_id,
+                spot.trades.order_id,
+                spot.trades.taker_quote_volume as "taker_quote_volume: Volume",
+                spot.trades.taker_base_volume as "taker_base_volume: Volume",
+                spot.trades.maker_quote_volume as "maker_quote_volume: Volume",
+                spot.trades.maker_base_volume as "maker_base_volume: Volume"
+            FROM spot.trades
+            JOIN spot.orders ON order_id = spot.orders.id
+            WHERE spot.orders.quote_asset_id = $1 AND spot.orders.base_asset_id = $2
+            "#,
+            quote_asset_id,
+            base_asset_id
         )
         .fetch(&self.database);
 

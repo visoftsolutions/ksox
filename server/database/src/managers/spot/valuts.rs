@@ -62,10 +62,9 @@ impl ValutsManager {
         let fut = async move {
             sqlx::query!(
                 r#"
-                SELECT drop_spot_valuts_notify_trigger_for_user($1, $2)
+                SELECT drop_spot_valuts_notify_trigger_for_user($1)
                 "#,
-                trigger_name_clone,
-                user_id
+                trigger_name_clone
             )
             .execute(&db)
             .await

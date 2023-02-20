@@ -138,10 +138,9 @@ impl OrdersManager {
         let fut = async move {
             sqlx::query!(
                 r#"
-                SELECT drop_spot_orders_notify_trigger_for_user($1, $2)
+                SELECT drop_spot_orders_notify_trigger_for_user($1)
                 "#,
-                trigger_name_clone,
-                user_id
+                trigger_name_clone
             )
             .execute(&db)
             .await
@@ -215,11 +214,9 @@ impl OrdersManager {
         let fut = async move {
             sqlx::query!(
                 r#"
-                SELECT drop_spot_orders_notify_trigger_for_asset_pair($1, $2, $3)
+                SELECT drop_spot_orders_notify_trigger_for_asset_pair($1)
                 "#,
-                trigger_name_clone,
-                quote_asset_id,
-                base_asset_id
+                trigger_name_clone
             )
             .execute(&db)
             .await

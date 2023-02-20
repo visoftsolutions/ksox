@@ -94,11 +94,11 @@ async fn orders_get_and_subscribe_for_asset_pair() {
         .await
         .unwrap();
 
-    let base_asset_id = Uuid::from_str("ead19fc2-9652-444d-8d3c-5256ae80a210").unwrap();
-    let quote_asset_id = Uuid::from_str("ead19fc2-9652-444d-8d3c-5256ae80a210").unwrap();
-    let orders_manager = OrdersManager::new(database);
+    let quote_asset_id = Uuid::from_str("5864a1b9-4ae1-424f-bdb4-f644cb359463").unwrap();
+    let base_asset_id = Uuid::from_str("7a99f052-d941-4dcc-aabd-6695c24deed5").unwrap();
+    let trades_manager = TradesManager::new(database);
 
-    let mut stream = orders_manager
+    let mut stream = trades_manager
         .get_and_subscribe_for_asset_pair(quote_asset_id, base_asset_id)
         .await
         .unwrap();
