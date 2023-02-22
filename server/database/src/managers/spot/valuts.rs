@@ -108,6 +108,23 @@ impl ValutsManager {
             Box::pin(fetch_stream.chain(subscribe_stream)),
         ))
     }
+
+    pub async fn get_or_create(&self, user_id: Uuid, asset_id: Uuid) -> Result<Valut> {
+        sqlx::query_as!(
+            Valut,
+            r#"
+            INSERT INTO spot.valuts (user_id, asset_id)
+            VALUES ($1, $2)
+            ON CONFLICT (user_id, asset_id)
+            DO NOTHING
+            RETURNING id, user_id, asset_id, balance as "balance: Volume"
+            "#,
+            user_id,
+            asset_id
+        )
+        .fetch_one(&self.database)
+        .await
+    }
 }
 
 impl TableManager<Valut> for ValutsManager {

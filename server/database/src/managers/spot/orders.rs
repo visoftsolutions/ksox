@@ -9,7 +9,7 @@ use sqlx::{
 };
 
 use crate::{
-    projections::spot::order::{Order, Status},
+    projections::spot::order::Order,
     traits::table_manager::TableManager,
     types::{NotifyTrigger, SubscribeStream, Volume},
     utils::trigger_name,
@@ -36,11 +36,12 @@ impl OrdersManager {
                 id,
                 created_at,
                 user_id,
-                status as "status: Status",
+                is_active,
                 quote_asset_id,
                 base_asset_id,
                 quote_asset_volume as "quote_asset_volume: Volume",
-                base_asset_volume as "base_asset_volume: Volume"
+                base_asset_volume as "base_asset_volume: Volume",
+                quote_asset_volume_left as "quote_asset_volume_left: Volume"
             FROM spot.orders
             WHERE user_id = $1
             "#,
@@ -65,16 +66,17 @@ impl OrdersManager {
                 id,
                 created_at,
                 user_id,
-                status as "status: Status",
+                is_active,
                 quote_asset_id,
                 base_asset_id,
                 quote_asset_volume as "quote_asset_volume: Volume",
-                base_asset_volume as "base_asset_volume: Volume"
+                base_asset_volume as "base_asset_volume: Volume",
+                quote_asset_volume_left as "quote_asset_volume_left: Volume"
             FROM spot.orders
             WHERE quote_asset_id = $1
             AND base_asset_id = $2
-            AND spot.orders.status IN ('active', 'partially_filled')
-            AND $3 * base_asset_volume <= quote_asset_volume * $4
+            AND spot.orders.is_active = true
+            AND $3 * CEIL(base_asset_volume*quote_asset_volume_left/quote_asset_volume) <= quote_asset_volume_left * $4
             ORDER BY (base_asset_volume / quote_asset_volume) ASC
             "#,
             quote_asset_id,
@@ -101,16 +103,17 @@ impl OrdersManager {
                 id,
                 created_at,
                 user_id,
-                status as "status: Status",
+                is_active,
                 quote_asset_id,
                 base_asset_id,
                 quote_asset_volume as "quote_asset_volume: Volume",
-                base_asset_volume as "base_asset_volume: Volume"
+                base_asset_volume as "base_asset_volume: Volume",
+                quote_asset_volume_left as "quote_asset_volume_left: Volume"
             FROM spot.orders
             WHERE quote_asset_id = $1
             AND base_asset_id = $2
-            AND spot.orders.status IN ('active', 'partially_filled')
-            AND $3 * base_asset_volume <= quote_asset_volume * $4
+            AND spot.orders.is_active = true
+            AND $3 * CEIL(base_asset_volume*quote_asset_volume_left/quote_asset_volume) <= quote_asset_volume_left * $4
             ORDER BY (base_asset_volume / quote_asset_volume) DESC
             "#,
             quote_asset_id,
@@ -171,11 +174,12 @@ impl OrdersManager {
                 id,
                 created_at,
                 user_id,
-                status as "status: Status",
+                is_active,
                 quote_asset_id,
                 base_asset_id,
                 quote_asset_volume as "quote_asset_volume: Volume",
-                base_asset_volume as "base_asset_volume: Volume"
+                base_asset_volume as "base_asset_volume: Volume",
+                quote_asset_volume_left as "quote_asset_volume_left: Volume"
             FROM spot.orders
             WHERE user_id = $1
             "#,
@@ -250,11 +254,12 @@ impl OrdersManager {
                 id,
                 created_at,
                 user_id,
-                status as "status: Status",
+                is_active,
                 quote_asset_id,
                 base_asset_id,
                 quote_asset_volume as "quote_asset_volume: Volume",
-                base_asset_volume as "base_asset_volume: Volume"
+                base_asset_volume as "base_asset_volume: Volume",
+                quote_asset_volume_left as "quote_asset_volume_left: Volume"
             FROM spot.orders
             WHERE quote_asset_id = $1 AND quote_asset_id = $2
             "#,
@@ -279,11 +284,12 @@ impl TableManager<Order> for OrdersManager {
                 id,
                 created_at,
                 user_id,
-                status as "status: Status",
+                is_active,
                 quote_asset_id,
                 base_asset_id,
                 quote_asset_volume as "quote_asset_volume: Volume",
-                base_asset_volume as "base_asset_volume: Volume"
+                base_asset_volume as "base_asset_volume: Volume",
+                quote_asset_volume_left as "quote_asset_volume_left: Volume"
             FROM spot.orders
             "#
         )
@@ -298,11 +304,12 @@ impl TableManager<Order> for OrdersManager {
                 id,
                 created_at,
                 user_id,
-                status as "status: Status",
+                is_active,
                 quote_asset_id,
                 base_asset_id,
                 quote_asset_volume as "quote_asset_volume: Volume",
-                base_asset_volume as "base_asset_volume: Volume"
+                base_asset_volume as "base_asset_volume: Volume",
+                quote_asset_volume_left as "quote_asset_volume_left: Volume"
             FROM spot.orders
             WHERE id = $1
             "#,
@@ -315,22 +322,24 @@ impl TableManager<Order> for OrdersManager {
     async fn insert(&self, element: Order) -> Result<PgQueryResult> {
         let quote_asset_volume: BigDecimal = element.quote_asset_volume.into();
         let base_asset_volume: BigDecimal = element.base_asset_volume.into();
+        let quote_asset_volume_left: BigDecimal = element.quote_asset_volume_left.into();
         sqlx::query!(
             r#"
             INSERT INTO
                 spot.orders
-                (id, created_at, user_id, status, quote_asset_id, base_asset_id, quote_asset_volume, base_asset_volume)
+                (id, created_at, user_id, is_active, quote_asset_id, base_asset_id, quote_asset_volume, base_asset_volume, quote_asset_volume_left)
             VALUES
-                ($1, $2, $3, $4, $5, $6, $7, $8)
+                ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             "#,
             element.id,
             element.created_at,
             element.user_id,
-            element.status as Status,
+            element.is_active,
             element.quote_asset_id,
             element.base_asset_id,
             quote_asset_volume,
-            base_asset_volume
+            base_asset_volume,
+            quote_asset_volume_left
         )
         .execute(&self.database)
         .await
@@ -339,6 +348,7 @@ impl TableManager<Order> for OrdersManager {
     async fn update(&self, element: Order) -> Result<PgQueryResult> {
         let quote_asset_volume: BigDecimal = element.quote_asset_volume.into();
         let base_asset_volume: BigDecimal = element.base_asset_volume.into();
+        let quote_asset_volume_left: BigDecimal = element.quote_asset_volume_left.into();
         sqlx::query!(
             r#"
             UPDATE 
@@ -346,22 +356,24 @@ impl TableManager<Order> for OrdersManager {
             SET
                 created_at = $2,
                 user_id = $3,
-                status = $4,
+                is_active = $4,
                 quote_asset_id = $5,
                 base_asset_id = $6,
                 quote_asset_volume = $7,
-                base_asset_volume = $8
+                base_asset_volume = $8,
+                quote_asset_volume_left = $9
             WHERE
                 id = $1
             "#,
             element.id,
             element.created_at,
             element.user_id,
-            element.status as Status,
+            element.is_active,
             element.quote_asset_id,
             element.base_asset_id,
             quote_asset_volume,
-            base_asset_volume
+            base_asset_volume,
+            quote_asset_volume_left
         )
         .execute(&self.database)
         .await

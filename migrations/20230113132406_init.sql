@@ -9,18 +9,12 @@ CREATE TABLE "users" (
 
 CREATE SCHEMA "spot";
 
-CREATE TYPE "spot"."products_status" AS ENUM (
-  'active',
-  'partially_filled',
-  'filled',
-  'cancelled'
-);
-
 CREATE TABLE "spot"."valuts" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "user_id" uuid NOT NULL,
   "asset_id" uuid NOT NULL,
-  "balance" NUMERIC(78) NOT NULL CHECK ("balance" >= 0) DEFAULT 0
+  "balance" NUMERIC(78) NOT NULL CHECK ("balance" >= 0) DEFAULT 0,
+  UNIQUE ("user_id", "asset_id")
 );
 
 CREATE TABLE "spot"."assets" (
@@ -28,9 +22,9 @@ CREATE TABLE "spot"."assets" (
   "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "name" VARCHAR NOT NULL,
   "symbol" VARCHAR NOT NULL,
-  "maker_fee_num" NUMERIC(78) NOT NULL CHECK ("maker_fee_num" >= 0) DEFAULT 0,
+  "maker_fee_num" NUMERIC(78) NOT NULL CHECK ("maker_fee_num" >= 0) CHECK ("maker_fee_num" <= "maker_fee_denum") DEFAULT 0,
   "maker_fee_denum" NUMERIC(78) NOT NULL CHECK ("maker_fee_denum" > 0) DEFAULT 1,
-  "taker_fee_num" NUMERIC(78) NOT NULL CHECK ("taker_fee_num" >= 0) DEFAULT 0,
+  "taker_fee_num" NUMERIC(78) NOT NULL CHECK ("taker_fee_num" >= 0) CHECK ("taker_fee_num" <= "taker_fee_denum") DEFAULT 0,
   "taker_fee_denum" NUMERIC(78) NOT NULL CHECK ("taker_fee_denum" > 0) DEFAULT 1
 );
 
@@ -38,11 +32,12 @@ CREATE TABLE "spot"."orders" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "user_id" uuid NOT NULL,
-  "status" spot.products_status NOT NULL,
+  "is_active" BOOLEAN NOT NULL DEFAULT true,
   "quote_asset_id" uuid NOT NULL,
   "base_asset_id" uuid NOT NULL,
   "quote_asset_volume" NUMERIC(78) NOT NULL CHECK ("quote_asset_volume" >= 0),
-  "base_asset_volume" NUMERIC(78) NOT NULL CHECK ("base_asset_volume" >= 0)
+  "base_asset_volume" NUMERIC(78) NOT NULL CHECK ("base_asset_volume" >= 0),
+  "quote_asset_volume_left" NUMERIC(78) NOT NULL CHECK ("quote_asset_volume_left" >= 0) CHECK ("quote_asset_volume_left" <= "quote_asset_volume")
 );
 
 CREATE TABLE "spot"."trades" (
@@ -69,9 +64,6 @@ ALTER TABLE "spot"."orders" ADD FOREIGN KEY ("base_asset_id") REFERENCES "spot".
 ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("taker_id") REFERENCES "users" ("id");
 
 ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("order_id") REFERENCES "spot"."orders" ("id");
-
-CREATE UNIQUE INDEX valuts_userid_assetid_pair_unique ON "spot"."valuts" (user_id, asset_id)
-WHERE user_id IS NOT NULL AND asset_id IS NOT NULL;
 
 CREATE FUNCTION notify()
 RETURNS TRIGGER AS 
