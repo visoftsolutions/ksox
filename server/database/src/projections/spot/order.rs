@@ -15,4 +15,6 @@ pub struct Order {
     pub quote_asset_volume: Volume,
     pub base_asset_volume: Volume,
     pub quote_asset_volume_left: Volume,
+    pub maker_fee_num: Volume,
+    pub maker_fee_denum: Volume,
 }

@@ -41,7 +41,9 @@ impl OrdersManager {
                 base_asset_id,
                 quote_asset_volume as "quote_asset_volume: Volume",
                 base_asset_volume as "base_asset_volume: Volume",
-                quote_asset_volume_left as "quote_asset_volume_left: Volume"
+                quote_asset_volume_left as "quote_asset_volume_left: Volume",
+                maker_fee_num as "maker_fee_num: Volume",
+                maker_fee_denum as "maker_fee_denum: Volume"
             FROM spot.orders
             WHERE user_id = $1
             "#,
@@ -71,7 +73,9 @@ impl OrdersManager {
                 base_asset_id,
                 quote_asset_volume as "quote_asset_volume: Volume",
                 base_asset_volume as "base_asset_volume: Volume",
-                quote_asset_volume_left as "quote_asset_volume_left: Volume"
+                quote_asset_volume_left as "quote_asset_volume_left: Volume",
+                maker_fee_num as "maker_fee_num: Volume",
+                maker_fee_denum as "maker_fee_denum: Volume"
             FROM spot.orders
             WHERE quote_asset_id = $1
             AND base_asset_id = $2
@@ -108,7 +112,9 @@ impl OrdersManager {
                 base_asset_id,
                 quote_asset_volume as "quote_asset_volume: Volume",
                 base_asset_volume as "base_asset_volume: Volume",
-                quote_asset_volume_left as "quote_asset_volume_left: Volume"
+                quote_asset_volume_left as "quote_asset_volume_left: Volume",
+                maker_fee_num as "maker_fee_num: Volume",
+                maker_fee_denum as "maker_fee_denum: Volume"
             FROM spot.orders
             WHERE quote_asset_id = $1
             AND base_asset_id = $2
@@ -179,7 +185,9 @@ impl OrdersManager {
                 base_asset_id,
                 quote_asset_volume as "quote_asset_volume: Volume",
                 base_asset_volume as "base_asset_volume: Volume",
-                quote_asset_volume_left as "quote_asset_volume_left: Volume"
+                quote_asset_volume_left as "quote_asset_volume_left: Volume",
+                maker_fee_num as "maker_fee_num: Volume",
+                maker_fee_denum as "maker_fee_denum: Volume"
             FROM spot.orders
             WHERE user_id = $1
             "#,
@@ -259,7 +267,9 @@ impl OrdersManager {
                 base_asset_id,
                 quote_asset_volume as "quote_asset_volume: Volume",
                 base_asset_volume as "base_asset_volume: Volume",
-                quote_asset_volume_left as "quote_asset_volume_left: Volume"
+                quote_asset_volume_left as "quote_asset_volume_left: Volume",
+                maker_fee_num as "maker_fee_num: Volume",
+                maker_fee_denum as "maker_fee_denum: Volume"
             FROM spot.orders
             WHERE quote_asset_id = $1 AND quote_asset_id = $2
             "#,
@@ -289,7 +299,9 @@ impl TableManager<Order> for OrdersManager {
                 base_asset_id,
                 quote_asset_volume as "quote_asset_volume: Volume",
                 base_asset_volume as "base_asset_volume: Volume",
-                quote_asset_volume_left as "quote_asset_volume_left: Volume"
+                quote_asset_volume_left as "quote_asset_volume_left: Volume",
+                maker_fee_num as "maker_fee_num: Volume",
+                maker_fee_denum as "maker_fee_denum: Volume"
             FROM spot.orders
             "#
         )
@@ -309,7 +321,9 @@ impl TableManager<Order> for OrdersManager {
                 base_asset_id,
                 quote_asset_volume as "quote_asset_volume: Volume",
                 base_asset_volume as "base_asset_volume: Volume",
-                quote_asset_volume_left as "quote_asset_volume_left: Volume"
+                quote_asset_volume_left as "quote_asset_volume_left: Volume",
+                maker_fee_num as "maker_fee_num: Volume",
+                maker_fee_denum as "maker_fee_denum: Volume"
             FROM spot.orders
             WHERE id = $1
             "#,
@@ -323,13 +337,27 @@ impl TableManager<Order> for OrdersManager {
         let quote_asset_volume: BigDecimal = element.quote_asset_volume.into();
         let base_asset_volume: BigDecimal = element.base_asset_volume.into();
         let quote_asset_volume_left: BigDecimal = element.quote_asset_volume_left.into();
+        let maker_fee_num: BigDecimal = element.maker_fee_num.into();
+        let maker_fee_denum: BigDecimal = element.maker_fee_denum.into();
         sqlx::query!(
             r#"
             INSERT INTO
                 spot.orders
-                (id, created_at, user_id, is_active, quote_asset_id, base_asset_id, quote_asset_volume, base_asset_volume, quote_asset_volume_left)
+                (
+                    id, 
+                    created_at, 
+                    user_id, 
+                    is_active, 
+                    quote_asset_id, 
+                    base_asset_id, 
+                    quote_asset_volume, 
+                    base_asset_volume, 
+                    quote_asset_volume_left, 
+                    maker_fee_num, 
+                    maker_fee_denum
+                )
             VALUES
-                ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             "#,
             element.id,
             element.created_at,
@@ -339,7 +367,9 @@ impl TableManager<Order> for OrdersManager {
             element.base_asset_id,
             quote_asset_volume,
             base_asset_volume,
-            quote_asset_volume_left
+            quote_asset_volume_left,
+            maker_fee_num,
+            maker_fee_denum
         )
         .execute(&self.database)
         .await
@@ -349,6 +379,8 @@ impl TableManager<Order> for OrdersManager {
         let quote_asset_volume: BigDecimal = element.quote_asset_volume.into();
         let base_asset_volume: BigDecimal = element.base_asset_volume.into();
         let quote_asset_volume_left: BigDecimal = element.quote_asset_volume_left.into();
+        let maker_fee_num: BigDecimal = element.maker_fee_num.into();
+        let maker_fee_denum: BigDecimal = element.maker_fee_denum.into();
         sqlx::query!(
             r#"
             UPDATE 
@@ -361,7 +393,9 @@ impl TableManager<Order> for OrdersManager {
                 base_asset_id = $6,
                 quote_asset_volume = $7,
                 base_asset_volume = $8,
-                quote_asset_volume_left = $9
+                quote_asset_volume_left = $9,
+                maker_fee_num = $10,
+                maker_fee_denum = $11
             WHERE
                 id = $1
             "#,
@@ -373,7 +407,9 @@ impl TableManager<Order> for OrdersManager {
             element.base_asset_id,
             quote_asset_volume,
             base_asset_volume,
-            quote_asset_volume_left
+            quote_asset_volume_left,
+            maker_fee_num,
+            maker_fee_denum
         )
         .execute(&self.database)
         .await

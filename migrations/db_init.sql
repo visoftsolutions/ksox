@@ -37,7 +37,9 @@ CREATE TABLE "spot"."orders" (
   "base_asset_id" uuid NOT NULL,
   "quote_asset_volume" NUMERIC(78) NOT NULL CHECK ("quote_asset_volume" >= 0),
   "base_asset_volume" NUMERIC(78) NOT NULL CHECK ("base_asset_volume" >= 0),
-  "quote_asset_volume_left" NUMERIC(78) NOT NULL CHECK ("quote_asset_volume_left" >= 0) CHECK ("quote_asset_volume_left" <= "quote_asset_volume")
+  "quote_asset_volume_left" NUMERIC(78) NOT NULL CHECK ("quote_asset_volume_left" >= 0) CHECK ("quote_asset_volume_left" <= "quote_asset_volume"),
+  "maker_fee_num" NUMERIC(78) NOT NULL CHECK ("maker_fee_num" >= 0) CHECK ("maker_fee_num" <= "maker_fee_denum") DEFAULT 0,
+  "maker_fee_denum" NUMERIC(78) NOT NULL CHECK ("maker_fee_denum" > 0) DEFAULT 1
 );
 
 CREATE TABLE "spot"."trades" (

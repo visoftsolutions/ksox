@@ -8,8 +8,8 @@ use super::Volume;
 
 #[derive(Debug, Clone)]
 pub struct Fraction {
-    numerator: BigInt,
-    denominator: BigInt,
+    pub numerator: BigInt,
+    pub denominator: BigInt,
 }
 
 #[derive(Error, Debug)]

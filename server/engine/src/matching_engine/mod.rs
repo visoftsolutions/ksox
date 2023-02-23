@@ -45,13 +45,14 @@ impl MatchingEngine {
         &self,
         request: MatchingEngineRequest,
     ) -> Result<(), MatchingEngineError> {
-        // TODO implement transaction to revert changes in db when errors
+        // TODO implement transaction to revert changes in db when error occurs
         let taker_base_asset = self.assets_manager.get_by_id(request.base_asset_id).await?;
         let maker_base_asset = self
             .assets_manager
             .get_by_id(request.quote_asset_id)
             .await?;
 
+        // subtract from request user valut
         let mut taker_quote_asset_valut = self
             .valuts_manager
             .get_or_create(request.user_id, request.quote_asset_id)
@@ -92,12 +93,9 @@ impl MatchingEngine {
         )
         .await?;
 
-        // apply changes to db
-
-        // apply trades first
-
+        // apply trades
         for trade in matching.trades.into_iter() {
-            let maker_order = self.orders_manager.get_by_id(trade.order_id).await?;
+            let mut maker_order = self.orders_manager.get_by_id(trade.order_id).await?;
             let maker_id = maker_order.user_id;
             let taker_id = trade.taker_id;
             let taker_quote_asset_id = maker_order.base_asset_id;
@@ -115,17 +113,27 @@ impl MatchingEngine {
                 .await?;
 
             // apply changes
-            taker_base_asset_valut.balance += trade.taker_base_volume;
-            maker_base_asset_valut.balance += trade.maker_base_volume;
+            taker_base_asset_valut.balance += trade.taker_base_volume.to_owned();
+            maker_base_asset_valut.balance += trade.maker_base_volume.to_owned();
+            maker_order.quote_asset_volume_left -= trade.maker_quote_volume.to_owned();
 
-            // substract from maker_order
-            let maker_order_quote_asset_volume_left =
-                maker_order.quote_asset_volume - trade.maker_quote_volume;
+            if maker_order.quote_asset_volume_left == Volume::from(BigInt::from(0)) {
+                maker_order.is_active = false;
+            }
+
+            // save changes
+            self.valuts_manager.update(taker_base_asset_valut).await?;
+            self.valuts_manager.update(maker_base_asset_valut).await?;
+            self.orders_manager.update(maker_order).await?;
+
+            // save trade
+            self.trades_manager.insert(trade).await?;
         }
 
-        // apply orders then
-
-        for order in matching.orders.into_iter() {}
+        // save new orders
+        for order in matching.orders.into_iter() {
+            self.orders_manager.insert(order).await?;
+        }
 
         Ok(())
     }
@@ -154,6 +162,10 @@ impl MatchingEngine {
         // && taker_quote_asset_volume_left > BigInt::from(0).into()
         while let Some(maker_order) = available_maker_orders.next().await && taker_quote_asset_volume_left > BigInt::from(0).into() {
             let maker_order = maker_order?;
+            let maker_order_fee: Fraction = (
+                maker_order.maker_fee_num.into(),
+                maker_order.maker_fee_denum.into(),
+            ).try_into()?;
 
             let maker_order_base_asset_volume_left =
                 (maker_order.quote_asset_volume_left.to_owned()
@@ -211,7 +223,7 @@ impl MatchingEngine {
                     - (taker_base_asset_volume_given * taker_fee.to_owned()),
                 maker_quote_volume: maker_quote_asset_volume_taken,
                 maker_base_volume: maker_base_asset_volume_given.to_owned()
-                    - (maker_base_asset_volume_given * maker_fee.to_owned()),
+                    - (maker_base_asset_volume_given * maker_order_fee.to_owned()),
             });
         }
 
@@ -226,6 +238,8 @@ impl MatchingEngine {
                 quote_asset_volume: request_quote_asset_volume,
                 base_asset_volume: request_base_asset_volume,
                 quote_asset_volume_left: taker_quote_asset_volume_left,
+                maker_fee_num: maker_fee.numerator.into(),
+                maker_fee_denum: maker_fee.denominator.into(),
             });
         }
         Ok(response)
