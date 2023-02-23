@@ -13,7 +13,6 @@ use database::{
     types::{Fraction, Volume},
 };
 use futures::{Stream, StreamExt};
-use num_bigint::BigInt;
 
 use self::{
     errors::MatchingEngineError,
@@ -46,6 +45,12 @@ impl MatchingEngine {
         request: MatchingEngineRequest,
     ) -> Result<(), MatchingEngineError> {
         // TODO implement transaction to revert changes in db when error occurs
+        if request.quote_asset_volume <= Volume::from(0)
+            || request.base_asset_volume <= Volume::from(0)
+        {
+            return Err(MatchingEngineError::VolumeIsZero);
+        }
+
         let taker_base_asset = self.assets_manager.get_by_id(request.base_asset_id).await?;
         let maker_base_asset = self
             .assets_manager
@@ -58,7 +63,7 @@ impl MatchingEngine {
             .get_or_create(request.user_id, request.quote_asset_id)
             .await?;
         taker_quote_asset_valut.balance -= request.quote_asset_volume.to_owned();
-        if taker_quote_asset_valut.balance >= Volume::from(BigInt::from(0)) {
+        if taker_quote_asset_valut.balance >= Volume::from(0) {
             self.valuts_manager.update(taker_quote_asset_valut).await?;
         } else {
             return Err(MatchingEngineError::InsufficientBalance);
@@ -117,21 +122,32 @@ impl MatchingEngine {
             maker_base_asset_valut.balance += trade.maker_base_volume.to_owned();
             maker_order.quote_asset_volume_left -= trade.maker_quote_volume.to_owned();
 
-            if maker_order.quote_asset_volume_left == Volume::from(BigInt::from(0)) {
-                maker_order.is_active = false;
+            if !(maker_order.fillable()) {
+                let mut maker_quote_asset_valut = self
+                    .valuts_manager
+                    .get_or_create(maker_id, maker_quote_asset_id)
+                    .await?;
+                maker_order.cancel(&mut maker_quote_asset_valut);
+                self.valuts_manager.update(maker_quote_asset_valut).await?;
             }
 
             // save changes
+            self.orders_manager.update(maker_order).await?;
             self.valuts_manager.update(taker_base_asset_valut).await?;
             self.valuts_manager.update(maker_base_asset_valut).await?;
-            self.orders_manager.update(maker_order).await?;
-
-            // save trade
             self.trades_manager.insert(trade).await?;
         }
 
-        // save new orders
-        for order in matching.orders.into_iter() {
+        // apply order
+        if let Some(mut order) = matching.order {
+            if !(order.fillable()) {
+                let mut taker_quote_asset_valut = self
+                    .valuts_manager
+                    .get_or_create(request.user_id, request.quote_asset_id)
+                    .await?;
+                order.cancel(&mut taker_quote_asset_valut);
+                self.valuts_manager.update(taker_quote_asset_valut).await?;
+            }
             self.orders_manager.insert(order).await?;
         }
 
@@ -148,8 +164,14 @@ impl MatchingEngine {
         taker_fee: Fraction,
         maker_fee: Fraction,
     ) -> Result<MatchingEngineResponse, MatchingEngineError> {
-        if request_quote_asset_volume <= Volume::from(BigInt::from(0))
-            || request_base_asset_volume <= Volume::from(BigInt::from(0))
+        /*  matching engine axioms:
+         *  maker strategy: buy required base asset volume for minimal amount of quote asset
+         *  taker strategy: buy as much base asset volume as passible with given quote asset volume
+         *  if any asset_volume is zero it is considered unfillable
+         */
+
+        if request_quote_asset_volume <= Volume::from(0)
+            || request_base_asset_volume <= Volume::from(0)
         {
             return Err(MatchingEngineError::VolumeIsZero);
         }
@@ -157,22 +179,10 @@ impl MatchingEngine {
         let mut response = MatchingEngineResponse::new();
         let mut taker_quote_asset_volume_left = request_quote_asset_volume.to_owned();
 
-        // maker strategy: buy required base asset volume for minimal amount of quote asset
-        // taker strategy: buy as much base asset volume as passible with given quote asset volume
-        // && taker_quote_asset_volume_left > BigInt::from(0).into()
-        while let Some(maker_order) = available_maker_orders.next().await && taker_quote_asset_volume_left > BigInt::from(0).into() {
+        // && taker_quote_asset_volume_left > Volume::from(0)
+        while let Some(maker_order) = available_maker_orders.next().await && taker_quote_asset_volume_left > Volume::from(0) {
             let maker_order = maker_order?;
-            let maker_order_fee: Fraction = (
-                maker_order.maker_fee_num.into(),
-                maker_order.maker_fee_denum.into(),
-            ).try_into()?;
-
-            let maker_order_base_asset_volume_left =
-                (maker_order.quote_asset_volume_left.to_owned()
-                    * maker_order.base_asset_volume.to_owned()
-                    + maker_order.quote_asset_volume.to_owned()
-                    - Volume::from(BigInt::from(1)))
-                    / maker_order.quote_asset_volume.to_owned();
+            let maker_order_base_asset_volume_left = maker_order.base_asset_volume_left_ceil();
 
             if maker_order.quote_asset_volume_left.to_owned()
                 * request_quote_asset_volume.to_owned()
@@ -180,8 +190,8 @@ impl MatchingEngine {
                     * request_base_asset_volume.to_owned()
                 || request_quote_asset_id != maker_order.base_asset_id
                 || request_base_asset_id != maker_order.quote_asset_id
-                || request_quote_asset_volume <= Volume::from(BigInt::from(0))
-                || request_base_asset_volume <= Volume::from(BigInt::from(0))
+                || request_quote_asset_volume <= Volume::from(0)
+                || request_base_asset_volume <= Volume::from(0)
                 || !maker_order.is_active
             {
                 // reject maker_order price too high or ids invalid or volume less or equal then zero
@@ -192,13 +202,13 @@ impl MatchingEngine {
                 if taker_quote_asset_volume_left >= maker_order_base_asset_volume_left {
                     // eat whole maker_order
                     (
-                        maker_order.quote_asset_volume_left,
+                        maker_order.quote_asset_volume_left.to_owned(),
                         maker_order_base_asset_volume_left,
                     )
                 } else {
                     // eat maker_order partially
                     (
-                        (taker_quote_asset_volume_left.to_owned() * maker_order.quote_asset_volume)
+                        (taker_quote_asset_volume_left.to_owned() * maker_order.quote_asset_volume.to_owned())
                             .checked_div(&maker_order.base_asset_volume)
                             .ok_or(MatchingEngineError::DivisionByZero)?
                             .into(),
@@ -223,12 +233,12 @@ impl MatchingEngine {
                     - (taker_base_asset_volume_given * taker_fee.to_owned()),
                 maker_quote_volume: maker_quote_asset_volume_taken,
                 maker_base_volume: maker_base_asset_volume_given.to_owned()
-                    - (maker_base_asset_volume_given * maker_order_fee.to_owned()),
+                    - (maker_base_asset_volume_given * maker_order.maker_fee()?),
             });
         }
 
-        if taker_quote_asset_volume_left > BigInt::from(0).into() {
-            response.orders.push(Order {
+        if taker_quote_asset_volume_left > Volume::from(0) {
+            response.order = Some(Order {
                 id: Uuid::new_v4(),
                 created_at: Utc::now(),
                 user_id: request_user_id,

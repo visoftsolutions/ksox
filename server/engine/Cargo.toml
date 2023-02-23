@@ -24,3 +24,6 @@ uuid = { version = "1.2.2", features = ["v4", "serde", "arbitrary"] }
 
 [build-dependencies]
 tonic-build = "0.8.4"
+
+[package.metadata.cargo-udeps.ignore]
+normal = ["proptest", "proptest-derive", "seq-macro"]

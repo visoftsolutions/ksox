@@ -173,3 +173,35 @@ impl CheckedDiv for Volume {
         self.0.checked_div(&v.0).map(Volume)
     }
 }
+
+macro_rules! impl_volume_from_int {
+    ($T:ty) => {
+        impl From<$T> for Volume {
+            #[inline]
+            fn from(n: $T) -> Self {
+                Volume::from(BigInt::from(n as i64))
+            }
+        }
+    };
+}
+
+impl_volume_from_int!(i8);
+impl_volume_from_int!(i16);
+impl_volume_from_int!(i32);
+impl_volume_from_int!(isize);
+
+macro_rules! impl_volume_from_uint {
+    ($T:ty) => {
+        impl From<$T> for Volume {
+            #[inline]
+            fn from(n: $T) -> Self {
+                Volume::from(BigInt::from(n as u64))
+            }
+        }
+    };
+}
+
+impl_volume_from_uint!(u8);
+impl_volume_from_uint!(u16);
+impl_volume_from_uint!(u32);
+impl_volume_from_uint!(usize);

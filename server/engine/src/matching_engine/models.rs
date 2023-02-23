@@ -14,7 +14,7 @@ pub struct MatchingEngineRequest {
 
 #[derive(Debug)]
 pub struct MatchingEngineResponse {
-    pub orders: Vec<Order>,
+    pub order: Option<Order>,
     pub trades: Vec<Trade>,
 }
 
@@ -23,10 +23,10 @@ impl std::fmt::Display for MatchingEngineResponse {
         write!(
             f,
             "MatchingEngineResponse:
-        orders: {:?}
+        order: {:?}
         trades: {:?}
         ",
-            self.orders, self.trades
+            self.order, self.trades
         )
     }
 }
@@ -34,7 +34,7 @@ impl std::fmt::Display for MatchingEngineResponse {
 impl MatchingEngineResponse {
     pub fn new() -> MatchingEngineResponse {
         MatchingEngineResponse {
-            orders: Vec::new(),
+            order: None,
             trades: Vec::new(),
         }
     }
