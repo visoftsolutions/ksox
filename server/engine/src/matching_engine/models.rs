@@ -6,10 +6,10 @@ use database::{
 
 pub struct MatchingEngineRequest {
     pub user_id: Uuid,
-    pub base_asset_id: Uuid,
     pub quote_asset_id: Uuid,
-    pub base_asset_volume: Volume,
+    pub base_asset_id: Uuid,
     pub quote_asset_volume: Volume,
+    pub base_asset_volume: Volume,
 }
 
 #[derive(Debug)]

@@ -45,6 +45,29 @@ impl ValutsManager {
         .fetch(&self.database)
     }
 
+    pub async fn get_by_user_id_and_asset_id(
+        &self,
+        user_id: Uuid,
+        asset_id: Uuid,
+    ) -> Result<Valut> {
+        sqlx::query_as!(
+            Valut,
+            r#"
+            SELECT
+                id,
+                user_id,
+                asset_id,
+                balance as "balance: Volume"
+            FROM spot.valuts
+            WHERE user_id = $1 AND asset_id = $2
+            "#,
+            user_id,
+            asset_id
+        )
+        .fetch_one(&self.database)
+        .await
+    }
+
     pub async fn create_notify_trigger_for_user(&self, user_id: Uuid) -> Result<NotifyTrigger> {
         let trigger_name = trigger_name("spot_valuts_notify_trigger_for_user", vec![user_id]);
         sqlx::query!(
@@ -115,15 +138,15 @@ impl ValutsManager {
             r#"
             INSERT INTO spot.valuts (user_id, asset_id)
             VALUES ($1, $2)
-            ON CONFLICT (user_id, asset_id)
-            DO NOTHING
-            RETURNING id, user_id, asset_id, balance as "balance: Volume"
+            ON CONFLICT (user_id, asset_id) DO NOTHING;
             "#,
             user_id,
             asset_id
         )
-        .fetch_one(&self.database)
-        .await
+        .execute(&self.database)
+        .await?;
+
+        self.get_by_user_id_and_asset_id(user_id, asset_id).await
     }
 }
 

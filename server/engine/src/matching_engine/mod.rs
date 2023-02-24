@@ -60,14 +60,10 @@ impl MatchingEngine {
         // subtract from request user valut
         let mut taker_quote_asset_valut = self
             .valuts_manager
-            .get_or_create(request.user_id, request.quote_asset_id)
+            .get_by_user_id_and_asset_id(request.user_id, request.quote_asset_id)
             .await?;
         taker_quote_asset_valut.balance -= request.quote_asset_volume.to_owned();
-        if taker_quote_asset_valut.balance >= Volume::from(0) {
-            self.valuts_manager.update(taker_quote_asset_valut).await?;
-        } else {
-            return Err(MatchingEngineError::InsufficientBalance);
-        }
+        self.valuts_manager.update(taker_quote_asset_valut).await?;
 
         let maker_orders = self.orders_manager.get_ordered_asc_less(
             // base switches with quote to give opposite orderbook
@@ -98,23 +94,26 @@ impl MatchingEngine {
         )
         .await?;
 
+        // apply order
+        if let Some(mut order) = matching.order {
+            println!("{:?}", order);
+            if !(order.fillable()) {
+                order.cancel(&self.valuts_manager).await?;
+            }
+            self.orders_manager.insert(order).await?;
+        }
+
         // apply trades
         for trade in matching.trades.into_iter() {
             let mut maker_order = self.orders_manager.get_by_id(trade.order_id).await?;
-            let maker_id = maker_order.user_id;
-            let taker_id = trade.taker_id;
-            let taker_quote_asset_id = maker_order.base_asset_id;
-            let taker_base_asset_id = maker_order.quote_asset_id;
-            let maker_quote_asset_id = maker_order.quote_asset_id;
-            let maker_base_asset_id = maker_order.base_asset_id;
 
             let mut taker_base_asset_valut = self
                 .valuts_manager
-                .get_or_create(taker_id, taker_base_asset_id)
+                .get_or_create(trade.taker_id, maker_order.quote_asset_id)
                 .await?;
             let mut maker_base_asset_valut = self
                 .valuts_manager
-                .get_or_create(maker_id, maker_base_asset_id)
+                .get_or_create(maker_order.user_id, maker_order.base_asset_id)
                 .await?;
 
             // apply changes
@@ -123,12 +122,7 @@ impl MatchingEngine {
             maker_order.quote_asset_volume_left -= trade.maker_quote_volume.to_owned();
 
             if !(maker_order.fillable()) {
-                let mut maker_quote_asset_valut = self
-                    .valuts_manager
-                    .get_or_create(maker_id, maker_quote_asset_id)
-                    .await?;
-                maker_order.cancel(&mut maker_quote_asset_valut);
-                self.valuts_manager.update(maker_quote_asset_valut).await?;
+                maker_order.cancel(&self.valuts_manager).await?;
             }
 
             // save changes
@@ -136,19 +130,6 @@ impl MatchingEngine {
             self.valuts_manager.update(taker_base_asset_valut).await?;
             self.valuts_manager.update(maker_base_asset_valut).await?;
             self.trades_manager.insert(trade).await?;
-        }
-
-        // apply order
-        if let Some(mut order) = matching.order {
-            if !(order.fillable()) {
-                let mut taker_quote_asset_valut = self
-                    .valuts_manager
-                    .get_or_create(request.user_id, request.quote_asset_id)
-                    .await?;
-                order.cancel(&mut taker_quote_asset_valut);
-                self.valuts_manager.update(taker_quote_asset_valut).await?;
-            }
-            self.orders_manager.insert(order).await?;
         }
 
         Ok(())
@@ -169,7 +150,8 @@ impl MatchingEngine {
          *  taker strategy: buy as much base asset volume as passible with given quote asset volume
          *  if any asset_volume is zero it is considered unfillable
          */
-
+        println!("{:#?}", taker_fee);
+        println!("{:#?}", maker_fee);
         if request_quote_asset_volume <= Volume::from(0)
             || request_base_asset_volume <= Volume::from(0)
         {

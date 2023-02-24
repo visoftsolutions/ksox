@@ -8,7 +8,6 @@ pub mod base {
 
 mod deserializer;
 mod matching_engine;
-mod serializer;
 mod shutdown_signal;
 
 use std::net::SocketAddr;

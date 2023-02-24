@@ -2,8 +2,11 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::types::Uuid;
 
-use super::valut::Valut;
-use crate::types::{fraction::FractionError, Fraction, Volume};
+use crate::{
+    managers::spot::valuts::ValutsManager,
+    traits::table_manager::TableManager,
+    types::{fraction::FractionError, Fraction, Volume},
+};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Order {
@@ -38,9 +41,14 @@ impl Order {
             && self.base_asset_volume_left_floor() > Volume::from(0)
     }
 
-    pub fn cancel(&mut self, valut: &mut Valut) {
+    pub async fn cancel(&mut self, valuts_manager: &ValutsManager) -> Result<(), sqlx::Error> {
+        let mut valut = valuts_manager
+            .get_or_create(self.user_id, self.quote_asset_id)
+            .await?;
         valut.balance += self.quote_asset_volume_left.to_owned();
         self.is_active = false;
+        valuts_manager.update(valut).await?;
+        Ok(())
     }
 
     pub fn maker_fee(&self) -> Result<Fraction, FractionError> {

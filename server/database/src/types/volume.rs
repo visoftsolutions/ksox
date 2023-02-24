@@ -28,12 +28,6 @@ impl std::fmt::Display for Volume {
     }
 }
 
-impl From<BigDecimal> for Volume {
-    fn from(value: BigDecimal) -> Self {
-        Volume(value.to_bigint().unwrap())
-    }
-}
-
 impl From<BigInt> for Volume {
     fn from(value: BigInt) -> Self {
         Volume(value)
@@ -76,8 +70,7 @@ impl<'de> Deserialize<'de> for Volume {
     {
         Ok(Self::from(
             BigDecimal::deserialize(deserializer)?
-                .as_bigint_and_exponent()
-                .0,
+                .to_bigint().unwrap() // save unwraps method always return Some dont know why though
         ))
     }
 }
@@ -86,8 +79,7 @@ impl Decode<'_, Postgres> for Volume {
     fn decode(value: PgValueRef) -> std::result::Result<Self, sqlx::error::BoxDynError> {
         Ok(Volume(
             <BigDecimal as Decode<Postgres>>::decode(value)?
-                .as_bigint_and_exponent()
-                .0,
+                .to_bigint().unwrap() // save unwraps method always return Some dont know why though
         ))
     }
 }
