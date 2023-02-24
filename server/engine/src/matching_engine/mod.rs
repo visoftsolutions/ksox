@@ -1,5 +1,3 @@
-use std::pin::Pin;
-
 use database::{
     managers::spot::{
         assets::AssetsManager, orders::OrdersManager, trades::TradesManager, valuts::ValutsManager,
@@ -7,18 +5,17 @@ use database::{
     projections::spot::{order::Order, trade::Trade},
     sqlx::{
         types::{chrono::Utc, Uuid},
-        Error, Pool, Postgres,
+        Pool, Postgres,
     },
     traits::table_manager::TableManager,
-    types::{Fraction, Volume},
+    types::Volume,
 };
-use futures::{Stream, StreamExt};
+use futures::StreamExt;
 
-use self::{
-    errors::MatchingEngineError,
-    models::{MatchingEngineRequest, MatchingEngineResponse},
+use self::models::{
+    MatchingEngineData, MatchingEngineError, MatchingEngineRequest, MatchingEngineResponse,
 };
-pub mod errors;
+
 pub mod models;
 #[cfg(test)]
 mod tests;
@@ -74,7 +71,7 @@ impl MatchingEngine {
             request.base_asset_volume.to_owned(),
         );
 
-        let matching = Self::matching_loop(
+        let matching_loop_input = MatchingEngineData::new(
             request.user_id,
             request.quote_asset_id,
             request.base_asset_id,
@@ -91,12 +88,12 @@ impl MatchingEngine {
                 maker_base_asset.maker_fee_denum.into(),
             )
                 .try_into()?,
-        )
-        .await?;
+        );
+
+        let matching = Self::matching_loop(matching_loop_input).await?;
 
         // apply order
         if let Some(mut order) = matching.order {
-            println!("{:?}", order);
             if !(order.fillable()) {
                 order.cancel(&self.valuts_manager).await?;
             }
@@ -135,45 +132,38 @@ impl MatchingEngine {
         Ok(())
     }
 
+    pub async fn cancel_order(&self, order_id: Uuid) -> Result<(), MatchingEngineError> {
+        let mut order = self.orders_manager.get_by_id(order_id).await?;
+        Ok(order.cancel(&self.valuts_manager).await?)
+    }
+
     pub async fn matching_loop(
-        request_user_id: Uuid,
-        request_quote_asset_id: Uuid,
-        request_base_asset_id: Uuid,
-        request_quote_asset_volume: Volume,
-        request_base_asset_volume: Volume,
-        mut available_maker_orders: Pin<Box<dyn Stream<Item = Result<Order, Error>> + Send + '_>>,
-        taker_fee: Fraction,
-        maker_fee: Fraction,
+        mut input: MatchingEngineData<'_>,
     ) -> Result<MatchingEngineResponse, MatchingEngineError> {
         /*  matching engine axioms:
          *  maker strategy: buy required base asset volume for minimal amount of quote asset
          *  taker strategy: buy as much base asset volume as passible with given quote asset volume
          *  if any asset_volume is zero it is considered unfillable
          */
-        println!("{:#?}", taker_fee);
-        println!("{:#?}", maker_fee);
-        if request_quote_asset_volume <= Volume::from(0)
-            || request_base_asset_volume <= Volume::from(0)
+        if input.quote_asset_volume <= Volume::from(0) || input.base_asset_volume <= Volume::from(0)
         {
             return Err(MatchingEngineError::VolumeIsZero);
         }
 
         let mut response = MatchingEngineResponse::new();
-        let mut taker_quote_asset_volume_left = request_quote_asset_volume.to_owned();
+        let mut taker_quote_asset_volume_left = input.quote_asset_volume.to_owned();
 
         // && taker_quote_asset_volume_left > Volume::from(0)
-        while let Some(maker_order) = available_maker_orders.next().await && taker_quote_asset_volume_left > Volume::from(0) {
+        while let Some(maker_order) = input.maker_orders.next().await && taker_quote_asset_volume_left > Volume::from(0) {
             let maker_order = maker_order?;
             let maker_order_base_asset_volume_left = maker_order.base_asset_volume_left_ceil();
 
-            if maker_order.quote_asset_volume_left.to_owned()
-                * request_quote_asset_volume.to_owned()
-                < maker_order_base_asset_volume_left.to_owned()
-                    * request_base_asset_volume.to_owned()
-                || request_quote_asset_id != maker_order.base_asset_id
-                || request_base_asset_id != maker_order.quote_asset_id
-                || request_quote_asset_volume <= Volume::from(0)
-                || request_base_asset_volume <= Volume::from(0)
+            if maker_order.quote_asset_volume_left.to_owned() * input.quote_asset_volume.to_owned()
+                < maker_order_base_asset_volume_left.to_owned() * input.base_asset_volume.to_owned()
+                || input.quote_asset_id != maker_order.base_asset_id
+                || input.base_asset_id != maker_order.quote_asset_id
+                || input.quote_asset_volume <= Volume::from(0)
+                || input.base_asset_volume <= Volume::from(0)
                 || !maker_order.is_active
             {
                 // reject maker_order price too high or ids invalid or volume less or equal then zero
@@ -190,10 +180,11 @@ impl MatchingEngine {
                 } else {
                     // eat maker_order partially
                     (
-                        (taker_quote_asset_volume_left.to_owned() * maker_order.quote_asset_volume.to_owned())
-                            .checked_div(&maker_order.base_asset_volume)
-                            .ok_or(MatchingEngineError::DivisionByZero)?
-                            .into(),
+                        (taker_quote_asset_volume_left.to_owned()
+                            * maker_order.quote_asset_volume.to_owned())
+                        .checked_div(&maker_order.base_asset_volume)
+                        .ok_or(MatchingEngineError::DivisionByZero)?
+                        .into(),
                         taker_quote_asset_volume_left.to_owned(),
                     )
                 };
@@ -208,11 +199,11 @@ impl MatchingEngine {
             response.trades.push(Trade {
                 id: Uuid::new_v4(),
                 created_at: Utc::now(),
-                taker_id: request_user_id,
+                taker_id: input.user_id,
                 order_id: maker_order.id,
                 taker_quote_volume: taker_quote_asset_volume_taken,
                 taker_base_volume: taker_base_asset_volume_given.to_owned()
-                    - (taker_base_asset_volume_given * taker_fee.to_owned()),
+                    - (taker_base_asset_volume_given * input.taker_fee.to_owned()),
                 maker_quote_volume: maker_quote_asset_volume_taken,
                 maker_base_volume: maker_base_asset_volume_given.to_owned()
                     - (maker_base_asset_volume_given * maker_order.maker_fee()?),
@@ -223,15 +214,15 @@ impl MatchingEngine {
             response.order = Some(Order {
                 id: Uuid::new_v4(),
                 created_at: Utc::now(),
-                user_id: request_user_id,
+                user_id: input.user_id,
                 is_active: true,
-                quote_asset_id: request_quote_asset_id,
-                base_asset_id: request_base_asset_id,
-                quote_asset_volume: request_quote_asset_volume,
-                base_asset_volume: request_base_asset_volume,
+                quote_asset_id: input.quote_asset_id,
+                base_asset_id: input.base_asset_id,
+                quote_asset_volume: input.quote_asset_volume,
+                base_asset_volume: input.base_asset_volume,
                 quote_asset_volume_left: taker_quote_asset_volume_left,
-                maker_fee_num: maker_fee.numerator.into(),
-                maker_fee_denum: maker_fee.denominator.into(),
+                maker_fee_num: input.maker_fee.numerator.into(),
+                maker_fee_denum: input.maker_fee.denominator.into(),
             });
         }
         Ok(response)

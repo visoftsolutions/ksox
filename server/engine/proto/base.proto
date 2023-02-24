@@ -6,55 +6,17 @@ message SubmitRequest {
     string quote_asset_id = 2;
     string base_asset_id = 3;
     string quote_asset_volume = 4;
-    string base_asset_price = 5;
+    string base_asset_volume = 5;
 }
-
-message SubmitResponse {
-    string order_id = 1;
-    repeated string trade_ids = 2;
-}
+message SubmitResponse {}
 
 message CancelRequest {
     string order_id = 1;
 }
 
-message CancelResponse {
-    string status = 1;
-}
-
-message DrainOrderBookRequest {
-    string quote_asset_id = 1;
-    string base_asset_id = 2;
-}
-
-message DrainOrderBookResponse {
-    message OrderBookTile {
-        string price = 1;
-        string quantity = 2;
-        string total = 3;
-    }
-    repeated OrderBookTile bids = 1;
-    repeated OrderBookTile asks = 2;
-}
-
-message DrainTradesRequest {
-    string quote_asset_id = 1;
-    string base_asset_id = 2;
-}
-
-message DrainTradesResponse {
-    message Trade {
-        string price = 1;
-        string quantity = 2;
-        string timestamp = 3;
-    }
-    repeated Trade trades = 1;
-}
+message CancelResponse {}
 
 service Engine {
     rpc Submit(SubmitRequest) returns (SubmitResponse) {}
     rpc Cancel(CancelRequest) returns (CancelResponse) {}
-
-    rpc DrainOrderBook(DrainOrderBookRequest) returns (stream DrainOrderBookResponse) {}
-    rpc DrainTrades(DrainTradesRequest) returns (stream DrainTradesResponse) {}
 }

@@ -1,11 +1,9 @@
 use std::str::FromStr;
 
-use database::sqlx::PgPool;
-use database::types::Volume;
+use database::{sqlx::PgPool, types::Volume};
 use uuid::Uuid;
 
-use crate::matching_engine::MatchingEngine;
-use crate::matching_engine::models::MatchingEngineRequest;
+use crate::matching_engine::{models::MatchingEngineRequest, MatchingEngine};
 
 #[tokio::test]
 async fn simple_scenario() {
@@ -29,19 +27,23 @@ async fn simple_scenario() {
         .unwrap();
 
     let me = MatchingEngine::new(database);
-    let mut result = me.execute_request(MatchingEngineRequest {
+    me.execute_request(MatchingEngineRequest {
         user_id: user_2_id,
         quote_asset_id: asset_b_id,
         base_asset_id: asset_a_id,
         quote_asset_volume: Volume::from(400),
         base_asset_volume: Volume::from(72),
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 
-    result = me.execute_request(MatchingEngineRequest {
+    me.execute_request(MatchingEngineRequest {
         user_id: user_1_id,
         quote_asset_id: asset_a_id,
         base_asset_id: asset_b_id,
         quote_asset_volume: Volume::from(81),
         base_asset_volume: Volume::from(390),
-    }).await.unwrap();
+    })
+    .await
+    .unwrap();
 }

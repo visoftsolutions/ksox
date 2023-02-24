@@ -69,8 +69,7 @@ impl<'de> Deserialize<'de> for Volume {
         D: serde::Deserializer<'de>,
     {
         Ok(Self::from(
-            BigDecimal::deserialize(deserializer)?
-                .to_bigint().unwrap() // save unwraps method always return Some dont know why though
+            BigDecimal::deserialize(deserializer)?.to_bigint().unwrap(), // save unwraps method always return Some dont know why though
         ))
     }
 }
@@ -79,7 +78,8 @@ impl Decode<'_, Postgres> for Volume {
     fn decode(value: PgValueRef) -> std::result::Result<Self, sqlx::error::BoxDynError> {
         Ok(Volume(
             <BigDecimal as Decode<Postgres>>::decode(value)?
-                .to_bigint().unwrap() // save unwraps method always return Some dont know why though
+                .to_bigint()
+                .unwrap(), // save unwraps method always return Some dont know why though
         ))
     }
 }
