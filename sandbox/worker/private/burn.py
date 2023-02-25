@@ -1,7 +1,7 @@
 import requests
-from auth import login, PRIVATE_KEY, AUTH_COOKIE_NAME, logout
+from worker.auth import login, PRIVATE_KEY, AUTH_COOKIE_NAME, logout
 
-URL = "http://localhost:7979/api/private/submit_request"
+URL = "http://localhost:7979/api/private/burn"
 
 session = login(PRIVATE_KEY)
 

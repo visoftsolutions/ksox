@@ -1,5 +1,5 @@
-colorama==0.4.6
+colorama==0.4.4
 eth_account==0.5.9
-requests==2.28.2
+requests==2.25.1
 sseclient==0.0.27
 web3==5.31.3

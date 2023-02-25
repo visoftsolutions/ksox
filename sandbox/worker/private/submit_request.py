@@ -1,7 +1,7 @@
 import requests
-from auth import login, PRIVATE_KEY, AUTH_COOKIE_NAME, logout
+from worker.auth import login, PRIVATE_KEY, AUTH_COOKIE_NAME, logout
 
-URL = "http://localhost:7979/api/private/cancel_order"
+URL = "http://localhost:7979/api/private/submit_request"
 
 session = login(PRIVATE_KEY)
 

@@ -1,4 +1,4 @@
-from auth.login import AUTH_URL, login, PRIVATE_KEY
+from worker.auth.login import AUTH_URL, login, PRIVATE_KEY
 import requests
 from colorama import Fore, Style
 

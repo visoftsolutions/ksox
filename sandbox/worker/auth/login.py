@@ -1,6 +1,6 @@
 import datetime
 import requests
-from auth.models import *
+from worker.auth.models import *
 from web3.auto import w3
 from web3 import Account
 from eth_account.messages import encode_defunct

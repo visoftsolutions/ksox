@@ -1,7 +1,7 @@
 from sseclient import SSEClient
-from auth import login, PRIVATE_KEY, AUTH_COOKIE_NAME
+from worker.auth import login, PRIVATE_KEY, AUTH_COOKIE_NAME
 
-URL = "http://localhost:7979/api/private/orders"
+URL = "http://localhost:7979/api/private/balance"
 
 session = login(PRIVATE_KEY)
 
