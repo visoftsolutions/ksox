@@ -14,7 +14,7 @@ pub async fn root(
     user_id: UserId,
 ) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     // A `Stream` that repeats an event every second
-    let stream = stream::repeat_with(|| Event::default().data("hi it is balance endpoint"))
+    let stream = stream::repeat_with(|| Event::default().data("hi it is orders_history endpoint"))
         .map(Ok)
         .throttle(Duration::from_secs(1));
 

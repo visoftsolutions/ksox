@@ -144,6 +144,12 @@ impl ToRedisArgs for SessionId {
 #[derive(Debug, Clone)]
 pub struct UserId(Uuid);
 
+impl UserId {
+    pub fn new(id: Uuid) -> Self{
+        UserId(id)
+    }
+}
+
 impl FromStr for UserId {
     type Err = anyhow::Error;
 
@@ -273,5 +279,74 @@ pub struct ValidateSignatureRequest {
 pub struct ValidateSignatureResponse {
     #[serde_as(as = "DisplayFromStr")]
     pub session_id: SessionId,
+    #[serde_as(as = "DisplayFromStr")]
+    pub user_id: UserId,
     pub expiration: usize,
+}
+
+pub struct User {
+    pub session_id: SessionId,
+    pub user_id: UserId
+}
+
+#[async_trait]
+impl<S> FromRequestParts<S> for User
+where
+    Client: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = Response<String>;
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let cookies = parts
+            .extract::<TypedHeader<headers::Cookie>>()
+            .await
+            .map_err(|e| {
+                Response::builder()
+                    .status(StatusCode::UNAUTHORIZED)
+                    .body(format!("invalid header: {e}"))
+                    .unwrap()
+            })?;
+
+        let session_id = cookies
+            .get(COOKIE_NAME)
+            .ok_or_else(|| {
+                Response::builder()
+                    .status(StatusCode::UNAUTHORIZED)
+                    .body("no session cookie".to_string())
+                    .unwrap()
+            })?
+            .to_string();
+
+        let mut store = Client::from_ref(state)
+            .get_async_connection()
+            .await
+            .map_err(|e| {
+                Response::builder()
+                    .status(StatusCode::INTERNAL_SERVER_ERROR)
+                    .body(e.to_string())
+                    .unwrap()
+            })?;
+
+        let user_id: UserId = store
+            .get_ex(
+                format!("auth:session_id:{session_id}"),
+                Expiry::EX(SESSION_EXPIRATION_TIME),
+            )
+            .await
+            .map_err(|e| {
+                Response::builder()
+                    .status(StatusCode::UNAUTHORIZED)
+                    .body(format!("session_id invalid or not found: {e}"))
+                    .unwrap()
+            })?;
+
+        Ok(User {
+            session_id: SessionId::from_str(&session_id).map_err(|e| {
+                Response::builder()
+                    .status(StatusCode::INTERNAL_SERVER_ERROR)
+                    .body(e.to_string())
+                    .unwrap()})?,
+            user_id })
+    }
 }

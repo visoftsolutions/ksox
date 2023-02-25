@@ -20,6 +20,19 @@
     },
     "query": "\n                SELECT drop_spot_valuts_notify_trigger_for_user($1)\n                "
   },
+  "0548f331dfa6cfe3d03eb6ca372b530a03f03db9061f315c9d4500d1ee275cd4": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO spot.valuts (user_id, asset_id)\n            VALUES ($1, $2)\n            ON CONFLICT (user_id, asset_id) DO NOTHING;\n            "
+  },
   "055f1bc7e5575d2bd4215e7f7ebafb897b2d46791b3084c9b0e385f6fff80604": {
     "describe": {
       "columns": [
@@ -788,45 +801,6 @@
     },
     "query": "\n            DELETE FROM \n                spot.valuts \n            WHERE\n                id = $1\n            "
   },
-  "81e420ea23ba632b73702bd00b63c6a66892b85e032dc885a8d62ce2a42b3c22": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "user_id",
-          "ordinal": 1,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "asset_id",
-          "ordinal": 2,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "balance: Volume",
-          "ordinal": 3,
-          "type_info": "Numeric"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Uuid"
-        ]
-      }
-    },
-    "query": "\n            INSERT INTO spot.valuts (user_id, asset_id)\n            VALUES ($1, $2)\n            ON CONFLICT (user_id, asset_id)\n            DO NOTHING\n            RETURNING id, user_id, asset_id, balance as \"balance: Volume\"\n            "
-  },
   "848519fb3712eb6cb95690d793e9f1640f8d5a2ecaa0b731bd28da91339c2334": {
     "describe": {
       "columns": [
@@ -1191,6 +1165,45 @@
       }
     },
     "query": "\n            SELECT\n                id,\n                user_id,\n                asset_id,\n                balance as \"balance: Volume\"\n            FROM spot.valuts\n            WHERE user_id = $1\n            "
+  },
+  "a4ada3b509a81ad1a3b42456d8bea02e1714792c0706da9e76347e9159146b3c": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 1,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "asset_id",
+          "ordinal": 2,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "balance: Volume",
+          "ordinal": 3,
+          "type_info": "Numeric"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                user_id,\n                asset_id,\n                balance as \"balance: Volume\"\n            FROM spot.valuts\n            WHERE user_id = $1 AND asset_id = $2\n            "
   },
   "a51b661b1d11b432263d0137e27e95e0d5bf072c182fa939ef9cb4a131844853": {
     "describe": {

@@ -4,7 +4,7 @@ use std::ops::Deref;
 
 use axum::{
     extract::{Json, State},
-    routing::{get, post},
+    routing::{delete, get, post},
     Router,
 };
 use cache::redis::AsyncCommands;
@@ -22,6 +22,7 @@ pub fn router(app_state: &AppState) -> Router {
     Router::new()
         .route("/", get(generate_nonce))
         .route("/", post(validate_signature))
+        .route("/", delete(logout))
         .with_state(app_state.clone())
 }
 
@@ -88,6 +89,13 @@ async fn validate_signature(
         .await?;
     Ok(Json(ValidateSignatureResponse {
         session_id,
+        user_id: UserId::new(user.id),
         expiration: SESSION_EXPIRATION_TIME,
     }))
+}
+
+pub async fn logout(State(state): State<AppState>, user: User) -> Result<String, AppError> {
+    let mut redis_conn = state.session_store.get_async_connection().await?;
+    redis_conn.del(format!("auth:session_id:{}", user.session_id)).await?;
+    Ok(format!("logout endpoint, Bye {}", user.user_id))
 }
