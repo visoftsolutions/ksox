@@ -1,12 +1,12 @@
 use std::pin::Pin;
 
 use futures::Stream;
-use sqlx::{postgres::PgQueryResult, Error};
+use sqlx::Error;
 
 use super::NotifyTrigger;
 
 pub struct SubscribeStream<'a, T> {
-    trigger: NotifyTrigger,
+    trigger: Option<NotifyTrigger>,
     stream: Pin<Box<dyn Stream<Item = Result<T, Error>> + Send + 'a>>,
 }
 
@@ -15,11 +15,10 @@ impl<'a, T> SubscribeStream<'a, T> {
         trigger: NotifyTrigger,
         stream: Pin<Box<dyn Stream<Item = Result<T, Error>> + Send + 'a>>,
     ) -> Self {
-        SubscribeStream { trigger, stream }
-    }
-
-    pub async fn destroy(self) -> Result<PgQueryResult, Error> {
-        self.trigger.destroy().await
+        SubscribeStream {
+            trigger: Some(trigger),
+            stream,
+        }
     }
 }
 

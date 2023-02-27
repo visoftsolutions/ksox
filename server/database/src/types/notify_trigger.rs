@@ -1,25 +1,24 @@
-use std::pin::Pin;
-
-use futures::Future;
-use sqlx::{postgres::PgQueryResult, Result};
+use tokio::sync::oneshot;
 
 pub struct NotifyTrigger {
     pub channel_name: String,
-    drop_fn: Pin<Box<dyn Future<Output = Result<PgQueryResult>> + Send>>,
+    drop_signal: Option<oneshot::Sender<()>>,
 }
 
 impl NotifyTrigger {
-    pub fn new(
-        channel_name: String,
-        drop_fn: Pin<Box<dyn Future<Output = Result<PgQueryResult>> + Send>>,
-    ) -> Self {
-        NotifyTrigger {
-            drop_fn,
+    pub fn new(channel_name: String, drop_signal: oneshot::Sender<()>) -> Self {
+        Self {
+            drop_signal: Some(drop_signal),
             channel_name,
         }
     }
-
-    pub async fn destroy(self) -> Result<PgQueryResult> {
-        self.drop_fn.await
+}
+impl Drop for NotifyTrigger {
+    fn drop(&mut self) {
+        if let Some(drop_signal) = self.drop_signal.take() {
+            if let Err(_) = drop_signal.send(()) {
+                tracing::error!("drop_signal failed");
+            }
+        }
     }
 }

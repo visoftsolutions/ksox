@@ -10,7 +10,10 @@ use axum::{routing::get, Router};
 use cache::get_client;
 use database::{
     managers::{
-        spot::{assets::AssetsManager, orders::OrdersManager, valuts::ValutsManager},
+        spot::{
+            assets::AssetsManager, orders::OrdersManager, trades::TradesManager,
+            valuts::ValutsManager,
+        },
         users::UsersManager,
     },
     sqlx::PgPool,
@@ -29,6 +32,7 @@ async fn main() -> Result<()> {
         users_manager: UsersManager::new(database.clone()),
         assets_manager: AssetsManager::new(database.clone()),
         valuts_manager: ValutsManager::new(database.clone()),
+        trades_manager: TradesManager::new(database.clone()),
         orders_manager: OrdersManager::new(database),
     };
 

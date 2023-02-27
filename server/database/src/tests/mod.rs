@@ -1,5 +1,4 @@
-use core::time;
-use std::{str::FromStr, thread::sleep};
+use std::str::FromStr;
 
 use futures::StreamExt;
 use sqlx::PgPool;
@@ -30,8 +29,6 @@ async fn trades_get_and_subscribe_for_taker() {
             }
         }
     }
-    sleep(time::Duration::from_secs(5));
-    stream.destroy().await.unwrap();
 }
 
 #[tokio::test]
@@ -57,8 +54,6 @@ async fn orders_get_and_subscribe_for_user() {
             }
         }
     }
-    sleep(time::Duration::from_secs(5));
-    stream.destroy().await.unwrap();
 }
 
 #[tokio::test]
@@ -84,8 +79,6 @@ async fn valuts_get_and_subscribe_for_user() {
             }
         }
     }
-    sleep(time::Duration::from_secs(5));
-    stream.destroy().await.unwrap();
 }
 
 #[tokio::test]
@@ -112,6 +105,4 @@ async fn orders_get_and_subscribe_for_asset_pair() {
             }
         }
     }
-    sleep(time::Duration::from_secs(5));
-    stream.destroy().await.unwrap();
 }

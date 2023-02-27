@@ -1,7 +1,9 @@
 use axum::extract::FromRef;
 use cache::redis::Client;
 use database::managers::{
-    spot::{assets::AssetsManager, orders::OrdersManager, valuts::ValutsManager},
+    spot::{
+        assets::AssetsManager, orders::OrdersManager, trades::TradesManager, valuts::ValutsManager,
+    },
     users::UsersManager,
 };
 
@@ -11,6 +13,7 @@ pub struct AppState {
     pub users_manager: UsersManager,
     pub assets_manager: AssetsManager,
     pub valuts_manager: ValutsManager,
+    pub trades_manager: TradesManager,
     pub orders_manager: OrdersManager,
 }
 

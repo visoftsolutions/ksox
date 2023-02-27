@@ -4,6 +4,7 @@ use futures::StreamExt;
 
 use crate::{api::AppError, AppState};
 
+// Return all assets that exist in db
 pub async fn root(State(state): State<AppState>) -> Result<Json<Vec<Asset>>, AppError> {
     let mut stream = state.assets_manager.get_all();
     let mut vec = Vec::<Asset>::new();

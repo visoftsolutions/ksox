@@ -145,7 +145,7 @@ impl ToRedisArgs for SessionId {
 pub struct UserId(Uuid);
 
 impl UserId {
-    pub fn new(id: Uuid) -> Self{
+    pub fn new(id: Uuid) -> Self {
         UserId(id)
     }
 }
@@ -286,7 +286,7 @@ pub struct ValidateSignatureResponse {
 
 pub struct User {
     pub session_id: SessionId,
-    pub user_id: UserId
+    pub user_id: UserId,
 }
 
 #[async_trait]
@@ -346,7 +346,9 @@ where
                 Response::builder()
                     .status(StatusCode::INTERNAL_SERVER_ERROR)
                     .body(e.to_string())
-                    .unwrap()})?,
-            user_id })
+                    .unwrap()
+            })?,
+            user_id,
+        })
     }
 }

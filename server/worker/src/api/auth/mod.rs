@@ -96,6 +96,8 @@ async fn validate_signature(
 
 pub async fn logout(State(state): State<AppState>, user: User) -> Result<String, AppError> {
     let mut redis_conn = state.session_store.get_async_connection().await?;
-    redis_conn.del(format!("auth:session_id:{}", user.session_id)).await?;
+    redis_conn
+        .del(format!("auth:session_id:{}", user.session_id))
+        .await?;
     Ok(format!("logout endpoint, Bye {}", user.user_id))
 }

@@ -1,12 +1,13 @@
 use std::pin::Pin;
 
 use bigdecimal::BigDecimal;
-use futures::{FutureExt, Stream, StreamExt};
+use futures::{Stream, StreamExt};
 use sqlx::{
     postgres::{PgListener, PgPool, PgQueryResult},
     types::Uuid,
     Result,
 };
+use tokio::{sync::oneshot, task};
 
 use crate::{
     projections::spot::order::Order,
@@ -144,8 +145,12 @@ impl OrdersManager {
 
         let db = self.database.clone();
         let trigger_name_clone = trigger_name.clone();
-        let fut = async move {
-            sqlx::query!(
+        let (tx, rx) = oneshot::channel::<()>();
+        task::spawn(async move {
+            if let Err(_) = rx.await {
+                tracing::error!("drop_signal failed");
+            }
+            if let Err(err) = sqlx::query!(
                 r#"
                 SELECT drop_spot_orders_notify_trigger_for_user($1)
                 "#,
@@ -153,9 +158,12 @@ impl OrdersManager {
             )
             .execute(&db)
             .await
-        };
+            {
+                tracing::error!("{err}");
+            }
+        });
 
-        Ok(NotifyTrigger::new(format!("c_{trigger_name}"), fut.boxed()))
+        Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
     }
 
     pub async fn get_and_subscribe_for_user(
@@ -223,8 +231,12 @@ impl OrdersManager {
 
         let db = self.database.clone();
         let trigger_name_clone = trigger_name.clone();
-        let fut = async move {
-            sqlx::query!(
+        let (tx, rx) = oneshot::channel::<()>();
+        task::spawn(async move {
+            if let Err(_) = rx.await {
+                tracing::error!("drop_signal failed");
+            }
+            if let Err(err) = sqlx::query!(
                 r#"
                 SELECT drop_spot_orders_notify_trigger_for_asset_pair($1)
                 "#,
@@ -232,9 +244,12 @@ impl OrdersManager {
             )
             .execute(&db)
             .await
-        };
+            {
+                tracing::error!("{err}");
+            }
+        });
 
-        Ok(NotifyTrigger::new(format!("c_{trigger_name}"), fut.boxed()))
+        Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
     }
 
     pub async fn get_and_subscribe_for_asset_pair(

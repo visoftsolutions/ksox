@@ -1,10 +1,18 @@
 use std::{convert::Infallible, time::Duration};
 
-use axum::response::sse::{Event, Sse};
+use axum::{
+    extract::State,
+    response::sse::{Event, Sse},
+};
 use futures::stream::{self, Stream};
-use tokio_stream::StreamExt as _;
+use tokio_stream::StreamExt;
 
-pub async fn root() -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
+use crate::models::AppState;
+
+// Return ohlc stream processed by external thread subscribed to trades
+pub async fn root(
+    State(state): State<AppState>,
+) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     // A `Stream` that repeats an event every second
     let stream = stream::repeat_with(|| Event::default().data("hi it is ohlc endpoint"))
         .map(Ok)
