@@ -1,10 +1,16 @@
+import requests
 from sseclient import SSEClient
+from worker.const import BASE_URL
 from worker.auth import login, PRIVATE_KEY, AUTH_COOKIE_NAME
 
-URL = "http://localhost:7878/private/balance"
+URL = f"{BASE_URL}/private/balance"
 
 session = login(PRIVATE_KEY)
 
-messages = SSEClient(URL, cookies={AUTH_COOKIE_NAME: session.session_id})
-for msg in messages:
-    if msg: print(msg)
+response = requests.get(URL, cookies={AUTH_COOKIE_NAME: session.session_id})
+print(response.text)
+
+response = SSEClient(f"{URL}/sse", cookies={AUTH_COOKIE_NAME: session.session_id})
+for event in response:
+    if event.data:
+        print(event.data)

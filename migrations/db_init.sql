@@ -70,8 +70,11 @@ ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("order_id") REFERENCES "spot"."orde
 CREATE FUNCTION notify()
 RETURNS TRIGGER AS 
 $BODY$
+DECLARE
+  row_data json;
 BEGIN
-  PERFORM pg_notify(TG_ARGV[0], row_to_json(NEW)::text);
+  SELECT json_object_agg(key, CASE WHEN json_typeof(value) = 'number'::text THEN to_json(value::text) ELSE to_json(value) END) INTO row_data FROM json_each(to_json(NEW));
+  PERFORM pg_notify(TG_ARGV[0], row_data::text);
   RETURN NEW;
 END;
 $BODY$ LANGUAGE plpgsql;
@@ -128,6 +131,40 @@ END;
 $BODY$ LANGUAGE plpgsql;
 
 CREATE FUNCTION drop_spot_orders_notify_trigger_for_user(trigger_name text)
+RETURNS VOID AS
+$BODY$
+DECLARE
+  listener_count integer;
+  trigger_truncated_name text := LEFT(format('t_%s', trigger_name), 63);
+  channel_truncated_name text := LEFT(format('c_%s', trigger_name), 63);
+BEGIN
+  SELECT count(*) INTO listener_count FROM pg_stat_activity WHERE lower(query) LIKE '%listen%'|| channel_truncated_name ||'%';
+  IF listener_count = 0 THEN
+    EXECUTE format('
+      DROP TRIGGER %s ON spot.orders;', 
+      trigger_truncated_name);
+  END IF;
+END;
+$BODY$ LANGUAGE plpgsql;
+
+CREATE FUNCTION create_spot_orders_notify_trigger_active_for_user(trigger_name text, user_id uuid)
+RETURNS VOID AS
+$BODY$
+DECLARE
+  trigger_truncated_name text := LEFT(format('t_%s', trigger_name), 63);
+  channel_truncated_name text := LEFT(format('c_%s', trigger_name), 63);
+BEGIN
+  EXECUTE format('
+    CREATE OR REPLACE TRIGGER %s
+    AFTER INSERT OR UPDATE ON spot.orders
+    FOR EACH ROW
+    WHEN (NEW.user_id = ''%s'' AND OLD.is_active = true)
+    EXECUTE FUNCTION notify(''%s'');', 
+    trigger_truncated_name, user_id::text, channel_truncated_name);
+END;
+$BODY$ LANGUAGE plpgsql;
+
+CREATE FUNCTION drop_spot_orders_notify_trigger_active_for_user(trigger_name text)
 RETURNS VOID AS
 $BODY$
 DECLARE

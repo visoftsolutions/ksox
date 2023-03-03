@@ -7,14 +7,14 @@ use axum::{
 use futures::stream::{self, Stream};
 use tokio_stream::StreamExt;
 
-use crate::{api::auth::models::UserId, models::AppState};
+use crate::models::AppState;
 
+// Return orderbook for 2 asset ids limited to N price levels
 pub async fn root(
-    State(state): State<AppState>,
-    user_id: UserId,
+    State(_state): State<AppState>,
 ) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     // A `Stream` that repeats an event every second
-    let stream = stream::repeat_with(|| Event::default().data("hi it is orders_history endpoint"))
+    let stream = stream::repeat_with(|| Event::default().data("hi it is depth endpoint"))
         .map(Ok)
         .throttle(Duration::from_secs(1));
 

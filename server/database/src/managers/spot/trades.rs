@@ -78,6 +78,71 @@ impl TradesManager {
         .fetch(&self.database)
     }
 
+    pub fn get_for_taker(
+        &self,
+        taker_id: Uuid,
+        limit: i64,
+        offset: i64,
+    ) -> Pin<Box<dyn Stream<Item = Result<Trade>> + Send + '_>> {
+        sqlx::query_as!(
+            Trade,
+            r#"
+            SELECT
+                id,
+                created_at,
+                taker_id,
+                order_id,
+                spot.trades.taker_quote_volume as "taker_quote_volume: Volume",
+                spot.trades.taker_base_volume as "taker_base_volume: Volume",
+                spot.trades.maker_quote_volume as "maker_quote_volume: Volume",
+                spot.trades.maker_base_volume as "maker_base_volume: Volume"
+            FROM spot.trades
+            WHERE taker_id = $1
+            ORDER BY created_at
+            LIMIT $2
+            OFFSET $3
+            "#,
+            taker_id,
+            limit,
+            offset
+        )
+        .fetch(&self.database)
+    }
+
+    pub fn get_for_asset_pair(
+        &self,
+        quote_asset_id: Uuid,
+        base_asset_id: Uuid,
+        limit: i64,
+        offset: i64,
+    ) -> Pin<Box<dyn Stream<Item = Result<Trade>> + Send + '_>> {
+        sqlx::query_as!(
+            Trade,
+            r#"
+            SELECT
+                spot.trades.id,
+                spot.trades.created_at,
+                spot.trades.taker_id,
+                spot.trades.order_id,
+                spot.trades.taker_quote_volume as "taker_quote_volume: Volume",
+                spot.trades.taker_base_volume as "taker_base_volume: Volume",
+                spot.trades.maker_quote_volume as "maker_quote_volume: Volume",
+                spot.trades.maker_base_volume as "maker_base_volume: Volume"
+            FROM spot.trades
+            JOIN spot.orders ON order_id = spot.orders.id
+            WHERE spot.orders.quote_asset_id = $1 AND spot.orders.base_asset_id = $2
+            ORDER BY created_at
+            LIMIT $3
+            OFFSET $4
+            "#,
+            quote_asset_id,
+            base_asset_id,
+            limit,
+            offset
+        )
+        .fetch(&self.database)
+    }
+
     pub async fn create_notify_trigger_for_taker(&self, taker_id: Uuid) -> Result<NotifyTrigger> {
         let trigger_name = trigger_name("spot_trades_notify_trigger_for_taker", vec![taker_id]);
         sqlx::query!(
@@ -94,7 +159,7 @@ impl TradesManager {
         let trigger_name_clone = trigger_name.clone();
         let (tx, rx) = oneshot::channel::<()>();
         task::spawn(async move {
-            if let Err(_) = rx.await {
+            if (rx.await).is_err() {
                 tracing::error!("drop_signal failed");
             }
             if let Err(err) = sqlx::query!(
@@ -113,10 +178,7 @@ impl TradesManager {
         Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
     }
 
-    pub async fn get_and_subscribe_for_taker(
-        &self,
-        taker_id: Uuid,
-    ) -> Result<SubscribeStream<Trade>> {
+    pub async fn subscribe_for_taker(&self, taker_id: Uuid) -> Result<SubscribeStream<Trade>> {
         let mut listener = PgListener::connect_with(&self.database).await?;
         let notify_trigger = self.create_notify_trigger_for_taker(taker_id).await?;
         listener.listen(&notify_trigger.channel_name).await?;
@@ -128,28 +190,9 @@ impl TradesManager {
             })
         });
 
-        let fetch_stream = sqlx::query_as!(
-            Trade,
-            r#"
-            SELECT
-                id,
-                created_at,
-                taker_id,
-                order_id,
-                spot.trades.taker_quote_volume as "taker_quote_volume: Volume",
-                spot.trades.taker_base_volume as "taker_base_volume: Volume",
-                spot.trades.maker_quote_volume as "maker_quote_volume: Volume",
-                spot.trades.maker_base_volume as "maker_base_volume: Volume"
-            FROM spot.trades
-            WHERE taker_id = $1
-            "#,
-            taker_id
-        )
-        .fetch(&self.database);
-
         Ok(SubscribeStream::new(
             notify_trigger,
-            Box::pin(fetch_stream.chain(subscribe_stream)),
+            Box::pin(subscribe_stream),
         ))
     }
 
@@ -177,7 +220,7 @@ impl TradesManager {
         let trigger_name_clone = trigger_name.clone();
         let (tx, rx) = oneshot::channel::<()>();
         task::spawn(async move {
-            if let Err(_) = rx.await {
+            if (rx.await).is_err() {
                 tracing::error!("drop_signal failed");
             }
             if let Err(err) = sqlx::query!(
@@ -196,7 +239,7 @@ impl TradesManager {
         Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
     }
 
-    pub async fn get_and_subscribe_for_asset_pair(
+    pub async fn subscribe_for_asset_pair(
         &self,
         quote_asset_id: Uuid,
         base_asset_id: Uuid,
@@ -214,30 +257,9 @@ impl TradesManager {
             })
         });
 
-        let fetch_stream = sqlx::query_as!(
-            Trade,
-            r#"
-            SELECT
-                spot.trades.id,
-                spot.trades.created_at,
-                spot.trades.taker_id,
-                spot.trades.order_id,
-                spot.trades.taker_quote_volume as "taker_quote_volume: Volume",
-                spot.trades.taker_base_volume as "taker_base_volume: Volume",
-                spot.trades.maker_quote_volume as "maker_quote_volume: Volume",
-                spot.trades.maker_base_volume as "maker_base_volume: Volume"
-            FROM spot.trades
-            JOIN spot.orders ON order_id = spot.orders.id
-            WHERE spot.orders.quote_asset_id = $1 AND spot.orders.base_asset_id = $2
-            "#,
-            quote_asset_id,
-            base_asset_id
-        )
-        .fetch(&self.database);
-
         Ok(SubscribeStream::new(
             notify_trigger,
-            Box::pin(fetch_stream.chain(subscribe_stream)),
+            Box::pin(subscribe_stream),
         ))
     }
 }

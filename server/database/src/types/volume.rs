@@ -4,8 +4,8 @@ use std::{
 };
 
 use bigdecimal::{num_traits::CheckedDiv, BigDecimal};
-use num_bigint::{BigInt, ToBigInt};
-use serde::{Deserialize, Serialize};
+use num_bigint::BigInt;
+use serde::{de, Deserialize, Serialize};
 use sqlx::{
     postgres::{PgArgumentBuffer, PgValueRef},
     Decode, Encode, Postgres,
@@ -68,18 +68,26 @@ impl<'de> Deserialize<'de> for Volume {
     where
         D: serde::Deserializer<'de>,
     {
+        let (bigint, exp) = BigDecimal::deserialize(deserializer)
+            .map_err(de::Error::custom)?
+            .into_bigint_and_exponent();
         Ok(Self::from(
-            BigDecimal::deserialize(deserializer)?.to_bigint().unwrap(), // save unwraps method always return Some dont know why though
+            bigint
+                * BigInt::from(10)
+                    .pow(TryInto::try_into(exp).map_err(de::Error::custom)?),
         ))
     }
 }
 
 impl Decode<'_, Postgres> for Volume {
     fn decode(value: PgValueRef) -> std::result::Result<Self, sqlx::error::BoxDynError> {
-        Ok(Volume(
-            <BigDecimal as Decode<Postgres>>::decode(value)?
-                .to_bigint()
-                .unwrap(), // save unwraps method always return Some dont know why though
+        let (bigint, exp) =
+            <BigDecimal as Decode<Postgres>>::decode(value)?.into_bigint_and_exponent();
+        Ok(Self(
+            bigint
+                * BigInt::from(10).pow(
+                    TryInto::try_into(exp).map_err(sqlx::error::BoxDynError::from)?,
+                ),
         ))
     }
 }

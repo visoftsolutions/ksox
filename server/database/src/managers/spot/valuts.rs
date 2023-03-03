@@ -26,9 +26,11 @@ impl ValutsManager {
         ValutsManager { database }
     }
 
-    pub async fn get_by_user_id(
+    pub fn get_for_user(
         &self,
-        id: Uuid,
+        user_id: Uuid,
+        limit: i64,
+        offset: i64,
     ) -> Pin<Box<dyn Stream<Item = Result<Valut>> + Send + '_>> {
         sqlx::query_as!(
             Valut,
@@ -40,17 +42,18 @@ impl ValutsManager {
                 balance as "balance: Volume"
             FROM spot.valuts
             WHERE user_id = $1
+            ORDER BY balance
+            LIMIT $2
+            OFFSET $3
             "#,
-            id
+            user_id,
+            limit,
+            offset
         )
         .fetch(&self.database)
     }
 
-    pub async fn get_by_user_id_and_asset_id(
-        &self,
-        user_id: Uuid,
-        asset_id: Uuid,
-    ) -> Result<Valut> {
+    pub async fn get_for_user_and_asset(&self, user_id: Uuid, asset_id: Uuid) -> Result<Valut> {
         sqlx::query_as!(
             Valut,
             r#"
@@ -85,7 +88,7 @@ impl ValutsManager {
         let trigger_name_clone = trigger_name.clone();
         let (tx, rx) = oneshot::channel::<()>();
         task::spawn(async move {
-            if let Err(_) = rx.await {
+            if (rx.await).is_err() {
                 tracing::error!("drop_signal failed");
             }
             if let Err(err) = sqlx::query!(
@@ -104,10 +107,7 @@ impl ValutsManager {
         Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
     }
 
-    pub async fn get_and_subscribe_for_user(
-        &self,
-        user_id: Uuid,
-    ) -> Result<SubscribeStream<Valut>> {
+    pub async fn subscribe_for_user(&self, user_id: Uuid) -> Result<SubscribeStream<Valut>> {
         let mut listener = PgListener::connect_with(&self.database).await?;
         let notify_trigger = self.create_notify_trigger_for_user(user_id).await?;
         listener.listen(&notify_trigger.channel_name).await?;
@@ -119,28 +119,17 @@ impl ValutsManager {
             })
         });
 
-        let fetch_stream = sqlx::query_as!(
-            Valut,
-            r#"
-            SELECT
-                id,
-                user_id,
-                asset_id,
-                balance as "balance: Volume"
-            FROM spot.valuts
-            WHERE user_id = $1
-            "#,
-            user_id
-        )
-        .fetch(&self.database);
-
         Ok(SubscribeStream::new(
             notify_trigger,
-            Box::pin(fetch_stream.chain(subscribe_stream)),
+            Box::pin(subscribe_stream),
         ))
     }
 
-    pub async fn get_or_create(&self, user_id: Uuid, asset_id: Uuid) -> Result<Valut> {
+    pub async fn get_or_create_for_user_and_asset(
+        &self,
+        user_id: Uuid,
+        asset_id: Uuid,
+    ) -> Result<Valut> {
         sqlx::query_as!(
             Valut,
             r#"
@@ -154,7 +143,7 @@ impl ValutsManager {
         .execute(&self.database)
         .await?;
 
-        self.get_by_user_id_and_asset_id(user_id, asset_id).await
+        self.get_for_user_and_asset(user_id, asset_id).await
     }
 }
 

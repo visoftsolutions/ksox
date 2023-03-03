@@ -26,9 +26,11 @@ impl OrdersManager {
         OrdersManager { database }
     }
 
-    pub async fn get_by_user_id(
+    pub fn get_for_user(
         &self,
-        id: Uuid,
+        user_id: Uuid,
+        limit: i64,
+        offset: i64,
     ) -> Pin<Box<dyn Stream<Item = Result<Order>> + Send + '_>> {
         sqlx::query_as!(
             Order,
@@ -47,8 +49,83 @@ impl OrdersManager {
                 maker_fee_denum as "maker_fee_denum: Volume"
             FROM spot.orders
             WHERE user_id = $1
+            ORDER BY created_at
+            LIMIT $2
+            OFFSET $3
             "#,
-            id
+            user_id,
+            limit,
+            offset
+        )
+        .fetch(&self.database)
+    }
+
+    pub fn get_active_for_user(
+        &self,
+        user_id: Uuid,
+        limit: i64,
+        offset: i64,
+    ) -> Pin<Box<dyn Stream<Item = Result<Order>> + Send + '_>> {
+        sqlx::query_as!(
+            Order,
+            r#"
+            SELECT
+                id,
+                created_at,
+                user_id,
+                is_active,
+                quote_asset_id,
+                base_asset_id,
+                quote_asset_volume as "quote_asset_volume: Volume",
+                base_asset_volume as "base_asset_volume: Volume",
+                quote_asset_volume_left as "quote_asset_volume_left: Volume",
+                maker_fee_num as "maker_fee_num: Volume",
+                maker_fee_denum as "maker_fee_denum: Volume"
+            FROM spot.orders
+            WHERE user_id = $1 AND is_active = true
+            ORDER BY created_at
+            LIMIT $2
+            OFFSET $3
+            "#,
+            user_id,
+            limit,
+            offset
+        )
+        .fetch(&self.database)
+    }
+
+    pub fn get_for_asset_pair(
+        &self,
+        quote_asset_id: Uuid,
+        base_asset_id: Uuid,
+        limit: i64,
+        offset: i64,
+    ) -> Pin<Box<dyn Stream<Item = Result<Order>> + Send + '_>> {
+        sqlx::query_as!(
+            Order,
+            r#"
+            SELECT
+                id,
+                created_at,
+                user_id,
+                is_active,
+                quote_asset_id,
+                base_asset_id,
+                quote_asset_volume as "quote_asset_volume: Volume",
+                base_asset_volume as "base_asset_volume: Volume",
+                quote_asset_volume_left as "quote_asset_volume_left: Volume",
+                maker_fee_num as "maker_fee_num: Volume",
+                maker_fee_denum as "maker_fee_denum: Volume"
+            FROM spot.orders
+            WHERE quote_asset_id = $1 AND quote_asset_id = $2
+            ORDER BY created_at
+            LIMIT $3
+            OFFSET $4
+            "#,
+            quote_asset_id,
+            base_asset_id,
+            limit,
+            offset
         )
         .fetch(&self.database)
     }
@@ -147,7 +224,7 @@ impl OrdersManager {
         let trigger_name_clone = trigger_name.clone();
         let (tx, rx) = oneshot::channel::<()>();
         task::spawn(async move {
-            if let Err(_) = rx.await {
+            if (rx.await).is_err() {
                 tracing::error!("drop_signal failed");
             }
             if let Err(err) = sqlx::query!(
@@ -166,10 +243,7 @@ impl OrdersManager {
         Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
     }
 
-    pub async fn get_and_subscribe_for_user(
-        &self,
-        user_id: Uuid,
-    ) -> Result<SubscribeStream<Order>> {
+    pub async fn subscribe_for_user(&self, user_id: Uuid) -> Result<SubscribeStream<Order>> {
         let mut listener = PgListener::connect_with(&self.database).await?;
         let notify_trigger = self.create_notify_trigger_for_user(user_id).await?;
         listener.listen(&notify_trigger.channel_name).await?;
@@ -181,31 +255,66 @@ impl OrdersManager {
             })
         });
 
-        let fetch_stream = sqlx::query_as!(
-            Order,
+        Ok(SubscribeStream::new(
+            notify_trigger,
+            Box::pin(subscribe_stream),
+        ))
+    }
+
+    pub async fn create_notify_trigger_active_for_user(
+        &self,
+        user_id: Uuid,
+    ) -> Result<NotifyTrigger> {
+        let trigger_name =
+            trigger_name("spot_orders_notify_trigger_active_for_user", vec![user_id]);
+        sqlx::query!(
             r#"
-            SELECT
-                id,
-                created_at,
-                user_id,
-                is_active,
-                quote_asset_id,
-                base_asset_id,
-                quote_asset_volume as "quote_asset_volume: Volume",
-                base_asset_volume as "base_asset_volume: Volume",
-                quote_asset_volume_left as "quote_asset_volume_left: Volume",
-                maker_fee_num as "maker_fee_num: Volume",
-                maker_fee_denum as "maker_fee_denum: Volume"
-            FROM spot.orders
-            WHERE user_id = $1
+            SELECT create_spot_orders_notify_trigger_active_for_user($1, $2)
             "#,
+            trigger_name,
             user_id
         )
-        .fetch(&self.database);
+        .execute(&self.database)
+        .await?;
+
+        let db = self.database.clone();
+        let trigger_name_clone = trigger_name.clone();
+        let (tx, rx) = oneshot::channel::<()>();
+        task::spawn(async move {
+            if (rx.await).is_err() {
+                tracing::error!("drop_signal failed");
+            }
+            if let Err(err) = sqlx::query!(
+                r#"
+                SELECT drop_spot_orders_notify_trigger_active_for_user($1)
+                "#,
+                trigger_name_clone
+            )
+            .execute(&db)
+            .await
+            {
+                tracing::error!("{err}");
+            }
+        });
+
+        Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
+    }
+
+    pub async fn subscribe_active_for_user(&self, user_id: Uuid) -> Result<SubscribeStream<Order>> {
+        let mut listener = PgListener::connect_with(&self.database).await?;
+        let notify_trigger = self.create_notify_trigger_for_user(user_id).await?;
+        listener.listen(&notify_trigger.channel_name).await?;
+
+        let subscribe_stream = listener.into_stream().map(|element| {
+            element.and_then(|val| {
+                serde_json::from_str::<Order>(val.payload())
+                    .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
+            })
+        });
 
         Ok(SubscribeStream::new(
             notify_trigger,
-            Box::pin(fetch_stream.chain(subscribe_stream)),
+            Box::pin(subscribe_stream),
         ))
     }
 
@@ -233,7 +342,7 @@ impl OrdersManager {
         let trigger_name_clone = trigger_name.clone();
         let (tx, rx) = oneshot::channel::<()>();
         task::spawn(async move {
-            if let Err(_) = rx.await {
+            if (rx.await).is_err() {
                 tracing::error!("drop_signal failed");
             }
             if let Err(err) = sqlx::query!(
@@ -252,7 +361,7 @@ impl OrdersManager {
         Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
     }
 
-    pub async fn get_and_subscribe_for_asset_pair(
+    pub async fn subscribe_for_asset_pair(
         &self,
         quote_asset_id: Uuid,
         base_asset_id: Uuid,
@@ -270,32 +379,9 @@ impl OrdersManager {
             })
         });
 
-        let fetch_stream = sqlx::query_as!(
-            Order,
-            r#"
-            SELECT
-                id,
-                created_at,
-                user_id,
-                is_active,
-                quote_asset_id,
-                base_asset_id,
-                quote_asset_volume as "quote_asset_volume: Volume",
-                base_asset_volume as "base_asset_volume: Volume",
-                quote_asset_volume_left as "quote_asset_volume_left: Volume",
-                maker_fee_num as "maker_fee_num: Volume",
-                maker_fee_denum as "maker_fee_denum: Volume"
-            FROM spot.orders
-            WHERE quote_asset_id = $1 AND quote_asset_id = $2
-            "#,
-            quote_asset_id,
-            base_asset_id
-        )
-        .fetch(&self.database);
-
         Ok(SubscribeStream::new(
             notify_trigger,
-            Box::pin(fetch_stream.chain(subscribe_stream)),
+            Box::pin(subscribe_stream),
         ))
     }
 }

@@ -14,8 +14,8 @@ use models::*;
 use super::AppError;
 use crate::models::AppState;
 
-pub const NONCE_EXPIRATION_TIME: usize = 60; // in secodns
-pub const SESSION_EXPIRATION_TIME: usize = 3600; // in secodns
+pub const NONCE_EXPIRATION_TIME: usize = 60; // in seconds
+pub const SESSION_EXPIRATION_TIME: usize = 3600; // in seconds
 pub const COOKIE_NAME: &str = "session_id";
 
 pub fn router(app_state: &AppState) -> Router {
@@ -65,7 +65,7 @@ async fn validate_signature(
 
     let user = match state
         .users_manager
-        .get_by_evm_address(payload.address.clone())
+        .get_for_evm_address(payload.address.clone())
         .await
     {
         Ok(user) => Ok(user),

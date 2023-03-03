@@ -1,8 +1,14 @@
+import requests
 from sseclient import SSEClient
+from worker.const import BASE_URL
 from worker.public.models import *
 
-URL = "http://localhost:7979/api/public/trades"
+URL = f"{BASE_URL}/public/trades"
 
-messages = SSEClient(URL, json=Request("b89ac651-e3ef-4902-9549-f3d29b582233", "f96083a1-c5d5-4a1b-809b-0fa4eca0b051").__dict__)
-for msg in messages:
-    print(msg)
+response = requests.get(URL, json={"quote_asset_id": "b6b20297-10ab-4f14-bff0-f630a09363e1", "base_asset_id": "b6b20297-10ab-4f14-bff0-f630a09363e1"})
+print(response.text)
+
+response = SSEClient(f"{URL}/sse", json={"quote_asset_id": "b6b20297-10ab-4f14-bff0-f630a09363e1", "base_asset_id": "b6b20297-10ab-4f14-bff0-f630a09363e1"})
+for event in response:
+    if event.data:
+        print(event.data)

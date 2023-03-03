@@ -1,5 +1,6 @@
 import datetime
 import requests
+from worker.const import BASE_URL
 from worker.auth.models import *
 from web3.auto import w3
 from web3 import Account
@@ -10,7 +11,7 @@ PRIVATE_KEY = (
     "637cf0cb529ff41499db61e0913674570ebd68c9d7c9a7a021cffd3c02c85427"  # TOP-SECRET
 )
 
-AUTH_URL = "http://localhost:7979/api/auth"
+AUTH_URL = f"{BASE_URL}/auth"
 
 
 def login(private_key) -> ValidateSignatureResponse:

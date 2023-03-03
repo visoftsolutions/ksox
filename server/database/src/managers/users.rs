@@ -15,7 +15,7 @@ impl UsersManager {
         UsersManager { database }
     }
 
-    pub async fn get_by_evm_address(&self, evm_address: EvmAddress) -> Result<User> {
+    pub async fn get_for_evm_address(&self, evm_address: EvmAddress) -> Result<User> {
         let evm_address_string = evm_address.to_string();
         sqlx::query_as!(
             User,

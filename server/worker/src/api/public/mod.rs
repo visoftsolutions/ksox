@@ -10,10 +10,10 @@ use crate::models::AppState;
 
 pub fn router(app_state: &AppState) -> Router {
     Router::new()
-        .route("/ohlc", get(ohlc::root))
-        .route("/depth", get(depth::root))
         .route("/assets", get(assets::root))
         .route("/search", get(search::root))
-        .route("/trades", get(trades::root))
         .with_state(app_state.clone())
+        .nest("/depth", depth::router(app_state))
+        .nest("/ohlc", ohlc::router(app_state))
+        .nest("/trades", trades::router(app_state))
 }

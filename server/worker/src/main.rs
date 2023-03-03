@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+#![feature(option_get_or_insert_default)]
 mod api;
 mod models;
 mod shutdown_signal;

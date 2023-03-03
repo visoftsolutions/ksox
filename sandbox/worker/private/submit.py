@@ -1,7 +1,8 @@
 import requests
+from worker.const import BASE_URL
 from worker.auth import login, PRIVATE_KEY, AUTH_COOKIE_NAME, logout
 
-URL = "http://localhost:7979/api/private/cancel_order"
+URL = f"{BASE_URL}/private/submit"
 
 session = login(PRIVATE_KEY)
 

@@ -15,10 +15,7 @@ async fn trades_get_and_subscribe_for_taker() {
     let taker_id = Uuid::from_str("ead19fc2-9652-444d-8d3c-5256ae80a210").unwrap();
     let trades_manager = TradesManager::new(database);
 
-    let mut stream = trades_manager
-        .get_and_subscribe_for_taker(taker_id)
-        .await
-        .unwrap();
+    let mut stream = trades_manager.subscribe_for_taker(taker_id).await.unwrap();
     while let Some(result) = stream.next().await {
         match result {
             Ok(trade) => {
@@ -40,10 +37,7 @@ async fn orders_get_and_subscribe_for_user() {
     let user_id = Uuid::from_str("ead19fc2-9652-444d-8d3c-5256ae80a210").unwrap();
     let orders_manager = OrdersManager::new(database);
 
-    let mut stream = orders_manager
-        .get_and_subscribe_for_user(user_id)
-        .await
-        .unwrap();
+    let mut stream = orders_manager.subscribe_for_user(user_id).await.unwrap();
     while let Some(result) = stream.next().await {
         match result {
             Ok(trade) => {
@@ -65,10 +59,7 @@ async fn valuts_get_and_subscribe_for_user() {
     let user_id = Uuid::from_str("ead19fc2-9652-444d-8d3c-5256ae80a210").unwrap();
     let valuts_manager = ValutsManager::new(database);
 
-    let mut stream = valuts_manager
-        .get_and_subscribe_for_user(user_id)
-        .await
-        .unwrap();
+    let mut stream = valuts_manager.subscribe_for_user(user_id).await.unwrap();
     while let Some(result) = stream.next().await {
         match result {
             Ok(trade) => {
@@ -92,7 +83,7 @@ async fn orders_get_and_subscribe_for_asset_pair() {
     let trades_manager = TradesManager::new(database);
 
     let mut stream = trades_manager
-        .get_and_subscribe_for_asset_pair(quote_asset_id, base_asset_id)
+        .subscribe_for_asset_pair(quote_asset_id, base_asset_id)
         .await
         .unwrap();
     while let Some(result) = stream.next().await {

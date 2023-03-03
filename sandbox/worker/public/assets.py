@@ -1,6 +1,7 @@
 import requests
+from worker.const import BASE_URL
 
-URL = "http://localhost:7979/api/public/assets"
+URL = f"{BASE_URL}/public/assets"
 
 response = requests.get(URL).json()
 print(response)

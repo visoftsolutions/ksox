@@ -1,6 +1,7 @@
 import requests
+from worker.const import BASE_URL
 
-URL = "http://localhost:7979/api/public/search"
+URL = f"{BASE_URL}/public/search"
 
 response = requests.get(URL).text
 print(response)

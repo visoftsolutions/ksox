@@ -28,15 +28,15 @@ async fn simple_scenario() {
 
     let me = MatchingEngine::new(database);
 
-    // me.execute_request(MatchingEngineRequest {
-    //     user_id: user_2_id,
-    //     quote_asset_id: asset_b_id,
-    //     base_asset_id: asset_a_id,
-    //     quote_asset_volume: Volume::from(400),
-    //     base_asset_volume: Volume::from(72),
-    // })
-    // .await
-    // .unwrap();
+    me.execute_request(MatchingEngineRequest {
+        user_id: user_2_id,
+        quote_asset_id: asset_b_id,
+        base_asset_id: asset_a_id,
+        quote_asset_volume: Volume::from(400),
+        base_asset_volume: Volume::from(72),
+    })
+    .await
+    .unwrap();
 
     me.execute_request(MatchingEngineRequest {
         user_id: user_1_id,

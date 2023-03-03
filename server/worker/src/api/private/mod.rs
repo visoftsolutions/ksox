@@ -1,10 +1,10 @@
-pub mod active_orders;
+pub mod active;
 pub mod balance;
 pub mod burn;
-pub mod cancel_order;
+pub mod cancel;
 pub mod mint;
 pub mod orders;
-pub mod submit_request;
+pub mod submit;
 pub mod trades;
 
 use axum::{routing::get, Router};
@@ -15,11 +15,11 @@ pub fn router(app_state: &AppState) -> Router {
     Router::new()
         .route("/mint", get(mint::root))
         .route("/burn", get(burn::root))
-        .route("/orders", get(orders::root))
-        .route("/trades", get(trades::root))
-        .route("/balance", get(balance::root))
-        .route("/active_orders", get(active_orders::root))
-        .route("/cancel_order", get(cancel_order::root))
-        .route("/submit_request", get(submit_request::root))
+        .route("/cancel", get(cancel::root))
+        .route("/submit", get(submit::root))
         .with_state(app_state.clone())
+        .nest("/active", active::router(app_state))
+        .nest("/balance", balance::router(app_state))
+        .nest("/orders", orders::router(app_state))
+        .nest("/trades", trades::router(app_state))
 }

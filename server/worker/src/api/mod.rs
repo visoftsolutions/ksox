@@ -4,6 +4,7 @@ pub mod public;
 
 use axum::response::{IntoResponse, Response};
 use http::StatusCode;
+use serde::Deserialize;
 
 // Make our own error that wraps `anyhow::Error`.
 pub struct AppError(anyhow::Error);
@@ -27,5 +28,20 @@ where
 {
     fn from(err: E) -> Self {
         Self(err.into())
+    }
+}
+
+#[derive(Deserialize)]
+pub struct Pagination {
+    pub limit: i64,
+    pub offset: i64,
+}
+
+impl Default for Pagination {
+    fn default() -> Self {
+        Self {
+            limit: 10,
+            offset: 0,
+        }
     }
 }

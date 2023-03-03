@@ -17,3 +17,7 @@ insert into spot.valuts (user_id, asset_id, balance)
 VALUES ('e106a9b0-8b7a-40f8-92e3-ce17af265f8d', 'b89ac651-e3ef-4902-9549-f3d29b582233', 101);
 insert into spot.valuts (user_id, asset_id, balance)
 VALUES ('e106a9b0-8b7a-40f8-92e3-ce17af265f8d', 'f96083a1-c5d5-4a1b-809b-0fa4eca0b051', 703);
+
+update spot.valuts
+Set balance = 1292384030948230482304412
+Where user_id = '418704df-53dc-449d-8767-12578c5f0d61' And asset_id = 'b89ac651-e3ef-4902-9549-f3d29b582233';

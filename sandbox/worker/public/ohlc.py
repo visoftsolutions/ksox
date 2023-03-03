@@ -1,7 +1,13 @@
+import requests
 from sseclient import SSEClient
+from worker.const import BASE_URL
 
-URL = "http://localhost:7979/api/public/ohlc"
+URL = f"{BASE_URL}/public/ohlc"
 
-messages = SSEClient(URL)
-for msg in messages:
-    print(msg)
+response = requests.get(URL)
+print(response.text)
+
+response = SSEClient(f"{URL}/sse")
+for event in response:
+    if event.data:
+        print(event.data)
