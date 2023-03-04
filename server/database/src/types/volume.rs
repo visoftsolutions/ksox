@@ -72,9 +72,7 @@ impl<'de> Deserialize<'de> for Volume {
             .map_err(de::Error::custom)?
             .into_bigint_and_exponent();
         Ok(Self::from(
-            bigint
-                * BigInt::from(10)
-                    .pow(TryInto::try_into(exp).map_err(de::Error::custom)?),
+            bigint * BigInt::from(10).pow(TryInto::try_into(-exp).map_err(de::Error::custom)?),
         ))
     }
 }
@@ -85,9 +83,8 @@ impl Decode<'_, Postgres> for Volume {
             <BigDecimal as Decode<Postgres>>::decode(value)?.into_bigint_and_exponent();
         Ok(Self(
             bigint
-                * BigInt::from(10).pow(
-                    TryInto::try_into(exp).map_err(sqlx::error::BoxDynError::from)?,
-                ),
+                * BigInt::from(10)
+                    .pow(TryInto::try_into(-exp).map_err(sqlx::error::BoxDynError::from)?),
         ))
     }
 }

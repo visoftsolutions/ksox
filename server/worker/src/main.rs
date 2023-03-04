@@ -2,6 +2,7 @@
 #![feature(option_get_or_insert_default)]
 mod api;
 mod models;
+mod recognition;
 mod shutdown_signal;
 
 use std::net::SocketAddr;
@@ -20,6 +21,9 @@ use database::{
     sqlx::PgPool,
 };
 use models::AppState;
+use regex::Regex;
+
+use crate::recognition::AssetPairRecognition;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -34,7 +38,8 @@ async fn main() -> Result<()> {
         assets_manager: AssetsManager::new(database.clone()),
         valuts_manager: ValutsManager::new(database.clone()),
         trades_manager: TradesManager::new(database.clone()),
-        orders_manager: OrdersManager::new(database),
+        orders_manager: OrdersManager::new(database.clone()),
+        assets_pair_recognition: AssetPairRecognition::new(database, Regex::new(r"[^a-zA-Z]+")?),
     };
 
     let app = Router::new()

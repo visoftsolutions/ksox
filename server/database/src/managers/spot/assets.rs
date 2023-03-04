@@ -19,6 +19,10 @@ impl AssetsManager {
     pub fn new(database: PgPool) -> Self {
         AssetsManager { database }
     }
+
+    pub async fn get_volume() {}
+
+    pub async fn get_volume_for_asset_pair() {}
 }
 
 impl TableManager<Asset> for AssetsManager {

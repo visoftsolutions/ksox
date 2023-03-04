@@ -7,6 +7,8 @@ use database::managers::{
     users::UsersManager,
 };
 
+use crate::recognition::AssetPairRecognition;
+
 #[derive(Clone)]
 pub struct AppState {
     pub session_store: Client,
@@ -15,6 +17,7 @@ pub struct AppState {
     pub valuts_manager: ValutsManager,
     pub trades_manager: TradesManager,
     pub orders_manager: OrdersManager,
+    pub assets_pair_recognition: AssetPairRecognition,
 }
 
 impl FromRef<AppState> for Client {

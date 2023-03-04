@@ -4,7 +4,7 @@ use sqlx::types::Uuid;
 
 use crate::types::Volume;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Asset {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,

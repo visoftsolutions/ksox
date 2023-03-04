@@ -16,10 +16,13 @@ ethers-core = "1.0.2"
 futures = "0.3.25"
 headers = "0.3.8"
 http = "0.2.8"
+ordered-float = { version = "3.4.0", features = ["serde"] }
 prefix-hex = "0.5.0"
 rand = "0.8.5"
+regex = "1.7.1"
 serde = "1.0.152"
 serde_with = "2.2.0"
+strsim = "0.10.0"
 tokio = { version = "1.24.1", features = ["full"] }
 tokio-stream = "0.1.11"
 tracing = "0.1.37"

@@ -19,7 +19,7 @@ pub fn router(app_state: &AppState) -> Router {
 pub async fn root(
     State(state): State<AppState>,
     user_id: UserId,
-    mut payload: Option<Json<Pagination>>
+    mut payload: Option<Json<Pagination>>,
 ) -> Result<Json<Vec<Trade>>, AppError> {
     let pagination = payload.get_or_insert_default();
     let mut stream =

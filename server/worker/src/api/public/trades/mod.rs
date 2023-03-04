@@ -32,11 +32,12 @@ pub struct Request {
 }
 
 impl RequestPartial {
-    fn insert_defaults(self) -> Request{
-        Request { 
+    fn insert_defaults(self) -> Request {
+        Request {
             quote_asset_id: self.quote_asset_id,
             base_asset_id: self.base_asset_id,
-            pagination: self.pagination.unwrap_or_default() }
+            pagination: self.pagination.unwrap_or_default(),
+        }
     }
 }
 
