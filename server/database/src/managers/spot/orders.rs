@@ -10,9 +10,9 @@ use sqlx::{
 use tokio::{sync::oneshot, task};
 
 use crate::{
-    projections::spot::order::Order,
+    projections::spot::order::{Order},
     traits::table_manager::TableManager,
-    types::{NotifyTrigger, SubscribeStream, Volume},
+    types::{NotifyTrigger, PriceLevel, SubscribeStream, Volume},
     utils::trigger_name,
 };
 
@@ -375,6 +375,73 @@ impl OrdersManager {
         let subscribe_stream = listener.into_stream().map(|element| {
             element.and_then(|val| {
                 serde_json::from_str::<Order>(val.payload())
+                    .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
+            })
+        });
+
+        Ok(SubscribeStream::new(
+            notify_trigger,
+            Box::pin(subscribe_stream),
+        ))
+    }
+
+    pub async fn create_notify_trigger_for_orderbook(
+        &self,
+        quote_asset_id: Uuid,
+        base_asset_id: Uuid,
+    ) -> Result<NotifyTrigger> {
+        let trigger_name = trigger_name(
+            "spot_orders_notify_trigger_for_orderbook",
+            vec![quote_asset_id, base_asset_id],
+        );
+        sqlx::query!(
+            r#"
+            SELECT create_spot_orders_notify_trigger_for_orderbook($1, $2, $3)
+            "#,
+            trigger_name,
+            quote_asset_id,
+            base_asset_id
+        )
+        .execute(&self.database)
+        .await?;
+
+        let db = self.database.clone();
+        let trigger_name_clone = trigger_name.clone();
+        let (tx, rx) = oneshot::channel::<()>();
+        task::spawn(async move {
+            if (rx.await).is_err() {
+                tracing::error!("drop_signal failed");
+            }
+            if let Err(err) = sqlx::query!(
+                r#"
+                SELECT drop_spot_orders_notify_trigger_for_orderbook($1)
+                "#,
+                trigger_name_clone
+            )
+            .execute(&db)
+            .await
+            {
+                tracing::error!("{err}");
+            }
+        });
+
+        Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
+    }
+
+    pub async fn subscribe_for_orderbook(
+        &self,
+        quote_asset_id: Uuid,
+        base_asset_id: Uuid,
+    ) -> Result<SubscribeStream<Vec<PriceLevel>>> {
+        let mut listener = PgListener::connect_with(&self.database).await?;
+        let notify_trigger = self
+            .create_notify_trigger_for_orderbook(quote_asset_id, base_asset_id)
+            .await?;
+        listener.listen(&notify_trigger.channel_name).await?;
+
+        let subscribe_stream = listener.into_stream().map(|element| {
+            element.and_then(|val| {
+                serde_json::from_str::<Vec<PriceLevel>>(val.payload())
                     .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
             })
         });

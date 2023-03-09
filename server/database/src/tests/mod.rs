@@ -97,3 +97,30 @@ async fn orders_get_and_subscribe_for_asset_pair() {
         }
     }
 }
+
+#[tokio::test]
+async fn trades_get_and_subscribe_for_orderbook() {
+    let database = PgPool::connect(std::env::var("DATABASE_URL").unwrap_or_default().as_str())
+        .await
+        .unwrap();
+
+    let quote_asset_id = Uuid::from_str("5864a1b9-4ae1-424f-bdb4-f644cb359463").unwrap();
+    let base_asset_id = Uuid::from_str("7a99f052-d941-4dcc-aabd-6695c24deed5").unwrap();
+
+    let orders_manager = OrdersManager::new(database);
+
+    let mut stream = orders_manager
+        .subscribe_for_orderbook(quote_asset_id, base_asset_id)
+        .await
+        .unwrap();
+    while let Some(result) = stream.next().await {
+        match result {
+            Ok(order) => {
+                println!("{:#?}", order);
+            }
+            Err(err) => {
+                println!("{err}");
+            }
+        }
+    }
+}

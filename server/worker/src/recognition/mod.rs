@@ -38,7 +38,7 @@ impl AssetPairRecognition {
     fn recognize_first<'a>(
         &self,
         phrase: &str,
-        assets: &'a Vec<Asset>,
+        assets: &'a [Asset],
     ) -> Vec<(OrderedFloat<f64>, (&'a Asset, String))> {
         let iter_phrase = assets.iter().map(|asset| {
             (
@@ -48,14 +48,13 @@ impl AssetPairRecognition {
         });
 
         iter_phrase
-            .clone()
             .map(|pair| {
-                let symbol_sim = OrderedFloat(jaro_winkler(phrase, &pair.1.0));
-                let name_sim = OrderedFloat(jaro_winkler(phrase, &pair.1.1));
+                let symbol_sim = OrderedFloat(jaro_winkler(phrase, &pair.1 .0));
+                let name_sim = OrderedFloat(jaro_winkler(phrase, &pair.1 .1));
                 if symbol_sim > name_sim {
-                    (symbol_sim, (pair.0, pair.1.0))
+                    (symbol_sim, (pair.0, pair.1 .0))
                 } else if symbol_sim < name_sim {
-                    (name_sim, (pair.0, pair.1.1))
+                    (name_sim, (pair.0, pair.1 .1))
                 } else {
                     (OrderedFloat(0_f64), (pair.0, "".to_string()))
                 }

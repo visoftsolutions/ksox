@@ -1005,6 +1005,26 @@
     },
     "query": "\n                SELECT drop_spot_orders_notify_trigger_active_for_user($1)\n                "
   },
+  "881c8f16ada846f1d5c189bf50b680e847f4b6044c5db063e1479b4906a35696": {
+    "describe": {
+      "columns": [
+        {
+          "name": "drop_spot_orders_notify_trigger_for_orderbook",
+          "ordinal": 0,
+          "type_info": "Void"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\n                SELECT drop_spot_orders_notify_trigger_for_orderbook($1)\n                "
+  },
   "88efb40bec0759abe2102cf5608f5c80e5525b8b11dfcfecc4399fbb1e1161cc": {
     "describe": {
       "columns": [
@@ -1195,6 +1215,28 @@
       }
     },
     "query": "\n            SELECT create_spot_orders_notify_trigger_for_asset_pair($1, $2, $3)\n            "
+  },
+  "9779c7e5c14dcd0aa8a5efe8fb5e277bb101e84fe3be8ebd992a2a8070ec5089": {
+    "describe": {
+      "columns": [
+        {
+          "name": "create_spot_orders_notify_trigger_for_orderbook",
+          "ordinal": 0,
+          "type_info": "Void"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Uuid",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT create_spot_orders_notify_trigger_for_orderbook($1, $2, $3)\n            "
   },
   "97b039a22ecef00d1040cbcca0253770636945783272b81f7f90746a6efc17df": {
     "describe": {
