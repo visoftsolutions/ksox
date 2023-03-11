@@ -233,6 +233,7 @@ BEGIN
             AND spot.orders.base_asset_id = NEW.base_asset_id
           ) AS orderbook
         GROUP BY orderbook.price
+        ORDER BY orderbook.price
     ) sub;
 
   PERFORM pg_notify(TG_ARGV[0], row_data::text);

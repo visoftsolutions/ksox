@@ -1,6 +1,7 @@
 use std::pin::Pin;
 
 use bigdecimal::BigDecimal;
+use bytes::Bytes;
 use futures::{Stream, StreamExt};
 use sqlx::{
     postgres::{PgListener, PgPool, PgQueryResult},
@@ -10,9 +11,9 @@ use sqlx::{
 use tokio::{sync::oneshot, task};
 
 use crate::{
-    projections::spot::order::{Order},
+    projections::spot::order::Order,
     traits::table_manager::TableManager,
-    types::{NotifyTrigger, PriceLevel, SubscribeStream, Volume},
+    types::{price_level::PriceLevelOption, NotifyTrigger, PriceLevel, SubscribeStream, Volume},
     utils::trigger_name,
 };
 
@@ -130,6 +131,35 @@ impl OrdersManager {
         .fetch(&self.database)
     }
 
+    pub fn get_orderbook(
+        &self,
+        quote_asset_id: Uuid,
+        base_asset_id: Uuid,
+        round: i32,
+        limit: i64,
+    ) -> Pin<Box<dyn Stream<Item = Result<PriceLevelOption>> + Send + '_>> {
+        sqlx::query_as!(
+            PriceLevelOption,
+            r#"
+            SELECT
+            ROUND(CAST(base_asset_volume/quote_asset_volume AS NUMERIC), CAST($3 AS INTEGER))::float as price,
+            SUM(quote_asset_volume_left) as "volume: Volume"
+            FROM spot.orders
+            WHERE quote_asset_id = $1
+            AND base_asset_id = $2
+            AND is_active = true
+            GROUP BY price
+            ORDER BY price
+            LIMIT $4
+            "#,
+            quote_asset_id,
+            base_asset_id,
+            round,
+            limit
+        )
+        .fetch(&self.database)
+    }
+
     pub fn get_ordered_asc_less(
         &self,
         base_asset_id: Uuid,
@@ -209,7 +239,10 @@ impl OrdersManager {
     }
 
     pub async fn create_notify_trigger_for_user(&self, user_id: Uuid) -> Result<NotifyTrigger> {
-        let trigger_name = trigger_name("spot_orders_notify_trigger_for_user", vec![user_id]);
+        let trigger_name = trigger_name(
+            "spot_orders_notify_trigger_for_user",
+            vec![Bytes::from(user_id.as_bytes().to_owned().to_vec())],
+        );
         sqlx::query!(
             r#"
             SELECT create_spot_orders_notify_trigger_for_user($1, $2)
@@ -265,8 +298,10 @@ impl OrdersManager {
         &self,
         user_id: Uuid,
     ) -> Result<NotifyTrigger> {
-        let trigger_name =
-            trigger_name("spot_orders_notify_trigger_active_for_user", vec![user_id]);
+        let trigger_name = trigger_name(
+            "spot_orders_notify_trigger_active_for_user",
+            vec![Bytes::from(user_id.as_bytes().to_owned().to_vec())],
+        );
         sqlx::query!(
             r#"
             SELECT create_spot_orders_notify_trigger_active_for_user($1, $2)
@@ -325,7 +360,10 @@ impl OrdersManager {
     ) -> Result<NotifyTrigger> {
         let trigger_name = trigger_name(
             "spot_orders_notify_trigger_for_asset_pair",
-            vec![quote_asset_id, base_asset_id],
+            vec![
+                Bytes::from(quote_asset_id.as_bytes().to_owned().to_vec()),
+                Bytes::from(base_asset_id.as_bytes().to_owned().to_vec()),
+            ],
         );
         sqlx::query!(
             r#"
@@ -392,7 +430,10 @@ impl OrdersManager {
     ) -> Result<NotifyTrigger> {
         let trigger_name = trigger_name(
             "spot_orders_notify_trigger_for_orderbook",
-            vec![quote_asset_id, base_asset_id],
+            vec![
+                Bytes::from(quote_asset_id.as_bytes().to_owned().to_vec()),
+                Bytes::from(base_asset_id.as_bytes().to_owned().to_vec()),
+            ],
         );
         sqlx::query!(
             r#"

@@ -1,6 +1,7 @@
 use std::pin::Pin;
 
 use bigdecimal::BigDecimal;
+use bytes::Bytes;
 use futures::{Stream, StreamExt};
 use sqlx::{
     postgres::{PgListener, PgPool, PgQueryResult},
@@ -73,7 +74,10 @@ impl ValutsManager {
     }
 
     pub async fn create_notify_trigger_for_user(&self, user_id: Uuid) -> Result<NotifyTrigger> {
-        let trigger_name = trigger_name("spot_valuts_notify_trigger_for_user", vec![user_id]);
+        let trigger_name = trigger_name(
+            "spot_valuts_notify_trigger_for_user",
+            vec![Bytes::from(user_id.as_bytes().to_owned().to_vec())],
+        );
         sqlx::query!(
             r#"
             SELECT create_spot_valuts_notify_trigger_for_user($1, $2)

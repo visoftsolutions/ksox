@@ -1,4 +1,7 @@
-use std::io::{Error, ErrorKind};
+use std::{
+    cmp::Ordering,
+    io::{Error, ErrorKind},
+};
 
 use database::{
     managers::spot::assets::AssetsManager,
@@ -51,12 +54,10 @@ impl AssetPairRecognition {
             .map(|pair| {
                 let symbol_sim = OrderedFloat(jaro_winkler(phrase, &pair.1 .0));
                 let name_sim = OrderedFloat(jaro_winkler(phrase, &pair.1 .1));
-                if symbol_sim > name_sim {
-                    (symbol_sim, (pair.0, pair.1 .0))
-                } else if symbol_sim < name_sim {
-                    (name_sim, (pair.0, pair.1 .1))
-                } else {
-                    (OrderedFloat(0_f64), (pair.0, "".to_string()))
+                match symbol_sim.cmp(&name_sim) {
+                    Ordering::Greater => (symbol_sim, (pair.0, pair.1 .0)),
+                    Ordering::Less => (name_sim, (pair.0, pair.1 .1)),
+                    Ordering::Equal => (OrderedFloat(0_f64), (pair.0, "".to_string())),
                 }
             })
             .collect()

@@ -218,6 +218,33 @@
     },
     "query": "\n            SELECT\n                id,\n                created_at,\n                user_id,\n                is_active,\n                quote_asset_id,\n                base_asset_id,\n                quote_asset_volume as \"quote_asset_volume: Volume\",\n                base_asset_volume as \"base_asset_volume: Volume\",\n                quote_asset_volume_left as \"quote_asset_volume_left: Volume\",\n                maker_fee_num as \"maker_fee_num: Volume\",\n                maker_fee_denum as \"maker_fee_denum: Volume\"\n            FROM spot.orders\n            WHERE quote_asset_id = $1 AND quote_asset_id = $2\n            ORDER BY created_at\n            LIMIT $3\n            OFFSET $4\n            "
   },
+  "1907978a3174297b05ee5e13c1f57999da4d9c3cd9002f628bb15e2bb7dcbcba": {
+    "describe": {
+      "columns": [
+        {
+          "name": "price",
+          "ordinal": 0,
+          "type_info": "Float8"
+        },
+        {
+          "name": "volume: Volume",
+          "ordinal": 1,
+          "type_info": "Numeric"
+        }
+      ],
+      "nullable": [
+        null,
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n            CAST(base_asset_volume/quote_asset_volume AS float) as price,\n            SUM(quote_asset_volume_left) as \"volume: Volume\"\n            FROM spot.orders\n            WHERE quote_asset_id = $1\n            AND base_asset_id = $2\n            AND is_active = true\n            GROUP BY price\n            ORDER BY price\n            "
+  },
   "19e766491b4a597a95a71ea2f2630b5b9535b632d7dcc0120aa2aa5223aa4f9f": {
     "describe": {
       "columns": [],

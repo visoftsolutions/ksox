@@ -1,6 +1,7 @@
 use std::pin::Pin;
 
 use bigdecimal::BigDecimal;
+use bytes::Bytes;
 use futures::{Stream, StreamExt};
 use sqlx::{
     postgres::{PgListener, PgPool, PgQueryResult},
@@ -144,7 +145,10 @@ impl TradesManager {
     }
 
     pub async fn create_notify_trigger_for_taker(&self, taker_id: Uuid) -> Result<NotifyTrigger> {
-        let trigger_name = trigger_name("spot_trades_notify_trigger_for_taker", vec![taker_id]);
+        let trigger_name = trigger_name(
+            "spot_trades_notify_trigger_for_taker",
+            vec![Bytes::from(taker_id.as_bytes().to_owned().to_vec())],
+        );
         sqlx::query!(
             r#"
             SELECT create_spot_trades_notify_trigger_for_taker($1, $2)
@@ -203,7 +207,10 @@ impl TradesManager {
     ) -> Result<NotifyTrigger> {
         let trigger_name = trigger_name(
             "spot_trades_notify_trigger_for_asset_pair",
-            vec![quote_asset_id, base_asset_id],
+            vec![
+                Bytes::from(quote_asset_id.as_bytes().to_owned().to_vec()),
+                Bytes::from(base_asset_id.as_bytes().to_owned().to_vec()),
+            ],
         );
         sqlx::query!(
             r#"
