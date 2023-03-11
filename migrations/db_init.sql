@@ -223,17 +223,16 @@ DECLARE
 BEGIN
   SELECT json_agg(row_to_json(sub.*)) INTO row_data
       FROM (
-        SELECT orderbook.price::float AS price, SUM(orderbook.volume)::text AS volume FROM 
-          (SELECT 
-            spot.orders.base_asset_volume/spot.orders.quote_asset_volume AS price,
-            spot.orders.quote_asset_volume_left AS volume
-          FROM spot.orders
-          WHERE spot.orders.is_active = true
-            AND spot.orders.quote_asset_id = NEW.quote_asset_id
-            AND spot.orders.base_asset_id = NEW.base_asset_id
-          ) AS orderbook
-        GROUP BY orderbook.price
-        ORDER BY orderbook.price
+        SELECT
+            ROUND(CAST(base_asset_volume/quote_asset_volume AS NUMERIC), CAST(TG_ARGV[1] AS INTEGER))::float as price,
+            SUM(quote_asset_volume_left) as volume
+        FROM spot.orders
+        WHERE quote_asset_id = NEW.quote_asset_id
+        AND base_asset_id = NEW.base_asset_id
+        AND is_active = true
+        GROUP BY price
+        ORDER BY price
+        LIMIT CAST(TG_ARGV[2] AS BIGINT)
     ) sub;
 
   PERFORM pg_notify(TG_ARGV[0], row_data::text);
@@ -241,7 +240,7 @@ BEGIN
 END;
 $BODY$ LANGUAGE plpgsql;
 
-CREATE FUNCTION create_spot_orders_notify_trigger_for_orderbook(trigger_name text, quote_asset_id uuid, base_asset_id uuid)
+CREATE FUNCTION create_spot_orders_notify_trigger_for_orderbook(trigger_name text, quote_asset_id uuid, base_asset_id uuid, precission INTEGER, _limit BIGINT)
 RETURNS VOID AS
 $BODY$
 DECLARE
@@ -253,8 +252,8 @@ BEGIN
     AFTER INSERT OR UPDATE ON spot.orders
     FOR EACH ROW
     WHEN (NEW.quote_asset_id = ''%s'' AND NEW.base_asset_id = ''%s'')
-    EXECUTE FUNCTION orderbook_notify(''%s'');', 
-    trigger_truncated_name, quote_asset_id::text, base_asset_id::text, channel_truncated_name);
+    EXECUTE FUNCTION orderbook_notify(''%s'', %s, %s);', 
+    trigger_truncated_name, quote_asset_id::text, base_asset_id::text, channel_truncated_name, precission, _limit);
 END;
 $BODY$ LANGUAGE plpgsql;
 

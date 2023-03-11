@@ -1,6 +1,5 @@
 use bytes::{Bytes, BytesMut};
 use sha2::{Digest, Sha256};
-use uuid::Uuid;
 
 pub fn trigger_name(prefix: &str, vec: Vec<Bytes>) -> String {
     let mut hasher = Sha256::new();

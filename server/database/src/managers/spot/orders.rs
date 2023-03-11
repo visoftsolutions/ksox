@@ -427,21 +427,27 @@ impl OrdersManager {
         &self,
         quote_asset_id: Uuid,
         base_asset_id: Uuid,
+        precission: i32,
+        limit: i64,
     ) -> Result<NotifyTrigger> {
         let trigger_name = trigger_name(
             "spot_orders_notify_trigger_for_orderbook",
             vec![
                 Bytes::from(quote_asset_id.as_bytes().to_owned().to_vec()),
                 Bytes::from(base_asset_id.as_bytes().to_owned().to_vec()),
+                Bytes::from(precission.to_le_bytes().to_owned().to_vec()),
+                Bytes::from(limit.to_le_bytes().to_owned().to_vec()),
             ],
         );
         sqlx::query!(
             r#"
-            SELECT create_spot_orders_notify_trigger_for_orderbook($1, $2, $3)
+            SELECT create_spot_orders_notify_trigger_for_orderbook($1, $2, $3, $4, $5)
             "#,
             trigger_name,
             quote_asset_id,
-            base_asset_id
+            base_asset_id,
+            precission,
+            limit
         )
         .execute(&self.database)
         .await?;
@@ -473,10 +479,12 @@ impl OrdersManager {
         &self,
         quote_asset_id: Uuid,
         base_asset_id: Uuid,
+        precission: i32,
+        limit: i64,
     ) -> Result<SubscribeStream<Vec<PriceLevel>>> {
         let mut listener = PgListener::connect_with(&self.database).await?;
         let notify_trigger = self
-            .create_notify_trigger_for_orderbook(quote_asset_id, base_asset_id)
+            .create_notify_trigger_for_orderbook(quote_asset_id, base_asset_id, precission, limit)
             .await?;
         listener.listen(&notify_trigger.channel_name).await?;
 

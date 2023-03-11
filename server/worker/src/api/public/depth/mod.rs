@@ -14,7 +14,15 @@ pub fn router(app_state: &AppState) -> Router {
         .with_state(app_state.clone())
 }
 
+// TODO define macro for this
 #[derive(Deserialize)]
+pub struct RequestPartial {
+    pub quote_asset_id: Uuid,
+    pub base_asset_id: Uuid,
+    pub precision: Option<i32>,
+    pub limit: Option<i64>,
+}
+
 pub struct Request {
     pub quote_asset_id: Uuid,
     pub base_asset_id: Uuid,
@@ -22,10 +30,22 @@ pub struct Request {
     pub limit: i64,
 }
 
+impl RequestPartial {
+    fn insert_defaults(self) -> Request {
+        Request {
+            quote_asset_id: self.quote_asset_id,
+            base_asset_id: self.base_asset_id,
+            precision: self.precision.unwrap_or(2),
+            limit: self.limit.unwrap_or(10),
+        }
+    }
+}
+
 pub async fn root(
     State(state): State<AppState>,
-    Json(payload): Json<Request>,
+    Json(payload): Json<RequestPartial>,
 ) -> Result<Json<Vec<PriceLevel>>, AppError> {
+    let payload = payload.insert_defaults();
     let mut stream = state
         .orders_manager
         .get_orderbook(
