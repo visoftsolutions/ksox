@@ -6,8 +6,9 @@ use database::managers::{
     },
     users::UsersManager,
 };
+use tonic::transport::Channel;
 
-use crate::recognition::AssetPairRecognition;
+use crate::{engine_base::engine_client::EngineClient, recognition::AssetPairRecognition};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -18,6 +19,7 @@ pub struct AppState {
     pub trades_manager: TradesManager,
     pub orders_manager: OrdersManager,
     pub assets_pair_recognition: AssetPairRecognition,
+    pub engine_client: EngineClient<Channel>,
 }
 
 impl FromRef<AppState> for Client {

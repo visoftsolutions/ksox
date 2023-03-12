@@ -40,7 +40,7 @@ impl FromStr for Nonce {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Self(
-            prefix_hex::decode::<Vec<u8>>(s)
+            prefix_hex::decode::<Vec<u8>, _>(s)
                 .map_err(anyhow::Error::msg)?
                 .into(),
         ))
@@ -98,7 +98,7 @@ impl FromStr for SessionId {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Self(
-            prefix_hex::decode::<Vec<u8>>(s)
+            prefix_hex::decode::<Vec<u8>, _>(s)
                 .map_err(anyhow::Error::msg)?
                 .into(),
         ))

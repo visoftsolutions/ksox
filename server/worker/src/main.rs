@@ -25,6 +25,12 @@ use regex::Regex;
 
 use crate::recognition::AssetPairRecognition;
 
+pub mod engine_base {
+    tonic::include_proto!("server.engine.base");
+}
+
+use engine_base::engine_client::EngineClient;
+
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
@@ -40,6 +46,7 @@ async fn main() -> Result<()> {
         trades_manager: TradesManager::new(database.clone()),
         orders_manager: OrdersManager::new(database.clone()),
         assets_pair_recognition: AssetPairRecognition::new(database, Regex::new(r"[^a-zA-Z]+")?),
+        engine_client: EngineClient::connect("http://[::1]:50051").await?,
     };
 
     let app = Router::new()

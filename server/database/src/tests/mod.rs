@@ -113,7 +113,7 @@ async fn trades_get_and_subscribe_for_orderbook() {
     let orders_manager = OrdersManager::new(database);
 
     let mut stream = orders_manager
-        .subscribe_for_orderbook(quote_asset_id, base_asset_id)
+        .subscribe_for_orderbook(quote_asset_id, base_asset_id, 5, 5)
         .await
         .unwrap();
     while let Some(result) = stream.next().await {
