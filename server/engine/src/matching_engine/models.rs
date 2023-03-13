@@ -88,6 +88,12 @@ pub enum MatchingEngineError {
     #[error("volume value can not be zero")]
     VolumeIsZero,
 
+    #[error("not enough balance")]
+    InsufficientBalance,
+
+    #[error("order not active")]
+    NotActive,
+
     // source and Display delegate to sqlx::error::Error
     #[error(transparent)]
     Sqlx(#[from] Error),

@@ -46,7 +46,7 @@ async fn main() -> Result<()> {
         trades_manager: TradesManager::new(database.clone()),
         orders_manager: OrdersManager::new(database.clone()),
         assets_pair_recognition: AssetPairRecognition::new(database, Regex::new(r"[^a-zA-Z]+")?),
-        engine_client: EngineClient::connect("http://[::1]:50051").await?,
+        engine_client: EngineClient::connect("http://ksox-engine/").await?,
     };
 
     let app = Router::new()

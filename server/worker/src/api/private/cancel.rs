@@ -25,5 +25,5 @@ pub async fn root(
         })
         .await?
         .into_inner();
-    Ok(format!("canceled with msg: {:?}", response))
+    Ok(format!("canceled {response:?}"))
 }

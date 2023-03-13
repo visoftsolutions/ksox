@@ -40,13 +40,11 @@ impl User {
         asset_id: Uuid,
         amount: Volume,
     ) -> Result<(), sqlx::Error> {
-        if amount > Volume::from(0) {
-            let mut valut = valuts_manager
-                .get_or_create_for_user_and_asset(self.id, asset_id)
-                .await?;
-            valut.balance += amount;
-            valuts_manager.update(valut).await?;
-        }
+        let mut valut = valuts_manager
+            .get_or_create_for_user_and_asset(self.id, asset_id)
+            .await?;
+        valut.balance += amount;
+        valuts_manager.update(valut).await?;
         Ok(())
     }
 
@@ -59,10 +57,8 @@ impl User {
         let mut valut = valuts_manager
             .get_for_user_and_asset(self.id, asset_id)
             .await?;
-        valut.balance += amount;
-        if valut.balance >= Volume::from(0) {
-            valuts_manager.update(valut).await?;
-        }
+        valut.balance -= amount;
+        valuts_manager.update(valut).await?;
         Ok(())
     }
 }

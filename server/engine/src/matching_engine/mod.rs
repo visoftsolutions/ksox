@@ -60,7 +60,11 @@ impl MatchingEngine {
             .get_for_user_and_asset(request.user_id, request.quote_asset_id)
             .await?;
         taker_quote_asset_valut.balance -= request.quote_asset_volume.to_owned();
-        self.valuts_manager.update(taker_quote_asset_valut).await?;
+        if taker_quote_asset_valut.balance >= Volume::from(0) {
+            self.valuts_manager.update(taker_quote_asset_valut).await?;
+        } else {
+            return Err(MatchingEngineError::InsufficientBalance);
+        }
 
         let maker_orders = self.orders_manager.get_ordered_asc_less(
             // base switches with quote to give opposite orderbook
@@ -128,13 +132,17 @@ impl MatchingEngine {
             self.valuts_manager.update(maker_base_asset_valut).await?;
             self.trades_manager.insert(trade).await?;
         }
-
         Ok(())
     }
 
     pub async fn cancel_order(&self, order_id: Uuid) -> Result<(), MatchingEngineError> {
         let mut order = self.orders_manager.get_by_id(order_id).await?;
-        Ok(order.cancel(&self.valuts_manager).await?)
+        if !order.is_active {
+            return Err(MatchingEngineError::NotActive);
+        }
+        order.cancel(&self.valuts_manager).await?;
+        self.orders_manager.update(order).await?;
+        Ok(())
     }
 
     pub async fn matching_loop(
