@@ -1,6 +1,5 @@
 use std::pin::Pin;
 
-use bigdecimal::BigDecimal;
 use futures::Stream;
 use sqlx::{
     postgres::{PgPool, PgQueryResult},
@@ -8,7 +7,9 @@ use sqlx::{
     Result,
 };
 
-use crate::{projections::spot::asset::Asset, traits::table_manager::TableManager, types::Volume};
+use crate::{
+    projections::spot::asset::Asset, traits::table_manager::TableManager, types::Fraction,
+};
 
 #[derive(Debug, Clone)]
 pub struct AssetsManager {
@@ -17,12 +18,8 @@ pub struct AssetsManager {
 
 impl AssetsManager {
     pub fn new(database: PgPool) -> Self {
-        AssetsManager { database }
+        Self { database }
     }
-
-    pub async fn get_volume() {}
-
-    pub async fn get_volume_for_asset_pair() {}
 }
 
 impl TableManager<Asset> for AssetsManager {
@@ -35,10 +32,8 @@ impl TableManager<Asset> for AssetsManager {
                 created_at,
                 name,
                 symbol,
-                maker_fee_num as "maker_fee_num: Volume",
-                maker_fee_denum as "maker_fee_denum: Volume",
-                taker_fee_num as "taker_fee_num: Volume",
-                taker_fee_denum as "taker_fee_denum: Volume"
+                maker_fee as "maker_fee: Fraction",
+                taker_fee as "taker_fee: Fraction"
             FROM spot.assets
             "#
         )
@@ -54,10 +49,8 @@ impl TableManager<Asset> for AssetsManager {
                 created_at,
                 name,
                 symbol,
-                maker_fee_num as "maker_fee_num: Volume",
-                maker_fee_denum as "maker_fee_denum: Volume",
-                taker_fee_num as "taker_fee_num: Volume",
-                taker_fee_denum as "taker_fee_denum: Volume"
+                maker_fee as "maker_fee: Fraction",
+                taker_fee as "taker_fee: Fraction"
             FROM spot.assets
             WHERE spot.assets.id = $1
             "#,
@@ -68,36 +61,26 @@ impl TableManager<Asset> for AssetsManager {
     }
 
     async fn insert(&self, element: Asset) -> Result<PgQueryResult> {
-        let maker_fee_num: BigDecimal = element.maker_fee_num.into();
-        let maker_fee_denum: BigDecimal = element.maker_fee_denum.into();
-        let taker_fee_num: BigDecimal = element.taker_fee_num.into();
-        let taker_fee_denum: BigDecimal = element.taker_fee_denum.into();
         sqlx::query!(
             r#"
             INSERT INTO 
                 spot.assets 
-                (id, created_at, name, symbol, maker_fee_num, maker_fee_denum, taker_fee_num, taker_fee_denum)
+                (id, created_at, name, symbol, maker_fee, taker_fee)
             VALUES
-                ($1, $2, $3, $4, $5, $6, $7, $8)
+                ($1, $2, $3, $4, $5::fraction, $6::fraction)
             "#,
             element.id,
             element.created_at,
             element.name,
             element.symbol,
-            maker_fee_num,
-            maker_fee_denum,
-            taker_fee_num,
-            taker_fee_denum
+            element.maker_fee.to_string() as _,
+            element.taker_fee.to_string() as _
         )
         .execute(&self.database)
         .await
     }
 
     async fn update(&self, element: Asset) -> Result<PgQueryResult> {
-        let maker_fee_num: BigDecimal = element.maker_fee_num.into();
-        let maker_fee_denum: BigDecimal = element.maker_fee_denum.into();
-        let taker_fee_num: BigDecimal = element.taker_fee_num.into();
-        let taker_fee_denum: BigDecimal = element.taker_fee_denum.into();
         sqlx::query!(
             r#"
             UPDATE 
@@ -106,10 +89,8 @@ impl TableManager<Asset> for AssetsManager {
                 created_at = $2,
                 name = $3,
                 symbol = $4,
-                maker_fee_num = $5,
-                maker_fee_denum = $6,
-                taker_fee_num = $7,
-                taker_fee_denum = $8
+                maker_fee = $5,
+                taker_fee = $6
             WHERE
                 id = $1
             "#,
@@ -117,10 +98,8 @@ impl TableManager<Asset> for AssetsManager {
             element.created_at,
             element.name,
             element.symbol,
-            maker_fee_num,
-            maker_fee_denum,
-            taker_fee_num,
-            taker_fee_denum
+            element.maker_fee.to_string() as _,
+            element.taker_fee.to_string() as _
         )
         .execute(&self.database)
         .await

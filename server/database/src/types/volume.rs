@@ -90,10 +90,6 @@ impl Decode<'_, Postgres> for Volume {
 }
 
 impl Encode<'_, Postgres> for Volume {
-    fn produces(&self) -> Option<<Postgres as sqlx::Database>::TypeInfo> {
-        <BigDecimal as Encode<Postgres>>::produces(&BigDecimal::from(self.0.to_owned()))
-    }
-
     fn encode_by_ref(&self, buf: &mut PgArgumentBuffer) -> sqlx::encode::IsNull {
         <BigDecimal as Encode<Postgres>>::encode_by_ref(&BigDecimal::from(self.0.to_owned()), buf)
     }

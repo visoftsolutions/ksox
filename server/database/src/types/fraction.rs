@@ -1,21 +1,59 @@
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
+use std::{
+    io::{Error, ErrorKind},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
+    str::FromStr,
+};
 
-use bigdecimal::Zero;
+use bigdecimal::{BigDecimal, Zero};
 use num_bigint::BigInt;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use sqlx::{
+    postgres::{PgArgumentBuffer, PgValueRef},
+    Decode, Encode, Postgres, Type, TypeInfo,
+};
 use thiserror::Error;
 
 use super::Volume;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Fraction {
+    #[serde(
+        serialize_with = "serialize_bigint_as_string",
+        deserialize_with = "deserialize_string_as_bigint"
+    )]
     pub numerator: BigInt,
+    #[serde(
+        serialize_with = "serialize_bigint_as_string",
+        deserialize_with = "deserialize_string_as_bigint"
+    )]
     pub denominator: BigInt,
+}
+
+fn serialize_bigint_as_string<S>(value: &BigInt, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    serializer.serialize_str(&value.to_string())
+}
+
+fn deserialize_string_as_bigint<'de, D>(deserializer: D) -> Result<BigInt, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    Ok(BigInt::from_str(&s).map_err(serde::de::Error::custom)?)
 }
 
 #[derive(Error, Debug)]
 pub enum FractionError {
-    #[error("denominator can not be zero")]
+    #[error("Denominator can not be zero")]
     DenominatorIsZero,
+
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("Could not convert to BigInt")]
+    NotBigIntConvertable,
 }
 
 impl Fraction {
@@ -24,6 +62,69 @@ impl Fraction {
             numerator,
             denominator,
         }
+    }
+}
+
+impl FromStr for Fraction {
+    type Err = FractionError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let parts: Vec<&str> = s.split(',').collect();
+
+        if parts.len() != 2 {
+            return Err(FractionError::Io(Error::new(
+                ErrorKind::InvalidData,
+                "number of parts not equal to 2",
+            )));
+        }
+
+        let numerator = BigInt::from_str(parts[0])
+            .map_err(|err| Error::new(ErrorKind::InvalidData, err.to_string()))?;
+        let denominator = BigInt::from_str(parts[1])
+            .map_err(|err| Error::new(ErrorKind::InvalidData, err.to_string()))?;
+
+        Fraction::try_from((numerator, denominator))
+    }
+}
+
+impl std::fmt::Display for Fraction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({},{})", self.numerator, self.denominator)
+    }
+}
+
+impl Type<Postgres> for Fraction {
+    fn type_info() -> <Postgres as sqlx::Database>::TypeInfo {
+        sqlx::postgres::PgTypeInfo::with_name("fraction")
+    }
+    fn compatible(ty: &<Postgres as sqlx::Database>::TypeInfo) -> bool {
+        ty.name() == "fraction"
+    }
+}
+
+impl Decode<'_, Postgres> for Fraction {
+    fn decode(value: PgValueRef) -> std::result::Result<Self, sqlx::error::BoxDynError> {
+        let value = <(BigDecimal, BigDecimal) as Decode<Postgres>>::decode(value)?;
+        TryInto::<Fraction>::try_into((value.0, value.1))
+            .map_err(|err| sqlx::error::BoxDynError::from(err.to_string()))
+    }
+}
+
+impl Encode<'_, Postgres> for Fraction {
+    fn encode(
+        self,
+        buf: &mut <Postgres as sqlx::database::HasArguments<'_>>::ArgumentBuffer,
+    ) -> sqlx::encode::IsNull
+    where
+        Self: Sized,
+    {
+        self.encode_by_ref(buf)
+    }
+    fn produces(&self) -> Option<<Postgres as sqlx::Database>::TypeInfo> {
+        Some(sqlx::postgres::PgTypeInfo::with_name("fraction"))
+    }
+    fn encode_by_ref(&self, buf: &mut PgArgumentBuffer) -> sqlx::encode::IsNull {
+        <&str as Encode<Postgres>>::encode_by_ref(&self.to_string().as_str(), buf)
     }
 }
 
@@ -100,6 +201,22 @@ impl TryFrom<(BigInt, BigInt)> for Fraction {
             return Err(FractionError::DenominatorIsZero);
         }
         Ok(Fraction::new(value.0, value.1))
+    }
+}
+
+impl TryFrom<(BigDecimal, BigDecimal)> for Fraction {
+    type Error = FractionError;
+    fn try_from(value: (BigDecimal, BigDecimal)) -> Result<Self, Self::Error> {
+        let (num_bigint, num_exp) = value.0.into_bigint_and_exponent();
+        let (denum_bigint, denum_exp) = value.1.into_bigint_and_exponent();
+        let num = num_bigint
+            * BigInt::from(10)
+                .pow(TryInto::try_into(-num_exp).map_err(|_| FractionError::NotBigIntConvertable)?);
+        let denum = denum_bigint
+            * BigInt::from(10).pow(
+                TryInto::try_into(-denum_exp).map_err(|_| FractionError::NotBigIntConvertable)?,
+            );
+        TryFrom::try_from((num, denum))
     }
 }
 

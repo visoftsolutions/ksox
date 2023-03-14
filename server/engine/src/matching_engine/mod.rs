@@ -82,16 +82,8 @@ impl MatchingEngine {
             request.quote_asset_volume,
             request.base_asset_volume,
             maker_orders,
-            (
-                taker_base_asset.taker_fee_num.into(),
-                taker_base_asset.taker_fee_denum.into(),
-            )
-                .try_into()?,
-            (
-                maker_base_asset.maker_fee_num.into(),
-                maker_base_asset.maker_fee_denum.into(),
-            )
-                .try_into()?,
+            taker_base_asset.taker_fee,
+            maker_base_asset.maker_fee,
         );
 
         let matching = Self::matching_loop(matching_loop_input).await?;
@@ -214,7 +206,7 @@ impl MatchingEngine {
                     - (taker_base_asset_volume_given * input.taker_fee.to_owned()),
                 maker_quote_volume: maker_quote_asset_volume_taken,
                 maker_base_volume: maker_base_asset_volume_given.to_owned()
-                    - (maker_base_asset_volume_given * maker_order.maker_fee()?),
+                    - (maker_base_asset_volume_given * maker_order.maker_fee),
             });
         }
 
@@ -229,8 +221,7 @@ impl MatchingEngine {
                 quote_asset_volume: input.quote_asset_volume,
                 base_asset_volume: input.base_asset_volume,
                 quote_asset_volume_left: taker_quote_asset_volume_left,
-                maker_fee_num: input.maker_fee.numerator.into(),
-                maker_fee_denum: input.maker_fee.denominator.into(),
+                maker_fee: input.maker_fee,
             });
         }
         Ok(response)

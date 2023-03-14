@@ -13,7 +13,9 @@ use tokio::{sync::oneshot, task};
 use crate::{
     projections::spot::order::Order,
     traits::table_manager::TableManager,
-    types::{price_level::PriceLevelOption, NotifyTrigger, PriceLevel, SubscribeStream, Volume},
+    types::{
+        price_level::PriceLevelOption, Fraction, NotifyTrigger, PriceLevel, SubscribeStream, Volume,
+    },
     utils::trigger_name,
 };
 
@@ -46,8 +48,7 @@ impl OrdersManager {
                 quote_asset_volume as "quote_asset_volume: Volume",
                 base_asset_volume as "base_asset_volume: Volume",
                 quote_asset_volume_left as "quote_asset_volume_left: Volume",
-                maker_fee_num as "maker_fee_num: Volume",
-                maker_fee_denum as "maker_fee_denum: Volume"
+                maker_fee as "maker_fee: Fraction"
             FROM spot.orders
             WHERE user_id = $1
             ORDER BY created_at
@@ -80,8 +81,7 @@ impl OrdersManager {
                 quote_asset_volume as "quote_asset_volume: Volume",
                 base_asset_volume as "base_asset_volume: Volume",
                 quote_asset_volume_left as "quote_asset_volume_left: Volume",
-                maker_fee_num as "maker_fee_num: Volume",
-                maker_fee_denum as "maker_fee_denum: Volume"
+                maker_fee as "maker_fee: Fraction"
             FROM spot.orders
             WHERE user_id = $1 AND is_active = true
             ORDER BY created_at
@@ -115,8 +115,7 @@ impl OrdersManager {
                 quote_asset_volume as "quote_asset_volume: Volume",
                 base_asset_volume as "base_asset_volume: Volume",
                 quote_asset_volume_left as "quote_asset_volume_left: Volume",
-                maker_fee_num as "maker_fee_num: Volume",
-                maker_fee_denum as "maker_fee_denum: Volume"
+                maker_fee as "maker_fee: Fraction"
             FROM spot.orders
             WHERE quote_asset_id = $1 AND quote_asset_id = $2
             ORDER BY created_at
@@ -142,8 +141,8 @@ impl OrdersManager {
             PriceLevelOption,
             r#"
             SELECT
-            ROUND(CAST(base_asset_volume/quote_asset_volume AS NUMERIC), CAST($3 AS INTEGER))::float as price,
-            SUM(quote_asset_volume_left) as "volume: Volume"
+                ROUND(CAST(base_asset_volume/quote_asset_volume AS NUMERIC), CAST($3 AS INTEGER))::float as price,
+                SUM(quote_asset_volume_left) as "volume: Volume"
             FROM spot.orders
             WHERE quote_asset_id = $1
             AND base_asset_id = $2
@@ -182,8 +181,7 @@ impl OrdersManager {
                 quote_asset_volume as "quote_asset_volume: Volume",
                 base_asset_volume as "base_asset_volume: Volume",
                 quote_asset_volume_left as "quote_asset_volume_left: Volume",
-                maker_fee_num as "maker_fee_num: Volume",
-                maker_fee_denum as "maker_fee_denum: Volume"
+                maker_fee as "maker_fee: Fraction"
             FROM spot.orders
             WHERE quote_asset_id = $1
             AND base_asset_id = $2
@@ -221,8 +219,7 @@ impl OrdersManager {
                 quote_asset_volume as "quote_asset_volume: Volume",
                 base_asset_volume as "base_asset_volume: Volume",
                 quote_asset_volume_left as "quote_asset_volume_left: Volume",
-                maker_fee_num as "maker_fee_num: Volume",
-                maker_fee_denum as "maker_fee_denum: Volume"
+                maker_fee as "maker_fee: Fraction"
             FROM spot.orders
             WHERE quote_asset_id = $1
             AND base_asset_id = $2
@@ -283,6 +280,7 @@ impl OrdersManager {
 
         let subscribe_stream = listener.into_stream().map(|element| {
             element.and_then(|val| {
+                println!("{}", val.payload());
                 serde_json::from_str::<Order>(val.payload())
                     .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
             })
@@ -517,8 +515,7 @@ impl TableManager<Order> for OrdersManager {
                 quote_asset_volume as "quote_asset_volume: Volume",
                 base_asset_volume as "base_asset_volume: Volume",
                 quote_asset_volume_left as "quote_asset_volume_left: Volume",
-                maker_fee_num as "maker_fee_num: Volume",
-                maker_fee_denum as "maker_fee_denum: Volume"
+                maker_fee as "maker_fee: Fraction"
             FROM spot.orders
             "#
         )
@@ -539,8 +536,7 @@ impl TableManager<Order> for OrdersManager {
                 quote_asset_volume as "quote_asset_volume: Volume",
                 base_asset_volume as "base_asset_volume: Volume",
                 quote_asset_volume_left as "quote_asset_volume_left: Volume",
-                maker_fee_num as "maker_fee_num: Volume",
-                maker_fee_denum as "maker_fee_denum: Volume"
+                maker_fee as "maker_fee: Fraction"
             FROM spot.orders
             WHERE id = $1
             "#,
@@ -554,8 +550,6 @@ impl TableManager<Order> for OrdersManager {
         let quote_asset_volume: BigDecimal = element.quote_asset_volume.into();
         let base_asset_volume: BigDecimal = element.base_asset_volume.into();
         let quote_asset_volume_left: BigDecimal = element.quote_asset_volume_left.into();
-        let maker_fee_num: BigDecimal = element.maker_fee_num.into();
-        let maker_fee_denum: BigDecimal = element.maker_fee_denum.into();
         sqlx::query!(
             r#"
             INSERT INTO
@@ -570,11 +564,10 @@ impl TableManager<Order> for OrdersManager {
                     quote_asset_volume, 
                     base_asset_volume, 
                     quote_asset_volume_left, 
-                    maker_fee_num, 
-                    maker_fee_denum
+                    maker_fee
                 )
             VALUES
-                ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::fraction)
             "#,
             element.id,
             element.created_at,
@@ -585,8 +578,7 @@ impl TableManager<Order> for OrdersManager {
             quote_asset_volume,
             base_asset_volume,
             quote_asset_volume_left,
-            maker_fee_num,
-            maker_fee_denum
+            element.maker_fee.to_string() as _
         )
         .execute(&self.database)
         .await
@@ -596,8 +588,6 @@ impl TableManager<Order> for OrdersManager {
         let quote_asset_volume: BigDecimal = element.quote_asset_volume.into();
         let base_asset_volume: BigDecimal = element.base_asset_volume.into();
         let quote_asset_volume_left: BigDecimal = element.quote_asset_volume_left.into();
-        let maker_fee_num: BigDecimal = element.maker_fee_num.into();
-        let maker_fee_denum: BigDecimal = element.maker_fee_denum.into();
         sqlx::query!(
             r#"
             UPDATE 
@@ -611,8 +601,7 @@ impl TableManager<Order> for OrdersManager {
                 quote_asset_volume = $7,
                 base_asset_volume = $8,
                 quote_asset_volume_left = $9,
-                maker_fee_num = $10,
-                maker_fee_denum = $11
+                maker_fee = $10
             WHERE
                 id = $1
             "#,
@@ -625,8 +614,7 @@ impl TableManager<Order> for OrdersManager {
             quote_asset_volume,
             base_asset_volume,
             quote_asset_volume_left,
-            maker_fee_num,
-            maker_fee_denum
+            element.maker_fee.to_string() as _
         )
         .execute(&self.database)
         .await

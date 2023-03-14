@@ -5,7 +5,7 @@ use sqlx::types::Uuid;
 use crate::{
     managers::spot::valuts::ValutsManager,
     traits::table_manager::TableManager,
-    types::{fraction::FractionError, Fraction, Volume},
+    types::{Fraction, Volume},
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -19,8 +19,7 @@ pub struct Order {
     pub quote_asset_volume: Volume,
     pub base_asset_volume: Volume,
     pub quote_asset_volume_left: Volume,
-    pub maker_fee_num: Volume,
-    pub maker_fee_denum: Volume,
+    pub maker_fee: Fraction,
 }
 
 impl Order {
@@ -50,13 +49,5 @@ impl Order {
         self.is_active = false;
         valuts_manager.update(valut).await?;
         Ok(())
-    }
-
-    pub fn maker_fee(&self) -> Result<Fraction, FractionError> {
-        (
-            self.maker_fee_num.clone().into(),
-            self.maker_fee_denum.clone().into(),
-        )
-            .try_into()
     }
 }
