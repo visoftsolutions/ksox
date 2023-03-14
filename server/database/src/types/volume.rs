@@ -28,32 +28,6 @@ impl std::fmt::Display for Volume {
     }
 }
 
-impl From<BigInt> for Volume {
-    fn from(value: BigInt) -> Self {
-        Volume(value)
-    }
-}
-
-impl From<Volume> for BigInt {
-    fn from(val: Volume) -> Self {
-        val.0
-    }
-}
-
-impl From<Volume> for BigDecimal {
-    fn from(val: Volume) -> Self {
-        BigDecimal::from(val.0)
-    }
-}
-
-impl Deref for Volume {
-    type Target = BigInt;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
 impl Serialize for Volume {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -90,8 +64,48 @@ impl Decode<'_, Postgres> for Volume {
 }
 
 impl Encode<'_, Postgres> for Volume {
+    fn produces(&self) -> Option<<Postgres as sqlx::Database>::TypeInfo> {
+        Some(sqlx::postgres::PgTypeInfo::with_name("NUMERIC"))
+    }
+
     fn encode_by_ref(&self, buf: &mut PgArgumentBuffer) -> sqlx::encode::IsNull {
         <BigDecimal as Encode<Postgres>>::encode_by_ref(&BigDecimal::from(self.0.to_owned()), buf)
+    }
+
+    fn encode(
+        self,
+        buf: &mut <Postgres as sqlx::database::HasArguments<'_>>::ArgumentBuffer,
+    ) -> sqlx::encode::IsNull
+    where
+        Self: Sized,
+    {
+        self.encode_by_ref(buf)
+    }
+}
+
+impl From<BigInt> for Volume {
+    fn from(value: BigInt) -> Self {
+        Volume(value)
+    }
+}
+
+impl From<Volume> for BigInt {
+    fn from(val: Volume) -> Self {
+        val.0
+    }
+}
+
+impl From<Volume> for BigDecimal {
+    fn from(val: Volume) -> Self {
+        BigDecimal::from(val.0)
+    }
+}
+
+impl Deref for Volume {
+    type Target = BigInt;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 

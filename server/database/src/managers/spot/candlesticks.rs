@@ -35,7 +35,7 @@ impl TableManager<Candlestick> for CandlestickManager {
                 metadata,
                 topen,
                 tclose,
-                quantity,
+                span,
                 open as "open: Fraction",
                 high as "high: Fraction",
                 low as "low: Fraction",
@@ -58,7 +58,7 @@ impl TableManager<Candlestick> for CandlestickManager {
                 metadata,
                 topen,
                 tclose,
-                quantity,
+                span,
                 open as "open: Fraction",
                 high as "high: Fraction",
                 low as "low: Fraction",
@@ -84,7 +84,7 @@ impl TableManager<Candlestick> for CandlestickManager {
             r#"
             INSERT INTO 
                 spot.candlesticks 
-                (id, metadata, topen, tclose, quantity, open, high, low, close, taker_quote_volume, taker_base_volume, maker_quote_volume, maker_base_volume)
+                (id, metadata, topen, tclose, span, open, high, low, close, taker_quote_volume, taker_base_volume, maker_quote_volume, maker_base_volume)
             VALUES
                 ($1, $2, $3, $4, $5, $6::fraction, $7::fraction, $8::fraction, $9::fraction, $10, $11, $12, $13)
             "#,
@@ -92,7 +92,7 @@ impl TableManager<Candlestick> for CandlestickManager {
             element.metadata,
             element.topen,
             element.tclose,
-            element.quantity,
+            element.span,
             element.open.to_string() as _,
             element.high.to_string() as _,
             element.low.to_string() as _,
@@ -122,7 +122,7 @@ impl TableManager<Candlestick> for CandlestickManager {
                 metadata = $2,
                 topen = $3,
                 tclose = $4,
-                quantity = $5,
+                span = $5,
                 open = $6,
                 high = $7,
                 low = $8,
@@ -138,7 +138,7 @@ impl TableManager<Candlestick> for CandlestickManager {
             element.metadata,
             element.topen,
             element.tclose,
-            element.quantity,
+            element.span,
             open as _,
             high as _,
             low as _,

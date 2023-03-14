@@ -10,7 +10,7 @@ pub struct Candlestick {
     pub metadata: Uuid,
     pub topen: DateTime<Utc>,
     pub tclose: DateTime<Utc>,
-    pub quantity: i32,
+    pub span: i32,
     pub open: Fraction,
     pub high: Fraction,
     pub low: Fraction,

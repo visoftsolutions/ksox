@@ -64,7 +64,8 @@ impl ValutsManager {
                 asset_id,
                 balance as "balance: Volume"
             FROM spot.valuts
-            WHERE user_id = $1 AND asset_id = $2
+            WHERE user_id = $1
+            AND asset_id = $2
             "#,
             user_id,
             asset_id

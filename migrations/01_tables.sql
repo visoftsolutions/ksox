@@ -59,7 +59,7 @@ CREATE TABLE "spot"."candlesticks" (
   "metadata" uuid NOT NULL,
   "topen" TIMESTAMPTZ NOT NULL,
   "tclose" TIMESTAMPTZ NOT NULL,
-  "quantity" INTEGER NOT NULL,
+  "span" INTEGER NOT NULL,
   "open" fraction NOT NULL,
   "high" fraction NOT NULL,
   "low" fraction NOT NULL,

@@ -17,7 +17,7 @@ impl Drop for NotifyTrigger {
     fn drop(&mut self) {
         if let Some(drop_signal) = self.drop_signal.take() {
             if drop_signal.send(()).is_err() {
-                tracing::error!("drop_signal failed");
+                tracing::error!("drop signal failed");
             }
         }
     }

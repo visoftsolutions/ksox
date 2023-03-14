@@ -48,10 +48,20 @@ impl Decode<'_, Postgres> for EvmAddress {
 
 impl Encode<'_, Postgres> for EvmAddress {
     fn produces(&self) -> Option<<Postgres as sqlx::Database>::TypeInfo> {
-        <&str as Encode<Postgres>>::produces(&self.to_string().as_str())
+        Some(sqlx::postgres::PgTypeInfo::with_name("CHAR[]"))
     }
 
     fn encode_by_ref(&self, buf: &mut PgArgumentBuffer) -> sqlx::encode::IsNull {
         <&str as Encode<Postgres>>::encode_by_ref(&self.to_string().as_str(), buf)
+    }
+
+    fn encode(
+        self,
+        buf: &mut <Postgres as sqlx::database::HasArguments<'_>>::ArgumentBuffer,
+    ) -> sqlx::encode::IsNull
+    where
+        Self: Sized,
+    {
+        self.encode_by_ref(buf)
     }
 }

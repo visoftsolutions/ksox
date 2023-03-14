@@ -41,19 +41,7 @@ where
     D: Deserializer<'de>,
 {
     let s = String::deserialize(deserializer)?;
-    Ok(BigInt::from_str(&s).map_err(serde::de::Error::custom)?)
-}
-
-#[derive(Error, Debug)]
-pub enum FractionError {
-    #[error("Denominator can not be zero")]
-    DenominatorIsZero,
-
-    #[error("IO error: {0}")]
-    Io(#[from] std::io::Error),
-
-    #[error("Could not convert to BigInt")]
-    NotBigIntConvertable,
+    BigInt::from_str(&s).map_err(serde::de::Error::custom)
 }
 
 impl Fraction {
@@ -111,6 +99,14 @@ impl Decode<'_, Postgres> for Fraction {
 }
 
 impl Encode<'_, Postgres> for Fraction {
+    fn produces(&self) -> Option<<Postgres as sqlx::Database>::TypeInfo> {
+        Some(sqlx::postgres::PgTypeInfo::with_name("fraction"))
+    }
+
+    fn encode_by_ref(&self, buf: &mut PgArgumentBuffer) -> sqlx::encode::IsNull {
+        <&str as Encode<Postgres>>::encode_by_ref(&self.to_string().as_str(), buf)
+    }
+
     fn encode(
         self,
         buf: &mut <Postgres as sqlx::database::HasArguments<'_>>::ArgumentBuffer,
@@ -119,12 +115,6 @@ impl Encode<'_, Postgres> for Fraction {
         Self: Sized,
     {
         self.encode_by_ref(buf)
-    }
-    fn produces(&self) -> Option<<Postgres as sqlx::Database>::TypeInfo> {
-        Some(sqlx::postgres::PgTypeInfo::with_name("fraction"))
-    }
-    fn encode_by_ref(&self, buf: &mut PgArgumentBuffer) -> sqlx::encode::IsNull {
-        <&str as Encode<Postgres>>::encode_by_ref(&self.to_string().as_str(), buf)
     }
 }
 
@@ -235,4 +225,16 @@ impl Mul<Fraction> for Volume {
     fn mul(self, rhs: Fraction) -> Self::Output {
         self * rhs.numerator / rhs.denominator
     }
+}
+
+#[derive(Error, Debug)]
+pub enum FractionError {
+    #[error("Denominator can not be zero")]
+    DenominatorIsZero,
+
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("Could not convert to BigInt")]
+    NotBigIntConvertable,
 }

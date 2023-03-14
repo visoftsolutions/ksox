@@ -197,7 +197,7 @@ async fn insert_fraction() {
         metadata: metadata_id,
         topen: Utc::now(),
         tclose: Utc::now(),
-        quantity: 10,
+        span: 10,
         open: TryFrom::try_from((BigInt::from(10), BigInt::from(100))).unwrap(),
         high: TryFrom::try_from((BigInt::from(10), BigInt::from(100))).unwrap(),
         low: TryFrom::try_from((BigInt::from(10), BigInt::from(100))).unwrap(),
