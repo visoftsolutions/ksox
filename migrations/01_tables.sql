@@ -46,24 +46,18 @@ CREATE TABLE "spot"."trades" (
   "maker_base_volume" NUMERIC(78) NOT NULL CHECK ("maker_base_volume" >= 0)
 );
 
-CREATE TABLE "spot"."candlesticks_metadata" (
+CREATE TABLE "spot"."candlesticks" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "quote_asset_id" uuid NOT NULL,
   "base_asset_id" uuid NOT NULL,
   "kind" candlestick_type NOT NULL,
-  "span" INTEGER NOT NULL
-);
-
-CREATE TABLE "spot"."candlesticks" (
-  "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-  "metadata" uuid NOT NULL,
   "topen" TIMESTAMPTZ NOT NULL,
   "tclose" TIMESTAMPTZ NOT NULL,
-  "span" INTEGER NOT NULL,
   "open" fraction NOT NULL,
   "high" fraction NOT NULL,
   "low" fraction NOT NULL,
   "close" fraction NOT NULL,
+  "span" NUMERIC(78) NOT NULL CHECK ("span" >= 0),
   "taker_quote_volume" NUMERIC(78) NOT NULL CHECK ("taker_quote_volume" >= 0),
   "taker_base_volume" NUMERIC(78) NOT NULL CHECK ("taker_base_volume" >= 0),
   "maker_quote_volume" NUMERIC(78) NOT NULL CHECK ("maker_quote_volume" >= 0),
@@ -84,8 +78,6 @@ ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("taker_id") REFERENCES "users" ("id
 
 ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("order_id") REFERENCES "spot"."orders" ("id");
 
-ALTER TABLE "spot"."candlesticks" ADD FOREIGN KEY ("metadata") REFERENCES "spot"."candlesticks_metadata" ("id");
+ALTER TABLE "spot"."candlesticks" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "spot"."assets" ("id");
 
-ALTER TABLE "spot"."candlesticks_metadata" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "spot"."assets" ("id");
-
-ALTER TABLE "spot"."candlesticks_metadata" ADD FOREIGN KEY ("base_asset_id") REFERENCES "spot"."assets" ("id");
+ALTER TABLE "spot"."candlesticks" ADD FOREIGN KEY ("base_asset_id") REFERENCES "spot"."assets" ("id");

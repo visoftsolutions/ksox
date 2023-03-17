@@ -1,9 +1,11 @@
+pub mod candlestick_type;
 pub mod evm_address;
 pub mod fraction;
 pub mod notify_trigger;
 pub mod price_level;
 pub mod subscribe_stream;
 pub mod volume;
+pub use candlestick_type::CandlestickType;
 pub use evm_address::EvmAddress;
 pub use fraction::Fraction;
 pub use notify_trigger::NotifyTrigger;

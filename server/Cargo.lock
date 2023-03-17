@@ -592,7 +592,7 @@ dependencies = [
  "ethereum-types",
  "futures",
  "num-bigint",
- "prefix-hex 0.5.0",
+ "prefix-hex",
  "serde",
  "serde_json",
  "sha2",
@@ -1938,15 +1938,6 @@ checksum = "5b40af805b3121feab8a3c29f04d8ad262fa8e0561883e7653e024ae4479e6de"
 
 [[package]]
 name = "prefix-hex"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "75e3396888185b76a6e4c8fc883b3f039e56d3c0bca279744d2df70b3662e784"
-dependencies = [
- "hex",
-]
-
-[[package]]
-name = "prefix-hex"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3b765bdee4f947c49356ac04884a3a929a03464c3325ec11c76e5a9ddf78101"
@@ -2537,18 +2528,18 @@ checksum = "1685deded9b272198423bdbdb907d8519def2f26cf3699040e54e8c4fbd5c5ce"
 
 [[package]]
 name = "serde"
-version = "1.0.152"
+version = "1.0.156"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb7d1f0d3021d347a83e556fc4683dea2ea09d87bccdf88ff5c12545d89d5efb"
+checksum = "314b5b092c0ade17c00142951e50ced110ec27cea304b1037c6969246c2469a4"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.152"
+version = "1.0.156"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af487d118eecd09402d70a5d72551860e788df87b464af30e5ea6a38c75c541e"
+checksum = "d7e29c4601e36bcec74a223228dce795f4cd3616341a4af93520ca1a837c087d"
 dependencies = [
  "proc-macro2 1.0.50",
  "quote 1.0.23",
@@ -3705,7 +3696,7 @@ dependencies = [
  "headers",
  "http",
  "ordered-float",
- "prefix-hex 0.6.0",
+ "prefix-hex",
  "prost",
  "rand",
  "regex",

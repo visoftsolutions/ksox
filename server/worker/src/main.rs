@@ -2,6 +2,7 @@
 #![feature(option_get_or_insert_default)]
 mod api;
 mod models;
+mod ohlcv;
 mod recognition;
 mod shutdown_signal;
 

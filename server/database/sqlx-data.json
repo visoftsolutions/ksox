@@ -227,6 +227,106 @@
     },
     "query": "\n            SELECT\n                id,\n                user_id,\n                asset_id,\n                balance as \"balance: Volume\"\n            FROM spot.valuts\n            WHERE user_id = $1\n            ORDER BY balance\n            LIMIT $2\n            OFFSET $3\n            "
   },
+  "0fe149b9e923ca332f092aa0bea32100ced167e94786f3ef78cc1465bd563845": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid",
+          "Uuid",
+          {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "interval",
+                  "tick"
+                ]
+              },
+              "name": "candlestick_type"
+            }
+          },
+          "Timestamptz",
+          "Timestamptz",
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numerator",
+                    "Numeric"
+                  ],
+                  [
+                    "denominator",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numerator",
+                    "Numeric"
+                  ],
+                  [
+                    "denominator",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numerator",
+                    "Numeric"
+                  ],
+                  [
+                    "denominator",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numerator",
+                    "Numeric"
+                  ],
+                  [
+                    "denominator",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          "Numeric",
+          "Numeric",
+          "Numeric",
+          "Numeric",
+          "Numeric"
+        ]
+      }
+    },
+    "query": "\n            UPDATE \n                spot.candlesticks \n            SET\n                quote_asset_id = $2,\n                base_asset_id = $3,\n                kind = $4,\n                topen = $5,\n                tclose = $6,\n                open = $7,\n                high = $8,\n                low = $9,\n                close = $10,\n                span = $11,\n                taker_quote_volume = $12,\n                taker_base_volume = $13,\n                maker_quote_volume = $14,\n                maker_base_volume = $15\n            WHERE\n                id = $1\n            "
+  },
   "19e766491b4a597a95a71ea2f2630b5b9535b632d7dcc0120aa2aa5223aa4f9f": {
     "describe": {
       "columns": [],
@@ -240,6 +340,184 @@
       }
     },
     "query": "\n            UPDATE \n                users\n            SET\n                created_at = $2,\n                address = $3\n            WHERE\n                id = $1\n            "
+  },
+  "1e035a43fce3625a512d882465e8a653d3fa70cbf6e2e0fb360a70c2d183c07a": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "quote_asset_id",
+          "ordinal": 1,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "base_asset_id",
+          "ordinal": 2,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "kind: CandlestickType",
+          "ordinal": 3,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "interval",
+                  "tick"
+                ]
+              },
+              "name": "candlestick_type"
+            }
+          }
+        },
+        {
+          "name": "topen",
+          "ordinal": 4,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "tclose",
+          "ordinal": 5,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "open: Fraction",
+          "ordinal": 6,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numerator",
+                    "Numeric"
+                  ],
+                  [
+                    "denominator",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "high: Fraction",
+          "ordinal": 7,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numerator",
+                    "Numeric"
+                  ],
+                  [
+                    "denominator",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "low: Fraction",
+          "ordinal": 8,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numerator",
+                    "Numeric"
+                  ],
+                  [
+                    "denominator",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "close: Fraction",
+          "ordinal": 9,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numerator",
+                    "Numeric"
+                  ],
+                  [
+                    "denominator",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "span: Volume",
+          "ordinal": 10,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "taker_quote_volume: Volume",
+          "ordinal": 11,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "taker_base_volume: Volume",
+          "ordinal": 12,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "maker_quote_volume: Volume",
+          "ordinal": 13,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "maker_base_volume: Volume",
+          "ordinal": 14,
+          "type_info": "Numeric"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                quote_asset_id,\n                base_asset_id,\n                kind as \"kind: CandlestickType\",\n                topen,\n                tclose,\n                open as \"open: Fraction\",\n                high as \"high: Fraction\",\n                low as \"low: Fraction\",\n                close as \"close: Fraction\",\n                span as \"span: Volume\",\n                taker_quote_volume as \"taker_quote_volume: Volume\",\n                taker_base_volume as \"taker_base_volume: Volume\",\n                maker_quote_volume as \"maker_quote_volume: Volume\",\n                maker_base_volume as \"maker_base_volume: Volume\"\n            FROM spot.candlesticks\n            WHERE spot.candlesticks.id = $1\n            "
   },
   "2429fa157864416c5f5789eb1404558fd3c0a379419ee92ea8ec907d4f34a843": {
     "describe": {
@@ -317,6 +595,182 @@
       }
     },
     "query": "\n            SELECT\n                spot.trades.id,\n                spot.trades.created_at,\n                spot.trades.taker_id,\n                spot.trades.order_id,\n                spot.trades.taker_quote_volume as \"taker_quote_volume: Volume\",\n                spot.trades.taker_base_volume as \"taker_base_volume: Volume\",\n                spot.trades.maker_quote_volume as \"maker_quote_volume: Volume\",\n                spot.trades.maker_base_volume as \"maker_base_volume: Volume\"\n            FROM spot.trades\n            JOIN spot.orders ON order_id = spot.orders.id\n            WHERE spot.orders.quote_asset_id = $1 AND spot.orders.base_asset_id = $2\n            ORDER BY created_at\n            LIMIT $3\n            OFFSET $4\n            "
+  },
+  "311552f8bdcf5914fb3da3ca5709526c98b37e39415991e125395451f133ab91": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "quote_asset_id",
+          "ordinal": 1,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "base_asset_id",
+          "ordinal": 2,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "kind: CandlestickType",
+          "ordinal": 3,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "interval",
+                  "tick"
+                ]
+              },
+              "name": "candlestick_type"
+            }
+          }
+        },
+        {
+          "name": "topen",
+          "ordinal": 4,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "tclose",
+          "ordinal": 5,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "open: Fraction",
+          "ordinal": 6,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numerator",
+                    "Numeric"
+                  ],
+                  [
+                    "denominator",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "high: Fraction",
+          "ordinal": 7,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numerator",
+                    "Numeric"
+                  ],
+                  [
+                    "denominator",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "low: Fraction",
+          "ordinal": 8,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numerator",
+                    "Numeric"
+                  ],
+                  [
+                    "denominator",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "close: Fraction",
+          "ordinal": 9,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numerator",
+                    "Numeric"
+                  ],
+                  [
+                    "denominator",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "span: Volume",
+          "ordinal": 10,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "taker_quote_volume: Volume",
+          "ordinal": 11,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "taker_base_volume: Volume",
+          "ordinal": 12,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "maker_quote_volume: Volume",
+          "ordinal": 13,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "maker_base_volume: Volume",
+          "ordinal": 14,
+          "type_info": "Numeric"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                quote_asset_id,\n                base_asset_id,\n                kind as \"kind: CandlestickType\",\n                topen,\n                tclose,\n                open as \"open: Fraction\",\n                high as \"high: Fraction\",\n                low as \"low: Fraction\",\n                close as \"close: Fraction\",\n                span as \"span: Volume\",\n                taker_quote_volume as \"taker_quote_volume: Volume\",\n                taker_base_volume as \"taker_base_volume: Volume\",\n                maker_quote_volume as \"maker_quote_volume: Volume\",\n                maker_base_volume as \"maker_base_volume: Volume\"\n            FROM spot.candlesticks\n            "
   },
   "347c7e5b19d13f4e939c6a3af4fd69521ce3539b7749853dc6cde040240d9b2e": {
     "describe": {
@@ -585,248 +1039,6 @@
       }
     },
     "query": "\n            INSERT INTO\n                users\n                (id, created_at, address)\n            VALUES\n                ($1, $2, $3)\n            "
-  },
-  "545f7e662add51cb7e2e8199a30409bfcb55cfb1975dfd8fcf737c2c83530920": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "metadata",
-          "ordinal": 1,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "topen",
-          "ordinal": 2,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "tclose",
-          "ordinal": 3,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "span",
-          "ordinal": 4,
-          "type_info": "Int4"
-        },
-        {
-          "name": "open: Fraction",
-          "ordinal": 5,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numerator",
-                    "Numeric"
-                  ],
-                  [
-                    "denominator",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        },
-        {
-          "name": "high: Fraction",
-          "ordinal": 6,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numerator",
-                    "Numeric"
-                  ],
-                  [
-                    "denominator",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        },
-        {
-          "name": "low: Fraction",
-          "ordinal": 7,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numerator",
-                    "Numeric"
-                  ],
-                  [
-                    "denominator",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        },
-        {
-          "name": "close: Fraction",
-          "ordinal": 8,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numerator",
-                    "Numeric"
-                  ],
-                  [
-                    "denominator",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        },
-        {
-          "name": "taker_quote_volume: Volume",
-          "ordinal": 9,
-          "type_info": "Numeric"
-        },
-        {
-          "name": "taker_base_volume: Volume",
-          "ordinal": 10,
-          "type_info": "Numeric"
-        },
-        {
-          "name": "maker_quote_volume: Volume",
-          "ordinal": 11,
-          "type_info": "Numeric"
-        },
-        {
-          "name": "maker_base_volume: Volume",
-          "ordinal": 12,
-          "type_info": "Numeric"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "\n            SELECT\n                id,\n                metadata,\n                topen,\n                tclose,\n                span,\n                open as \"open: Fraction\",\n                high as \"high: Fraction\",\n                low as \"low: Fraction\",\n                close as \"close: Fraction\",\n                taker_quote_volume as \"taker_quote_volume: Volume\",\n                taker_base_volume as \"taker_base_volume: Volume\",\n                maker_quote_volume as \"maker_quote_volume: Volume\",\n                maker_base_volume as \"maker_base_volume: Volume\"\n            FROM spot.candlesticks\n            "
-  },
-  "54cd707ff428096114d101dd695e60237a4413c6e0b91408b505c94dcc4e41bf": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Uuid",
-          "Timestamptz",
-          "Timestamptz",
-          "Int4",
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numerator",
-                    "Numeric"
-                  ],
-                  [
-                    "denominator",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          },
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numerator",
-                    "Numeric"
-                  ],
-                  [
-                    "denominator",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          },
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numerator",
-                    "Numeric"
-                  ],
-                  [
-                    "denominator",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          },
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numerator",
-                    "Numeric"
-                  ],
-                  [
-                    "denominator",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          },
-          "Numeric",
-          "Numeric",
-          "Numeric",
-          "Numeric"
-        ]
-      }
-    },
-    "query": "\n            INSERT INTO \n                spot.candlesticks \n                (id, metadata, topen, tclose, span, open, high, low, close, taker_quote_volume, taker_base_volume, maker_quote_volume, maker_base_volume)\n            VALUES\n                ($1, $2, $3, $4, $5, $6::fraction, $7::fraction, $8::fraction, $9::fraction, $10, $11, $12, $13)\n            "
   },
   "577045b98f0cfe8f9dac0437086975f76a21083d25004e940788f968bc71f8bb": {
     "describe": {
@@ -1192,94 +1404,6 @@
     },
     "query": "\n            DELETE FROM \n                spot.valuts \n            WHERE\n                id = $1\n            "
   },
-  "7e6c8235221ccaa6c0214087f286cf324ee8cfc005b25ba16c291d9aa8011f90": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Uuid",
-          "Timestamptz",
-          "Timestamptz",
-          "Int4",
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numerator",
-                    "Numeric"
-                  ],
-                  [
-                    "denominator",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          },
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numerator",
-                    "Numeric"
-                  ],
-                  [
-                    "denominator",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          },
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numerator",
-                    "Numeric"
-                  ],
-                  [
-                    "denominator",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          },
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numerator",
-                    "Numeric"
-                  ],
-                  [
-                    "denominator",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          },
-          "Numeric",
-          "Numeric",
-          "Numeric",
-          "Numeric"
-        ]
-      }
-    },
-    "query": "\n            UPDATE \n                spot.candlesticks \n            SET\n                metadata = $2,\n                topen = $3,\n                tclose = $4,\n                span = $5,\n                open = $6,\n                high = $7,\n                low = $8,\n                close = $9,\n                taker_quote_volume = $10,\n                taker_base_volume = $11,\n                maker_quote_volume = $12,\n                maker_base_volume = $13\n            WHERE\n                id = $1\n            "
-  },
   "82ce0e927445b63f9e71308e31d0bcbfd6ca2592b1160d8a5cb913fd2b3e603a": {
     "describe": {
       "columns": [],
@@ -1439,32 +1563,6 @@
       }
     },
     "query": "\n            INSERT INTO\n                spot.valuts\n                (id, user_id, asset_id, balance)\n            VALUES\n                ($1, $2, $3, $4)\n            "
-  },
-  "8c49f9753631fe6bfc5b18b28b8f07d9532d5c0ae6e8b41b99b6b25918b83483": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Uuid",
-          "Uuid",
-          {
-            "Custom": {
-              "kind": {
-                "Enum": [
-                  "interval",
-                  "tick"
-                ]
-              },
-              "name": "candlestick_type"
-            }
-          },
-          "Int4"
-        ]
-      }
-    },
-    "query": "\n            UPDATE \n                spot.candlesticks_metadata \n            SET\n                quote_asset_id = $2,\n                base_asset_id = $3,\n                kind = $4,\n                span = $5\n            WHERE\n                id = $1\n            "
   },
   "8c7cd37c64cb9f7dac4c9e75a6482106b5e101f9852f76f3c21f73c32c8239fe": {
     "describe": {
@@ -1712,6 +1810,106 @@
     },
     "query": "\n                SELECT drop_spot_orders_notify_trigger_for_user($1)\n                "
   },
+  "97e7422d74cfe5bea62ffe9a390ed8417622edbd59d13d08af0c17697917ab7b": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid",
+          "Uuid",
+          {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "interval",
+                  "tick"
+                ]
+              },
+              "name": "candlestick_type"
+            }
+          },
+          "Timestamptz",
+          "Timestamptz",
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numerator",
+                    "Numeric"
+                  ],
+                  [
+                    "denominator",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numerator",
+                    "Numeric"
+                  ],
+                  [
+                    "denominator",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numerator",
+                    "Numeric"
+                  ],
+                  [
+                    "denominator",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numerator",
+                    "Numeric"
+                  ],
+                  [
+                    "denominator",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          "Numeric",
+          "Numeric",
+          "Numeric",
+          "Numeric",
+          "Numeric"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO \n                spot.candlesticks \n                (\n                    id,\n                    quote_asset_id,\n                    base_asset_id,\n                    kind,\n                    topen,\n                    tclose,\n                    open,\n                    high,\n                    low,\n                    close,\n                    span,\n                    taker_quote_volume,\n                    taker_base_volume,\n                    maker_quote_volume,\n                    maker_base_volume    \n                )\n            VALUES\n                (\n                    $1,\n                    $2,\n                    $3,\n                    $4::candlestick_type,\n                    $5,\n                    $6,\n                    $7::fraction,\n                    $8::fraction,\n                    $9::fraction,\n                    $10::fraction,\n                    $11,\n                    $12,\n                    $13,\n                    $14,\n                    $15\n                )\n            "
+  },
   "99b81baeaea8f9ca25a6f7269bad73928dc1bb8a1a217505c5a36029ffa6dcea": {
     "describe": {
       "columns": [
@@ -1860,60 +2058,6 @@
     },
     "query": "\n            UPDATE \n                spot.assets \n            SET\n                created_at = $2,\n                name = $3,\n                symbol = $4,\n                maker_fee = $5,\n                taker_fee = $6\n            WHERE\n                id = $1\n            "
   },
-  "adcc8cf6a7fc593032b82dc55b893d8b3150e971f0522f4cea2eb96329908490": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "quote_asset_id",
-          "ordinal": 1,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "base_asset_id",
-          "ordinal": 2,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "kind: CandlestickType",
-          "ordinal": 3,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Enum": [
-                  "interval",
-                  "tick"
-                ]
-              },
-              "name": "candlestick_type"
-            }
-          }
-        },
-        {
-          "name": "span",
-          "ordinal": 4,
-          "type_info": "Int4"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                id,\n                quote_asset_id,\n                base_asset_id,\n                kind as \"kind: CandlestickType\",\n                span\n            FROM spot.candlesticks_metadata\n            WHERE spot.candlesticks_metadata.id = $1\n            "
-  },
   "b0c7bf8f150beadcbd61ea889dc8b6a498ef4a2bdc4da17ab79e3853d39e8a20": {
     "describe": {
       "columns": [
@@ -1993,162 +2137,6 @@
       }
     },
     "query": "\n            SELECT\n                id,\n                created_at,\n                name,\n                symbol,\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\"\n            FROM spot.assets\n            "
-  },
-  "b18b588954b97edaa5724cb8b732c82ac26a1b51f8d998953b9dc60612bad21a": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "metadata",
-          "ordinal": 1,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "topen",
-          "ordinal": 2,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "tclose",
-          "ordinal": 3,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "span",
-          "ordinal": 4,
-          "type_info": "Int4"
-        },
-        {
-          "name": "open: Fraction",
-          "ordinal": 5,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numerator",
-                    "Numeric"
-                  ],
-                  [
-                    "denominator",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        },
-        {
-          "name": "high: Fraction",
-          "ordinal": 6,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numerator",
-                    "Numeric"
-                  ],
-                  [
-                    "denominator",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        },
-        {
-          "name": "low: Fraction",
-          "ordinal": 7,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numerator",
-                    "Numeric"
-                  ],
-                  [
-                    "denominator",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        },
-        {
-          "name": "close: Fraction",
-          "ordinal": 8,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numerator",
-                    "Numeric"
-                  ],
-                  [
-                    "denominator",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        },
-        {
-          "name": "taker_quote_volume: Volume",
-          "ordinal": 9,
-          "type_info": "Numeric"
-        },
-        {
-          "name": "taker_base_volume: Volume",
-          "ordinal": 10,
-          "type_info": "Numeric"
-        },
-        {
-          "name": "maker_quote_volume: Volume",
-          "ordinal": 11,
-          "type_info": "Numeric"
-        },
-        {
-          "name": "maker_base_volume: Volume",
-          "ordinal": 12,
-          "type_info": "Numeric"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                id,\n                metadata,\n                topen,\n                tclose,\n                span,\n                open as \"open: Fraction\",\n                high as \"high: Fraction\",\n                low as \"low: Fraction\",\n                close as \"close: Fraction\",\n                taker_quote_volume as \"taker_quote_volume: Volume\",\n                taker_base_volume as \"taker_base_volume: Volume\",\n                maker_quote_volume as \"maker_quote_volume: Volume\",\n                maker_base_volume as \"maker_base_volume: Volume\"\n            FROM spot.candlesticks\n            WHERE spot.candlesticks.id = $1\n            "
   },
   "bf4a73c03070ebc43a41128f7f564063163be0e94b7f1148a9f851ce8eab5f90": {
     "describe": {
@@ -2428,70 +2416,6 @@
     },
     "query": "\n            SELECT\n                spot.trades.id,\n                spot.trades.created_at,\n                spot.trades.taker_id,\n                spot.trades.order_id,\n                spot.trades.taker_quote_volume as \"taker_quote_volume: Volume\",\n                spot.trades.taker_base_volume as \"taker_base_volume: Volume\",\n                spot.trades.maker_quote_volume as \"maker_quote_volume: Volume\",\n                spot.trades.maker_base_volume as \"maker_base_volume: Volume\"\n            FROM spot.trades\n            JOIN spot.orders ON spot.trades.order_id = spot.orders.id\n            WHERE spot.orders.user_id = $1\n            ORDER BY created_at ASC\n            "
   },
-  "d9bce4d3dd567189001ab4ec2bcd7c0dc559a1fe0273f863f0284ccf4d646aa4": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      }
-    },
-    "query": "\n            DELETE FROM\n                spot.candlesticks_metadata \n            WHERE\n                id = $1\n            "
-  },
-  "dda859322c606187c8884452c989e1857cae1fded6c403142bf55296002313e4": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "quote_asset_id",
-          "ordinal": 1,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "base_asset_id",
-          "ordinal": 2,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "kind: CandlestickType",
-          "ordinal": 3,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Enum": [
-                  "interval",
-                  "tick"
-                ]
-              },
-              "name": "candlestick_type"
-            }
-          }
-        },
-        {
-          "name": "span",
-          "ordinal": 4,
-          "type_info": "Int4"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "\n            SELECT\n                id,\n                quote_asset_id,\n                base_asset_id,\n                kind as \"kind: CandlestickType\",\n                span\n            FROM spot.candlesticks_metadata\n            "
-  },
   "e46ec6c2213116191cece3133944bdc89ef433bd8fda2c8ccc8b6ab39f2b61b1": {
     "describe": {
       "columns": [
@@ -2668,32 +2592,6 @@
       }
     },
     "query": "\n                SELECT drop_spot_trades_notify_trigger_for_asset_pair($1)\n                "
-  },
-  "f331949e671fd65c9b5997e98cd2a2421c15fa6d55330668e5dff697d22970a5": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Uuid",
-          "Uuid",
-          {
-            "Custom": {
-              "kind": {
-                "Enum": [
-                  "interval",
-                  "tick"
-                ]
-              },
-              "name": "candlestick_type"
-            }
-          },
-          "Int4"
-        ]
-      }
-    },
-    "query": "\n            INSERT INTO \n                spot.candlesticks_metadata \n                (id, quote_asset_id, base_asset_id, kind, span)\n            VALUES\n                ($1, $2, $3, $4::candlestick_type, $5)\n            "
   },
   "fb959a5e19a7d29615ff9df19098ac4e50df8ff5369b0533d985d145f1c7a09f": {
     "describe": {

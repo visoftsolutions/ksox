@@ -13,7 +13,7 @@ impl FromStr for EvmAddress {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let bytes = prefix_hex::decode::<[u8; 20]>(s).map_err(anyhow::Error::msg)?;
+        let bytes: [u8; 20] = prefix_hex::decode(s).map_err(anyhow::Error::msg)?;
         Ok(Self(Address::from_slice(&bytes)))
     }
 }
@@ -40,8 +40,8 @@ impl Deref for EvmAddress {
 
 impl Decode<'_, Postgres> for EvmAddress {
     fn decode(value: PgValueRef) -> std::result::Result<Self, sqlx::error::BoxDynError> {
-        let bytes =
-            prefix_hex::decode::<[u8; 20]>(value.as_str()?).map_err(|error| error.to_string())?;
+        let bytes: [u8; 20] =
+            prefix_hex::decode(value.as_str()?).map_err(|error| error.to_string())?;
         Ok(EvmAddress(Address::from_slice(&bytes)))
     }
 }

@@ -11,7 +11,7 @@ use sqlx::{
 use crate::{
     projections::spot::candlestick::Candlestick,
     traits::table_manager::TableManager,
-    types::{Fraction, Volume},
+    types::{CandlestickType, Fraction, Volume},
 };
 
 #[derive(Debug, Clone)]
@@ -32,14 +32,16 @@ impl TableManager<Candlestick> for CandlestickManager {
             r#"
             SELECT
                 id,
-                metadata,
+                quote_asset_id,
+                base_asset_id,
+                kind as "kind: CandlestickType",
                 topen,
                 tclose,
-                span,
                 open as "open: Fraction",
                 high as "high: Fraction",
                 low as "low: Fraction",
                 close as "close: Fraction",
+                span as "span: Volume",
                 taker_quote_volume as "taker_quote_volume: Volume",
                 taker_base_volume as "taker_base_volume: Volume",
                 maker_quote_volume as "maker_quote_volume: Volume",
@@ -55,14 +57,16 @@ impl TableManager<Candlestick> for CandlestickManager {
             r#"
             SELECT
                 id,
-                metadata,
+                quote_asset_id,
+                base_asset_id,
+                kind as "kind: CandlestickType",
                 topen,
                 tclose,
-                span,
                 open as "open: Fraction",
                 high as "high: Fraction",
                 low as "low: Fraction",
                 close as "close: Fraction",
+                span as "span: Volume",
                 taker_quote_volume as "taker_quote_volume: Volume",
                 taker_base_volume as "taker_base_volume: Volume",
                 maker_quote_volume as "maker_quote_volume: Volume",
@@ -76,6 +80,7 @@ impl TableManager<Candlestick> for CandlestickManager {
         .await
     }
     async fn insert(&self, element: Candlestick) -> Result<PgQueryResult> {
+        let span: BigDecimal = element.span.into();
         let taker_quote_volume: BigDecimal = element.taker_quote_volume.into();
         let taker_base_volume: BigDecimal = element.taker_base_volume.into();
         let maker_quote_volume: BigDecimal = element.maker_quote_volume.into();
@@ -84,19 +89,53 @@ impl TableManager<Candlestick> for CandlestickManager {
             r#"
             INSERT INTO 
                 spot.candlesticks 
-                (id, metadata, topen, tclose, span, open, high, low, close, taker_quote_volume, taker_base_volume, maker_quote_volume, maker_base_volume)
+                (
+                    id,
+                    quote_asset_id,
+                    base_asset_id,
+                    kind,
+                    topen,
+                    tclose,
+                    open,
+                    high,
+                    low,
+                    close,
+                    span,
+                    taker_quote_volume,
+                    taker_base_volume,
+                    maker_quote_volume,
+                    maker_base_volume    
+                )
             VALUES
-                ($1, $2, $3, $4, $5, $6::fraction, $7::fraction, $8::fraction, $9::fraction, $10, $11, $12, $13)
+                (
+                    $1,
+                    $2,
+                    $3,
+                    $4::candlestick_type,
+                    $5,
+                    $6,
+                    $7::fraction,
+                    $8::fraction,
+                    $9::fraction,
+                    $10::fraction,
+                    $11,
+                    $12,
+                    $13,
+                    $14,
+                    $15
+                )
             "#,
             element.id,
-            element.metadata,
+            element.quote_asset_id,
+            element.base_asset_id,
+            element.kind as _,
             element.topen,
             element.tclose,
-            element.span,
             element.open.to_string() as _,
             element.high.to_string() as _,
             element.low.to_string() as _,
             element.close.to_string() as _,
+            span,
             taker_quote_volume,
             taker_base_volume,
             maker_quote_volume,
@@ -106,10 +145,7 @@ impl TableManager<Candlestick> for CandlestickManager {
         .await
     }
     async fn update(&self, element: Candlestick) -> Result<PgQueryResult> {
-        let open: String = element.open.to_string();
-        let high: String = element.high.to_string();
-        let low: String = element.low.to_string();
-        let close: String = element.close.to_string();
+        let span: BigDecimal = element.span.into();
         let taker_quote_volume: BigDecimal = element.taker_quote_volume.into();
         let taker_base_volume: BigDecimal = element.taker_base_volume.into();
         let maker_quote_volume: BigDecimal = element.maker_quote_volume.into();
@@ -119,30 +155,34 @@ impl TableManager<Candlestick> for CandlestickManager {
             UPDATE 
                 spot.candlesticks 
             SET
-                metadata = $2,
-                topen = $3,
-                tclose = $4,
-                span = $5,
-                open = $6,
-                high = $7,
-                low = $8,
-                close = $9,
-                taker_quote_volume = $10,
-                taker_base_volume = $11,
-                maker_quote_volume = $12,
-                maker_base_volume = $13
+                quote_asset_id = $2,
+                base_asset_id = $3,
+                kind = $4,
+                topen = $5,
+                tclose = $6,
+                open = $7,
+                high = $8,
+                low = $9,
+                close = $10,
+                span = $11,
+                taker_quote_volume = $12,
+                taker_base_volume = $13,
+                maker_quote_volume = $14,
+                maker_base_volume = $15
             WHERE
                 id = $1
             "#,
             element.id,
-            element.metadata,
+            element.quote_asset_id,
+            element.base_asset_id,
+            element.kind as _,
             element.topen,
             element.tclose,
-            element.span,
-            open as _,
-            high as _,
-            low as _,
-            close as _,
+            element.open.to_string() as _,
+            element.high.to_string() as _,
+            element.low.to_string() as _,
+            element.close.to_string() as _,
+            span,
             taker_quote_volume,
             taker_base_volume,
             maker_quote_volume,
