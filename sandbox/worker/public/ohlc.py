@@ -15,7 +15,7 @@ response = SSEClient(
         "base_asset_id": "7a99f052-d941-4dcc-aabd-6695c24deed5",
         "kind": "Interval",
         "reference_point": "2023-03-18T15:30:45.123456Z",
-        "span": 10000,
+        "span": 100000000,
     }
 )
 for event in response:

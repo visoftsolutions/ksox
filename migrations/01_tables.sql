@@ -1,7 +1,7 @@
 
 CREATE TABLE "users" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-  "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "address" CHAR(42) UNIQUE NOT NULL
 );
 
@@ -15,7 +15,7 @@ CREATE TABLE "spot"."valuts" (
 
 CREATE TABLE "spot"."assets" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-  "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "name" VARCHAR NOT NULL,
   "symbol" VARCHAR NOT NULL,
   "maker_fee" fraction NOT NULL,
@@ -24,7 +24,7 @@ CREATE TABLE "spot"."assets" (
 
 CREATE TABLE "spot"."orders" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-  "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "user_id" uuid NOT NULL,
   "is_active" BOOLEAN NOT NULL DEFAULT true,
   "quote_asset_id" uuid NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE "spot"."orders" (
 
 CREATE TABLE "spot"."trades" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-  "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "taker_id" uuid NOT NULL,
   "order_id" uuid NOT NULL,
   "taker_quote_volume" NUMERIC(78) NOT NULL CHECK ("taker_quote_volume" >= 0),
@@ -51,8 +51,8 @@ CREATE TABLE "spot"."candlesticks" (
   "quote_asset_id" uuid NOT NULL,
   "base_asset_id" uuid NOT NULL,
   "kind" candlestick_type NOT NULL,
-  "topen" TIMESTAMPTZ NOT NULL,
-  "tclose" TIMESTAMPTZ NOT NULL,
+  "topen" TIMESTAMP(6) WITH TIME ZONE NOT NULL,
+  "tclose" TIMESTAMP(6) WITH TIME ZONE NOT NULL,
   "open" fraction NOT NULL,
   "high" fraction NOT NULL,
   "low" fraction NOT NULL,

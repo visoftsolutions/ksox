@@ -53,7 +53,7 @@ pub async fn root(
     Json(payload): Json<RequestPartial>,
 ) -> Sse<impl Stream<Item = Result<Event, std::io::Error>>> {
     let payload = payload.insert_defaults();
-    tracing::info!("{:#?}", payload);
+    tracing::info!("{}", payload.reference_point);
     let stream = async_stream::try_stream! {
         let ohlcv_engine = OhlcvEngine::new(state.database);
         let mut stream = ohlcv_engine.subscribe(payload.quote_asset_id, payload.base_asset_id, payload.kind, payload.reference_point, payload.span).await;
