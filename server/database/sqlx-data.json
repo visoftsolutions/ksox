@@ -341,6 +341,70 @@
     },
     "query": "\n            UPDATE \n                users\n            SET\n                created_at = $2,\n                address = $3\n            WHERE\n                id = $1\n            "
   },
+  "22ea7df7020dc4fd776a5009054ae95ed3717f728586dd8495e8101bf8402eda": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "taker_id",
+          "ordinal": 2,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "order_id",
+          "ordinal": 3,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "taker_quote_volume: Volume",
+          "ordinal": 4,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "taker_base_volume: Volume",
+          "ordinal": 5,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "maker_quote_volume: Volume",
+          "ordinal": 6,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "maker_base_volume: Volume",
+          "ordinal": 7,
+          "type_info": "Numeric"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid",
+          "Timestamptz"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                spot.trades.id,\n                spot.trades.created_at,\n                spot.trades.taker_id,\n                spot.trades.order_id,\n                spot.trades.taker_quote_volume as \"taker_quote_volume: Volume\",\n                spot.trades.taker_base_volume as \"taker_base_volume: Volume\",\n                spot.trades.maker_quote_volume as \"maker_quote_volume: Volume\",\n                spot.trades.maker_base_volume as \"maker_base_volume: Volume\"\n            FROM spot.trades\n            JOIN spot.orders ON order_id = spot.orders.id\n            WHERE spot.orders.quote_asset_id = $1 AND spot.orders.base_asset_id = $2 AND spot.trades.created_at >= $3\n            ORDER BY created_at\n            "
+  },
   "239338c7a977df170cb3c7f7ab75295c29951072cae86859f5d94fadb36b5cca": {
     "describe": {
       "columns": [
@@ -2415,6 +2479,69 @@
       }
     },
     "query": "\n            SELECT\n                spot.trades.id,\n                spot.trades.created_at,\n                spot.trades.taker_id,\n                spot.trades.order_id,\n                spot.trades.taker_quote_volume as \"taker_quote_volume: Volume\",\n                spot.trades.taker_base_volume as \"taker_base_volume: Volume\",\n                spot.trades.maker_quote_volume as \"maker_quote_volume: Volume\",\n                spot.trades.maker_base_volume as \"maker_base_volume: Volume\"\n            FROM spot.trades\n            JOIN spot.orders ON spot.trades.order_id = spot.orders.id\n            WHERE spot.orders.user_id = $1\n            ORDER BY created_at ASC\n            "
+  },
+  "db42cea24cec603a7bbd9b259a28f1809f62d5fd5412b7053c07bc1737e9ce61": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "taker_id",
+          "ordinal": 2,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "order_id",
+          "ordinal": 3,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "taker_quote_volume: Volume",
+          "ordinal": 4,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "taker_base_volume: Volume",
+          "ordinal": 5,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "maker_quote_volume: Volume",
+          "ordinal": 6,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "maker_base_volume: Volume",
+          "ordinal": 7,
+          "type_info": "Numeric"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                spot.trades.id,\n                spot.trades.created_at,\n                spot.trades.taker_id,\n                spot.trades.order_id,\n                spot.trades.taker_quote_volume as \"taker_quote_volume: Volume\",\n                spot.trades.taker_base_volume as \"taker_base_volume: Volume\",\n                spot.trades.maker_quote_volume as \"maker_quote_volume: Volume\",\n                spot.trades.maker_base_volume as \"maker_base_volume: Volume\"\n            FROM spot.trades\n            JOIN spot.orders ON order_id = spot.orders.id\n            WHERE spot.orders.quote_asset_id = $1 AND spot.orders.base_asset_id = $2\n            ORDER BY created_at DESC\n            LIMIT 1\n            "
   },
   "e46ec6c2213116191cece3133944bdc89ef433bd8fda2c8ccc8b6ab39f2b61b1": {
     "describe": {

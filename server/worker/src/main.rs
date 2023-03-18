@@ -14,8 +14,8 @@ use cache::get_client;
 use database::{
     managers::{
         spot::{
-            assets::AssetsManager, orders::OrdersManager, trades::TradesManager,
-            valuts::ValutsManager,
+            assets::AssetsManager, candlesticks::CandlestickManager, orders::OrdersManager,
+            trades::TradesManager, valuts::ValutsManager,
         },
         users::UsersManager,
     },
@@ -40,12 +40,14 @@ async fn main() -> Result<()> {
         PgPool::connect(std::env::var("DATABASE_URL").unwrap_or_default().as_str()).await?;
 
     let app_state = AppState {
+        database: database.clone(),
         session_store: get_client()?,
         users_manager: UsersManager::new(database.clone()),
         assets_manager: AssetsManager::new(database.clone()),
         valuts_manager: ValutsManager::new(database.clone()),
         trades_manager: TradesManager::new(database.clone()),
         orders_manager: OrdersManager::new(database.clone()),
+        candlesticks_manager: CandlestickManager::new(database.clone()),
         assets_pair_recognition: AssetPairRecognition::new(database, Regex::new(r"[^a-zA-Z]+")?),
         engine_client: EngineClient::connect("http://ksox-engine/").await?,
     };
