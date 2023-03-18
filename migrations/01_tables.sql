@@ -57,7 +57,7 @@ CREATE TABLE "spot"."candlesticks" (
   "high" fraction NOT NULL,
   "low" fraction NOT NULL,
   "close" fraction NOT NULL,
-  "span" NUMERIC(78) NOT NULL CHECK ("span" >= 0),
+  "span" BIGINT NOT NULL CHECK ("span" >= 0),
   "taker_quote_volume" NUMERIC(78) NOT NULL CHECK ("taker_quote_volume" >= 0),
   "taker_base_volume" NUMERIC(78) NOT NULL CHECK ("taker_base_volume" >= 0),
   "maker_quote_volume" NUMERIC(78) NOT NULL CHECK ("maker_quote_volume" >= 0),

@@ -10,20 +10,23 @@ async-stream = "0.3.4"
 axum = { version = "0.6.2", features = ["http2", "headers"] }
 bytes = "1.3.0"
 cache = { path = "../cache" }
+chrono = "0.4.24"
 database = { path = "../database" }
 ethereum-types = "0.14.1"
 ethers-core = "2.0.0"
 futures = "0.3.25"
 headers = "0.3.8"
 http = "0.2.8"
+num-bigint = { version = "0.4.3", features = ["serde"] }
 ordered-float = { version = "3.4.0", features = ["serde"] }
-prefix-hex = "0.6.0"
+prefix-hex = "0.7.0"
 prost = "0.11.6"
 rand = "0.8.5"
 regex = "1.7.1"
 serde = "1.0.152"
 serde_with = "2.2.0"
 strsim = "0.10.0"
+thiserror = "1.0.24"
 tokio = { version = "1.24.1", features = ["full"] }
 tokio-stream = "0.1.11"
 tonic = "0.8.3"

@@ -41,7 +41,7 @@ impl TableManager<Candlestick> for CandlestickManager {
                 high as "high: Fraction",
                 low as "low: Fraction",
                 close as "close: Fraction",
-                span as "span: Volume",
+                span,
                 taker_quote_volume as "taker_quote_volume: Volume",
                 taker_base_volume as "taker_base_volume: Volume",
                 maker_quote_volume as "maker_quote_volume: Volume",
@@ -66,7 +66,7 @@ impl TableManager<Candlestick> for CandlestickManager {
                 high as "high: Fraction",
                 low as "low: Fraction",
                 close as "close: Fraction",
-                span as "span: Volume",
+                span,
                 taker_quote_volume as "taker_quote_volume: Volume",
                 taker_base_volume as "taker_base_volume: Volume",
                 maker_quote_volume as "maker_quote_volume: Volume",
@@ -80,7 +80,6 @@ impl TableManager<Candlestick> for CandlestickManager {
         .await
     }
     async fn insert(&self, element: Candlestick) -> Result<PgQueryResult> {
-        let span: BigDecimal = element.span.into();
         let taker_quote_volume: BigDecimal = element.taker_quote_volume.into();
         let taker_base_volume: BigDecimal = element.taker_base_volume.into();
         let maker_quote_volume: BigDecimal = element.maker_quote_volume.into();
@@ -135,7 +134,7 @@ impl TableManager<Candlestick> for CandlestickManager {
             element.high.to_string() as _,
             element.low.to_string() as _,
             element.close.to_string() as _,
-            span,
+            element.span,
             taker_quote_volume,
             taker_base_volume,
             maker_quote_volume,
@@ -145,7 +144,6 @@ impl TableManager<Candlestick> for CandlestickManager {
         .await
     }
     async fn update(&self, element: Candlestick) -> Result<PgQueryResult> {
-        let span: BigDecimal = element.span.into();
         let taker_quote_volume: BigDecimal = element.taker_quote_volume.into();
         let taker_base_volume: BigDecimal = element.taker_base_volume.into();
         let maker_quote_volume: BigDecimal = element.maker_quote_volume.into();
@@ -182,7 +180,7 @@ impl TableManager<Candlestick> for CandlestickManager {
             element.high.to_string() as _,
             element.low.to_string() as _,
             element.close.to_string() as _,
-            span,
+            element.span,
             taker_quote_volume,
             taker_base_volume,
             maker_quote_volume,

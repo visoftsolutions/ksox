@@ -1,4 +1,5 @@
 use std::{
+    cmp::Ordering,
     io::{Error, ErrorKind},
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
     str::FromStr,
@@ -15,7 +16,7 @@ use thiserror::Error;
 
 use super::Volume;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq)]
 pub struct Fraction {
     #[serde(
         serialize_with = "serialize_bigint_as_string",
@@ -118,6 +119,61 @@ impl Encode<'_, Postgres> for Fraction {
     }
 }
 
+impl PartialEq for Fraction {
+    fn eq(&self, other: &Self) -> bool {
+        self.numerator.to_owned() * other.denominator.to_owned()
+            == self.denominator.to_owned() * other.numerator.to_owned()
+    }
+}
+
+impl PartialOrd for Fraction {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        let lhs = self.numerator.to_owned() * other.denominator.to_owned();
+        let rhs = self.denominator.to_owned() * other.numerator.to_owned();
+        lhs.partial_cmp(&rhs)
+    }
+}
+
+impl Ord for Fraction {
+    fn cmp(&self, other: &Self) -> Ordering {
+        let lhs = self.numerator.to_owned() * other.denominator.to_owned();
+        let rhs = self.denominator.to_owned() * other.numerator.to_owned();
+        lhs.cmp(&rhs)
+    }
+    fn clamp(self, min: Self, max: Self) -> Self
+    where
+        Self: Sized,
+    {
+        if self < min {
+            min
+        } else if self > max {
+            max
+        } else {
+            self
+        }
+    }
+    fn max(self, other: Self) -> Self
+    where
+        Self: Sized,
+    {
+        if self >= other {
+            self
+        } else {
+            other
+        }
+    }
+    fn min(self, other: Self) -> Self
+    where
+        Self: Sized,
+    {
+        if self <= other {
+            self
+        } else {
+            other
+        }
+    }
+}
+
 impl Add<BigInt> for Fraction {
     type Output = Self;
     fn add(self, rhs: BigInt) -> Self::Output {
@@ -191,6 +247,13 @@ impl TryFrom<(BigInt, BigInt)> for Fraction {
             return Err(FractionError::DenominatorIsZero);
         }
         Ok(Fraction::new(value.0, value.1))
+    }
+}
+
+impl TryFrom<(Volume, Volume)> for Fraction {
+    type Error = FractionError;
+    fn try_from(value: (Volume, Volume)) -> Result<Self, Self::Error> {
+        TryFrom::<(BigInt, BigInt)>::try_from((value.0.into(), value.1.into()))
     }
 }
 
