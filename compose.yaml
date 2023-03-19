@@ -47,11 +47,17 @@ services:
       - redis
       - engine
 
-  web:
-    container_name: ksox-web
-    hostname: ksox-web
+  web-landing:
+    container_name: ksox-web-landing
+    hostname: ksox-web-landing
     build:
-      context: web
+      context: web/landing
+  
+  web-app:
+    container_name: ksox-web-app
+    hostname: ksox-web-app
+    build:
+      context: web/app
     depends_on:
       - worker
 
@@ -62,6 +68,7 @@ services:
       context: proxy
     depends_on:
       - worker
-      - web
+      - web-landing
+      - web-app
     ports:
       - 7979:80

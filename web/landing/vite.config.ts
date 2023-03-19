@@ -42,4 +42,5 @@ const pwaOptions: Partial<VitePWAOptions> = {
 
 export default defineConfig({
   plugins: [solid(), VitePWA(pwaOptions)],
+  base: "/",
 });

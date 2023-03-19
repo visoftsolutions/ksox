@@ -1,9 +1,10 @@
 {
-  "name": "web",
+  "name": "landing",
   "scripts": {
     "dev": "solid-start dev",
     "build": "solid-start build",
-    "start": "solid-start start"
+    "start": "solid-start start",
+    "check": "prettier -w . && eslint ."
   },
   "type": "module",
   "devDependencies": {
