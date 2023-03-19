@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc, Duration};
+use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::types::Uuid;
 
@@ -25,14 +25,30 @@ pub struct Candlestick {
 }
 
 impl Candlestick {
-    pub fn from_data(data: CandlestickData, kind: CandlestickType, reference_point: DateTime<Utc>, span: i64) -> Self {
+    pub fn from_data(
+        data: CandlestickData,
+        kind: CandlestickType,
+        reference_point: DateTime<Utc>,
+        span: i64,
+    ) -> Self {
         Candlestick {
             id: Uuid::new_v4(),
             quote_asset_id: data.quote_asset_id,
             base_asset_id: data.base_asset_id,
             kind,
-            topen: data.time - Duration::microseconds((data.time.timestamp_micros() - reference_point.timestamp_micros()).saturating_abs() % span),
-            tclose: data.time - Duration::microseconds((data.time.timestamp_micros() - reference_point.timestamp_micros()).saturating_abs() % span) + Duration::microseconds(span),
+            topen: data.time
+                - Duration::microseconds(
+                    (data.time.timestamp_micros() - reference_point.timestamp_micros())
+                        .saturating_abs()
+                        % span,
+                ),
+            tclose: data.time
+                - Duration::microseconds(
+                    (data.time.timestamp_micros() - reference_point.timestamp_micros())
+                        .saturating_abs()
+                        % span,
+                )
+                + Duration::microseconds(span),
             open: data.price.clone(),
             high: data.price.clone(),
             low: data.price.clone(),

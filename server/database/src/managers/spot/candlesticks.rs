@@ -1,6 +1,7 @@
 use std::pin::Pin;
 
 use bigdecimal::BigDecimal;
+use chrono::{DateTime, Utc};
 use futures::Stream;
 use sqlx::{
     postgres::{PgPool, PgQueryResult},
@@ -22,6 +23,44 @@ pub struct CandlestickManager {
 impl CandlestickManager {
     pub fn new(database: PgPool) -> Self {
         Self { database }
+    }
+    pub async fn get_interval_for_asset_pair(
+        &self,
+        quote_asset_id: Uuid,
+        base_asset_id: Uuid,
+        topen: DateTime<Utc>,
+        tclose: DateTime<Utc>,
+    ) -> Result<Option<Candlestick>> {
+        sqlx::query_as!(
+            Candlestick,
+            r#"
+            SELECT
+                id,
+                quote_asset_id,
+                base_asset_id,
+                kind as "kind: CandlestickType",
+                topen,
+                tclose,
+                open as "open: Fraction",
+                high as "high: Fraction",
+                low as "low: Fraction",
+                close as "close: Fraction",
+                span,
+                taker_quote_volume as "taker_quote_volume: Volume",
+                taker_base_volume as "taker_base_volume: Volume",
+                maker_quote_volume as "maker_quote_volume: Volume",
+                maker_base_volume as "maker_base_volume: Volume"
+            FROM spot.candlesticks
+            WHERE spot.candlesticks.quote_asset_id = $1 AND spot.candlesticks.base_asset_id = $2
+            AND spot.candlesticks.topen = $3 AND spot.candlesticks.tclose = $4
+            "#,
+            quote_asset_id,
+            base_asset_id,
+            topen,
+            tclose
+        )
+        .fetch_optional(&self.database)
+        .await
     }
 }
 

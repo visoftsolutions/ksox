@@ -47,7 +47,7 @@ impl RequestPartial {
     }
 }
 
-// Return ohlc stream
+// Return ohlcv stream
 pub async fn root(
     State(state): State<AppState>,
     Json(payload): Json<RequestPartial>,

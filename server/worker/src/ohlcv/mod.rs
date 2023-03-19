@@ -5,19 +5,20 @@ use std::{
 
 use chrono::{DateTime, Duration, Utc};
 use database::{
-    managers::spot::{orders::OrdersManager, trades::TradesManager},
-    projections::spot::{
-        candlestick::{Candlestick, CandlestickData},
+    managers::spot::{
+        candlesticks::CandlestickManager, orders::OrdersManager, trades::TradesManager,
     },
+    projections::spot::candlestick::{Candlestick, CandlestickData},
     sqlx::{self, types::Uuid, PgPool},
     traits::TableManager,
     types::{fraction::FractionError, CandlestickType},
 };
-use futures::{Stream, StreamExt};
+use futures::{FutureExt, Stream, StreamExt};
 use thiserror::Error;
 pub struct OhlcvEngine {
     pub trades_manager: TradesManager,
     pub orders_manager: OrdersManager,
+    pub candlesticks_manager: CandlestickManager,
 }
 pub struct Ohlcv {}
 
@@ -29,7 +30,9 @@ impl Ohlcv {
         span: i64,
     ) -> Result<Candlestick, OhlcvError> {
         match candlestick.kind {
-            CandlestickType::Interval => Ohlcv::merge_interval(candlestick, data, reference_point, span),
+            CandlestickType::Interval => {
+                Ohlcv::merge_interval(candlestick, data, reference_point, span)
+            }
             CandlestickType::Tick => Ohlcv::merge_tick(candlestick, data),
         }
     }
@@ -56,7 +59,12 @@ impl Ohlcv {
             candlestick.maker_base_volume += data.maker_base_volume;
             Ok(candlestick)
         } else {
-            Ok(Candlestick::from_data(data, candlestick.kind, reference_point, span))
+            Ok(Candlestick::from_data(
+                data,
+                candlestick.kind,
+                reference_point,
+                span,
+            ))
         }
     }
 
@@ -72,7 +80,8 @@ impl OhlcvEngine {
     pub fn new(database: PgPool) -> Self {
         Self {
             trades_manager: TradesManager::new(database.clone()),
-            orders_manager: OrdersManager::new(database),
+            orders_manager: OrdersManager::new(database.clone()),
+            candlesticks_manager: CandlestickManager::new(database),
         }
     }
 
@@ -83,7 +92,7 @@ impl OhlcvEngine {
         reference_point: DateTime<Utc>,
         span: i64,
     ) -> Result<Candlestick, OhlcvEngineError> {
-        Ok(Ohlcv::merge(candlestick, data,reference_point, span)?)
+        Ok(Ohlcv::merge(candlestick, data, reference_point, span)?)
     }
 
     pub fn update(
@@ -126,12 +135,15 @@ impl OhlcvEngine {
                 .await?;
 
             if let Some(last_trade) = last_trade {
-                let last_topen = last_trade.created_at
-                    - Duration::microseconds(
-                        (last_trade.created_at.timestamp_micros() - reference_point.timestamp_micros()).saturating_abs() % span
-                    );
-                tracing::info!("{}", last_topen);
-                tracing::info!("{}", last_trade.created_at);
+                let last_topen = match kind {
+                    CandlestickType::Interval => {
+                        last_trade.created_at - Duration::microseconds((last_trade.created_at.timestamp_micros() - reference_point.timestamp_micros()).saturating_abs() % span)
+                    }
+                    CandlestickType::Tick => {
+                        // TODO code it
+                        last_trade.created_at
+                    }
+                };
 
                 let mut last_candle_trades = self.trades_manager.get_after_for_asset_pair(quote_asset_id, base_asset_id, last_topen);
 
@@ -141,6 +153,7 @@ impl OhlcvEngine {
                     let data: CandlestickData = (trade, order).try_into()?;
                     self.update(&mut candlestick, data, kind.to_owned(),reference_point.to_owned(), span)?;
                 }
+
             };
 
             if let Some(candlestick) = candlestick.to_owned() {
@@ -157,7 +170,57 @@ impl OhlcvEngine {
         Box::pin(stream)
     }
 
-    pub fn get() {}
+    pub async fn get(
+        &self,
+        quote_asset_id: Uuid,
+        base_asset_id: Uuid,
+        kind: CandlestickType,
+        reference_point: DateTime<Utc>,
+        span: i64,
+    ) -> Result<Option<Candlestick>, OhlcvEngineError> {
+        match kind {
+            CandlestickType::Interval => {
+                let topen = reference_point;
+                let tclose = reference_point + Duration::microseconds(span);
+                self.candlesticks_manager
+                    .get_interval_for_asset_pair(quote_asset_id, base_asset_id, topen, tclose)
+                    .then(|result| async move {
+                        let mut candlestick = result?;
+                        if candlestick.is_none() {
+                            let mut trades = self.trades_manager.get_between_for_asset_pair(
+                                quote_asset_id,
+                                base_asset_id,
+                                topen,
+                                tclose,
+                            );
+                            while let Some(trade) = trades.next().await {
+                                let trade = trade?;
+                                let order = self.orders_manager.get_by_id(trade.order_id).await?;
+                                let data: CandlestickData = (trade, order).try_into()?;
+                                self.update(
+                                    &mut candlestick,
+                                    data,
+                                    kind.to_owned(),
+                                    reference_point.to_owned(),
+                                    span,
+                                )?;
+                            }
+                            if let Some(candlestick) = candlestick.clone() {
+                                self.candlesticks_manager.insert(candlestick).await?;
+                            }
+                        }
+                        Ok(candlestick)
+                    })
+                    .await
+            }
+            CandlestickType::Tick => {
+                // TODO code it
+                Err(OhlcvEngineError::CustomError(
+                    "tick chart not implemented yet".to_owned(),
+                ))
+            }
+        }
+    }
 }
 
 #[derive(Error, Debug)]
@@ -179,4 +242,7 @@ pub enum OhlcvEngineError {
 
     #[error(transparent)]
     FractionError(#[from] FractionError),
+
+    #[error("Custom error {0}")]
+    CustomError(String),
 }
