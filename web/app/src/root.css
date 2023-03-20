@@ -1,3 +1,32 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+@layer base {
+  @font-face {
+    font-family: "sanspro";
+    src: url("/fonts/SourceSansPro-Regular.ttf") format("truetype");
+  }
+}
+
+@layer utilities {
+  ::-webkit-scrollbar {
+    @apply w-1 h-1
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-4 bg-opacity-50 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-white bg-opacity-80;
+  }
+}
