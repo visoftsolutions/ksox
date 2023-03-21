@@ -1,5 +1,6 @@
 import { Index, JSX } from "solid-js";
 import { createStore } from "solid-js/store";
+import { init } from "~/memos/Orderbook";
 import TriElementFill, { TriElementFillDisplay } from "./TriElement/TriElementFill";
 import TriElementHeader from "./TriElement/TriElementHeader";
 
@@ -9,39 +10,13 @@ export interface OrderbookDisplay {
   bids: TriElementFillDisplay[];
 }
 
-const [store, setStore] = createStore<OrderbookDisplay>({
+export const [store, setStore] = createStore<OrderbookDisplay>({
   asks: [],
   price: "",
   bids: [],
 });
 
-setStore({
-  asks: [
-    {
-      columns: [<span class="text-green">{"22,342.12"}</span>, "0.002234", "0.002234"],
-      fill: 0.2,
-      fill_class: "bg-green",
-    },
-    {
-      columns: [<span class="text-green">{"22,342.12"}</span>, "0.002234", "0.002234"],
-      fill: 0.2,
-      fill_class: "bg-green",
-    },
-  ],
-  price: <span class="text-green">{"22,342.12"}</span>,
-  bids: [
-    {
-      columns: [<span class="text-red">{"22,342.12"}</span>, "0.002234", "0.002234"],
-      fill: 0.2,
-      fill_class: "bg-red",
-    },
-    {
-      columns: [<span class="text-red">{"22,342.12"}</span>, "0.002234", "0.002234"],
-      fill: 0.5,
-      fill_class: "bg-red",
-    },
-  ],
-});
+init();
 
 export default function Orderbook() {
   return (
@@ -50,11 +25,9 @@ export default function Orderbook() {
         <div class="p-4 font-sanspro text-orderbook-label font-semibold">Orderbook</div>
         <div class="pr-[12px]">
           <TriElementHeader
-            columns={[
-              <div class="text-right text-orderbook-sublabel">{"Price (USDT)"}</div>,
-              <div class="text-right text-orderbook-sublabel">{"Quantity (BTC)"}</div>,
-              <div class="text-right text-orderbook-sublabel">{"Total (BTC)"}</div>,
-            ]}
+            column_0={<div class="text-right text-orderbook-sublabel">{"Price (USDT)"}</div>}
+            column_1={<div class="text-right text-orderbook-sublabel">{"Quantity (BTC)"}</div>}
+            column_2={<div class="text-right text-orderbook-sublabel">{"Total (BTC)"}</div>}
           />
         </div>
       </div>
@@ -64,7 +37,9 @@ export default function Orderbook() {
             {(element) => (
               <TriElementFill
                 class="py-[3px] pr-[12px] text-right font-sanspro text-orderbook-item"
-                columns={[element().columns[0], element().columns[1], element().columns[2]]}
+                column_0={element().column_0}
+                column_1={element().column_1}
+                column_2={element().column_2}
                 fill={element().fill}
                 fill_class={element().fill_class}
               />
@@ -81,7 +56,9 @@ export default function Orderbook() {
             {(element) => (
               <TriElementFill
                 class="py-[3px] text-right font-sanspro text-orderbook-item"
-                columns={[element().columns[0], element().columns[1], element().columns[2]]}
+                column_0={element().column_0}
+                column_1={element().column_1}
+                column_2={element().column_2}
                 fill={element().fill}
                 fill_class={element().fill_class}
               />
