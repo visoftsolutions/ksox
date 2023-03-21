@@ -1,21 +1,19 @@
-import Button from "./SideMenu/Button";
-import KSOXLogo from "./SideMenu/KSOXLogo";
+import SideMenuCircularButton from "./Buttons/SideMenuCircularButton";
 
 export default function SideMenu() {
   return (
-    <div class="grid grid-rows-[100px_1fr_100px] justify-center h-full">
-      <div class="row-start-1 row-end-2">
-        <KSOXLogo/>
+    <div class="grid h-full grid-rows-[100px_1fr_100px] justify-center">
+      <div class="row-start-1 row-end-2 py-4">
+        <img src="gfx/logo.png" class="m-auto h-[47px] w-[36px]" />
       </div>
       <div class="row-start-2 row-end-3 ">
-        <Button/>
-        <Button/>
-        <Button/>
+        <SideMenuCircularButton class="m-3 bg-gray-3" />
+        <SideMenuCircularButton class="m-3 bg-gray-3" />
+        <SideMenuCircularButton class="m-3 bg-gray-3" />
       </div>
       <div class="row-start-3 row-end-4 ">
-        <Button/>
+        <SideMenuCircularButton class="m-3 bg-gray-3" />
       </div>
     </div>
-    
   );
 }
