@@ -20,7 +20,7 @@ export default function Submit(props: SubmitComponent) {
     <div class="grid h-full grid-cols-1 grid-rows-[auto_1fr]">
       <div class="row-start-1 row-end-2 px-[4px] pt-[12px]">
         <div class="inline-grid grid-cols-[auto_auto_auto] grid-rows-1 gap-1">
-          <RectangularButton class="col-start-1 col-end-2" highlighted={true}>
+          <RectangularButton class="col-start-1 col-end-2" highlighted={false}>
             <span class="text-openorders-label">Limit</span>
           </RectangularButton>
         </div>
@@ -28,9 +28,9 @@ export default function Submit(props: SubmitComponent) {
       <div class="row-start-2 row-end-3 overflow-auto py-[8px]">
         <div class="grid h-full grid-cols-2 grid-rows-1">
           <div class="col-start-1 col-end-2 px-[12px] ">
-            <div class="grid justify-between pb-[4px]">
-              <div class="col-start-1 col-end-2 text-submit-sublabel font-semibold text-gray-4">Available Balance:</div>
-              <div class="col-start-2 col-end-3 text-submit-sublabel font-semibold text-gray-4">{props.buy.available}</div>
+            <div class="grid justify-between pb-[4px] text-submit-sublabel font-semibold text-gray-4">
+              <div class="col-start-1 col-end-2">Available Balance:</div>
+              <div class="col-start-2 col-end-3">{props.buy.available}</div>
             </div>
             <NumberInput class="my-[4px] bg-gray-1 p-1 text-submit-label" left={"Order Price"} right={"USDT"} />
             <NumberInput class="my-[4px] bg-gray-1 p-1 text-submit-label" left={"Quantity"} right={"BTC"} />
@@ -39,9 +39,15 @@ export default function Submit(props: SubmitComponent) {
             <SubmitRectangularButton class="my-[12px] bg-green">Buy</SubmitRectangularButton>
           </div>
           <div class="col-start-2 col-end-3 px-[12px]">
+<<<<<<< Updated upstream
             <div class="grid justify-between pb-[4px]">
               <div class="col-start-1 col-end-2 text-submit-sublabel font-semibold text-gray-4">Available Balance:</div>
               <div class="col-start-2 col-end-3 text-submit-sublabel font-semibold text-gray-4">{props.sell.available}</div>
+=======
+            <div class="grid justify-between pb-[4px] text-submit-sublabel font-semibold text-gray-4">
+              <div class="col-start-1 col-end-2">Available Balance:</div>
+              <div class="col-start-2 col-end-3">{props.sell.available}</div>
+>>>>>>> Stashed changes
             </div>
             <NumberInput class="my-[4px] bg-gray-1 p-1 text-submit-label" left={"Order Price"} right={"USDT"} />
             <NumberInput class="my-[4px] bg-gray-1 p-1 text-submit-label" left={"Quantity"} right={"BTC"} />

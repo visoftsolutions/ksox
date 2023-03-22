@@ -23,20 +23,23 @@ export default function Orderbook() {
     <div class="grid h-full grid-cols-1 grid-rows-[auto_1fr_auto_1fr]">
       <div class="row-start-1 row-end-2">
         <div class="p-4 font-sanspro text-orderbook-label font-semibold">Orderbook</div>
-        <div class="pr-[12px]">
-          <TriElementHeader
-            column_0={<div class="text-right text-orderbook-sublabel">{"Price (USDT)"}</div>}
-            column_1={<div class="text-right text-orderbook-sublabel">{"Quantity (BTC)"}</div>}
-            column_2={<div class="text-right text-orderbook-sublabel">{"Total (BTC)"}</div>}
-          />
+        <TriElementHeader
+          class="py-[4px] px-[12px]"
+          column_0={<div class="text-left text-orderbook-sublabel">{"Price (USDT)"}</div>}
+          column_1={<div class="text-right text-orderbook-sublabel">{"Quantity (BTC)"}</div>}
+          column_2={<div class="text-right text-orderbook-sublabel">{"Total (BTC)"}</div>}
+        />
         </div>
-      </div>
       <div class="relative row-start-2 row-end-3">
         <div class="absolute top-0 left-0 right-0 bottom-0 flex flex-col-reverse overflow-clip">
           <Index each={store.asks}>
             {(element) => (
               <TriElementFill
+<<<<<<< Updated upstream
                 class="mt-[1px] py-[3px] pr-[12px] text-right font-sanspro text-orderbook-item"
+=======
+                class="py-[4px] px-[12px] font-sanspro text-orderbook-item"
+>>>>>>> Stashed changes
                 column_0={element().column_0}
                 column_1={element().column_1}
                 column_2={element().column_2}
@@ -48,14 +51,18 @@ export default function Orderbook() {
         </div>
       </div>
       <div class="row-start-3 row-end-4">
-        <div class="p-4 text-orderbook-middle font-semibold">{store.price}</div>
+        <div class="py-[8px] px-[12px] text-orderbook-middle font-semibold">{store.price}</div>
       </div>
       <div class="relative row-start-4 row-end-5">
         <div class="absolute top-0 left-0 right-0 bottom-0 flex flex-col overflow-clip">
           <Index each={store.bids}>
             {(element) => (
               <TriElementFill
+<<<<<<< Updated upstream
                 class="mt-[1px] py-[3px] pr-[12px] text-right font-sanspro text-orderbook-item"
+=======
+                class="py-[4px] px-[12px] font-sanspro text-orderbook-item"
+>>>>>>> Stashed changes
                 column_0={element().column_0}
                 column_1={element().column_1}
                 column_2={element().column_2}
