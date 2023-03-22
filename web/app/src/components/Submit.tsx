@@ -39,15 +39,9 @@ export default function Submit(props: SubmitComponent) {
             <SubmitRectangularButton class="my-[12px] bg-green">Buy</SubmitRectangularButton>
           </div>
           <div class="col-start-2 col-end-3 px-[12px]">
-<<<<<<< Updated upstream
-            <div class="grid justify-between pb-[4px]">
-              <div class="col-start-1 col-end-2 text-submit-sublabel font-semibold text-gray-4">Available Balance:</div>
-              <div class="col-start-2 col-end-3 text-submit-sublabel font-semibold text-gray-4">{props.sell.available}</div>
-=======
             <div class="grid justify-between pb-[4px] text-submit-sublabel font-semibold text-gray-4">
               <div class="col-start-1 col-end-2">Available Balance:</div>
               <div class="col-start-2 col-end-3">{props.sell.available}</div>
->>>>>>> Stashed changes
             </div>
             <NumberInput class="my-[4px] bg-gray-1 p-1 text-submit-label" left={"Order Price"} right={"USDT"} />
             <NumberInput class="my-[4px] bg-gray-1 p-1 text-submit-label" left={"Quantity"} right={"BTC"} />
