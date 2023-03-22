@@ -1,6 +1,8 @@
-import { z } from "zod"
+import { z } from "zod";
+import { Volume } from "./volume";
 
 export const Fraction = z.object({
-    numerator: z.number(),
-    denumerator: z.union([z.number().positive(), z.number().negative()]),
-})
+  numerator: Volume,
+  denominator: Volume,
+});
+export type Fraction = z.infer<typeof Fraction>;

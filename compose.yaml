@@ -46,6 +46,8 @@ services:
       - postgres
       - redis
       - engine
+    ports:
+      - 7979:80
 
   web-landing:
     container_name: ksox-web-landing

@@ -5,9 +5,8 @@ use chrono::{DateTime, Utc};
 use database::{
     projections::spot::candlestick::Candlestick,
     sqlx::types::Uuid,
-    types::{CandlestickType, PriceLevel},
+    types::{CandlestickType},
 };
-use futures::StreamExt;
 use serde::Deserialize;
 
 use crate::{api::AppError, models::AppState, ohlcv::OhlcvEngine};

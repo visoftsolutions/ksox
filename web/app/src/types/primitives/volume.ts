@@ -1,3 +1,4 @@
-import { z } from "zod"; 
+import { z } from "zod";
 
-export const Volume = z.number();
+export const Volume = z.coerce.number();
+export type Volume = z.infer<typeof Volume>;

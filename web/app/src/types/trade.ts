@@ -13,3 +13,4 @@ export const Trade = z.object({
   maker_quote_volume: Volume,
   maker_base_volume: Volume,
 });
+export type Trade = z.infer<typeof Trade>;

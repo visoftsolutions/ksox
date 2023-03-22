@@ -36,7 +36,7 @@ export default function Orderbook() {
           <Index each={store.asks}>
             {(element) => (
               <TriElementFill
-                class="py-[3px] pr-[12px] text-right font-sanspro text-orderbook-item"
+                class="mt-[1px] py-[3px] pr-[12px] text-right font-sanspro text-orderbook-item"
                 column_0={element().column_0}
                 column_1={element().column_1}
                 column_2={element().column_2}
@@ -55,7 +55,7 @@ export default function Orderbook() {
           <Index each={store.bids}>
             {(element) => (
               <TriElementFill
-                class="py-[3px] text-right font-sanspro text-orderbook-item"
+                class="mt-[1px] py-[3px] pr-[12px] text-right font-sanspro text-orderbook-item"
                 column_0={element().column_0}
                 column_1={element().column_1}
                 column_2={element().column_2}

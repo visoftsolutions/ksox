@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { EvmAddress, Expiration, Nonce, SessionId, Signature, UserId } from "./models";
+import { EvmAddress, Expiration, Nonce, SessionId, Signature, UserId } from "./mod";
 
 export const GenerateNonceRequest = z.object({
   address: EvmAddress,
@@ -26,4 +26,3 @@ export const User = z.object({
   session_id: SessionId,
   user_id: UserId,
 });
-

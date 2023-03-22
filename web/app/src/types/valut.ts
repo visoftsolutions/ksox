@@ -8,3 +8,4 @@ export const Valut = z.object({
   asset_id: Uuid,
   balance: Volume,
 });
+export type Valut = z.infer<typeof Valut>;
