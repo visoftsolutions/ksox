@@ -8,12 +8,12 @@ html {
 
 @layer base {
   @font-face {
-    font-family: "Lexend";
+    font-family: "Source Sans Pro";
     src: url("/fonts/lexend.ttf") format("truetype");
   }
 
   @font-face {
-    font-family: "Inter";
+    font-family: "Source Sans Pro";
     src: url("/fonts/inter.ttf") format("truetype");
   }
 }
