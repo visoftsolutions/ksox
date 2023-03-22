@@ -1,15 +1,15 @@
 import { Index } from "solid-js";
 import { createStore } from "solid-js/store";
-import { TriElementDisplay } from "./TriElement/TriElement";
+import { TriElementComponent } from "./TriElement/TriElement";
 import TriElement from "./TriElement/TriElement";
 import TriElementHeader from "./TriElement/TriElementHeader";
 import { init } from "~/memos/Trades";
 
-export interface TradesDisplay {
-  trades: TriElementDisplay[];
+export interface TradesComponent {
+  trades: TriElementComponent[];
 }
 
-export const [store, setStore] = createStore<TradesDisplay>({ trades: [] });
+export const [store, setStore] = createStore<TradesComponent>({ trades: [] });
 
 init();
 

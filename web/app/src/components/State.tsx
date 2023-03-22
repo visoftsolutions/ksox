@@ -9,13 +9,13 @@ export enum OrderSide {
   Sell = "sell",
 }
 
-export enum StateTabs {
+enum StateTabs {
   OpenOrders = "open_orders",
   OrderHistory = "order_history",
   TradeHistory = "trade_history",
 }
 
-export interface OpenOrdersDisplay {
+interface OpenOrders {
   order_time: Date;
   asset_pair: [string, string];
   order_side: OrderSide;
@@ -24,7 +24,7 @@ export interface OpenOrdersDisplay {
   filled_quantity: string;
 }
 
-export interface OrderHistoryDisplay {
+interface OrderHistory {
   order_time: Date;
   asset_pair: [string, string];
   order_side: OrderSide;
@@ -33,7 +33,7 @@ export interface OrderHistoryDisplay {
   filled_quantity: string;
 }
 
-export interface TradeHistoryDisplay {
+interface TradeHistory {
   order_time: Date;
   asset_pair: [string, string];
   order_side: OrderSide;
@@ -42,14 +42,14 @@ export interface TradeHistoryDisplay {
   filled_quantity: string;
 }
 
-export interface StateDisplay {
+export interface StateComponent {
   tab: StateTabs;
-  open_orders: OpenOrdersDisplay[];
-  order_history: OrderHistoryDisplay[];
-  trade_history: TradeHistoryDisplay[];
+  open_orders: OpenOrders[];
+  order_history: OrderHistory[];
+  trade_history: TradeHistory[];
 }
 
-export const [store, setStore] = createStore<StateDisplay>({ tab: StateTabs.OpenOrders, open_orders: [], order_history: [], trade_history: [] });
+export const [store, setStore] = createStore<StateComponent>({ tab: StateTabs.OpenOrders, open_orders: [], order_history: [], trade_history: [] });
 
 init();
 

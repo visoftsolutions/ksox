@@ -3,19 +3,19 @@ import SubmitRectangularButton from "./Buttons/SubmitRectangularButton";
 import NumberInput from "./Inputs/NumberInput";
 import Slider from "./Inputs/Slider";
 
-export interface SubmitFormDisplay {
+interface SubmitForm {
   available: string;
   order_price?: number;
   slider_value?: number;
   order_value?: number;
 }
 
-export interface SubmitDisplay {
-  buy: SubmitFormDisplay;
-  sell: SubmitFormDisplay;
+export interface SubmitComponent {
+  buy: SubmitForm;
+  sell: SubmitForm;
 }
 
-export default function Submit(props: SubmitDisplay) {
+export default function Submit(props: SubmitComponent) {
   return (
     <div class="grid h-full grid-cols-1 grid-rows-[auto_1fr]">
       <div class="row-start-1 row-end-2 px-[4px] pt-[12px]">

@@ -1,6 +1,6 @@
 import { createMemo, JSX } from "solid-js";
 
-export interface SearchInputDisplay {
+export interface SearchInputComponent {
   value?: string;
   left?: JSX.Element;
   class?: JSX.HTMLAttributes<HTMLElement>["class"];
@@ -10,7 +10,7 @@ export interface SearchInputDisplay {
   onChange?: (e: Event) => void;
 }
 
-export default function SearchInput(props: SearchInputDisplay) {
+export default function SearchInput(props: SearchInputComponent) {
   let inputDOM!: HTMLInputElement;
   const valueDOM = createMemo(() => {
     return props.value == null || props.value == undefined ? "" : props.value;

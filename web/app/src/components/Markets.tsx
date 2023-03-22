@@ -2,15 +2,15 @@ import { Index } from "solid-js";
 import { createStore } from "solid-js/store";
 import { init } from "~/memos/Markets";
 import SearchInput from "./Inputs/SearchInput";
-import TriElement, { TriElementDisplay } from "./TriElement/TriElement";
+import TriElement, { TriElementComponent } from "./TriElement/TriElement";
 import TriElementHeader from "./TriElement/TriElementHeader";
 
-export interface MarketsDisplay {
+export interface MarketsComponent {
   search: string;
-  markets: TriElementDisplay[];
+  markets: TriElementComponent[];
 }
 
-export const [store, setStore] = createStore<MarketsDisplay>({
+export const [store, setStore] = createStore<MarketsComponent>({
   search: "",
   markets: [],
 });

@@ -1,6 +1,6 @@
 import { createMemo, JSX } from "solid-js";
 
-export interface NumberInputDisplay {
+export interface NumberInputComponent {
   value?: number;
   left?: JSX.Element;
   right?: JSX.Element;
@@ -12,7 +12,7 @@ export interface NumberInputDisplay {
   onChange?: (e: Event) => void;
 }
 
-export default function NumberInput(props: NumberInputDisplay) {
+export default function NumberInput(props: NumberInputComponent) {
   let inputDOM!: HTMLInputElement;
   const valueDOM = createMemo(() => {
     return props.value == null || props.value == undefined || props.value == 0 ? "" : props.value;

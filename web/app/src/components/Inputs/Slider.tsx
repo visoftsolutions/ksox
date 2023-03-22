@@ -1,6 +1,6 @@
 import { JSX } from "solid-js";
 
-export interface SliderDisplay {
+export interface SliderComponent {
   value: number;
   class?: JSX.HTMLAttributes<HTMLElement>["class"];
   disabled?: boolean;
@@ -8,7 +8,7 @@ export interface SliderDisplay {
   onInput?: (e: Event) => void;
 }
 
-export default function Slider(props: SliderDisplay) {
+export default function Slider(props: SliderComponent) {
   let sliderDOM!: HTMLInputElement;
   let popupDOM!: HTMLInputElement;
 

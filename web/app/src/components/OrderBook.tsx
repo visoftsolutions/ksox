@@ -1,16 +1,16 @@
 import { Index, JSX } from "solid-js";
 import { createStore } from "solid-js/store";
 import { init } from "~/memos/Orderbook";
-import TriElementFill, { TriElementFillDisplay } from "./TriElement/TriElementFill";
+import TriElementFill, { TriElementFillComponent } from "./TriElement/TriElementFill";
 import TriElementHeader from "./TriElement/TriElementHeader";
 
-export interface OrderbookDisplay {
-  asks: TriElementFillDisplay[];
+export interface OrderbookComponent {
+  asks: TriElementFillComponent[];
   price: JSX.Element;
-  bids: TriElementFillDisplay[];
+  bids: TriElementFillComponent[];
 }
 
-export const [store, setStore] = createStore<OrderbookDisplay>({
+export const [store, setStore] = createStore<OrderbookComponent>({
   asks: [],
   price: "",
   bids: [],

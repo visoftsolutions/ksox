@@ -1,8 +1,8 @@
-export interface WalletButtonDisplay {
+export interface WalletButtonComponent {
   onClick?: (e: MouseEvent) => void;
 }
 
-export default function WalletButton(props: WalletButtonDisplay) {
+export default function WalletButton(props: WalletButtonComponent) {
   return (
     <div
       class="grid cursor-pointer select-none grid-cols-[auto_auto] grid-rows-[1fr] items-center justify-center gap-4 px-4"
