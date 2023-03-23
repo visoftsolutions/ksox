@@ -37,7 +37,7 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
 
     let database =
-        PgPool::connect(std::env::var("DATABASE_URL").unwrap().as_str()).await?;
+        PgPool::connect(std::env::var("DATABASE_URL")?.as_str()).await?;
 
     let app_state = AppState {
         database: database.clone(),
