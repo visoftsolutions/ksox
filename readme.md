@@ -61,7 +61,7 @@ cargo +nightly udeps
 make sure you have minikube, docker and skaffold installed
 make sure you are in a docker group
 ```
-minikube start --driver=docker --cpus 8 --memory 8192 && \
+minikube start --driver=docker --cpus 8 --memory 4096 && \
 minikube addons enable ingress
 ```
 you can now connect with your browser to ingress, ask minikube for ip
