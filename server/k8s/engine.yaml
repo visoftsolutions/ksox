@@ -20,9 +20,9 @@ spec:
         - containerPort: 80
         env:
         - name: DATABASE_URL
-          value: postgresql://postgres:postgres@postgres-postgresql/postgres
+          value: postgresql://ksoxuser:ksoxuserp4ssword@server-postgres-service/ksox
         - name: REDIS_URL
-          value: redis://redis-replicas/
+          value: redis://server-redis-service/
 ---
 apiVersion: v1
 kind: Service
