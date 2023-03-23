@@ -55,3 +55,24 @@ make sure you are in workspace root folder
 ```
 cargo +nightly udeps
 ```
+
+
+## run code in kubernetes
+make sure you have minikube, docker and skaffold installed
+make sure you are in a docker group
+```
+minikube start --driver=docker --cpus 8 --memory 8192 && \
+minikube addons enable ingress
+```
+you can now connect with your browser to ingress, ask minikube for ip
+```
+minikube ip
+```
+To deploy application do
+```
+skaffold run
+```
+You can also work in development mode
+```
+skaffold dev
+```

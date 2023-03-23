@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server-engine-deployment
+  labels:
+    app: server-engine
+spec:
+  selector:
+    matchLabels:
+      app: server-engine
+  template:
+    metadata:
+      labels:
+        app: server-engine
+    spec:
+      containers:
+      - name: server-engine
+        image: server-engine
+        ports:
+        - containerPort: 80
+        env:
+        - name: DATABASE_URL
+          value: postgresql://postgres:postgres@postgres-postgresql/postgres
+        - name: REDIS_URL
+          value: redis://redis-replicas/
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: server-engine-service
+spec:
+  selector:
+    app: server-engine
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80

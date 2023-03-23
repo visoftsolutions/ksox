@@ -16,3 +16,6 @@
 
 # Envs should not be passed
 **/.cargo/
+
+# kubernetes manifests
+k8s/
