@@ -1,28 +1,19 @@
 import { z } from "zod";
-import { Asset } from "~/types/asset";
-import { PUBLIC_URL } from "./mod";
-var EventSource = require('..')
+import { SessionId } from "~/api/auth/mod";
+import { DepthRequest, PriceLevel, PUBLIC_URL } from "./mod";
 
-const URL = PUBLIC_URL+"/depth"
+export const URL = PUBLIC_URL + "/depth";
 
-async function get() {
+async function get(request: DepthRequest) {
   return fetch(URL, {
-    method: "GET",
+    method: "get",
     headers: {
-        "Content-Type": "application/json",
+      "Content-Type": "application/json",
     },
+    body: JSON.stringify(request),
   })
-  .then(r => r.json())
-  .then(r => z.array(Asset).parse(r));
+    .then((r) => r.json())
+    .then((r) => z.array(PriceLevel).parse(r));
 }
 
-function sse() {
-    console.log("event");
-    // (new EventSource(URL+"/sse")).onmessage = (event) => {
-    //     console.log(event);
-    //     console.log(Asset.parse(event.data()));
-    // }
-    
-}
-
-// console.log(sse());
+async function sse(session: SessionId) {}

@@ -16,7 +16,7 @@ module.exports = {
         "ksox-2": "#DA008D",
       },
       fontFamily: {
-        "sanspro": ["Source Sans Pro", "sans-serif"],
+        sanspro: ["Source Sans Pro", "sans-serif"],
       },
       fontSize: {
         "mainmenu-wallet": ["14px", "18px"],

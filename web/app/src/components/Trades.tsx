@@ -19,11 +19,11 @@ export default function Trades() {
       <div class="row-start-1 row-end-2">
         <div class="p-4 font-sanspro text-trades-label font-semibold">Trades</div>
         <TriElementHeader
-            class="py-[4px] px-[12px]"
-            column_0={<div class="text-left text-trades-sublabel">{"Price (USDT)"}</div>}
-            column_1={<div class="text-right text-trades-sublabel">{"Quantity (BTC)"}</div>}
-            column_2={<div class="text-right text-trades-sublabel">{"Time"}</div>}
-          />
+          class="py-[4px] px-[12px]"
+          column_0={<div class="text-left text-trades-sublabel">{"Price (USDT)"}</div>}
+          column_1={<div class="text-right text-trades-sublabel">{"Quantity (BTC)"}</div>}
+          column_2={<div class="text-right text-trades-sublabel">{"Time"}</div>}
+        />
       </div>
       <div class="relative row-start-2 row-end-3">
         <div class="absolute top-0 left-0 right-0 bottom-0 flex flex-col overflow-clip">

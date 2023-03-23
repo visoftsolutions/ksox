@@ -29,7 +29,7 @@ export default function Orderbook() {
           column_1={<div class="text-right text-orderbook-sublabel">{"Quantity (BTC)"}</div>}
           column_2={<div class="text-right text-orderbook-sublabel">{"Total (BTC)"}</div>}
         />
-        </div>
+      </div>
       <div class="relative row-start-2 row-end-3">
         <div class="absolute top-0 left-0 right-0 bottom-0 flex flex-col-reverse overflow-clip">
           <Index each={store.asks}>
