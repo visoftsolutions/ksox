@@ -37,7 +37,7 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
 
     let database =
-        PgPool::connect(std::env::var("DATABASE_URL").unwrap_or_default().as_str()).await?;
+        PgPool::connect(std::env::var("DATABASE_URL").unwrap().as_str()).await?;
 
     let app_state = AppState {
         database: database.clone(),
@@ -49,7 +49,7 @@ async fn main() -> Result<()> {
         orders_manager: OrdersManager::new(database.clone()),
         candlesticks_manager: CandlestickManager::new(database.clone()),
         assets_pair_recognition: AssetPairRecognition::new(database, Regex::new(r"[^a-zA-Z]+")?),
-        engine_client: EngineClient::connect("http://ksox-engine/").await?,
+        engine_client: EngineClient::connect(std::env::var("ENGINE_URL").unwrap().as_str().to_owned()).await?,
     };
 
     let app = Router::new()

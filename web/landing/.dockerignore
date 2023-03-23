@@ -6,6 +6,9 @@ dist
 .netlify
 netlify
 
+# kubernetes manifests
+k8s
+
 # dependencies
 /node_modules
 

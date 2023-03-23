@@ -1,0 +1,39 @@
+apiVersion: skaffold/v4beta3
+kind: Config
+build:
+  local:
+    push: false
+  artifacts:
+  - image: server-engine
+    context: server
+    docker:
+      dockerfile: engine.dockerfile
+  - image: server-worker
+    context: server
+    docker:
+      dockerfile: worker.dockerfile
+  - image: web-app
+    context: web/app
+    docker:
+      dockerfile: Dockerfile
+  - image: web-landing
+    context: web/landing
+    docker:
+      dockerfile: Dockerfile
+manifests:
+  rawYaml:
+    - ./server/k8s/*
+    - ./web/app/k8s/*
+    - ./web/landing/k8s/*
+  helm:
+    releases:
+    - name: postgres
+      chartPath: postgresql
+      repo: https://charts.bitnami.com/bitnami
+      wait: true
+    - name: redis
+      chartPath: redis
+      repo: https://charts.bitnami.com/bitnami
+      overrides:
+        auth:
+          enabled: false
