@@ -3,12 +3,14 @@ import BigText from "./BigText";
 import Buttons from "./Buttons";
 import SmallText from "./SmallText";
 import Spacing from "../../Spacing";
+import { base } from "~/root";
+import { joinPaths } from "solid-start/islands/server-router";
 
 export default function Hero() {
   return (
     <div class="flex flex-col items-center text-white md:flex-row-reverse">
       <div>
-        <img src="/gfx/laptop.png" class="mx-auto" />
+        <img src={joinPaths(base, "/gfx/laptop.png")} class="mx-auto" />
       </div>
       <Spacing class="h-8" />
 
