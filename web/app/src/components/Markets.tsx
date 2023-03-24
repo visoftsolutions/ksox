@@ -1,6 +1,8 @@
 import { Index } from "solid-js";
 import { createStore } from "solid-js/store";
+import { joinPaths } from "solid-start/islands/server-router";
 import { init } from "~/memos/Markets";
+import { base } from "~/root";
 import SearchInput from "./Inputs/SearchInput";
 import TriElement, { TriElementComponent } from "./TriElement/TriElement";
 import TriElementHeader from "./TriElement/TriElementHeader";
@@ -27,7 +29,7 @@ export default function Markets() {
             class="mx-auto mb-2 w-full text-markets-searchbar"
             left={
               <>
-                <img src="gfx/search.svg" />
+                <img src={joinPaths(base, "gfx/search.svg")} />
               </>
             }
           />

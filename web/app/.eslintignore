@@ -7,17 +7,14 @@ dist
 netlify
 
 # dependencies
-/node_modules
+node_modules
 
 # IDEs and editors
-/.idea
+.idea
 .project
 .classpath
 *.launch
-.settings/
-
-# Temp
-gitignore
+.settings
 
 # System Files
 .DS_Store

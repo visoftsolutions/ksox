@@ -25,3 +25,22 @@ manifests:
     - ./server/k8s/*
     - ./web/app/k8s/*
     - ./web/landing/k8s/*
+  helm:
+    releases:
+    - name: redis
+      chartPath: redis
+      repo: https://charts.bitnami.com/bitnami
+      setValues:
+        auth:
+          enabled: false
+        replica:
+          replicaCount: 1
+    - name: postgres
+      chartPath: postgresql
+      repo: https://charts.bitnami.com/bitnami
+      wait: true
+      setValues:
+        auth:
+          username: ksoxuser
+          password: ksoxuserp4ssword
+          database: ksox

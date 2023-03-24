@@ -20,11 +20,11 @@ spec:
         - containerPort: 80
         env:
         - name: DATABASE_URL
-          value: postgresql://ksoxuser:ksoxuserp4ssword@server-postgres-service/ksox
+          value: postgresql://ksoxuser:ksoxuserp4ssword@postgres-postgresql/ksox
         - name: ENGINE_URL
           value: http://server-engine-service/
         - name: REDIS_URL
-          value: redis://server-redis-service/
+          value: redis://redis-master/
 ---
 apiVersion: v1
 kind: Service

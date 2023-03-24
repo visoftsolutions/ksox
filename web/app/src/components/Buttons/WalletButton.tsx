@@ -1,3 +1,6 @@
+import { joinPaths } from "solid-start/islands/server-router";
+import { base } from "~/root";
+
 export interface WalletButtonComponent {
   onClick?: (e: MouseEvent) => void;
 }
@@ -9,7 +12,7 @@ export default function WalletButton(props: WalletButtonComponent) {
       onClick={(e) => props.onClick?.(e)}
     >
       <div class="text-mainmenu-wallet font-normal">CONNECT WALLET</div>
-      <img src="gfx/metamask.webp" class="m-auto w-[22px]" />
+      <img src={joinPaths(base, "gfx/metamask.webp")} class="m-auto w-[22px]" />
     </div>
   );
 }

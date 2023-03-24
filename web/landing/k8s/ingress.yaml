@@ -3,12 +3,12 @@ kind: Ingress
 metadata:
   name: web-landing-ingress
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
 spec:
   rules:
   - http:
       paths:
-      - path: /landing
+      - path: /(.*)
         pathType: Prefix
         backend:
           service:

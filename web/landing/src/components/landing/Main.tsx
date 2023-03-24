@@ -2,6 +2,8 @@ import Divider from "../Divider";
 import Spacing from "../Spacing";
 import Hero from "./main/Hero";
 import Section from "./main/Section";
+import { base } from "~/root";
+import { joinPaths } from "solid-start/islands/server-router";
 
 export default function Main() {
   return (
@@ -15,7 +17,7 @@ export default function Main() {
       <Section
         sectionId="section-1"
         sectionToId="section-2"
-        imagePath="/gfx/about01.png"
+        imagePath={joinPaths(base, "/gfx/about01.png")}
         class="md:flex-row"
       >
         <div class="font-lexend text-section-beginning font-bold text-secondary">
@@ -39,7 +41,7 @@ export default function Main() {
       <Section
         sectionId="section-2"
         sectionToId="section-3"
-        imagePath="/gfx/about02.png"
+        imagePath={joinPaths(base, "/gfx/about02.png")}
         class="md:flex-row-reverse"
       >
         <div class="font-lexend text-section-beginning font-bold text-secondary">
@@ -64,7 +66,7 @@ export default function Main() {
       <Section
         sectionId="section-3"
         sectionToId="section-4"
-        imagePath="/gfx/about03.png"
+        imagePath={joinPaths(base, "/gfx/about03.png")}
         class="md:flex-row"
       >
         <div class="font-lexend text-section-beginning font-bold text-secondary">

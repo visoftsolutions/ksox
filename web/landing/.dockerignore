@@ -10,17 +10,17 @@ netlify
 k8s
 
 # dependencies
-/node_modules
+node_modules
 
 # IDEs and editors
-/.idea
+.idea
 .project
 .classpath
 *.launch
-.settings/
+.settings
 
 # Temp
-gitignore
+.gitignore
 
 # System Files
 .DS_Store
