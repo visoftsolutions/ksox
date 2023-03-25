@@ -44,3 +44,8 @@ manifests:
           username: ksoxuser
           password: ksoxuserp4ssword
           database: ksox
+        primary:
+          service:
+            type: NodePort
+            nodePorts:
+              postgresql: 30001

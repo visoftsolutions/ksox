@@ -4,16 +4,19 @@ import "./root.css";
 import "./api/public/assets";
 import Wallet from "./wallet/mod";
 import { joinPaths } from "solid-start/islands/server-router";
+import { Eip1193Provider, ethers } from "ethers";
+import { sse } from "./api/public/depth";
 
 export const base = import.meta.env.BASE_URL;
 
 export default function Root() {
+  onMount(async () => {
+    let stream = sse();
+    for await (const element of stream) {
+      console.log(element);
+    }
+  });
 
-  onMount(async ()=>{
-    let wallet = new Wallet()
-    // console.log(await wallet.signdata("123"));
-  })
-  
   return (
     <Html lang="en">
       <Head>

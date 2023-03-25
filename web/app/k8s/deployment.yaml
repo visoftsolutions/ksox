@@ -14,7 +14,7 @@ spec:
         app: web-app
     spec:
       containers:
-      - name: web-app
-        image: web-app
-        ports:
-        - containerPort: 80
+        - name: web-app
+          image: web-app
+          ports:
+            - containerPort: 80
