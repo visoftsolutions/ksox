@@ -1,15 +1,19 @@
-// @refresh reload
-import { Suspense } from "solid-js";
+import { onMount, Suspense } from "solid-js";
 import { Body, ErrorBoundary, FileRoutes, Head, Html, Link, Meta, Routes, Scripts, Title } from "solid-start";
+import "./root.css";
+import "./api/public/assets";
+import Wallet from "./wallet/mod";
 import { joinPaths } from "solid-start/islands/server-router";
-import "~/root.css";
-import "~/api/public/assets";
 
 export const base = import.meta.env.BASE_URL;
 
-
 export default function Root() {
 
+  onMount(async ()=>{
+    let wallet = new Wallet()
+    // console.log(await wallet.signdata("123"));
+  })
+  
   return (
     <Html lang="en">
       <Head>
