@@ -7,7 +7,7 @@ URL = f"{BASE_URL}/private/submit"
 
 session = login(PRIVATE_KEY)
 
-response = requests.get(
+response = requests.post(
     URL,
     cookies={AUTH_COOKIE_NAME: session.session_id},
     json=SubmitRequest(

@@ -4,9 +4,8 @@ use std::{
 };
 
 use axum::{
-    extract::State,
+    extract::{Query, State},
     response::sse::{Event, Sse},
-    Json,
 };
 use database::sqlx::types::Uuid;
 use futures::{stream::Stream, StreamExt, TryStreamExt};
@@ -44,11 +43,11 @@ impl RequestPartial {
 // Return stream of trades from db
 pub async fn root(
     State(state): State<AppState>,
-    Json(payload): Json<RequestPartial>,
+    Query(params): Query<RequestPartial>,
 ) -> Sse<impl Stream<Item = Result<Event, std::io::Error>>> {
-    let payload = payload.insert_defaults();
+    let params = params.insert_defaults();
     let stream = async_stream::try_stream! {
-        let mut stream = state.orders_manager.subscribe_for_orderbook(payload.quote_asset_id, payload.base_asset_id, payload.precision, payload.limit).await
+        let mut stream = state.orders_manager.subscribe_for_orderbook(params.quote_asset_id, params.base_asset_id, params.precision, params.limit).await
             .map_err(|err| Error::new(ErrorKind::BrokenPipe, err))?;
         while let Some(element) = stream.next().await {
             yield Event::default().json_data(

@@ -1,20 +1,20 @@
+import axios from "axios";
 import { z } from "zod";
-import { SessionId, StringResponse } from "~/api/auth/mod";
-import { COOKIE_NAME, PRIVATE_URL, SubmitRequest } from "./mod";
+import { PRIVATE_URL, SubmitRequest } from "./mod";
 
 export const URL = PRIVATE_URL + "/submit";
 
-async function get(session: SessionId, request: SubmitRequest) {
-  return fetch(URL, {
-    method: "get",
-    headers: {
-      "Content-Type": "application/json",
-      Cookie: `${COOKIE_NAME}=${session}`,
-    },
-    body: JSON.stringify(request),
-  })
-    .then((r) => r.json())
-    .then((r) => StringResponse.parse(r));
+export function post(payload: SubmitRequest) {
+  return axios
+    .post(URL, payload, {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    .then((r) => z.string().parse(r.data));
 }
 
-async function sse(session: SessionId) {}
+export function sse() {
+  return new EventSource(URL + "/sse", { withCredentials: true });
+}

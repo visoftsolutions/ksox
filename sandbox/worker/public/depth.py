@@ -6,17 +6,18 @@ URL = f"{BASE_URL}/public/depth"
 
 response = requests.get(
     URL,
-    json={
+    params={
         "quote_asset_id": "5864a1b9-4ae1-424f-bdb4-f644cb359463",
         "base_asset_id": "7a99f052-d941-4dcc-aabd-6695c24deed5",
         "precision": 1,
     },
 )
+print(response.url)
 print(response.text)
 
 response = SSEClient(
     f"{URL}/sse",
-    json={
+    params={
         "quote_asset_id": "5864a1b9-4ae1-424f-bdb4-f644cb359463",
         "base_asset_id": "7a99f052-d941-4dcc-aabd-6695c24deed5",
         "precision": 1,

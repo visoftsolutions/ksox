@@ -31,13 +31,13 @@ pub mod engine_base {
 }
 
 use engine_base::engine_client::EngineClient;
+use tower_http::cors::{Any, CorsLayer};
 
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
 
-    let database =
-        PgPool::connect(std::env::var("DATABASE_URL")?.as_str()).await?;
+    let database = PgPool::connect(std::env::var("DATABASE_URL")?.as_str()).await?;
 
     let app_state = AppState {
         database: database.clone(),
@@ -49,14 +49,19 @@ async fn main() -> Result<()> {
         orders_manager: OrdersManager::new(database.clone()),
         candlesticks_manager: CandlestickManager::new(database.clone()),
         assets_pair_recognition: AssetPairRecognition::new(database, Regex::new(r"[^a-zA-Z]+")?),
-        engine_client: EngineClient::connect(std::env::var("ENGINE_URL").unwrap().as_str().to_owned()).await?,
+        engine_client: EngineClient::connect(
+            std::env::var("ENGINE_URL").unwrap().as_str().to_owned(),
+        )
+        .await?,
     };
 
     let app = Router::new()
-        .route("/", get(root))
+        .route("/", get(api::root))
+        .route("/sse", get(api::sse))
         .nest("/auth", api::auth::router(&app_state))
         .nest("/private", api::private::router(&app_state))
-        .nest("/public", api::public::router(&app_state));
+        .nest("/public", api::public::router(&app_state))
+        .layer(CorsLayer::new().allow_origin(Any));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));
     tracing::info!("listening on {}", addr);
@@ -69,8 +74,4 @@ async fn main() -> Result<()> {
         .await?;
 
     Ok(())
-}
-
-async fn root() -> &'static str {
-    "Hello, World!"
 }

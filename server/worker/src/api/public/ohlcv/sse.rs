@@ -4,9 +4,8 @@ use std::{
 };
 
 use axum::{
-    extract::State,
+    extract::{Query, State},
     response::sse::{Event, Sse},
-    Json,
 };
 use chrono::{DateTime, Utc};
 use database::{sqlx::types::Uuid, types::CandlestickType};
@@ -50,13 +49,13 @@ impl RequestPartial {
 // Return ohlcv stream
 pub async fn root(
     State(state): State<AppState>,
-    Json(payload): Json<RequestPartial>,
+    Query(params): Query<RequestPartial>,
 ) -> Sse<impl Stream<Item = Result<Event, std::io::Error>>> {
-    let payload = payload.insert_defaults();
-    tracing::info!("{}", payload.reference_point);
+    let params = params.insert_defaults();
+    tracing::info!("{}", params.reference_point);
     let stream = async_stream::try_stream! {
         let ohlcv_engine = OhlcvEngine::new(state.database);
-        let mut stream = ohlcv_engine.subscribe(payload.quote_asset_id, payload.base_asset_id, payload.kind, payload.reference_point, payload.span).await;
+        let mut stream = ohlcv_engine.subscribe(params.quote_asset_id, params.base_asset_id, params.kind, params.reference_point, params.span).await;
         while let Some(element) = stream.next().await {
             yield Event::default().json_data(
                 element.map_err(|err| Error::new(ErrorKind::BrokenPipe, err))?

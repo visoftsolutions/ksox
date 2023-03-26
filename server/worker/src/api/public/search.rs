@@ -1,4 +1,7 @@
-use axum::{extract::State, Json};
+use axum::{
+    extract::{Query, State},
+    Json,
+};
 use database::{projections::spot::asset::Asset, sqlx::types::Uuid};
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
@@ -30,12 +33,12 @@ impl From<Asset> for AssetResponse {
 // Send string phrase and return vector of suggestions sorted by most "relevant"
 pub async fn root(
     State(state): State<AppState>,
-    Json(payload): Json<Request>,
+    Query(params): Query<Request>,
 ) -> Result<Json<Vec<(OrderedFloat<f64>, (AssetResponse, AssetResponse))>>, AppError> {
     Ok(Json(
         state
             .assets_pair_recognition
-            .recognize(&payload.input)
+            .recognize(&params.input)
             .await?,
     ))
 }

@@ -7,7 +7,7 @@ URL = f"{BASE_URL}/public/trades"
 
 response = requests.get(
     URL,
-    json={
+    params={
         "quote_asset_id": "b6b20297-10ab-4f14-bff0-f630a09363e1",
         "base_asset_id": "b6b20297-10ab-4f14-bff0-f630a09363e1",
     },
@@ -16,7 +16,7 @@ print(response.text)
 
 response = SSEClient(
     f"{URL}/sse",
-    json={
+    params={
         "quote_asset_id": "b6b20297-10ab-4f14-bff0-f630a09363e1",
         "base_asset_id": "b6b20297-10ab-4f14-bff0-f630a09363e1",
     },

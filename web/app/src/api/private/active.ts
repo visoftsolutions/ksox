@@ -1,22 +1,15 @@
 import { z } from "zod";
 import { Pagination } from "~/api/mod";
-import { SessionId } from "~/api/auth/mod";
-import { COOKIE_NAME, PRIVATE_URL } from "./mod";
+import { PRIVATE_URL } from "./mod";
 import { Order } from "~/types/order";
+import axios from "axios";
 
 export const URL = PRIVATE_URL + "/active";
 
-async function get(session: SessionId, pagination?: Pagination) {
-  return fetch(URL, {
-    method: "get",
-    headers: {
-      "Content-Type": "application/json",
-      Cookie: `${COOKIE_NAME}=${session}`,
-    },
-    body: JSON.stringify(pagination),
-  })
-    .then((r) => r.json())
-    .then((r) => z.array(Order).parse(r));
+export function get(params?: Pagination) {
+  return axios.get(URL, { withCredentials: true, params: params }).then((r) => z.array(Order).parse(r.data));
 }
 
-async function sse(session: SessionId) {}
+export function sse() {
+  return new EventSource(URL + "/sse", { withCredentials: true });
+}

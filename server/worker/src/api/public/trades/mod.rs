@@ -1,6 +1,10 @@
 mod sse;
 
-use axum::{extract::State, routing::get, Json, Router};
+use axum::{
+    extract::{Query, State},
+    routing::get,
+    Json, Router,
+};
 use database::{projections::spot::trade::Trade, sqlx::types::Uuid};
 use serde::Deserialize;
 use tokio_stream::StreamExt;
@@ -43,14 +47,14 @@ impl RequestPartial {
 
 pub async fn root(
     State(state): State<AppState>,
-    Json(payload): Json<RequestPartial>,
+    Query(params): Query<RequestPartial>,
 ) -> Result<Json<Vec<Trade>>, AppError> {
-    let payload = payload.insert_defaults();
+    let params = params.insert_defaults();
     let mut stream = state.trades_manager.get_for_asset_pair(
-        payload.quote_asset_id,
-        payload.base_asset_id,
-        payload.pagination.limit,
-        payload.pagination.offset,
+        params.quote_asset_id,
+        params.base_asset_id,
+        params.pagination.limit,
+        params.pagination.offset,
     );
     let mut vec = Vec::<Trade>::new();
     while let Some(res) = stream.next().await {

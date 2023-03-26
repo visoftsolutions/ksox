@@ -3,7 +3,7 @@ pub mod models;
 use std::ops::Deref;
 
 use axum::{
-    extract::{Json, State},
+    extract::{Json, Query, State},
     routing::{delete, get, post},
     Router,
 };
@@ -28,7 +28,7 @@ pub fn router(app_state: &AppState) -> Router {
 
 async fn generate_nonce(
     State(state): State<AppState>,
-    Json(payload): Json<GenerateNonceRequest>,
+    Query(params): Query<GenerateNonceRequest>,
 ) -> Result<Json<GenerateNonceResponse>, AppError> {
     let nonce = Nonce::new(32);
     state
@@ -36,7 +36,7 @@ async fn generate_nonce(
         .get_async_connection()
         .await?
         .set_ex(
-            format!("auth:nonce:{}", payload.address),
+            format!("auth:nonce:{}", params.address),
             nonce.clone(),
             NONCE_EXPIRATION_TIME,
         )

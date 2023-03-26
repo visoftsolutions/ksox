@@ -2,9 +2,17 @@ pub mod auth;
 pub mod private;
 pub mod public;
 
-use axum::response::{IntoResponse, Response};
+use std::{convert::Infallible, time::Duration};
+
+use axum::{
+    response::{sse::Event, IntoResponse, Response, Sse},
+    TypedHeader,
+};
+use chrono::Utc;
+use futures::{stream, Stream};
 use http::StatusCode;
 use serde::Deserialize;
+use tokio_stream::StreamExt;
 
 pub struct AppError(anyhow::Error);
 
@@ -40,4 +48,27 @@ impl Default for Pagination {
             offset: 0,
         }
     }
+}
+
+pub async fn root() -> &'static str {
+    "Hello, World!"
+}
+
+pub async fn sse(
+    TypedHeader(user_agent): TypedHeader<headers::UserAgent>,
+) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
+    println!("`{}` connected", user_agent.as_str());
+
+    // A `Stream` that repeats an event every second
+    let stream = stream::repeat_with(|| {
+        Event::default().data(format!("Hello, World!, time: {}", Utc::now().to_string()))
+    })
+    .map(Ok)
+    .throttle(Duration::from_secs(1));
+
+    Sse::new(stream).keep_alive(
+        axum::response::sse::KeepAlive::new()
+            .interval(Duration::from_secs(1))
+            .text("keep-alive-text"),
+    )
 }

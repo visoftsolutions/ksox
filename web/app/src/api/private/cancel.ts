@@ -1,20 +1,13 @@
+import axios from "axios";
 import { z } from "zod";
-import { SessionId, StringResponse } from "~/api/auth/mod";
-import { CancelRequest, COOKIE_NAME, PRIVATE_URL } from "./mod";
+import { CancelRequest, PRIVATE_URL } from "./mod";
 
 export const URL = PRIVATE_URL + "/cancel";
 
-async function get(session: SessionId, request: CancelRequest) {
-  return fetch(URL, {
-    method: "get",
-    headers: {
-      "Content-Type": "application/json",
-      Cookie: `${COOKIE_NAME}=${session}`,
-    },
-    body: JSON.stringify(request),
-  })
-    .then((r) => r.json())
-    .then((r) => StringResponse.parse(r));
+export function cancel(params: CancelRequest) {
+  return axios.delete(URL, { withCredentials: true, params: params }).then((r) => z.string().parse(r.data));
 }
 
-async function sse(session: SessionId) {}
+export function sse() {
+  return new EventSource(URL + "/sse", { withCredentials: true });
+}

@@ -6,5 +6,5 @@ export default defineConfig({
   base: "/app",
   build: {
     target: "esnext",
-  }
+  },
 });

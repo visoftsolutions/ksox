@@ -18,7 +18,7 @@ def login(private_key) -> ValidateSignatureResponse:
     address = Account.from_key(private_key).address
 
     generate_nonce_raw = requests.get(
-        AUTH_URL, json=GenerateNonceRequest(address).__dict__
+        AUTH_URL, params=GenerateNonceRequest(address).__dict__
     )
     generate_nonce_response = GenerateNonceResponse(**generate_nonce_raw.json())
 

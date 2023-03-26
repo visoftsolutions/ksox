@@ -1,11 +1,20 @@
 import { z } from "zod";
-import { Uuid } from "~/types/primitives/uuid";
-import { Volume } from "~/types/primitives/volume";
+import axios from "axios";
 
-export const BASE_URL = "http://localhost:7979";
+export const BASE_URL = "http://192.168.49.2/api";
 
 export const Pagination = z.object({
   limit: z.number().nonnegative(),
   offset: z.number().nonnegative(),
 });
 export type Pagination = z.infer<typeof Pagination>;
+
+const URL = BASE_URL;
+
+export async function get() {
+  return axios.get(URL).then((r) => z.string().parse(r.data));
+}
+
+export function sse() {
+  return new EventSource(URL + "/sse");
+}

@@ -1,6 +1,10 @@
 mod sse;
 
-use axum::{extract::State, routing::get, Json, Router};
+use axum::{
+    extract::{Query, State},
+    routing::get,
+    Json, Router,
+};
 use database::projections::spot::order::Order;
 use tokio_stream::StreamExt;
 
@@ -19,9 +23,9 @@ pub fn router(app_state: &AppState) -> Router {
 pub async fn root(
     State(state): State<AppState>,
     user_id: UserId,
-    mut payload: Option<Json<Pagination>>,
+    mut params: Option<Query<Pagination>>,
 ) -> Result<Json<Vec<Order>>, AppError> {
-    let pagination = payload.get_or_insert_default();
+    let pagination = params.get_or_insert_default();
     let mut stream =
         state
             .orders_manager

@@ -18,7 +18,6 @@ export const SessionId = z
   .regex(/0[xX][0-9a-fA-F]+/);
 export const UserId = z.string().uuid();
 export const Expiration = z.number().nonnegative();
-export const StringResponse = z.string();
 
 export type EvmAddress = z.infer<typeof EvmAddress>;
 export type Nonce = z.infer<typeof Nonce>;
@@ -26,7 +25,6 @@ export type Signature = z.infer<typeof Signature>;
 export type SessionId = z.infer<typeof SessionId>;
 export type UserId = z.infer<typeof UserId>;
 export type Expiration = z.infer<typeof Expiration>;
-export type StringResponse = z.infer<typeof StringResponse>;
 
 export const GenerateNonceRequest = z.object({
   address: EvmAddress,

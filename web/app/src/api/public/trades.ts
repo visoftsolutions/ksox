@@ -1,20 +1,14 @@
 import { z } from "zod";
-import { SessionId } from "~/api/auth/mod";
 import { PUBLIC_URL, TradesRequest } from "./mod";
 import { Trade } from "~/types/trade";
+import axios from "axios";
 
 export const URL = PUBLIC_URL + "/search";
 
-async function get(request: TradesRequest) {
-  return fetch(URL, {
-    method: "get",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(request),
-  })
-    .then((r) => r.json())
-    .then((r) => z.array(Trade).parse(r));
+export function get(params: TradesRequest) {
+  return axios.get(URL, { params: params }).then((r) => z.array(Trade).parse(r.data));
 }
 
-async function sse(session: SessionId) {}
+export function sse() {
+  return new EventSource(URL + "/sse");
+}

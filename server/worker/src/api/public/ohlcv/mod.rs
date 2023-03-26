@@ -1,11 +1,13 @@
 mod sse;
 
-use axum::{extract::State, routing::get, Json, Router};
+use axum::{
+    extract::{Query, State},
+    routing::get,
+    Json, Router,
+};
 use chrono::{DateTime, Utc};
 use database::{
-    projections::spot::candlestick::Candlestick,
-    sqlx::types::Uuid,
-    types::{CandlestickType},
+    projections::spot::candlestick::Candlestick, sqlx::types::Uuid, types::CandlestickType,
 };
 use serde::Deserialize;
 
@@ -50,18 +52,18 @@ impl RequestPartial {
 
 pub async fn root(
     State(state): State<AppState>,
-    Json(payload): Json<RequestPartial>,
+    Query(params): Query<RequestPartial>,
 ) -> Result<Json<Option<Candlestick>>, AppError> {
-    let payload = payload.insert_defaults();
+    let params = params.insert_defaults();
     let ohlcv_engine = OhlcvEngine::new(state.database);
     Ok(Json(
         ohlcv_engine
             .get(
-                payload.quote_asset_id,
-                payload.base_asset_id,
-                payload.kind,
-                payload.reference_point,
-                payload.span,
+                params.quote_asset_id,
+                params.base_asset_id,
+                params.kind,
+                params.reference_point,
+                params.span,
             )
             .await?,
     ))

@@ -1,20 +1,14 @@
 import { z } from "zod";
-import { SessionId } from "~/api/auth/mod";
 import { OhlcvRequest, PUBLIC_URL } from "./mod";
 import { Candlestick } from "~/types/candlestick";
+import axios from "axios";
 
-export const URL = PUBLIC_URL + "/depth";
+export const URL = PUBLIC_URL + "/ohlcv";
 
-async function get(request: OhlcvRequest) {
-  return fetch(URL, {
-    method: "get",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(request),
-  })
-    .then((r) => r.json())
-    .then((r) => z.optional(Candlestick).parse(r));
+export function get(params: OhlcvRequest) {
+  return axios.get(URL, { params: params }).then((r) => z.array(Candlestick).parse(r.data));
 }
 
-async function sse(session: SessionId) {}
+export function sse() {
+  return new EventSource(URL + "/sse");
+}

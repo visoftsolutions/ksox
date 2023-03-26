@@ -1,6 +1,10 @@
 mod sse;
 
-use axum::{extract::State, routing::get, Json, Router};
+use axum::{
+    extract::{Query, State},
+    routing::get,
+    Json, Router,
+};
 use database::{sqlx::types::Uuid, types::PriceLevel};
 use futures::StreamExt;
 use serde::Deserialize;
@@ -43,16 +47,16 @@ impl RequestPartial {
 
 pub async fn root(
     State(state): State<AppState>,
-    Json(payload): Json<RequestPartial>,
+    Query(params): Query<RequestPartial>,
 ) -> Result<Json<Vec<PriceLevel>>, AppError> {
-    let payload = payload.insert_defaults();
+    let params = params.insert_defaults();
     let mut stream = state
         .orders_manager
         .get_orderbook(
-            payload.quote_asset_id,
-            payload.base_asset_id,
-            payload.precision,
-            payload.limit,
+            params.quote_asset_id,
+            params.base_asset_id,
+            params.precision,
+            params.limit,
         )
         .map(|f| f.and_then(TryInto::<PriceLevel>::try_into));
 

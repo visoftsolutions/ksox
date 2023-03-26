@@ -2,19 +2,17 @@ import { onMount, Suspense } from "solid-js";
 import { Body, ErrorBoundary, FileRoutes, Head, Html, Link, Meta, Routes, Scripts, Title } from "solid-start";
 import "./root.css";
 import "./api/public/assets";
-import Wallet from "./wallet/mod";
 import { joinPaths } from "solid-start/islands/server-router";
-import { Eip1193Provider, ethers } from "ethers";
-import { sse } from "./api/public/depth";
+import { get, sse } from "./api/mod";
 
 export const base = import.meta.env.BASE_URL;
 
 export default function Root() {
   onMount(async () => {
-    let stream = sse();
-    for await (const element of stream) {
-      console.log(element);
-    }
+    console.log(await get());
+    sse().onmessage = (event) => {
+      console.log(event.data);
+    };
   });
 
   return (

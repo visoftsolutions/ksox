@@ -7,16 +7,19 @@ pub mod orders;
 pub mod submit;
 pub mod trades;
 
-use axum::{routing::get, Router};
+use axum::{
+    routing::{delete, post},
+    Router,
+};
 
 use crate::models::AppState;
 
 pub fn router(app_state: &AppState) -> Router {
     Router::new()
-        .route("/mint", get(mint::root))
-        .route("/burn", get(burn::root))
-        .route("/cancel", get(cancel::root))
-        .route("/submit", get(submit::root))
+        .route("/mint", post(mint::root))
+        .route("/burn", post(burn::root))
+        .route("/cancel", delete(cancel::root))
+        .route("/submit", post(submit::root))
         .with_state(app_state.clone())
         .nest("/active", active::router(app_state))
         .nest("/balance", balance::router(app_state))
