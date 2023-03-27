@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+  labels:
+    app: postgres-database
+spec:
+  selector:
+    matchLabels:
+      app: postgres-database
+  template:
+    metadata:
+      labels:
+        app: postgres-database
+    spec:
+      containers:
+      - name: postgres-database
+        image: postgres-database
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: ksoxuser
+        - name: POSTGRES_PASSWORD
+          value: ksoxuserp4ssword
+        - name: POSTGRES_DB
+          value: ksox
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+spec:
+  type: NodePort
+  selector:
+    app: postgres-database
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+      nodePort: 30432

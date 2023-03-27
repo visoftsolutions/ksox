@@ -4,49 +4,34 @@ build:
   local:
     push: false
   artifacts:
+  - image: postgres-database
+    context: ./postgres
+    docker:
+      dockerfile: Dockerfile
+  - image: redis-database
+    context: ./redis
+    docker:
+      dockerfile: Dockerfile
   - image: server-engine
-    context: server
+    context: ./server
     docker:
       dockerfile: engine.dockerfile
   - image: server-worker
-    context: server
+    context: ./server
     docker:
       dockerfile: worker.dockerfile
   - image: web-app
-    context: web/app
+    context: ./web/app
     docker:
       dockerfile: Dockerfile
   - image: web-landing
-    context: web/landing
+    context: ./web/landing
     docker:
       dockerfile: Dockerfile
 manifests:
   rawYaml:
+    - ./postgres/k8s/*
+    - ./redis/k8s/*
     - ./server/k8s/*
     - ./web/app/k8s/*
     - ./web/landing/k8s/*
-  helm:
-    releases:
-    - name: redis
-      chartPath: redis
-      repo: https://charts.bitnami.com/bitnami
-      setValues:
-        auth:
-          enabled: false
-        replica:
-          replicaCount: 1
-    - name: postgres
-      chartPath: postgresql
-      repo: https://charts.bitnami.com/bitnami
-      wait: true
-      setValues:
-        auth:
-          username: ksoxuser
-          password: ksoxuserp4ssword
-          database: ksox
-          postgresPassword: ksoxuserp4ssword
-        primary:
-          service:
-            type: NodePort
-            nodePorts:
-              postgresql: 30001
