@@ -56,6 +56,8 @@ make sure you are in workspace root folder
 cargo +nightly udeps
 ```
 
+## update package.json
+npx npm-check-updates -u
 
 ## run code in kubernetes
 make sure you have minikube, docker and skaffold installed
