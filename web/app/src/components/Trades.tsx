@@ -8,12 +8,13 @@ import { PUBLIC_URL } from "~/types/mod";
 import params from "~/utils/params";
 import { Uuid } from "~/types/primitives/uuid";
 import { z } from "zod";
-import { truncateNumber } from "~/formatters/NumberFormatter";
+import { format } from "numerable";
 
 export default function Trades() {
-  const [storeState, setStoreState] = createStore<{ quote_asset_id: Uuid; base_asset_id: Uuid; capacity: number }>({
+  const [storeState, setStoreState] = createStore<{ quote_asset_id: Uuid; base_asset_id: Uuid; number_pattern: string, capacity: number }>({
     quote_asset_id: "5864a1b9-4ae1-424f-bdb4-f644cb359463",
     base_asset_id: "7a99f052-d941-4dcc-aabd-6695c24deed5",
+    number_pattern: "0,0.00",
     capacity: 40,
   });
   const [storeComponent, setStoreComponent] = createStore<{ trades: TriElementComponent[] }>({ trades: [] });
@@ -48,13 +49,13 @@ export default function Trades() {
     const display = storeTrades.trades.map<TriElementComponent>((el) => ({
       column_0: (
         <span class={`${el.quote_asset_id == storeState.quote_asset_id && el.base_asset_id == storeState.base_asset_id ? "text-green" : "text-red"}`}>
-          {truncateNumber(el.taker_base_volume / el.taker_quote_volume, 10)}
+          {format(el.taker_base_volume / el.taker_quote_volume, storeState.number_pattern)}
         </span>
       ),
-      column_1: el.taker_base_volume.toString(),
+      column_1: format(el.taker_base_volume, storeState.number_pattern),
       column_2: el.created_at.toLocaleTimeString(),
     }));
-    setStoreComponent({ trades: display });
+    setStoreComponent("trades", display );
   });
 
   return (

@@ -68,9 +68,9 @@ BEGIN
     CREATE OR REPLACE TRIGGER %s
     AFTER INSERT OR UPDATE ON spot.trades
     FOR EACH ROW
-    WHEN (NEW.quote_asset_id = ''%s'' AND NEW.base_asset_id = ''%s'')
+    WHEN ((NEW.quote_asset_id = ''%s'' AND NEW.base_asset_id = ''%s'') OR (NEW.base_asset_id = ''%s'' AND NEW.quote_asset_id = ''%s''))
     EXECUTE FUNCTION spot_trades_notify(''%s'');',
-    trigger_truncated_name, quote_asset_id::text, base_asset_id::text, channel_truncated_name);
+    trigger_truncated_name, quote_asset_id::text, base_asset_id::text, quote_asset_id::text, base_asset_id::text, channel_truncated_name);
 END;
 $BODY$ LANGUAGE plpgsql;
 

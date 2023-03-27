@@ -234,7 +234,7 @@ impl TradesManager {
                 maker_quote_volume as "maker_quote_volume: Volume",
                 maker_base_volume as "maker_base_volume: Volume"
             FROM spot.trades
-            WHERE quote_asset_id = $1 AND base_asset_id = $2
+            WHERE (quote_asset_id = $1 AND base_asset_id = $2) OR (quote_asset_id = $2 AND base_asset_id = $1)
             ORDER BY created_at DESC
             LIMIT $3
             OFFSET $4
