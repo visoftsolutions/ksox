@@ -2,7 +2,7 @@ use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::types::Uuid;
 
-use super::{order::Order, trade::Trade};
+use super::trade::Trade;
 use crate::types::{fraction::FractionError, CandlestickType, Fraction, Volume};
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -73,22 +73,22 @@ pub struct CandlestickData {
     pub maker_base_volume: Volume,
 }
 
-impl TryFrom<(Trade, Order)> for CandlestickData {
+impl TryFrom<Trade> for CandlestickData {
     type Error = FractionError;
-    fn try_from(value: (Trade, Order)) -> Result<Self, Self::Error> {
+    fn try_from(value: Trade) -> Result<Self, Self::Error> {
         Ok(Self {
-            quote_asset_id: value.1.quote_asset_id,
-            base_asset_id: value.1.base_asset_id,
+            quote_asset_id: value.quote_asset_id,
+            base_asset_id: value.base_asset_id,
             price: (
-                value.0.taker_base_volume.clone(),
-                value.0.taker_quote_volume.clone(),
+                value.taker_base_volume.clone(),
+                value.taker_quote_volume.clone(),
             )
                 .try_into()?,
-            time: value.0.created_at,
-            taker_quote_volume: value.0.taker_quote_volume,
-            taker_base_volume: value.0.taker_base_volume,
-            maker_quote_volume: value.0.maker_quote_volume,
-            maker_base_volume: value.0.maker_base_volume,
+            time: value.created_at,
+            taker_quote_volume: value.taker_quote_volume,
+            taker_base_volume: value.taker_base_volume,
+            maker_quote_volume: value.maker_quote_volume,
+            maker_base_volume: value.maker_base_volume,
         })
     }
 }

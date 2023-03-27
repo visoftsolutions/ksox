@@ -8,6 +8,8 @@ use crate::types::Volume;
 pub struct Trade {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,
+    pub quote_asset_id: Uuid,
+    pub base_asset_id: Uuid,
     pub taker_id: Uuid,
     pub order_id: Uuid,
     pub taker_quote_volume: Volume,

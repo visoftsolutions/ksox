@@ -148,9 +148,7 @@ impl OhlcvEngine {
                 let mut last_candle_trades = self.trades_manager.get_after_for_asset_pair(quote_asset_id, base_asset_id, last_topen);
 
                 while let Some(trade) = last_candle_trades.next().await {
-                    let trade = trade?;
-                    let order = self.orders_manager.get_by_id(trade.order_id).await?;
-                    let data: CandlestickData = (trade, order).try_into()?;
+                    let data: CandlestickData = trade?.try_into()?;
                     self.update(&mut candlestick, data, kind.to_owned(),reference_point.to_owned(), span)?;
                 }
 
@@ -161,10 +159,8 @@ impl OhlcvEngine {
             }
 
             while let Some(trade) = trades.next().await {
-                let trade = trade?;
-                let order = self.orders_manager.get_by_id(trade.order_id).await?;
-                let data: CandlestickData = (trade, order).try_into()?;
-                yield self.update(&mut candlestick, data, kind.to_owned(), reference_point.to_owned(), span)?;
+                let data: CandlestickData = trade?.try_into()?;
+                yield self.update(&mut candlestick, data, kind.to_owned(),reference_point.to_owned(), span)?;
             }
         };
         Box::pin(stream)
@@ -194,9 +190,7 @@ impl OhlcvEngine {
                                 tclose,
                             );
                             while let Some(trade) = trades.next().await {
-                                let trade = trade?;
-                                let order = self.orders_manager.get_by_id(trade.order_id).await?;
-                                let data: CandlestickData = (trade, order).try_into()?;
+                                let data: CandlestickData = trade?.try_into()?;
                                 self.update(
                                     &mut candlestick,
                                     data,

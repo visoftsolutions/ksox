@@ -14,7 +14,7 @@ spec:
         app: web-landing
     spec:
       containers:
-      - name: web-landing
-        image: web-landing
-        ports:
-        - containerPort: 80
+        - name: web-landing
+          image: web-landing
+          ports:
+            - containerPort: 80

@@ -3,15 +3,26 @@ module.exports = {
   content: ["./src/**/*.{html,js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      screens: {
+        big: "900px",
+        medium: "700px",
+        small: "600px",
+
+        // => @media (min-width: 1221px) { ... }
+      },
+
       colors: {
         primary: "#5532B9",
-        secondary: "#00AB82",
+        secondary: "#DA008D",
         background: "#0F0D12",
         "text-1": "#EBEBEB",
         "text-2": "#776A92",
         links: "#A697C6",
         dark: "#202020",
         gradient: "#4B13EB",
+        benefitscolornew: "#726CB9",
+        links_new: "#A790E5",
+        buttonbg_new: "#5532B9",
       },
       fontFamily: {
         lexend: "'Lexend', sans-serif",
@@ -32,6 +43,13 @@ module.exports = {
         "footer-title-light": ["18px", "32px"],
         "footer-element": ["20px", "25px"],
         "footer-element-light": ["16px", "20px"],
+        "desktop-section-beginning": ["38px", "48px"],
+        "hero-big-new": ["60px", "64px"],
+        "hero-small-new": ["20px", "24px"],
+        "text-hero-benefit-new": ["15px", "24px"],
+        "section-beginning-md": ["20px", "32px"],
+        "section-title-md": ["38px", "48px"],
+        "section-main-md": ["20px", "32px"],
       },
     },
   },

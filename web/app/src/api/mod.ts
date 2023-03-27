@@ -1,7 +1,7 @@
 import { z } from "zod";
 import axios from "axios";
 
-export const BASE_URL = "http://192.168.49.2/api";
+export const BASE_URL = "http://localhost:7979/api";
 
 export const Pagination = z.object({
   limit: z.number().nonnegative(),

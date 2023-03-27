@@ -4,10 +4,7 @@ pub mod public;
 
 use std::{convert::Infallible, time::Duration};
 
-use axum::{
-    response::{sse::Event, IntoResponse, Response, Sse},
-    TypedHeader,
-};
+use axum::response::{sse::Event, IntoResponse, Response, Sse};
 use chrono::Utc;
 use futures::{stream, Stream};
 use http::StatusCode;
@@ -41,27 +38,13 @@ pub struct Pagination {
     pub offset: i64,
 }
 
-impl Default for Pagination {
-    fn default() -> Self {
-        Self {
-            limit: 10,
-            offset: 0,
-        }
-    }
-}
-
 pub async fn root() -> &'static str {
     "Hello, World!"
 }
 
-pub async fn sse(
-    TypedHeader(user_agent): TypedHeader<headers::UserAgent>,
-) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
-    println!("`{}` connected", user_agent.as_str());
-
-    // A `Stream` that repeats an event every second
+pub async fn sse() -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     let stream = stream::repeat_with(|| {
-        Event::default().data(format!("Hello, World!, time: {}", Utc::now().to_string()))
+        Event::default().data(format!("Hello, World!, time: {}", Utc::now()))
     })
     .map(Ok)
     .throttle(Duration::from_secs(1));

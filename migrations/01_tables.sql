@@ -38,6 +38,8 @@ CREATE TABLE "spot"."orders" (
 CREATE TABLE "spot"."trades" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "quote_asset_id" uuid NOT NULL,
+  "base_asset_id" uuid NOT NULL,
   "taker_id" uuid NOT NULL,
   "order_id" uuid NOT NULL,
   "taker_quote_volume" NUMERIC(78) NOT NULL CHECK ("taker_quote_volume" >= 0),
@@ -77,6 +79,10 @@ ALTER TABLE "spot"."orders" ADD FOREIGN KEY ("base_asset_id") REFERENCES "spot".
 ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("taker_id") REFERENCES "users" ("id");
 
 ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("order_id") REFERENCES "spot"."orders" ("id");
+
+ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "spot"."assets" ("id");
+
+ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("base_asset_id") REFERENCES "spot"."assets" ("id");
 
 ALTER TABLE "spot"."candlesticks" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "spot"."assets" ("id");
 

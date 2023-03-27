@@ -5,7 +5,7 @@ import Text from "./footer/Text";
 export default function Footer() {
   return (
     <section id="section-4">
-      <footer class="flex flex-col items-center">
+      <footer class="flex flex-col justify-around md:flex-row">
         <Text />
         <Spacing class="h-12" />
         <ContactItems />

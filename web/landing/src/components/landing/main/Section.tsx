@@ -12,13 +12,13 @@ export default function Section(
   return (
     <section id={props.sectionId}>
       <div class={`flex flex-col items-center justify-between ${props.class}`}>
-        <div class="max-w-xl">
-          <img src={props.imagePath} />
+        <div class="flex-1">
+          <img src={props.imagePath} alt="about" />
         </div>
 
-        <Spacing class="h-8 md:w-96" />
+        <Spacing class="h-8 md:w-5" />
 
-        <div class="flex flex-col items-start gap-7">
+        <div class="flex flex-1 flex-col items-start gap-7">
           {props.children}
 
           <A

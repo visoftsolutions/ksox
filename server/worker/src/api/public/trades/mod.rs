@@ -9,10 +9,7 @@ use database::{projections::spot::trade::Trade, sqlx::types::Uuid};
 use serde::Deserialize;
 use tokio_stream::StreamExt;
 
-use crate::{
-    api::{AppError, Pagination},
-    models::AppState,
-};
+use crate::{api::AppError, models::AppState};
 
 pub fn router(app_state: &AppState) -> Router {
     Router::new()
@@ -21,40 +18,24 @@ pub fn router(app_state: &AppState) -> Router {
         .with_state(app_state.clone())
 }
 
-// TODO define macro for this
 #[derive(Deserialize)]
-pub struct RequestPartial {
-    pub quote_asset_id: Uuid,
-    pub base_asset_id: Uuid,
-    pub pagination: Option<Pagination>,
-}
-
 pub struct Request {
     pub quote_asset_id: Uuid,
     pub base_asset_id: Uuid,
-    pub pagination: Pagination,
-}
-
-impl RequestPartial {
-    fn insert_defaults(self) -> Request {
-        Request {
-            quote_asset_id: self.quote_asset_id,
-            base_asset_id: self.base_asset_id,
-            pagination: self.pagination.unwrap_or_default(),
-        }
-    }
+    pub limit: i64,
+    pub offset: i64,
 }
 
 pub async fn root(
     State(state): State<AppState>,
-    Query(params): Query<RequestPartial>,
+    Query(params): Query<Request>,
 ) -> Result<Json<Vec<Trade>>, AppError> {
-    let params = params.insert_defaults();
+    // let params = params.insert_defaults();
     let mut stream = state.trades_manager.get_for_asset_pair(
         params.quote_asset_id,
         params.base_asset_id,
-        params.pagination.limit,
-        params.pagination.offset,
+        params.limit,
+        params.offset,
     );
     let mut vec = Vec::<Trade>::new();
     while let Some(res) = stream.next().await {

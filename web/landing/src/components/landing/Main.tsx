@@ -2,8 +2,6 @@ import Divider from "../Divider";
 import Spacing from "../Spacing";
 import Hero from "./main/Hero";
 import Section from "./main/Section";
-import { base } from "~/root";
-import { joinPaths } from "solid-start/islands/server-router";
 
 export default function Main() {
   return (
@@ -17,18 +15,18 @@ export default function Main() {
       <Section
         sectionId="section-1"
         sectionToId="section-2"
-        imagePath={joinPaths(base, "/gfx/about01.png")}
+        imagePath="/gfx/section01.webp"
         class="md:flex-row"
       >
-        <div class="font-lexend text-section-beginning font-bold text-secondary">
+        <div class="font-lexend text-section-beginning font-bold text-secondary md:text-section-beginning-md ">
           KSOX is safe
         </div>
 
-        <div class="font-lexend text-section-title font-bold text-text-1">
-          Self-custodial eXchange, on-chain deposit treasury.
+        <div class="font-lexend text-section-title font-semibold text-text-1 md:text-section-title-md">
+          Self-custodial exchange, on-chain deposit treasury.
         </div>
 
-        <div class="font-lexend text-section-main font-light text-text-2">
+        <div class="font-lexend text-section-main font-light text-text-2 md:text-section-main-md">
           The exchange gives users' full control over their funds. Because of
           the Treasury smart-contract user remains full-fledged owner of their
           wealth. Funds are allowed to be transferred only provided valid
@@ -41,19 +39,19 @@ export default function Main() {
       <Section
         sectionId="section-2"
         sectionToId="section-3"
-        imagePath={joinPaths(base, "/gfx/about02.png")}
+        imagePath="/gfx/section02.webp"
         class="md:flex-row-reverse"
       >
-        <div class="font-lexend text-section-beginning font-bold text-secondary">
+        <div class="font-lexend text-section-beginning font-bold text-secondary md:text-section-beginning-md ">
           KSOX is zk-STARK powered
         </div>
 
-        <div class="font-lexend text-section-title font-bold text-text-1">
+        <div class="font-lexend text-section-title font-bold text-text-1 md:text-section-title-md">
           zk-STARK trail-blazing technology allowing fast, cheap and secure
           transfers.
         </div>
 
-        <div class="font-lexend text-section-main font-light text-text-2">
+        <div class="font-lexend text-section-main font-light text-text-2 md:text-section-main-md">
           This allows to apply the security of fully decentralized exchange with
           responsiveness of centralized service. The Cairo-lang allows heavy
           computations handled off-chain to be boiled down into lightweight
@@ -66,19 +64,19 @@ export default function Main() {
       <Section
         sectionId="section-3"
         sectionToId="section-4"
-        imagePath={joinPaths(base, "/gfx/about03.png")}
+        imagePath="/gfx/section03.webp"
         class="md:flex-row"
       >
-        <div class="font-lexend text-section-beginning font-bold text-secondary">
+        <div class="font-lexend text-section-beginning font-bold text-secondary md:text-section-beginning-md">
           KSOX is fast
         </div>
 
-        <div class="font-lexend text-section-title font-bold text-text-1">
+        <div class="font-lexend text-section-title font-bold text-text-1 md:text-section-title-md">
           Carefully chosen stack for speed and reliability. Rust and SolidJS
           together cover web parts.
         </div>
 
-        <div class="font-lexend text-section-main font-light text-text-2">
+        <div class="font-lexend text-section-main font-light text-text-2 md:text-section-main-md">
           Rust ensures the exchange's backend is reliable and scalable. As
           compiled language it stands unsurpassed solution. User side powered by
           SolidJS, a framework that outruns its competitors. With Typescript

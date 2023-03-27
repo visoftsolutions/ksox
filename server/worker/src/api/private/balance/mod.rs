@@ -23,13 +23,11 @@ pub fn router(app_state: &AppState) -> Router {
 pub async fn root(
     State(state): State<AppState>,
     user_id: UserId,
-    mut params: Option<Query<Pagination>>,
+    Query(params): Query<Pagination>,
 ) -> Result<Json<Vec<Valut>>, AppError> {
-    let pagination = params.get_or_insert_default();
-    let mut stream =
-        state
-            .valuts_manager
-            .get_for_user(*user_id, pagination.limit, pagination.offset);
+    let mut stream = state
+        .valuts_manager
+        .get_for_user(*user_id, params.limit, params.offset);
     let mut vec = Vec::<Valut>::new();
     while let Some(res) = stream.next().await {
         vec.push(res?);

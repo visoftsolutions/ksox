@@ -9,6 +9,8 @@ BEGIN
     SELECT 
       NEW.id,
       NEW.created_at,
+      NEW.quote_asset_id,
+      NEW.base_asset_id,
       NEW.taker_id,
       NEW.order_id,
       NEW.taker_quote_volume::json,
@@ -55,18 +57,6 @@ BEGIN
 END;
 $BODY$ LANGUAGE plpgsql;
 
-CREATE FUNCTION trade_check (p_order_id uuid, p_quote_asset_id uuid, p_base_asset_id uuid)
-RETURNS BOOLEAN AS 
-$BODY$
-BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM spot.orders 
-    WHERE spot.orders.id = p_order_id 
-    AND spot.orders.quote_asset_id = p_quote_asset_id 
-    AND spot.orders.base_asset_id = p_base_asset_id);
-END;
-$BODY$ LANGUAGE plpgsql;
-
 CREATE FUNCTION create_spot_trades_notify_trigger_for_asset_pair(trigger_name text, quote_asset_id uuid, base_asset_id uuid)
 RETURNS VOID AS
 $BODY$
@@ -78,7 +68,7 @@ BEGIN
     CREATE OR REPLACE TRIGGER %s
     AFTER INSERT OR UPDATE ON spot.trades
     FOR EACH ROW
-    WHEN (trade_check(NEW.order_id,''%s'',''%s''))
+    WHEN (NEW.quote_asset_id = ''%s'' AND NEW.base_asset_id = ''%s'')
     EXECUTE FUNCTION spot_trades_notify(''%s'');',
     trigger_truncated_name, quote_asset_id::text, base_asset_id::text, channel_truncated_name);
 END;

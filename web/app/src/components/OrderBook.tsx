@@ -1,6 +1,6 @@
 import { Index, JSX } from "solid-js";
 import { createStore } from "solid-js/store";
-import { init } from "~/memos/Orderbook";
+import { init } from "~/effects/Orderbook";
 import TriElementFill, { TriElementFillComponent } from "./TriElement/TriElementFill";
 import TriElementHeader from "./TriElement/TriElementHeader";
 

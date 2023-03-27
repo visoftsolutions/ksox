@@ -8,29 +8,31 @@ html {
 
 @layer base {
   @font-face {
-    font-family: "Source Sans Pro";
+    font-display: swap;
+    font-family: "Lexend";
     src: url("/fonts/lexend.ttf") format("truetype");
   }
 
   @font-face {
-    font-family: "Source Sans Pro";
+    font-display: swap;
+    font-family: "Inter";
     src: url("/fonts/inter.ttf") format("truetype");
   }
 }
 
 @layer utilities {
   ::-webkit-scrollbar {
-    @apply w-1 h-1
+    @apply h-1 w-1;
   }
-  
+
   ::-webkit-scrollbar-track {
     @apply bg-background;
   }
-  
+
   ::-webkit-scrollbar-thumb {
-    @apply bg-primary bg-opacity-50 rounded-full;
+    @apply rounded-full bg-primary bg-opacity-50;
   }
-  
+
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-primary bg-opacity-80;
   }

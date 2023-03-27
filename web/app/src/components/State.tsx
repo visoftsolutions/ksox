@@ -2,7 +2,7 @@ import { Index } from "solid-js";
 import { createStore } from "solid-js/store";
 import RectangularButton from "./Buttons/NavRectangularButton";
 import StateActionCircularButton from "./Buttons/StateActionCircularButton";
-import { init } from "~/memos/State";
+import { init } from "~/effects/State";
 
 export enum OrderSide {
   Buy = "buy",
@@ -108,9 +108,9 @@ export default function State() {
               <div class="col-start-5 col-end-6 text-center">{element().quantity}</div>
               <div class="col-start-6 col-end-7 text-center">{element().filled_quantity}</div>
               <div class="col-start-7 col-end-8 flex justify-end">
-                <StateActionCircularButton class="ml-2 bg-green"></StateActionCircularButton>
-                <StateActionCircularButton class="ml-2 bg-gray-4"></StateActionCircularButton>
-                <StateActionCircularButton class="ml-2 bg-red"></StateActionCircularButton>
+                <StateActionCircularButton class="ml-2 bg-green" />
+                <StateActionCircularButton class="ml-2 bg-gray-4" />
+                <StateActionCircularButton class="ml-2 bg-red" />
               </div>
             </div>
           )}

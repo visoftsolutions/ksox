@@ -7,52 +7,16 @@ use axum::{
     extract::{Query, State},
     response::sse::{Event, Sse},
 };
-use chrono::{DateTime, Utc};
-use database::{sqlx::types::Uuid, types::CandlestickType};
 use futures::{stream::Stream, TryStreamExt};
-use serde::Deserialize;
 use tokio_stream::StreamExt;
 
+use super::Request;
 use crate::{models::AppState, ohlcv::OhlcvEngine};
 
-// TODO define macro for this
-#[derive(Deserialize)]
-pub struct RequestPartial {
-    quote_asset_id: Uuid,
-    base_asset_id: Uuid,
-    kind: Option<CandlestickType>,
-    reference_point: DateTime<Utc>,
-    span: i64,
-}
-
-#[derive(Debug)]
-pub struct Request {
-    quote_asset_id: Uuid,
-    base_asset_id: Uuid,
-    kind: CandlestickType,
-    reference_point: DateTime<Utc>,
-    span: i64,
-}
-
-impl RequestPartial {
-    fn insert_defaults(self) -> Request {
-        Request {
-            quote_asset_id: self.quote_asset_id,
-            base_asset_id: self.base_asset_id,
-            kind: self.kind.unwrap_or(CandlestickType::Interval),
-            reference_point: self.reference_point,
-            span: self.span,
-        }
-    }
-}
-
-// Return ohlcv stream
 pub async fn root(
     State(state): State<AppState>,
-    Query(params): Query<RequestPartial>,
+    Query(params): Query<Request>,
 ) -> Sse<impl Stream<Item = Result<Event, std::io::Error>>> {
-    let params = params.insert_defaults();
-    tracing::info!("{}", params.reference_point);
     let stream = async_stream::try_stream! {
         let ohlcv_engine = OhlcvEngine::new(state.database);
         let mut stream = ohlcv_engine.subscribe(params.quote_asset_id, params.base_asset_id, params.kind, params.reference_point, params.span).await;

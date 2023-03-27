@@ -6,6 +6,8 @@ import { Volume } from "./primitives/volume";
 export const Trade = z.object({
   id: Uuid,
   created_at: Datetime,
+  quote_asset_id: Uuid,
+  base_asset_id: Uuid,
   taker_id: Uuid,
   order_id: Uuid,
   taker_quote_volume: Volume,

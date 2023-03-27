@@ -1,6 +1,6 @@
 export default function Text() {
   return (
-    <div class="flex flex-col items-center">
+    <div class="flex flex-col items-center md:block">
       <p class="font-lexend text-footer-title font-bold text-text-1">
         Contact with us!
       </p>

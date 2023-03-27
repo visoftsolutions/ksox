@@ -1,7 +1,7 @@
 import { Index } from "solid-js";
 import { createStore } from "solid-js/store";
 import { joinPaths } from "solid-start/islands/server-router";
-import { init } from "~/memos/Markets";
+import { init } from "~/effects/Markets";
 import { base } from "~/root";
 import SearchInput from "./Inputs/SearchInput";
 import TriElement, { TriElementComponent } from "./TriElement/TriElement";

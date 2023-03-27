@@ -199,6 +199,8 @@ impl MatchingEngine {
             response.trades.push(Trade {
                 id: Uuid::new_v4(),
                 created_at: Utc::now(),
+                quote_asset_id: input.quote_asset_id,
+                base_asset_id: input.base_asset_id,
                 taker_id: input.user_id,
                 order_id: maker_order.id,
                 taker_quote_volume: taker_quote_asset_volume_taken,

@@ -37,17 +37,18 @@ impl TradesManager {
             Trade,
             r#"
             SELECT
-                spot.trades.id,
-                spot.trades.created_at,
-                spot.trades.taker_id,
-                spot.trades.order_id,
-                spot.trades.taker_quote_volume as "taker_quote_volume: Volume",
-                spot.trades.taker_base_volume as "taker_base_volume: Volume",
-                spot.trades.maker_quote_volume as "maker_quote_volume: Volume",
-                spot.trades.maker_base_volume as "maker_base_volume: Volume"
+                id,
+                created_at,
+                quote_asset_id,
+                base_asset_id,
+                taker_id,
+                order_id,
+                taker_quote_volume as "taker_quote_volume: Volume",
+                taker_base_volume as "taker_base_volume: Volume",
+                maker_quote_volume as "maker_quote_volume: Volume",
+                maker_base_volume as "maker_base_volume: Volume"
             FROM spot.trades
-            JOIN spot.orders ON order_id = spot.orders.id
-            WHERE spot.orders.quote_asset_id = $1 AND spot.orders.base_asset_id = $2
+            WHERE quote_asset_id = $1 AND base_asset_id = $2
             ORDER BY created_at DESC
             LIMIT 1
             "#,
@@ -68,17 +69,18 @@ impl TradesManager {
             Trade,
             r#"
             SELECT
-                spot.trades.id,
-                spot.trades.created_at,
-                spot.trades.taker_id,
-                spot.trades.order_id,
-                spot.trades.taker_quote_volume as "taker_quote_volume: Volume",
-                spot.trades.taker_base_volume as "taker_base_volume: Volume",
-                spot.trades.maker_quote_volume as "maker_quote_volume: Volume",
-                spot.trades.maker_base_volume as "maker_base_volume: Volume"
+                id,
+                created_at,
+                quote_asset_id,
+                base_asset_id,
+                taker_id,
+                order_id,
+                taker_quote_volume as "taker_quote_volume: Volume",
+                taker_base_volume as "taker_base_volume: Volume",
+                maker_quote_volume as "maker_quote_volume: Volume",
+                maker_base_volume as "maker_base_volume: Volume"
             FROM spot.trades
-            JOIN spot.orders ON order_id = spot.orders.id
-            WHERE spot.orders.quote_asset_id = $1 AND spot.orders.base_asset_id = $2 AND spot.trades.created_at >= $3
+            WHERE quote_asset_id = $1 AND base_asset_id = $2 AND created_at >= $3
             ORDER BY created_at
             "#,
             quote_asset_id,
@@ -99,18 +101,19 @@ impl TradesManager {
             Trade,
             r#"
             SELECT
-                spot.trades.id,
-                spot.trades.created_at,
-                spot.trades.taker_id,
-                spot.trades.order_id,
-                spot.trades.taker_quote_volume as "taker_quote_volume: Volume",
-                spot.trades.taker_base_volume as "taker_base_volume: Volume",
-                spot.trades.maker_quote_volume as "maker_quote_volume: Volume",
-                spot.trades.maker_base_volume as "maker_base_volume: Volume"
+                id,
+                created_at,
+                quote_asset_id,
+                base_asset_id,
+                taker_id,
+                order_id,
+                taker_quote_volume as "taker_quote_volume: Volume",
+                taker_base_volume as "taker_base_volume: Volume",
+                maker_quote_volume as "maker_quote_volume: Volume",
+                maker_base_volume as "maker_base_volume: Volume"
             FROM spot.trades
-            JOIN spot.orders ON order_id = spot.orders.id
-            WHERE spot.orders.quote_asset_id = $1 AND spot.orders.base_asset_id = $2
-            AND spot.trades.created_at >= $3 AND spot.trades.created_at < $4
+            WHERE quote_asset_id = $1 AND base_asset_id = $2
+            AND created_at >= $3 AND created_at < $4
             "#,
             quote_asset_id,
             base_asset_id,
@@ -130,6 +133,8 @@ impl TradesManager {
             SELECT
                 spot.trades.id,
                 spot.trades.created_at,
+                spot.trades.quote_asset_id,
+                spot.trades.base_asset_id,
                 spot.trades.taker_id,
                 spot.trades.order_id,
                 spot.trades.taker_quote_volume as "taker_quote_volume: Volume",
@@ -156,6 +161,8 @@ impl TradesManager {
             SELECT
                 spot.trades.id,
                 spot.trades.created_at,
+                spot.trades.quote_asset_id,
+                spot.trades.base_asset_id,
                 spot.trades.taker_id,
                 spot.trades.order_id,
                 spot.trades.taker_quote_volume as "taker_quote_volume: Volume",
@@ -184,6 +191,8 @@ impl TradesManager {
             SELECT
                 id,
                 created_at,
+                quote_asset_id,
+                base_asset_id,
                 taker_id,
                 order_id,
                 spot.trades.taker_quote_volume as "taker_quote_volume: Volume",
@@ -192,7 +201,7 @@ impl TradesManager {
                 spot.trades.maker_base_volume as "maker_base_volume: Volume"
             FROM spot.trades
             WHERE taker_id = $1
-            ORDER BY created_at
+            ORDER BY created_at DESC
             LIMIT $2
             OFFSET $3
             "#,
@@ -214,18 +223,19 @@ impl TradesManager {
             Trade,
             r#"
             SELECT
-                spot.trades.id,
-                spot.trades.created_at,
-                spot.trades.taker_id,
-                spot.trades.order_id,
-                spot.trades.taker_quote_volume as "taker_quote_volume: Volume",
-                spot.trades.taker_base_volume as "taker_base_volume: Volume",
-                spot.trades.maker_quote_volume as "maker_quote_volume: Volume",
-                spot.trades.maker_base_volume as "maker_base_volume: Volume"
+                id,
+                created_at,
+                quote_asset_id,
+                base_asset_id,
+                taker_id,
+                order_id,
+                taker_quote_volume as "taker_quote_volume: Volume",
+                taker_base_volume as "taker_base_volume: Volume",
+                maker_quote_volume as "maker_quote_volume: Volume",
+                maker_base_volume as "maker_base_volume: Volume"
             FROM spot.trades
-            JOIN spot.orders ON order_id = spot.orders.id
-            WHERE spot.orders.quote_asset_id = $1 AND spot.orders.base_asset_id = $2
-            ORDER BY created_at
+            WHERE quote_asset_id = $1 AND base_asset_id = $2
+            ORDER BY created_at DESC
             LIMIT $3
             OFFSET $4
             "#,
@@ -372,6 +382,8 @@ impl TableManager<Trade> for TradesManager {
             SELECT
                 id,
                 created_at,
+                quote_asset_id,
+                base_asset_id,
                 taker_id,
                 order_id,
                 spot.trades.taker_quote_volume as "taker_quote_volume: Volume",
@@ -391,6 +403,8 @@ impl TableManager<Trade> for TradesManager {
             SELECT
                 id,
                 created_at,
+                quote_asset_id,
+                base_asset_id,
                 taker_id,
                 order_id,
                 spot.trades.taker_quote_volume as "taker_quote_volume: Volume",
@@ -415,12 +429,14 @@ impl TableManager<Trade> for TradesManager {
             r#"
             INSERT INTO
                 spot.trades
-                (id, created_at, taker_id, order_id, taker_quote_volume, maker_quote_volume, taker_base_volume, maker_base_volume)
+                (id, created_at, quote_asset_id, base_asset_id, taker_id, order_id, taker_quote_volume, maker_quote_volume, taker_base_volume, maker_base_volume)
             VALUES
-                ($1, $2, $3, $4, $5, $6, $7, $8)
+                ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             "#,
             element.id,
             element.created_at,
+            element.quote_asset_id,
+            element.base_asset_id,
             element.taker_id,
             element.order_id,
             taker_quote_volume,
@@ -443,17 +459,21 @@ impl TableManager<Trade> for TradesManager {
                 spot.trades 
             SET
                 created_at = $2,
-                taker_id = $3,
-                order_id = $4,
-                taker_quote_volume = $5,
-                maker_quote_volume = $6,
-                taker_base_volume = $7,
-                maker_base_volume = $8
+                quote_asset_id = $3,
+                base_asset_id = $4,
+                taker_id = $5,
+                order_id = $6,
+                taker_quote_volume = $7,
+                maker_quote_volume = $8,
+                taker_base_volume = $9,
+                maker_base_volume = $10
             WHERE
                 id = $1
             "#,
             element.id,
             element.created_at,
+            element.quote_asset_id,
+            element.base_asset_id,
             element.taker_id,
             element.order_id,
             taker_quote_volume,

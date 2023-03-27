@@ -4,7 +4,7 @@ import { Fraction } from "./primitives/fraction";
 import { Uuid } from "./primitives/uuid";
 import { Volume } from "./primitives/volume";
 
-enum CandlestickType {
+export enum CandlestickType {
   Interval,
   Tick,
 }
