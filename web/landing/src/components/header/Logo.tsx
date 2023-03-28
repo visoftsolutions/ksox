@@ -1,5 +1,5 @@
 import { A } from "solid-start";
-import { DefaultProps } from "../../interfaces";
+import { DefaultProps } from "~/utils/interfaces";
 
 export default function Logo(props: DefaultProps) {
   return (

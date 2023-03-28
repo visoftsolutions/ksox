@@ -1,6 +1,6 @@
 import { A } from "solid-start";
 import Spacing from "~/components/Spacing";
-import ContactItem from "./ContactItem";
+import ContactItem from "~/components/footer/ContactItem";
 
 export default function ContactItems() {
   return (

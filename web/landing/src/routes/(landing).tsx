@@ -1,6 +1,6 @@
-import Footer from "~/components/landing/Footer";
-import Header from "~/components/landing/Header";
-import Main from "~/components/landing/Main";
+import Footer from "~/components/Footer";
+import Header from "~/components/Header";
+import Main from "~/components/Main";
 import Spacing from "~/components/Spacing";
 
 export default function Landing() {

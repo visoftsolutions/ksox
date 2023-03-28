@@ -1,7 +1,7 @@
-import Divider from "../Divider";
-import Spacing from "../Spacing";
-import Hero from "./main/Hero";
-import Section from "./main/Section";
+import Divider from "~/components/Divider";
+import Spacing from "~/components/Spacing";
+import Hero from "~/components/main/Hero";
+import Section from "~/components/main/Section";
 
 export default function Main() {
   return (

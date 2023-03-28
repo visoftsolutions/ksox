@@ -1,4 +1,4 @@
-import { DefaultProps } from "../../interfaces";
+import { DefaultProps } from "~/utils/interfaces";
 
 export default function Benefit(props: DefaultProps) {
   return (

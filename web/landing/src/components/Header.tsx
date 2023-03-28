@@ -1,5 +1,5 @@
-import Logo from "./header/Logo";
-import MainMenu from "./header/MainMenu";
+import Logo from "~/components/header/Logo";
+import MainMenu from "~/components/header/MainMenu";
 
 export default function Header() {
   return (

@@ -1,15 +1,15 @@
-import { createEffect, Index } from "solid-js";
+import { createEffect, Index, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
 import { TriElementComponent } from "./TriElement/TriElement";
 import TriElement from "./TriElement/TriElement";
 import TriElementHeader from "./TriElement/TriElementHeader";
 import { Trade } from "~/types/trade";
-import { PUBLIC_URL } from "~/types/mod";
 import params from "~/utils/params";
 import { z } from "zod";
 import { format } from "numerable";
 import { Asset } from "~/types/asset";
 import { formatTemplate } from "~/utils/precission";
+import { joinPaths } from "solid-start/islands/server-router";
 
 export default function Trades() {
   const [storeState, setStoreState] = createStore<{ quote_asset: Asset; base_asset: Asset; precission: number; capacity: number }>({
@@ -47,8 +47,12 @@ export default function Trades() {
   const [storeComponent, setStoreComponent] = createStore<{ trades: TriElementComponent[] }>({ trades: [] });
   const [storeTrades, setStoreTrades] = createStore<{ trades: Trade[] }>({ trades: [] });
 
-  createEffect(async () => {
-    const events = await new EventSource(
+  onMount(async () => {
+    const BASE_URL = location.href;
+    const API_URL = joinPaths(BASE_URL, "/api");
+    const PUBLIC_URL = joinPaths(API_URL, "/public");
+
+    const events = new EventSource(
       `${PUBLIC_URL}/trades/sse?${params({
         quote_asset_id: storeState.quote_asset.id,
         base_asset_id: storeState.base_asset.id,

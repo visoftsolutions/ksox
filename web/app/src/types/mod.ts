@@ -4,10 +4,6 @@ import { Volume } from "~/types/primitives/volume";
 import { CandlestickType } from "./candlestick";
 import { Pagination } from "./primitives/pagination";
 
-export const BASE_URL = "http://localhost:7979/api";
-export const PUBLIC_URL = BASE_URL + "/public";
-export const PRIVATE_URL = BASE_URL + "/private";
-
 export const DepthRequest = z.object({
   quote_asset_id: Uuid,
   base_asset_id: Uuid,

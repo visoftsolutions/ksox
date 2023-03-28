@@ -6,16 +6,14 @@ import Orderbook from "~/components/OrderBook";
 import SideMenu from "~/components/SideMenu";
 import Submit from "~/components/Submit";
 import Trades from "~/components/Trades";
-import { createSignal } from "solid-js";
-import { createContext, Accessor, Setter } from "solid-js";
-
-export const UserSession = createContext([() => "", () => {}] as [Accessor<string>, Setter<string>]);
+import { createSignal, createContext } from "solid-js";
+import { UserWallet } from "~/components/Buttons/WalletButton";
 
 export default function Home() {
-  const [userSession, setUserSession] = createSignal("");
+  const [userWallet, setUserWallet] = createSignal(null);
 
   return (
-    <UserSession.Provider value={[userSession, setUserSession]}>
+    <UserWallet.Provider value={[userWallet, setUserWallet]}>
       <main class="grid h-screen w-screen grid-cols-[72px_240px_1fr_260px_260px] grid-rows-[48px_1fr_280px] gap-[1px] overflow-auto bg-gray-1 font-sanspro text-white">
         <div class="col-start-2 col-end-6 row-start-1 row-end-2 bg-gray-2">
           <MainMenu />
@@ -42,6 +40,6 @@ export default function Home() {
           <Submit />
         </div>
       </main>
-    </UserSession.Provider>
+    </UserWallet.Provider>
   );
 }

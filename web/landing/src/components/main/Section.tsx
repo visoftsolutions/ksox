@@ -1,6 +1,6 @@
 import { A } from "solid-start";
 import Spacing from "~/components/Spacing";
-import { DefaultProps } from "../../interfaces";
+import { DefaultProps } from "~/utils/interfaces";
 
 export default function Section(
   props: DefaultProps & {

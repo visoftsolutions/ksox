@@ -1,8 +1,8 @@
-import Benefits from "./Benefits";
-import BigText from "./BigText";
-import Buttons from "./Buttons";
-import SmallText from "./SmallText";
-import Spacing from "../../Spacing";
+import Benefits from "~/components/main/Benefits";
+import BigText from "~/components/main/BigText";
+import Buttons from "~/components/main/Buttons";
+import SmallText from "~/components/main/SmallText";
+import Spacing from "~/components/Spacing";
 
 export default function Hero() {
   return (

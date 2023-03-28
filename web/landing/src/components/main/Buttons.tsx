@@ -1,5 +1,5 @@
-import LaunchAppButton from "./LaunchAppButton";
-import LearnMoreButton from "./LearnMoreButton";
+import LaunchAppButton from "~/components/main/LaunchAppButton";
+import LearnMoreButton from "~/components/main/LearnMoreButton";
 
 export default function Buttons() {
   return (

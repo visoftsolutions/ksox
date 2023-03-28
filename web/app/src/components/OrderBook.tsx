@@ -1,10 +1,11 @@
 import { format } from "numerable";
-import { createEffect, Index, JSX } from "solid-js";
+import { createEffect, Index, JSX, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
+import { joinPaths } from "solid-start/islands/server-router";
 import { z } from "zod";
 import { PriceLevel } from "~/api/public/mod";
 import { Asset } from "~/types/asset";
-import { PUBLIC_URL } from "~/types/mod";
+import { Uuid } from "~/types/primitives/uuid";
 import { Trade } from "~/types/trade";
 import params from "~/utils/params";
 import { formatTemplate } from "~/utils/precission";
@@ -64,8 +65,12 @@ export default function Orderbook() {
     bids: [],
   });
 
-  createEffect(async () => {
-    const bids_events = await new EventSource(
+  onMount(async () => {
+    const BASE_URL = location.href;
+    const API_URL = joinPaths(BASE_URL, "/api");
+    const PUBLIC_URL = joinPaths(API_URL, "/public");
+
+    const bids_events = new EventSource(
       `${PUBLIC_URL}/depth/sse?${params({
         quote_asset_id: stateState.quote_asset.id,
         base_asset_id: stateState.base_asset.id,

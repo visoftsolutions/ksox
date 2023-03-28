@@ -1,7 +1,7 @@
 import { createEffect } from "solid-js";
 import { createStore } from "solid-js/store";
+import { joinPaths } from "solid-start/islands/server-router";
 import { Asset } from "~/types/asset";
-import { PRIVATE_URL } from "~/types/mod";
 import { Valut } from "~/types/valut";
 import params from "~/utils/params";
 import RectangularButton from "./Buttons/NavRectangularButton";
@@ -50,7 +50,11 @@ export default function Submit() {
   });
 
   createEffect(async () => {
-    const events = await new EventSource(
+    const BASE_URL = location.href;
+    const API_URL = joinPaths(BASE_URL, "/api");
+    const PRIVATE_URL = joinPaths(API_URL, "/private");
+
+    const events = new EventSource(
       `${PRIVATE_URL}/balance/sse?${params({
         asset_id: storeState.quote_asset.id,
       })}`
@@ -71,7 +75,11 @@ export default function Submit() {
   });
 
   createEffect(async () => {
-    const events = await new EventSource(
+    const BASE_URL = location.href;
+    const API_URL = joinPaths(BASE_URL, "/api");
+    const PRIVATE_URL = joinPaths(API_URL, "/private");
+
+    const events = new EventSource(
       `${PRIVATE_URL}/balance/sse?${params({
         asset_id: storeState.base_asset.id,
       })}`
