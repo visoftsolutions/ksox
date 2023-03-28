@@ -14,23 +14,23 @@ use models::*;
 use super::AppError;
 use crate::models::AppState;
 
-pub const NONCE_EXPIRATION_TIME: usize = 60; // in seconds
+pub const MESSAGE_EXPIRATION_TIME: usize = 60; // in seconds
 pub const SESSION_EXPIRATION_TIME: usize = 3600; // in seconds
 pub const COOKIE_NAME: &str = "session_id";
 
 pub fn router(app_state: &AppState) -> Router {
     Router::new()
-        .route("/", get(generate_nonce))
+        .route("/", get(generate_message))
         .route("/", post(validate_signature))
         .route("/", delete(logout))
         .with_state(app_state.clone())
 }
 
-async fn generate_nonce(
+async fn generate_message(
     State(state): State<AppState>,
     Query(params): Query<GenerateNonceRequest>,
 ) -> Result<Json<GenerateNonceResponse>, AppError> {
-    let nonce = Nonce::new(32);
+    let nonce = Message::new(32);
     state
         .session_store
         .get_async_connection()
@@ -38,12 +38,12 @@ async fn generate_nonce(
         .set_ex(
             format!("auth:nonce:{}", params.address),
             nonce.clone(),
-            NONCE_EXPIRATION_TIME,
+            MESSAGE_EXPIRATION_TIME,
         )
         .await?;
     Ok(Json(GenerateNonceResponse {
         nonce,
-        expiration: NONCE_EXPIRATION_TIME,
+        expiration: MESSAGE_EXPIRATION_TIME,
     }))
 }
 
@@ -54,12 +54,12 @@ async fn validate_signature(
     let mut redis_conn = state.session_store.get_async_connection().await?;
 
     let nonce = redis_conn
-        .get_del::<String, Nonce>(format!("auth:nonce:{}", payload.address.clone()))
+        .get_del::<String, Message>(format!("auth:nonce:{}", payload.address.clone()))
         .await?;
 
     payload
         .signature
-        .verify(nonce.deref().as_ref(), payload.address.clone())?;
+        .verify(nonce.deref().to_owned(), payload.address.clone())?;
 
     let session_id = SessionId::new(32);
 

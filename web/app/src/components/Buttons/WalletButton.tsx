@@ -6,7 +6,7 @@ import { Web3Modal } from "@web3modal/html";
 import { configureChains, createClient } from "@wagmi/core";
 import { mainnet, polygon } from "@wagmi/core/chains";
 import { createWalletClient, custom, CustomTransport, getAccount, WalletClient } from "viem";
-import { GenerateNonceRequest, GenerateNonceResponse, ValidateSignatureRequest, ValidateSignatureResponse } from "~/auth/mod";
+import { GenerateMessageRequest, GenerateMessageResponse, ValidateSignatureRequest, ValidateSignatureResponse } from "~/auth/mod";
 import params from "~/utils/params";
 
 const projectId = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID;
@@ -43,9 +43,9 @@ export default function WalletButton() {
           transport: custom(await account.connector.getProvider()),
         });
 
-        const generateNonceResponse = await fetch(
+        const generateMessageResponse = await fetch(
           `${AUTH_URL}?${params(
-            GenerateNonceRequest.parse({
+            GenerateMessageRequest.parse({
               address: account.address,
             })
           )}`,
@@ -54,13 +54,13 @@ export default function WalletButton() {
           }
         )
           .then((r) => r.json())
-          .then((r) => GenerateNonceResponse.parse(r));
+          .then((r) => GenerateMessageResponse.parse(r));
 
-        console.log(generateNonceResponse);
+        console.log(generateMessageResponse);
 
         const signature = await wallet.signMessage({
           account: getAccount(account.address),
-          message: generateNonceResponse.nonce,
+          message: generateMessageResponse.message,
         });
 
         const validateSignatureResponse = await fetch(`${AUTH_URL}`, {
