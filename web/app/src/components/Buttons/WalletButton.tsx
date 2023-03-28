@@ -1,28 +1,42 @@
 import { joinPaths } from "solid-start/islands/server-router";
 import { base } from "~/root";
-import { Accessor, createContext, Setter, useContext } from "solid-js";
+import { createContext, createSignal, Signal, useContext } from "solid-js";
 import { EthereumClient, w3mConnectors, w3mProvider } from "@web3modal/ethereum";
 import { Web3Modal } from "@web3modal/html";
 import { configureChains, createClient } from "@wagmi/core";
 import { mainnet, polygon } from "@wagmi/core/chains";
-import { createWalletClient, custom, CustomTransport, getAccount, WalletClient } from "viem";
-import { GenerateMessageRequest, GenerateMessageResponse, ValidateSignatureRequest, ValidateSignatureResponse } from "~/auth/mod";
-import params from "~/utils/params";
+import { createWalletClient, custom, CustomTransport, WalletClient } from "viem";
+import { ValidateSignatureResponse } from "~/auth/mod";
+import login from "~/auth/login";
+import { JSX } from "solid-js/web/types/jsx";
 
 const projectId = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID;
 
-export const UserWallet = createContext([() => null, () => {}] as [
-  Accessor<WalletClient<CustomTransport, typeof mainnet> | null>,
-  Setter<WalletClient<CustomTransport, typeof mainnet> | null>
-]);
+const WalletContext = createContext<Signal<WalletClient<CustomTransport, typeof mainnet> | null>>();
+export function WalletProvider(props: { children: JSX.Element }) {
+  return (
+    <WalletContext.Provider value={createSignal<WalletClient<CustomTransport, typeof mainnet> | null>(null)}>
+      {props.children}
+    </WalletContext.Provider>
+  );
+}
+
+const LoginContext = createContext<Signal<ValidateSignatureResponse | null>>();
+export function LoginProvider(props: { children: JSX.Element }) {
+  return (
+    <LoginContext.Provider value={createSignal<ValidateSignatureResponse | null>(null)}>
+      {props.children}
+    </LoginContext.Provider>
+  );
+}
 
 export default function WalletButton() {
-  const [wallet, setWallet] = useContext(UserWallet);
+  const walletctx = useContext(WalletContext);
+  const loginctx = useContext(LoginContext);
 
   const walletConnect = async () => {
     const BASE_URL = location.pathname;
     const API_URL = joinPaths(BASE_URL, "/api");
-    const AUTH_URL = joinPaths(API_URL, "/auth");
 
     const { chains, provider, webSocketProvider } = configureChains([mainnet, polygon], [w3mProvider({ projectId })]);
 
@@ -42,59 +56,27 @@ export default function WalletButton() {
           chain: mainnet,
           transport: custom(await account.connector.getProvider()),
         });
-
-        const generateMessageResponse = await fetch(
-          `${AUTH_URL}?${params(
-            GenerateMessageRequest.parse({
-              address: account.address,
-            })
-          )}`,
-          {
-            method: "GET",
-          }
-        )
-          .then((r) => r.json())
-          .then((r) => GenerateMessageResponse.parse(r));
-
-        console.log(generateMessageResponse);
-
-        const signature = await wallet.signMessage({
-          account: getAccount(account.address),
-          message: generateMessageResponse.message,
-        });
-
-        const validateSignatureResponse = await fetch(`${AUTH_URL}`, {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(
-            ValidateSignatureRequest.parse({
-              address: account.address,
-              signature,
-            })
-          ),
-        })
-          .then((r) => r.json())
-          .then((r) => ValidateSignatureResponse.parse(r));
-        console.log(validateSignatureResponse);
-        setWallet(wallet);
+        walletctx?.[1](wallet);
       }
     });
-  };
-  const walletDisconnect = async () => {
-    setWallet(null);
   };
 
   return (
     <div
       class="grid cursor-pointer select-none grid-cols-[auto_auto] grid-rows-[1fr] items-center justify-center gap-4 px-4"
       onClick={async () => {
-        wallet() ? await walletDisconnect() : await walletConnect();
+        const w = walletctx?.[0]();
+        if (w) {
+          let resp = await login(w);
+          // loginctx?.[1](resp)
+        } else {
+          await walletConnect();
+        }
       }}
     >
-      <div class="text-mainmenu-wallet font-normal">{wallet() ? "DISCONNECT" : "CONNECT"} WALLET</div>
+      <div class="text-mainmenu-wallet font-normal">{
+        !walletctx?.[0]() ? "CONNECT WALLET" : !loginctx?.[0]() ? "LOGIN" : loginctx?.[0]()?.user_id
+      }</div>
       <img src={joinPaths(base, "gfx/metamask.webp")} class="m-auto w-[22px]" />
     </div>
   );

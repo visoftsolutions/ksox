@@ -24,25 +24,29 @@ export type Expiration = z.infer<typeof Expiration>;
 export const GenerateMessageRequest = z.object({
   address: EvmAddress,
 });
-type GenerateMessageRequest = z.infer<typeof GenerateMessageRequest>;
+export type GenerateMessageRequest = z.infer<typeof GenerateMessageRequest>;
 
 export const GenerateMessageResponse = z.object({
   message: z.string(),
   expiration: Expiration,
 });
+export type GenerateMessageResponse = z.infer<typeof GenerateMessageResponse>;
 
 export const ValidateSignatureRequest = z.object({
   address: EvmAddress,
   signature: Signature,
 });
+export type ValidateSignatureRequest = z.infer<typeof ValidateSignatureRequest>;
 
 export const ValidateSignatureResponse = z.object({
   session_id: SessionId,
   user_id: UserId,
   expiration: Expiration,
 });
+export type ValidateSignatureResponse = z.infer<typeof ValidateSignatureResponse>;
 
 export const User = z.object({
   session_id: SessionId,
   user_id: UserId,
 });
+export type User = z.infer<typeof User>;

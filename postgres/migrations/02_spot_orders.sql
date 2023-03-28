@@ -85,7 +85,7 @@ BEGIN
   SELECT count(*) INTO listener_count FROM pg_stat_activity WHERE lower(query) LIKE '%listen%'|| channel_truncated_name ||'%';
   IF listener_count = 0 THEN
     EXECUTE format('
-      DROP TRIGGER %s ON spot.orders;', 
+      DROP TRIGGER IF EXISTS %s ON spot.orders;', 
       trigger_truncated_name);
   END IF;
 END;
@@ -119,7 +119,7 @@ BEGIN
   SELECT count(*) INTO listener_count FROM pg_stat_activity WHERE lower(query) LIKE '%listen%'|| channel_truncated_name ||'%';
   IF listener_count = 0 THEN
     EXECUTE format('
-      DROP TRIGGER %s ON spot.orders;', 
+      DROP TRIGGER IF EXISTS %s ON spot.orders;', 
       trigger_truncated_name);
   END IF;
 END;
@@ -178,7 +178,7 @@ BEGIN
   SELECT count(*) INTO listener_count FROM pg_stat_activity WHERE lower(query) LIKE '%listen%'|| channel_truncated_name ||'%';
   IF listener_count = 0 THEN
     EXECUTE format('
-      DROP TRIGGER %s ON spot.orders;', 
+      DROP TRIGGER IF EXISTS %s ON spot.orders;', 
       trigger_truncated_name);
   END IF;
 END;

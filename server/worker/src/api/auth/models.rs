@@ -24,29 +24,15 @@ use serde_with::{serde_as, DisplayFromStr};
 
 use super::{COOKIE_NAME, SESSION_EXPIRATION_TIME};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Message(String);
-impl Message {
-    pub fn new(nonce: Nonce) -> Self {
-        let message = format!(
-            "https://ksox.exchange/\nrandom data: {}time: \n{}",
-            prefix_hex::encode(nonce.0),
-            chrono::Utc::now().timestamp()
-        );
-        Self(message)
-    }
-}
-impl FromStr for Message {
-    type Err = anyhow::Error;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self(s.to_string()))
-    }
-}
-
-impl std::fmt::Display for Message {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+impl From<Nonce> for Message {
+    fn from(value: Nonce) -> Self {
+        Self(format!(
+            "Confirm identity by signing random data:\n{}",
+            value,
+        ))
     }
 }
 
@@ -58,25 +44,17 @@ impl Deref for Message {
     }
 }
 
-impl FromRedisValue for Message {
-    fn from_redis_value(v: &Value) -> RedisResult<Self> {
-        match *v {
-            Value::Data(ref bytes) => match String::from_utf8(bytes.clone()) {
-                Ok(string) => Self::from_str(string.as_str())
-                    .map_err(|e| RedisError::from(Error::new(ErrorKind::InvalidData, e))),
-                Err(e) => Err(RedisError::from(Error::new(ErrorKind::InvalidData, e))),
-            },
-            _ => Err(RedisError::from(Error::from(ErrorKind::NotFound))),
-        }
+impl FromStr for Message {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self(s.to_owned()))
     }
 }
 
-impl ToRedisArgs for Message {
-    fn write_redis_args<W>(&self, out: &mut W)
-    where
-        W: ?Sized + RedisWrite,
-    {
-        out.write_arg(format!("{self}").as_bytes())
+impl std::fmt::Display for Message {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 
@@ -317,7 +295,7 @@ pub struct GenerateNonceRequest {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GenerateNonceResponse {
     #[serde_as(as = "DisplayFromStr")]
-    pub nonce: Message,
+    pub message: Message,
     pub expiration: usize,
 }
 

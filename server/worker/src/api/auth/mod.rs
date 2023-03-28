@@ -4,11 +4,13 @@ use std::ops::Deref;
 
 use axum::{
     extract::{Json, Query, State},
+    response::IntoResponse,
     routing::{delete, get, post},
     Router,
 };
 use cache::redis::AsyncCommands;
 use database::sqlx::error::Error;
+use http::{HeaderMap, HeaderValue};
 use models::*;
 
 use super::AppError;
@@ -30,19 +32,19 @@ async fn generate_message(
     State(state): State<AppState>,
     Query(params): Query<GenerateNonceRequest>,
 ) -> Result<Json<GenerateNonceResponse>, AppError> {
-    let nonce = Message::new(32);
+    let nonce = Nonce::new(32);
     state
         .session_store
         .get_async_connection()
         .await?
         .set_ex(
             format!("auth:nonce:{}", params.address),
-            nonce.clone(),
+            nonce.to_owned(),
             MESSAGE_EXPIRATION_TIME,
         )
         .await?;
     Ok(Json(GenerateNonceResponse {
-        nonce,
+        message: Message::from(nonce),
         expiration: MESSAGE_EXPIRATION_TIME,
     }))
 }
@@ -50,16 +52,16 @@ async fn generate_message(
 async fn validate_signature(
     State(state): State<AppState>,
     Json(payload): Json<ValidateSignatureRequest>,
-) -> Result<Json<ValidateSignatureResponse>, AppError> {
+) -> Result<impl IntoResponse, AppError> {
     let mut redis_conn = state.session_store.get_async_connection().await?;
 
     let nonce = redis_conn
-        .get_del::<String, Message>(format!("auth:nonce:{}", payload.address.clone()))
+        .get_del::<String, Nonce>(format!("auth:nonce:{}", payload.address.clone()))
         .await?;
 
     payload
         .signature
-        .verify(nonce.deref().to_owned(), payload.address.clone())?;
+        .verify(Message::from(nonce).as_str(), payload.address.clone())?;
 
     let session_id = SessionId::new(32);
 
@@ -87,11 +89,21 @@ async fn validate_signature(
             SESSION_EXPIRATION_TIME,
         )
         .await?;
-    Ok(Json(ValidateSignatureResponse {
-        session_id,
-        user_id: UserId::new(user.id),
-        expiration: SESSION_EXPIRATION_TIME,
-    }))
+
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        http::header::SET_COOKIE,
+        HeaderValue::from_str(format!("{}={}", COOKIE_NAME, session_id).as_str())?,
+    );
+
+    Ok(
+        (headers,
+        Json(ValidateSignatureResponse{
+            session_id: session_id,
+            user_id: UserId::new(user.id),
+            expiration: SESSION_EXPIRATION_TIME,
+        }))
+    )
 }
 
 pub async fn logout(State(state): State<AppState>, user: User) -> Result<String, AppError> {
