@@ -60,11 +60,9 @@ export default function Slider(props: SliderComponent) {
           disabled={props.disabled}
           onMouseDown={() => {
             mouseDown();
-            console.log("down");
           }}
           onMouseUp={() => {
             mouseUp();
-            console.log("onMouseUp");
           }}
           onInput={(e) => {
             if (props.onInput != undefined) {

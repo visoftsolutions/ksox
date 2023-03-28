@@ -17,7 +17,7 @@ BEGIN
 END;
 $BODY$ LANGUAGE plpgsql;
 
-CREATE FUNCTION create_spot_valuts_notify_trigger_for_user(trigger_name text, user_id uuid)
+CREATE FUNCTION create_spot_valuts_notify_trigger_for_user_asset(trigger_name text, user_id uuid, asset_id uuid)
 RETURNS VOID AS
 $BODY$
 DECLARE
@@ -28,13 +28,13 @@ BEGIN
     CREATE OR REPLACE TRIGGER %s
     AFTER INSERT OR UPDATE ON spot.valuts
     FOR EACH ROW
-    WHEN (NEW.user_id = ''%s'')
+    WHEN (NEW.user_id = ''%s'' AND NEW.asset_id = ''%s'')
     EXECUTE FUNCTION spot_valuts_notify(''%s'');', 
-    trigger_truncated_name, user_id::text, channel_truncated_name);
+    trigger_truncated_name, user_id::text, asset_id::text, channel_truncated_name);
 END;
 $BODY$ LANGUAGE plpgsql;
 
-CREATE FUNCTION drop_spot_valuts_notify_trigger_for_user(trigger_name text)
+CREATE FUNCTION drop_spot_valuts_notify_trigger_for_user_asset(trigger_name text)
 RETURNS VOID AS
 $BODY$
 DECLARE

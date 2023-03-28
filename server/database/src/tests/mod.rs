@@ -61,28 +61,6 @@ async fn orders_get_and_subscribe_for_user() {
 }
 
 #[tokio::test]
-async fn valuts_get_and_subscribe_for_user() {
-    let database = PgPool::connect(std::env::var("DATABASE_URL").unwrap_or_default().as_str())
-        .await
-        .unwrap();
-
-    let user_id = Uuid::from_str("ead19fc2-9652-444d-8d3c-5256ae80a210").unwrap();
-    let valuts_manager = ValutsManager::new(database);
-
-    let mut stream = valuts_manager.subscribe_for_user(user_id).await.unwrap();
-    while let Some(result) = stream.next().await {
-        match result {
-            Ok(trade) => {
-                println!("{:#?}", trade);
-            }
-            Err(err) => {
-                println!("{err}");
-            }
-        }
-    }
-}
-
-#[tokio::test]
 async fn orders_get_and_subscribe_for_asset_pair() {
     let database = PgPool::connect(std::env::var("DATABASE_URL").unwrap_or_default().as_str())
         .await

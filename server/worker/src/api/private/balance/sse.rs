@@ -4,20 +4,22 @@ use std::{
 };
 
 use axum::{
-    extract::State,
+    extract::{Query, State},
     response::sse::{Event, Sse},
 };
 use futures::{stream::Stream, TryStreamExt};
 use tokio_stream::StreamExt;
 
+use super::Request;
 use crate::{api::auth::models::UserId, models::AppState};
 
 pub async fn root(
     State(state): State<AppState>,
     user_id: UserId,
+    Query(params): Query<Request>,
 ) -> Sse<impl Stream<Item = Result<Event, std::io::Error>>> {
     let stream = async_stream::try_stream! {
-        let mut stream = state.valuts_manager.subscribe_for_user(*user_id).await
+        let mut stream = state.valuts_manager.subscribe_for_user_asset(*user_id, params.asset_id).await
             .map_err(|err| Error::new(ErrorKind::BrokenPipe, err))?;
         while let Some(element) = stream.next().await {
             yield Event::default().json_data(

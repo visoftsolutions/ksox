@@ -1,21 +1,96 @@
+import { createEffect } from "solid-js";
+import { createStore } from "solid-js/store";
+import { Asset } from "~/types/asset";
+import { PRIVATE_URL } from "~/types/mod";
+import { Valut } from "~/types/valut";
+import params from "~/utils/params";
 import RectangularButton from "./Buttons/NavRectangularButton";
-import SubmitRectangularButton from "./Buttons/SubmitRectangularButton";
-import NumberInput from "./Inputs/NumberInput";
-import Slider from "./Inputs/Slider";
+import BuyForm from "./Inputs/BuyForm";
+import SellForm from "./Inputs/SellForm";
 
-interface SubmitForm {
-  available: string;
-  order_price?: number;
-  slider_value?: number;
-  order_value?: number;
-}
+export default function Submit() {
+  const [storeState, setStoreState] = createStore<{ quote_asset: Asset; base_asset: Asset; precission: number }>({
+    quote_asset: {
+      id: "5864a1b9-4ae1-424f-bdb4-f644cb359463",
+      created_at: new Date(),
+      name: "bitcoin",
+      symbol: "USDC",
+      maker_fee: {
+        numerator: 10,
+        denominator: 10,
+      },
+      taker_fee: {
+        numerator: 10,
+        denominator: 10,
+      },
+    },
+    base_asset: {
+      id: "7a99f052-d941-4dcc-aabd-6695c24deed5",
+      created_at: new Date(),
+      name: "ethereum",
+      symbol: "ETH",
+      maker_fee: {
+        numerator: 10,
+        denominator: 10,
+      },
+      taker_fee: {
+        numerator: 10,
+        denominator: 10,
+      },
+    },
+    precission: 3,
+  });
 
-export interface SubmitComponent {
-  buy: SubmitForm;
-  sell: SubmitForm;
-}
+  const [storeSubmit, setStoreSubmit] = createStore<{
+    buy_available_balance: number;
+    sell_available_balance: number;
+  }>({
+    buy_available_balance: 1323123,
+    sell_available_balance: 123124,
+  });
 
-export default function Submit(props: SubmitComponent) {
+  createEffect(async () => {
+    const events = await new EventSource(
+      `${PRIVATE_URL}/balance/sse?${params({
+        asset_id: storeState.quote_asset.id,
+      })}`
+    );
+    events.onopen = async () => {
+      const elements = await fetch(
+        `${PRIVATE_URL}/balance?${params({
+          asset_id: storeState.quote_asset.id,
+        })}`
+      )
+        .then((r) => r.json())
+        .then((r) => Valut.parse(r));
+      setStoreSubmit("buy_available_balance", (prev) => (prev == undefined ? elements.balance : prev));
+    };
+    events.onmessage = (msg) => {
+      setStoreSubmit("buy_available_balance", Valut.parse(JSON.parse(msg.data)).balance);
+    };
+  });
+
+  createEffect(async () => {
+    const events = await new EventSource(
+      `${PRIVATE_URL}/balance/sse?${params({
+        asset_id: storeState.base_asset.id,
+      })}`
+    );
+    events.onopen = async () => {
+      const elements = await fetch(
+        `${PRIVATE_URL}/balance?${params({
+          asset_id: storeState.base_asset.id,
+        })}`
+      )
+        .then((r) => r.json())
+        .then((r) => Valut.parse(r));
+      setStoreSubmit("sell_available_balance", (prev) => (prev == undefined ? elements.balance : prev));
+    };
+    events.onmessage = (msg) => {
+      setStoreSubmit("sell_available_balance", Valut.parse(JSON.parse(msg.data)).balance);
+    };
+  });
+
   return (
     <div class="grid h-full grid-cols-1 grid-rows-[auto_1fr]">
       <div class="row-start-1 row-end-2 px-[4px] pt-[12px]">
@@ -28,26 +103,20 @@ export default function Submit(props: SubmitComponent) {
       <div class="row-start-2 row-end-3 overflow-auto py-[8px]">
         <div class="grid h-full grid-cols-2 grid-rows-1">
           <div class="col-start-1 col-end-2 px-[12px] ">
-            <div class="grid justify-between pb-[4px] text-submit-sublabel font-semibold text-gray-4">
-              <div class="col-start-1 col-end-2">Available Balance:</div>
-              <div class="col-start-2 col-end-3">{props.buy.available}</div>
-            </div>
-            <NumberInput class="my-[4px] bg-gray-1 p-1 text-submit-label" left={"Order Price"} right={"USDT"} />
-            <NumberInput class="my-[4px] bg-gray-1 p-1 text-submit-label" left={"Quantity"} right={"BTC"} />
-            <Slider value={0} />
-            <NumberInput class="my-[4px] bg-gray-1 p-1 text-submit-label" left={"Order Value"} right={"USDT"} />
-            <SubmitRectangularButton class="my-[12px] bg-green">Buy</SubmitRectangularButton>
+            <BuyForm
+              available_balance={storeSubmit.buy_available_balance}
+              quote_asset={storeState.quote_asset}
+              base_asset={storeState.base_asset}
+              precission={storeState.precission}
+            />
           </div>
           <div class="col-start-2 col-end-3 px-[12px]">
-            <div class="grid justify-between pb-[4px] text-submit-sublabel font-semibold text-gray-4">
-              <div class="col-start-1 col-end-2">Available Balance:</div>
-              <div class="col-start-2 col-end-3">{props.sell.available}</div>
-            </div>
-            <NumberInput class="my-[4px] bg-gray-1 p-1 text-submit-label" left={"Order Price"} right={"USDT"} />
-            <NumberInput class="my-[4px] bg-gray-1 p-1 text-submit-label" left={"Quantity"} right={"BTC"} />
-            <Slider value={0} />
-            <NumberInput class="my-[4px] bg-gray-1 p-1 text-submit-label" left={"Order Value"} right={"USDT"} />
-            <SubmitRectangularButton class="my-[12px] bg-red">Sell</SubmitRectangularButton>
+            <SellForm
+              available_balance={storeSubmit.sell_available_balance}
+              quote_asset={storeState.quote_asset}
+              base_asset={storeState.base_asset}
+              precission={storeState.precission}
+            />
           </div>
         </div>
       </div>

@@ -57,7 +57,7 @@ impl MatchingEngine {
         // subtract from request user valut
         let mut taker_quote_asset_valut = self
             .valuts_manager
-            .get_for_user_and_asset(request.user_id, request.quote_asset_id)
+            .get_for_user_asset(request.user_id, request.quote_asset_id)
             .await?;
         taker_quote_asset_valut.balance -= request.quote_asset_volume.to_owned();
         if taker_quote_asset_valut.balance >= Volume::from(0) {
@@ -102,11 +102,11 @@ impl MatchingEngine {
 
             let mut taker_base_asset_valut = self
                 .valuts_manager
-                .get_or_create_for_user_and_asset(trade.taker_id, maker_order.quote_asset_id)
+                .get_or_create_for_user_asset(trade.taker_id, maker_order.quote_asset_id)
                 .await?;
             let mut maker_base_asset_valut = self
                 .valuts_manager
-                .get_or_create_for_user_and_asset(maker_order.user_id, maker_order.base_asset_id)
+                .get_or_create_for_user_asset(maker_order.user_id, maker_order.base_asset_id)
                 .await?;
 
             // apply changes

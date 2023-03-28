@@ -2,20 +2,20 @@ services:
   postgres:
     container_name: ksox-postgres
     hostname: ksox-postgres
-    image: postgres
+    build:
+      context: postgres
     environment:
       - POSTGRES_USER=ksoxuser
       - POSTGRES_PASSWORD=ksoxuserp4ssword
       - POSTGRES_DB=ksox
-    volumes:
-      - ./migrations:/docker-entrypoint-initdb.d
     ports:
       - 5432:5432
 
   redis:
     container_name: ksox-redis
     hostname: ksox-redis
-    image: redis/redis-stack
+    build:
+      context: redis
     ports:
       - 6379:6379
       - 8001:8001

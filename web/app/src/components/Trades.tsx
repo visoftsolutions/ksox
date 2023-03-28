@@ -1,4 +1,4 @@
-import { createEffect, Index, onMount } from "solid-js";
+import { createEffect, Index } from "solid-js";
 import { createStore } from "solid-js/store";
 import { TriElementComponent } from "./TriElement/TriElement";
 import TriElement from "./TriElement/TriElement";
@@ -6,32 +6,59 @@ import TriElementHeader from "./TriElement/TriElementHeader";
 import { Trade } from "~/types/trade";
 import { PUBLIC_URL } from "~/types/mod";
 import params from "~/utils/params";
-import { Uuid } from "~/types/primitives/uuid";
 import { z } from "zod";
 import { format } from "numerable";
+import { Asset } from "~/types/asset";
+import { formatTemplate } from "~/utils/precission";
 
 export default function Trades() {
-  const [storeState, setStoreState] = createStore<{ quote_asset_id: Uuid; base_asset_id: Uuid; number_pattern: string, capacity: number }>({
-    quote_asset_id: "5864a1b9-4ae1-424f-bdb4-f644cb359463",
-    base_asset_id: "7a99f052-d941-4dcc-aabd-6695c24deed5",
-    number_pattern: "0,0.00",
+  const [storeState, setStoreState] = createStore<{ quote_asset: Asset; base_asset: Asset; precission: number; capacity: number }>({
+    quote_asset: {
+      id: "5864a1b9-4ae1-424f-bdb4-f644cb359463",
+      created_at: new Date(),
+      name: "bitcoin",
+      symbol: "BTC",
+      maker_fee: {
+        numerator: 10,
+        denominator: 10,
+      },
+      taker_fee: {
+        numerator: 10,
+        denominator: 10,
+      },
+    },
+    base_asset: {
+      id: "7a99f052-d941-4dcc-aabd-6695c24deed5",
+      created_at: new Date(),
+      name: "ethereum",
+      symbol: "ETH",
+      maker_fee: {
+        numerator: 10,
+        denominator: 10,
+      },
+      taker_fee: {
+        numerator: 10,
+        denominator: 10,
+      },
+    },
+    precission: 3,
     capacity: 40,
   });
   const [storeComponent, setStoreComponent] = createStore<{ trades: TriElementComponent[] }>({ trades: [] });
   const [storeTrades, setStoreTrades] = createStore<{ trades: Trade[] }>({ trades: [] });
 
-  onMount(async () => {
+  createEffect(async () => {
     const events = await new EventSource(
       `${PUBLIC_URL}/trades/sse?${params({
-        quote_asset_id: storeState.quote_asset_id,
-        base_asset_id: storeState.base_asset_id,
+        quote_asset_id: storeState.quote_asset.id,
+        base_asset_id: storeState.base_asset.id,
       })}`
     );
     events.onopen = async () => {
       const elements = await fetch(
         `${PUBLIC_URL}/trades?${params({
-          quote_asset_id: storeState.quote_asset_id,
-          base_asset_id: storeState.base_asset_id,
+          quote_asset_id: storeState.quote_asset.id,
+          base_asset_id: storeState.base_asset.id,
           limit: storeState.capacity,
           offset: 0,
         })}`
@@ -48,14 +75,14 @@ export default function Trades() {
   createEffect(() => {
     const display = storeTrades.trades.map<TriElementComponent>((el) => ({
       column_0: (
-        <span class={`${el.quote_asset_id == storeState.quote_asset_id && el.base_asset_id == storeState.base_asset_id ? "text-green" : "text-red"}`}>
-          {format(el.taker_base_volume / el.taker_quote_volume, storeState.number_pattern)}
+        <span class={`${el.quote_asset_id == storeState.quote_asset.id && el.base_asset_id == storeState.base_asset.id ? "text-green" : "text-red"}`}>
+          {format(el.taker_base_volume / el.taker_quote_volume, formatTemplate(storeState.precission))}
         </span>
       ),
-      column_1: format(el.taker_base_volume, storeState.number_pattern),
+      column_1: format(el.taker_base_volume, formatTemplate(storeState.precission)),
       column_2: el.created_at.toLocaleTimeString(),
     }));
-    setStoreComponent("trades", display );
+    setStoreComponent("trades", display);
   });
 
   return (
@@ -64,8 +91,8 @@ export default function Trades() {
         <div class="p-4 font-sanspro text-trades-label font-semibold">Trades</div>
         <TriElementHeader
           class="py-[4px] px-[12px]"
-          column_0={<div class="text-left text-trades-sublabel">{"Price (USDT)"}</div>}
-          column_1={<div class="text-right text-trades-sublabel">{"Quantity (BTC)"}</div>}
+          column_0={<div class="text-left text-trades-sublabel">{`Price (${storeState.quote_asset.symbol})`}</div>}
+          column_1={<div class="text-right text-trades-sublabel">{`Quantity (${storeState.base_asset.symbol})`}</div>}
           column_2={<div class="text-right text-trades-sublabel">{"Time"}</div>}
         />
       </div>

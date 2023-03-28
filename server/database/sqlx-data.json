@@ -1,10 +1,10 @@
 {
   "db": "PostgreSQL",
-  "008ba4c9df25d0293aa91623b2986ac536818759e3e5d0c9b68c266ac4bd702d": {
+  "02c2acb8528a09c5cf61a1e9b74236d0020381f7456a812c42c78b4d124c084e": {
     "describe": {
       "columns": [
         {
-          "name": "drop_spot_valuts_notify_trigger_for_user",
+          "name": "drop_spot_valuts_notify_trigger_for_user_asset",
           "ordinal": 0,
           "type_info": "Void"
         }
@@ -18,7 +18,7 @@
         ]
       }
     },
-    "query": "\n                SELECT drop_spot_valuts_notify_trigger_for_user($1)\n                "
+    "query": "\n                SELECT drop_spot_valuts_notify_trigger_for_user_asset($1)\n                "
   },
   "0548f331dfa6cfe3d03eb6ca372b530a03f03db9061f315c9d4500d1ee275cd4": {
     "describe": {
@@ -2697,27 +2697,6 @@
     },
     "query": "\n            SELECT create_spot_orders_notify_trigger_for_orderbook($1, $2, $3, $4, $5)\n            "
   },
-  "cb77519d1f05ea0a8b40a7f9f6448f56dc32316d7309e0fe37b1dbf74e8fa5b1": {
-    "describe": {
-      "columns": [
-        {
-          "name": "create_spot_valuts_notify_trigger_for_user",
-          "ordinal": 0,
-          "type_info": "Void"
-        }
-      ],
-      "nullable": [
-        null
-      ],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Uuid"
-        ]
-      }
-    },
-    "query": "\n            SELECT create_spot_valuts_notify_trigger_for_user($1, $2)\n            "
-  },
   "cbc485d6c580d869c06d7a43d024b303b649eb06b8be5fd48b2073c44c674734": {
     "describe": {
       "columns": [
@@ -3169,5 +3148,27 @@
       }
     },
     "query": "\n            SELECT\n                id,\n                created_at,\n                user_id,\n                is_active,\n                quote_asset_id,\n                base_asset_id,\n                quote_asset_volume as \"quote_asset_volume: Volume\",\n                base_asset_volume as \"base_asset_volume: Volume\",\n                quote_asset_volume_left as \"quote_asset_volume_left: Volume\",\n                maker_fee as \"maker_fee: Fraction\"\n            FROM spot.orders\n            WHERE user_id = $1 AND is_active = true\n            ORDER BY created_at\n            LIMIT $2\n            OFFSET $3\n            "
+  },
+  "fc94a77650edb2d6d42bc99d9dca1825f57b15b39f7ec874594a3d349df6a97b": {
+    "describe": {
+      "columns": [
+        {
+          "name": "create_spot_valuts_notify_trigger_for_user_asset",
+          "ordinal": 0,
+          "type_info": "Void"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Uuid",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT create_spot_valuts_notify_trigger_for_user_asset($1, $2, $3)\n            "
   }
 }

@@ -54,7 +54,7 @@ impl ValutsManager {
         .fetch(&self.database)
     }
 
-    pub async fn get_for_user_and_asset(&self, user_id: Uuid, asset_id: Uuid) -> Result<Valut> {
+    pub async fn get_for_user_asset(&self, user_id: Uuid, asset_id: Uuid) -> Result<Valut> {
         sqlx::query_as!(
             Valut,
             r#"
@@ -74,17 +74,25 @@ impl ValutsManager {
         .await
     }
 
-    pub async fn create_notify_trigger_for_user(&self, user_id: Uuid) -> Result<NotifyTrigger> {
+    pub async fn create_notify_trigger_for_user_asset(
+        &self,
+        user_id: Uuid,
+        asset_id: Uuid,
+    ) -> Result<NotifyTrigger> {
         let trigger_name = trigger_name(
-            "spot_valuts_notify_trigger_for_user",
-            vec![Bytes::from(user_id.as_bytes().to_owned().to_vec())],
+            "spot_valuts_notify_trigger_for_user_asset",
+            vec![
+                Bytes::from(user_id.as_bytes().to_owned().to_vec()),
+                Bytes::from(asset_id.as_bytes().to_owned().to_vec()),
+            ],
         );
         sqlx::query!(
             r#"
-            SELECT create_spot_valuts_notify_trigger_for_user($1, $2)
+            SELECT create_spot_valuts_notify_trigger_for_user_asset($1, $2, $3)
             "#,
             trigger_name,
-            user_id
+            user_id,
+            asset_id
         )
         .execute(&self.database)
         .await?;
@@ -98,7 +106,7 @@ impl ValutsManager {
             }
             if let Err(err) = sqlx::query!(
                 r#"
-                SELECT drop_spot_valuts_notify_trigger_for_user($1)
+                SELECT drop_spot_valuts_notify_trigger_for_user_asset($1)
                 "#,
                 trigger_name_clone
             )
@@ -112,9 +120,15 @@ impl ValutsManager {
         Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
     }
 
-    pub async fn subscribe_for_user(&self, user_id: Uuid) -> Result<SubscribeStream<Valut>> {
+    pub async fn subscribe_for_user_asset(
+        &self,
+        user_id: Uuid,
+        asset_id: Uuid,
+    ) -> Result<SubscribeStream<Valut>> {
         let mut listener = PgListener::connect_with(&self.database).await?;
-        let notify_trigger = self.create_notify_trigger_for_user(user_id).await?;
+        let notify_trigger = self
+            .create_notify_trigger_for_user_asset(user_id, asset_id)
+            .await?;
         listener.listen(&notify_trigger.channel_name).await?;
 
         let subscribe_stream = listener.into_stream().map(|element| {
@@ -130,7 +144,7 @@ impl ValutsManager {
         ))
     }
 
-    pub async fn get_or_create_for_user_and_asset(
+    pub async fn get_or_create_for_user_asset(
         &self,
         user_id: Uuid,
         asset_id: Uuid,
@@ -148,7 +162,7 @@ impl ValutsManager {
         .execute(&self.database)
         .await?;
 
-        self.get_for_user_and_asset(user_id, asset_id).await
+        self.get_for_user_asset(user_id, asset_id).await
     }
 }
 

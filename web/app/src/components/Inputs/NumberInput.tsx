@@ -1,21 +1,45 @@
 import { createMemo, JSX } from "solid-js";
 
 export interface NumberInputComponent {
-  value?: number;
+  value?: string;
   left?: JSX.Element;
   right?: JSX.Element;
   class?: JSX.HTMLAttributes<HTMLElement>["class"];
   disabled?: boolean;
   disabledClass?: JSX.HTMLAttributes<HTMLElement>["class"];
-  parsingFunction?: (value: number) => number;
+  precission?: number;
   onInput?: (e: Event) => void;
   onChange?: (e: Event) => void;
+}
+
+function formatInput(input: string, precision: number) {
+  // Remove all non-digit and non-dot characters
+  let formatted = precision > 0 ? input.replace(/[^0-9.]/g, "") : input.replace(/[^0-9]/g, "");
+  formatted = formatted.replace(/(\..*?)\..*/g, "$1").replace(/^0[^.]/, "0");
+
+  // Truncate decimal part to maxDigits digits
+  formatted = formatted.replace(new RegExp("(\\.\\d{0," + precision + "})\\d*"), "$1");
+
+  // Add commas every third digit before the dot
+  const dotIndex = formatted.indexOf(".");
+  if (dotIndex !== -1) {
+    const integerPart = formatted.substring(0, dotIndex).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    const decimalPart = formatted.substring(dotIndex);
+    formatted = integerPart + decimalPart.replace(/(?<=\.)[^.]+/g, (match) => match.replace(/\./g, ""));
+  } else {
+    formatted = formatted.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
+  // Ensure there are no two commas next to each other
+  formatted = formatted.replace(/(,)\1+/g, "$1");
+
+  return formatted;
 }
 
 export default function NumberInput(props: NumberInputComponent) {
   let inputDOM!: HTMLInputElement;
   const valueDOM = createMemo(() => {
-    return props.value == null || props.value == undefined || props.value == 0 ? "" : props.value;
+    return props.value == undefined ? "" : props.value;
   });
 
   return (
@@ -29,18 +53,13 @@ export default function NumberInput(props: NumberInputComponent) {
       <div class="col-start-2 col-end-3 text-right">
         <input
           class={"number_input w-full max-w-[150px] bg-transparent p-1 text-right outline-none"}
-          type="number"
+          type="text"
           spellcheck={true}
           ref={inputDOM}
           value={valueDOM()}
           disabled={props.disabled}
           onInput={(e) => {
-            if (props.parsingFunction != undefined && !isNaN((e.target as HTMLInputElement).valueAsNumber)) {
-              const parsed = props.parsingFunction((e.target as HTMLInputElement).valueAsNumber);
-              if ((e.target as HTMLInputElement).valueAsNumber != parsed) {
-                (e.target as HTMLInputElement).valueAsNumber = parsed;
-              }
-            }
+            (e.target as HTMLInputElement).value = formatInput((e.target as HTMLInputElement).value, props.precission != undefined ? props.precission : 0);
             if (props.onInput != undefined) {
               props.onInput(e);
             }

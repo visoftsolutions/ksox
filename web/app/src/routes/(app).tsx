@@ -39,7 +39,7 @@ export default function Home() {
           <State />
         </div>
         <div class="col-start-4 col-end-6 row-start-3 row-end-4 bg-gray-2 lg:col-start-5">
-          <Submit buy={{ available: "22,234.12 USDT" }} sell={{ available: "22,234.12 USDT" }} />
+          <Submit />
         </div>
       </main>
     </UserSession.Provider>

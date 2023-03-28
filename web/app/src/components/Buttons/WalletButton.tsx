@@ -36,10 +36,7 @@ export default function WalletButton() {
   // };
 
   return (
-    <div
-      class="grid cursor-pointer select-none grid-cols-[auto_auto] grid-rows-[1fr] items-center justify-center gap-4 px-4"
-      onClick={async () => {}}
-    >
+    <div class="grid cursor-pointer select-none grid-cols-[auto_auto] grid-rows-[1fr] items-center justify-center gap-4 px-4" onClick={async () => {}}>
       <div class="text-mainmenu-wallet font-normal">CONNECT WALLET</div>
       <img src={joinPaths(base, "gfx/metamask.webp")} class="m-auto w-[22px]" />
     </div>

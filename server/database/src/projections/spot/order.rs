@@ -42,7 +42,7 @@ impl Order {
 
     pub async fn cancel(&mut self, valuts_manager: &ValutsManager) -> Result<(), sqlx::Error> {
         let mut valut = valuts_manager
-            .get_or_create_for_user_and_asset(self.user_id, self.quote_asset_id)
+            .get_or_create_for_user_asset(self.user_id, self.quote_asset_id)
             .await?;
         valut.balance += self.quote_asset_volume_left.to_owned();
         self.quote_asset_volume_left = Volume::from(0);

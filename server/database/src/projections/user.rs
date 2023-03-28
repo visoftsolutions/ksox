@@ -41,7 +41,7 @@ impl User {
         amount: Volume,
     ) -> Result<(), sqlx::Error> {
         let mut valut = valuts_manager
-            .get_or_create_for_user_and_asset(self.id, asset_id)
+            .get_or_create_for_user_asset(self.id, asset_id)
             .await?;
         valut.balance += amount;
         valuts_manager.update(valut).await?;
@@ -54,9 +54,7 @@ impl User {
         asset_id: Uuid,
         amount: Volume,
     ) -> Result<(), sqlx::Error> {
-        let mut valut = valuts_manager
-            .get_for_user_and_asset(self.id, asset_id)
-            .await?;
+        let mut valut = valuts_manager.get_for_user_asset(self.id, asset_id).await?;
         valut.balance -= amount;
         valuts_manager.update(valut).await?;
         Ok(())
