@@ -5,7 +5,6 @@ import { joinPaths } from "solid-start/islands/server-router";
 import { z } from "zod";
 import { PriceLevel } from "~/api/public/mod";
 import { Asset } from "~/types/asset";
-import { Uuid } from "~/types/primitives/uuid";
 import { Trade } from "~/types/trade";
 import params from "~/utils/params";
 import { formatTemplate } from "~/utils/precission";
@@ -66,7 +65,7 @@ export default function Orderbook() {
   });
 
   onMount(async () => {
-    const BASE_URL = location.href;
+    const BASE_URL = location.pathname;
     const API_URL = joinPaths(BASE_URL, "/api");
     const PUBLIC_URL = joinPaths(API_URL, "/public");
 
@@ -95,7 +94,7 @@ export default function Orderbook() {
       setStoreOrderbook("bids", z.array(PriceLevel).parse(JSON.parse(msg.data)).reverse());
     };
 
-    const asks_events = await new EventSource(
+    const asks_events = new EventSource(
       `${PUBLIC_URL}/depth/sse?${params({
         quote_asset_id: stateState.base_asset.id,
         base_asset_id: stateState.quote_asset.id,
@@ -120,7 +119,7 @@ export default function Orderbook() {
       setStoreOrderbook("asks", z.array(PriceLevel).parse(JSON.parse(msg.data)).reverse());
     };
 
-    const trades_events = await new EventSource(
+    const trades_events = new EventSource(
       `${PUBLIC_URL}/trades/sse?${params({
         quote_asset_id: stateState.quote_asset.id,
         base_asset_id: stateState.base_asset.id,

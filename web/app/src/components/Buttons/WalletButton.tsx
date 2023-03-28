@@ -20,7 +20,7 @@ export default function WalletButton() {
   const [wallet, setWallet] = useContext(UserWallet);
 
   const walletConnect = async () => {
-    const BASE_URL = location.href;
+    const BASE_URL = location.pathname;
     const API_URL = joinPaths(BASE_URL, "/api");
     const AUTH_URL = joinPaths(API_URL, "/auth");
 
@@ -63,17 +63,19 @@ export default function WalletButton() {
           message: generateNonceResponse.nonce,
         });
 
-        const validateSignatureResponse = await fetch(
-          `${AUTH_URL}?${params(
+        const validateSignatureResponse = await fetch(`${AUTH_URL}`, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(
             ValidateSignatureRequest.parse({
               address: account.address,
               signature,
             })
-          )}`,
-          {
-            method: "POST",
-          }
-        )
+          ),
+        })
           .then((r) => r.json())
           .then((r) => ValidateSignatureResponse.parse(r));
         console.log(validateSignatureResponse);

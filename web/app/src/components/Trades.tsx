@@ -48,7 +48,7 @@ export default function Trades() {
   const [storeTrades, setStoreTrades] = createStore<{ trades: Trade[] }>({ trades: [] });
 
   onMount(async () => {
-    const BASE_URL = location.href;
+    const BASE_URL = location.pathname;
     const API_URL = joinPaths(BASE_URL, "/api");
     const PUBLIC_URL = joinPaths(API_URL, "/public");
 

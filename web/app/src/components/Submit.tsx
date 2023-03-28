@@ -50,7 +50,7 @@ export default function Submit() {
   });
 
   createEffect(async () => {
-    const BASE_URL = location.href;
+    const BASE_URL = location.pathname;
     const API_URL = joinPaths(BASE_URL, "/api");
     const PRIVATE_URL = joinPaths(API_URL, "/private");
 
@@ -75,7 +75,7 @@ export default function Submit() {
   });
 
   createEffect(async () => {
-    const BASE_URL = location.href;
+    const BASE_URL = location.pathname;
     const API_URL = joinPaths(BASE_URL, "/api");
     const PRIVATE_URL = joinPaths(API_URL, "/private");
 
