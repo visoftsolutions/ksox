@@ -48,10 +48,11 @@ DECLARE
   trigger_truncated_name text := LEFT(format('t_%s', trigger_name), 63);
   channel_truncated_name text := LEFT(format('c_%s', trigger_name), 63);
 BEGIN
+  LOCK TABLE spot.orders IN ACCESS EXCLUSIVE MODE;
   SELECT count(*) INTO listener_count FROM pg_stat_activity WHERE lower(query) LIKE '%listen%'|| channel_truncated_name ||'%';
   IF listener_count = 0 THEN
     EXECUTE format('
-      DROP TRIGGER %s ON spot.orders;', 
+      DROP TRIGGER %s ON spot.orders;',
       trigger_truncated_name);
   END IF;
 END;
@@ -82,6 +83,7 @@ DECLARE
   trigger_truncated_name text := LEFT(format('t_%s', trigger_name), 63);
   channel_truncated_name text := LEFT(format('c_%s', trigger_name), 63);
 BEGIN
+  LOCK TABLE spot.orders IN ACCESS EXCLUSIVE MODE;
   SELECT count(*) INTO listener_count FROM pg_stat_activity WHERE lower(query) LIKE '%listen%'|| channel_truncated_name ||'%';
   IF listener_count = 0 THEN
     EXECUTE format('
@@ -116,6 +118,7 @@ DECLARE
   trigger_truncated_name text := LEFT(format('t_%s', trigger_name), 63);
   channel_truncated_name text := LEFT(format('c_%s', trigger_name), 63);
 BEGIN
+  LOCK TABLE spot.orders IN ACCESS EXCLUSIVE MODE;
   SELECT count(*) INTO listener_count FROM pg_stat_activity WHERE lower(query) LIKE '%listen%'|| channel_truncated_name ||'%';
   IF listener_count = 0 THEN
     EXECUTE format('
@@ -157,6 +160,7 @@ DECLARE
   trigger_truncated_name text := LEFT(format('t_%s', trigger_name), 63);
   channel_truncated_name text := LEFT(format('c_%s', trigger_name), 63);
 BEGIN
+  LOCK TABLE spot.orders IN ACCESS EXCLUSIVE MODE;
   EXECUTE format('
     CREATE OR REPLACE TRIGGER %s
     AFTER INSERT OR UPDATE ON spot.orders
@@ -175,6 +179,7 @@ DECLARE
   trigger_truncated_name text := LEFT(format('t_%s', trigger_name), 63);
   channel_truncated_name text := LEFT(format('c_%s', trigger_name), 63);
 BEGIN
+  LOCK TABLE spot.orders IN ACCESS EXCLUSIVE MODE;
   SELECT count(*) INTO listener_count FROM pg_stat_activity WHERE lower(query) LIKE '%listen%'|| channel_truncated_name ||'%';
   IF listener_count = 0 THEN
     EXECUTE format('

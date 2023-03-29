@@ -9,7 +9,7 @@ export default async function login(wallet: WalletClient<CustomTransport, typeof
     const API_URL = joinPaths(BASE_URL, "/api");
     const AUTH_URL = joinPaths(API_URL, "/auth");
 
-    let address = await wallet.getAddresses().then(addresses => addresses[0])
+    const address = await wallet.getAddresses().then(addresses => addresses[0])
 
     const generateMessageResponse = await fetch(
         `${AUTH_URL}?${params(

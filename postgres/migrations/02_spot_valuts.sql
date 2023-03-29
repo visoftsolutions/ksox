@@ -42,11 +42,12 @@ DECLARE
   trigger_truncated_name text := LEFT(format('t_%s', trigger_name), 63);
   channel_truncated_name text := LEFT(format('c_%s', trigger_name), 63);
 BEGIN
-  SELECT count(*) INTO listener_count FROM pg_stat_activity WHERE lower(query) LIKE '%listen%'|| channel_truncated_name ||'%';
-  IF listener_count = 0 THEN
-    EXECUTE format('
-      DROP TRIGGER IF EXISTS %s ON spot.valuts;', 
-      trigger_truncated_name);
-  END IF;
+    LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
+    SELECT count(*) INTO listener_count FROM pg_stat_activity WHERE lower(query) LIKE '%listen%'|| channel_truncated_name ||'%';
+    IF listener_count = 0 THEN
+      EXECUTE format('
+        DROP TRIGGER IF EXISTS %s ON spot.valuts;', 
+        trigger_truncated_name);
+    END IF;
 END;
 $BODY$ LANGUAGE plpgsql;
