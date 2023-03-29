@@ -3,17 +3,16 @@ use axum::{
     Json,
 };
 use database::{projections::spot::asset::Asset, sqlx::types::Uuid};
-use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 
-use crate::{api::AppError, models::AppState};
+use crate::{api::AppError, models::AppState, recognition::AssetPairRecognitionResult};
 
 #[derive(Deserialize)]
 pub struct Request {
     pub input: String,
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub struct AssetResponse {
     pub id: Uuid,
     pub name: String,
@@ -34,7 +33,7 @@ impl From<Asset> for AssetResponse {
 pub async fn root(
     State(state): State<AppState>,
     Query(params): Query<Request>,
-) -> Result<Json<Vec<(OrderedFloat<f64>, (AssetResponse, AssetResponse))>>, AppError> {
+) -> Result<Json<Vec<AssetPairRecognitionResult>>, AppError> {
     Ok(Json(
         state
             .assets_pair_recognition

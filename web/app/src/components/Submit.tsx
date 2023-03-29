@@ -1,102 +1,71 @@
-import { createEffect } from "solid-js";
+import { createEffect, useContext } from "solid-js";
 import { createStore } from "solid-js/store";
 import { joinPaths } from "solid-start/islands/server-router";
 import { Asset } from "~/types/asset";
 import { Valut } from "~/types/valut";
 import params from "~/utils/params";
 import RectangularButton from "./Buttons/NavRectangularButton";
+import { useSession } from "./Buttons/WalletButton";
 import BuyForm from "./Inputs/BuyForm";
 import SellForm from "./Inputs/SellForm";
 
-export default function Submit() {
-  const [storeState, setStoreState] = createStore<{ quote_asset: Asset; base_asset: Asset; precission: number }>({
-    quote_asset: {
-      id: "5864a1b9-4ae1-424f-bdb4-f644cb359463",
-      created_at: new Date(),
-      name: "bitcoin",
-      symbol: "USDC",
-      maker_fee: {
-        numerator: 10,
-        denominator: 10,
-      },
-      taker_fee: {
-        numerator: 10,
-        denominator: 10,
-      },
-    },
-    base_asset: {
-      id: "7a99f052-d941-4dcc-aabd-6695c24deed5",
-      created_at: new Date(),
-      name: "ethereum",
-      symbol: "ETH",
-      maker_fee: {
-        numerator: 10,
-        denominator: 10,
-      },
-      taker_fee: {
-        numerator: 10,
-        denominator: 10,
-      },
-    },
-    precission: 3,
-  });
-
+export default function Submit(props: { quote_asset?: Asset; base_asset?: Asset; precision?: number }) {
   const [storeSubmit, setStoreSubmit] = createStore<{
-    buy_available_balance: number;
-    sell_available_balance: number;
+    buy_available_balance: number | null;
+    sell_available_balance: number | null;
   }>({
-    buy_available_balance: 1323123,
-    sell_available_balance: 123124,
+    buy_available_balance: null,
+    sell_available_balance: null,
   });
 
-  createEffect(async () => {
-    const BASE_URL = location.pathname;
-    const API_URL = joinPaths(BASE_URL, "/api");
-    const PRIVATE_URL = joinPaths(API_URL, "/private");
-
-    const events = new EventSource(
-      `${PRIVATE_URL}/balance/sse?${params({
-        asset_id: storeState.quote_asset.id,
-      })}`
-    );
-    events.onopen = async () => {
-      const elements = await fetch(
-        `${PRIVATE_URL}/balance?${params({
-          asset_id: storeState.quote_asset.id,
-        })}`
-      )
-        .then((r) => r.json())
-        .then((r) => Valut.parse(r));
-      setStoreSubmit("buy_available_balance", (prev) => (prev == undefined ? elements.balance : prev));
-    };
-    events.onmessage = (msg) => {
-      setStoreSubmit("buy_available_balance", Valut.parse(JSON.parse(msg.data)).balance);
-    };
-  });
+  const session = useSession();
 
   createEffect(async () => {
-    const BASE_URL = location.pathname;
-    const API_URL = joinPaths(BASE_URL, "/api");
-    const PRIVATE_URL = joinPaths(API_URL, "/private");
+    if (session && session() && props.quote_asset && props.base_asset && props.precision) {
+      const BASE_URL = location.pathname;
+      const API_URL = joinPaths(BASE_URL, "/api");
+      const PRIVATE_URL = joinPaths(API_URL, "/private");
+      const quote_asset = props.quote_asset;
+      const base_asset = props.base_asset;
 
-    const events = new EventSource(
-      `${PRIVATE_URL}/balance/sse?${params({
-        asset_id: storeState.base_asset.id,
-      })}`
-    );
-    events.onopen = async () => {
-      const elements = await fetch(
-        `${PRIVATE_URL}/balance?${params({
-          asset_id: storeState.base_asset.id,
+      const buy_available_balance_events = new EventSource(
+        `${PRIVATE_URL}/balance/sse?${params({
+          asset_id: quote_asset.id,
         })}`
-      )
-        .then((r) => r.json())
-        .then((r) => Valut.parse(r));
-      setStoreSubmit("sell_available_balance", (prev) => (prev == undefined ? elements.balance : prev));
-    };
-    events.onmessage = (msg) => {
-      setStoreSubmit("sell_available_balance", Valut.parse(JSON.parse(msg.data)).balance);
-    };
+      );
+      buy_available_balance_events.onopen = async () => {
+        await fetch(
+          `${PRIVATE_URL}/balance?${params({
+            asset_id: quote_asset.id,
+          })}`
+        )
+          .then((r) => r.json())
+          .then((r) => Valut.parse(r))
+          .then((r) => setStoreSubmit("buy_available_balance", r.balance));
+      };
+      buy_available_balance_events.onmessage = (ev) => {
+        setStoreSubmit("buy_available_balance", Valut.parse(JSON.parse(ev.data)).balance);
+      };
+
+      const sell_available_balance = new EventSource(
+        `${PRIVATE_URL}/balance/sse?${params({
+          asset_id: base_asset.id,
+        })}`
+      );
+      sell_available_balance.onopen = async () => {
+        await fetch(
+          `${PRIVATE_URL}/balance?${params({
+            asset_id: base_asset.id,
+          })}`
+        )
+          .then((r) => r.json())
+          .then((r) => Valut.parse(r))
+          .then((r) => setStoreSubmit("sell_available_balance", r.balance));
+      };
+      sell_available_balance.onmessage = (ev) => {
+        setStoreSubmit("sell_available_balance", Valut.parse(JSON.parse(ev.data)).balance);
+      };
+    }
   });
 
   return (
@@ -113,17 +82,17 @@ export default function Submit() {
           <div class="col-start-1 col-end-2 px-[12px] ">
             <BuyForm
               available_balance={storeSubmit.buy_available_balance}
-              quote_asset={storeState.quote_asset}
-              base_asset={storeState.base_asset}
-              precission={storeState.precission}
+              quote_asset={props.quote_asset}
+              base_asset={props.base_asset}
+              precision={props.precision}
             />
           </div>
           <div class="col-start-2 col-end-3 px-[12px]">
             <SellForm
               available_balance={storeSubmit.sell_available_balance}
-              quote_asset={storeState.quote_asset}
-              base_asset={storeState.base_asset}
-              precission={storeState.precission}
+              quote_asset={props.quote_asset}
+              base_asset={props.base_asset}
+              precision={props.precision}
             />
           </div>
         </div>

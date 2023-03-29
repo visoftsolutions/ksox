@@ -2,7 +2,6 @@ import { Index } from "solid-js";
 import { createStore } from "solid-js/store";
 import RectangularButton from "./Buttons/NavRectangularButton";
 import StateActionCircularButton from "./Buttons/StateActionCircularButton";
-import { init } from "~/effects/State";
 
 export enum OrderSide {
   Buy = "buy",
@@ -50,8 +49,6 @@ export interface StateComponent {
 }
 
 export const [store, setStore] = createStore<StateComponent>({ tab: StateTabs.OpenOrders, open_orders: [], order_history: [], trade_history: [] });
-
-init();
 
 export default function State() {
   return (

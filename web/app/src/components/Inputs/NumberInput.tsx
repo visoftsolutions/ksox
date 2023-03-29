@@ -7,7 +7,7 @@ export interface NumberInputComponent {
   class?: JSX.HTMLAttributes<HTMLElement>["class"];
   disabled?: boolean;
   disabledClass?: JSX.HTMLAttributes<HTMLElement>["class"];
-  precission?: number;
+  precision?: number;
   onInput?: (e: Event) => void;
   onChange?: (e: Event) => void;
 }
@@ -59,7 +59,7 @@ export default function NumberInput(props: NumberInputComponent) {
           value={valueDOM()}
           disabled={props.disabled}
           onInput={(e) => {
-            (e.target as HTMLInputElement).value = formatInput((e.target as HTMLInputElement).value, props.precission != undefined ? props.precission : 0);
+            (e.target as HTMLInputElement).value = formatInput((e.target as HTMLInputElement).value, props.precision != undefined ? props.precision : 0);
             if (props.onInput != undefined) {
               props.onInput(e);
             }

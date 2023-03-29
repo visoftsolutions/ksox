@@ -2,6 +2,7 @@ import { JSX } from "solid-js";
 
 export interface TriElementComponent {
   class?: JSX.HTMLAttributes<HTMLElement>["class"];
+  onClick?: JSX.HTMLAttributes<HTMLElement>["onClick"];
   column_0: JSX.Element;
   column_1: JSX.Element;
   column_2: JSX.Element;

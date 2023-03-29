@@ -33,16 +33,8 @@ export default function SearchInput(props: SearchInputComponent) {
           value={valueDOM()}
           placeholder="Search"
           disabled={props.disabled}
-          onInput={(e) => {
-            if (props.onInput != undefined) {
-              props.onInput(e);
-            }
-          }}
-          onChange={(e) => {
-            if (props.onChange != undefined) {
-              props.onChange(e);
-            }
-          }}
+          onInput={(ev) => props.onInput ? props.onInput(ev) : {}}
+          onChange={(ev) => props.onChange ? props.onChange(ev) : {}}
           onFocus={(e) => {
             (e.target as HTMLInputElement).select();
           }}

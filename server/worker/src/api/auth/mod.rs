@@ -1,7 +1,5 @@
 pub mod models;
 
-use std::ops::Deref;
-
 use axum::{
     extract::{Json, Query, State},
     response::IntoResponse,
