@@ -1,12 +1,13 @@
-import { createEffect, Index } from "solid-js";
+import { Accessor, createContext, createEffect, createSignal, Index, JSX, useContext } from "solid-js";
 import { createStore } from "solid-js/store";
 import { joinPaths } from "solid-start/islands/server-router";
-import { base } from "~/root";
+import { api, base } from "~/root";
 import SearchInput from "~/components/Inputs/SearchInput";
-import TriElement, { TriElementComponent } from "./TriElement/TriElement";
+import TriElement from "./TriElement/TriElement";
 import TriElementHeader from "~/components/TriElement/TriElementHeader";
 import params from "~/utils/params";
 import z from "zod";
+import { A } from "solid-start";
 
 export const AssetResponse = z.object({
   id: z.string().uuid(),
@@ -22,30 +23,28 @@ export const AssetPairRecognitionResult = z.object({
 });
 export type AssetPairRecognitionResult = z.infer<typeof AssetPairRecognitionResult>;
 
+const fetchAssets = async (input: string) => {
+  console.log(`fetching assets: ${api}/public/search`);
+  return await fetch(`${api}/public/search?${params({ input })}`)
+    .then((r) => r.json())
+    .then((r) => z.array(AssetPairRecognitionResult).parse(r));
+};
+
+const [market, setMarket] = createSignal<{ quote_asset: AssetResponse; base_asset: AssetResponse } | null>(null);
+const MarketContext = createContext<Accessor<{ quote_asset: AssetResponse; base_asset: AssetResponse } | null>>(market);
+export function MarketProvider(props: { children: JSX.Element }) {
+  return <MarketContext.Provider value={market}>{props.children}</MarketContext.Provider>;
+}
+export function useMarket() {
+  return useContext<Accessor<{ quote_asset: AssetResponse; base_asset: AssetResponse } | null>>(MarketContext);
+}
+
 export default function Markets() {
-  const [marketsState, setMarketsState] = createStore<{ search: string; markets: Array<TriElementComponent> }>({
-    search: "",
-    markets: [],
-  });
+  const [search, setSearch] = createSignal("");
+  const [marketsState, setMarketsState] = createStore<Array<AssetPairRecognitionResult>>([]);
 
   createEffect(async () => {
-    const BASE_URL = location.pathname;
-    const API_URL = joinPaths(BASE_URL, "/api");
-    const PUBLIC_URL = joinPaths(API_URL, "/public");
-
-    await fetch(
-      `${PUBLIC_URL}/search?${params({
-        input: marketsState.search,
-      })}`
-    )
-      .then((r) => r.json())
-      .then((r) => z.array(AssetPairRecognitionResult).parse(r))
-      .then((r) =>
-        setMarketsState(
-          "markets",
-          r.map((el) => ({ column_0: `${el.asset0.symbol}/${el.asset1.symbol}`, column_1: 0, column_2: 0 }))
-        )
-      );
+    setMarketsState(await fetchAssets(search()));
   });
 
   return (
@@ -61,30 +60,32 @@ export default function Markets() {
               </>
             }
             onInput={(e) => {
-              const value: string = (e.target as HTMLInputElement).value;
-              setMarketsState("search", value);
+              const value = (e.target as HTMLInputElement).value;
+              setSearch(value);
             }}
           />
           <TriElementHeader
             column_0={<div class="text-left text-markets-sublabel">{"Market"}</div>}
-            column_1={<div class="text-right text-markets-sublabel">{"Price (USDT)"}</div>}
+            column_1={<div class="text-right text-markets-sublabel">{"Price"}</div>}
             column_2={<div class="text-right text-markets-sublabel">{"Change"}</div>}
           />
         </div>
       </div>
       <div class="relative row-start-2 row-end-3">
-        <div class="absolute top-0 left-0 right-0 bottom-0 flex flex-col overflow-scroll">
-          <Index each={marketsState.markets}>
+        <div class="absolute bottom-0 left-0 right-0 top-0 flex flex-col overflow-scroll">
+          <Index each={marketsState}>
             {(element, i) => (
-              <TriElement
-                class={`cursor-pointer select-none px-[12px] py-2 text-right font-sanspro text-markets-item ${i % 2 ? "bg-gray-3" : ""}`}
-                onClick={() => {
-                  console.log("clicked");
-                }}
-                column_0={element().column_0}
-                column_1={element().column_1}
-                column_2={element().column_2}
-              />
+              <A
+                href={`/${element().asset0.id}/${element().asset1.id}`}
+                onClick={() => setMarket({ quote_asset: element().asset1, base_asset: element().asset0 })}
+              >
+                <TriElement
+                  class={`cursor-pointer select-none px-[12px] py-2 text-right font-sanspro text-markets-item ${i % 2 ? "bg-gray-3" : ""}`}
+                  column_0={`${element().asset0.symbol}/${element().asset1.symbol}`}
+                  column_1={0}
+                  column_2={0}
+                />
+              </A>
             )}
           </Index>
         </div>

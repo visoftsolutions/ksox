@@ -1,17 +1,27 @@
 import { format } from "numerable";
 import { Index, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
-import { joinPaths } from "solid-start/islands/server-router";
 import { z } from "zod";
-import { PriceLevel } from "~/api/public/mod";
-import { Asset } from "~/types/asset";
+import { api } from "~/root";
+import { Volume } from "~/types/primitives/volume";
 import { Trade } from "~/types/trade";
 import params from "~/utils/params";
 import { formatTemplate } from "~/utils/precision";
+import { AssetResponse } from "./Markets";
 import TriElementFill, { TriElementFillComponent } from "./TriElement/TriElementFill";
 import TriElementHeader from "./TriElement/TriElementHeader";
 
-export default function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; precission?: number; capacity?: number }) {
+export const PriceLevel = z.object({
+  price: z.number(),
+  volume: Volume,
+});
+export type PriceLevel = z.infer<typeof PriceLevel>;
+
+export default function CreateOrderBook(quote_asset?: AssetResponse, base_asset?: AssetResponse, precission?: number, capacity?: number) {
+  return () => <OrderBook quote_asset={quote_asset} base_asset={base_asset} precission={precission} capacity={capacity} />;
+}
+
+export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: AssetResponse; precission?: number; capacity?: number }) {
   const [orderBookState, setOrderBookState] = createStore<{
     buys: TriElementFillComponent[];
     last_price: string | null;
@@ -22,18 +32,15 @@ export default function OrderBook(props: { quote_asset?: Asset; base_asset?: Ass
     sells: [],
   });
 
-  onMount(async () => {
+  onMount(() => {
     if (props.quote_asset && props.base_asset && props.precission && props.capacity) {
       const quote_asset = props.quote_asset;
       const base_asset = props.base_asset;
       const precission = props.precission;
       const capacity = props.capacity;
-      const BASE_URL = location.pathname;
-      const API_URL = joinPaths(BASE_URL, "/api");
-      const PUBLIC_URL = joinPaths(API_URL, "/public");
 
       const buys_events = new EventSource(
-        `${PUBLIC_URL}/depth/sse?${params({
+        `${api}/public/depth/sse?${params({
           quote_asset_id: quote_asset.id,
           base_asset_id: base_asset.id,
           limit: capacity,
@@ -41,8 +48,8 @@ export default function OrderBook(props: { quote_asset?: Asset; base_asset?: Ass
         })}`
       );
       buys_events.onopen = async () =>
-        fetch(
-          `${PUBLIC_URL}/depth?${params({
+        await fetch(
+          `${api}/public/depth?${params({
             quote_asset_id: quote_asset.id,
             base_asset_id: base_asset.id,
             limit: capacity,
@@ -94,7 +101,7 @@ export default function OrderBook(props: { quote_asset?: Asset; base_asset?: Ass
       };
 
       const sells_events = new EventSource(
-        `${PUBLIC_URL}/depth/sse?${params({
+        `${api}/public/depth/sse?${params({
           quote_asset_id: base_asset.id,
           base_asset_id: quote_asset.id,
           limit: capacity,
@@ -102,8 +109,8 @@ export default function OrderBook(props: { quote_asset?: Asset; base_asset?: Ass
         })}`
       );
       sells_events.onopen = async () =>
-        fetch(
-          `${PUBLIC_URL}/depth?${params({
+        await fetch(
+          `${api}/public/depth?${params({
             quote_asset_id: base_asset.id,
             base_asset_id: quote_asset.id,
             limit: capacity,
@@ -155,14 +162,14 @@ export default function OrderBook(props: { quote_asset?: Asset; base_asset?: Ass
       };
 
       const trades_events = new EventSource(
-        `${PUBLIC_URL}/trades/sse?${params({
+        `${api}/public/trades/sse?${params({
           quote_asset_id: quote_asset.id,
           base_asset_id: base_asset.id,
         })}`
       );
       trades_events.onopen = async () =>
-        fetch(
-          `${PUBLIC_URL}/trades?${params({
+        await fetch(
+          `${api}/public/trades?${params({
             quote_asset_id: quote_asset.id,
             base_asset_id: base_asset.id,
             limit: 1,
@@ -196,18 +203,18 @@ export default function OrderBook(props: { quote_asset?: Asset; base_asset?: Ass
       <div class="row-start-1 row-end-2">
         <div class="p-4 font-sanspro text-orderbook-label font-semibold">Orderbook</div>
         <TriElementHeader
-          class="py-[4px] px-[12px]"
+          class="px-[12px] py-[4px]"
           column_0={<div class="text-left text-orderbook-sublabel">{`Price (${props.quote_asset ? props.quote_asset.symbol : "---"})`}</div>}
           column_1={<div class="text-right text-orderbook-sublabel">{`Quantity (${props.base_asset ? props.base_asset.symbol : "---"})`}</div>}
           column_2={<div class="text-right text-orderbook-sublabel">{`Total (${props.quote_asset ? props.quote_asset.symbol : "---"})`}</div>}
         />
       </div>
       <div class="relative row-start-2 row-end-3">
-        <div class="absolute top-0 left-0 right-0 bottom-0 flex flex-col-reverse overflow-clip">
+        <div class="absolute bottom-0 left-0 right-0 top-0 flex flex-col-reverse overflow-clip">
           <Index each={orderBookState.sells}>
             {(element) => (
               <TriElementFill
-                class="py-[4px] px-[12px] font-sanspro text-orderbook-item"
+                class="px-[12px] py-[4px] font-sanspro text-orderbook-item"
                 column_0={element().column_0}
                 column_1={element().column_1}
                 column_2={element().column_2}
@@ -224,11 +231,11 @@ export default function OrderBook(props: { quote_asset?: Asset; base_asset?: Ass
         </div>
       </div>
       <div class="relative row-start-4 row-end-5">
-        <div class="absolute top-0 left-0 right-0 bottom-0 flex flex-col overflow-clip">
+        <div class="absolute bottom-0 left-0 right-0 top-0 flex flex-col overflow-clip">
           <Index each={orderBookState.buys}>
             {(element) => (
               <TriElementFill
-                class="py-[4px] px-[12px] font-sanspro text-orderbook-item"
+                class="px-[12px] py-[4px] font-sanspro text-orderbook-item"
                 column_0={element().column_0}
                 column_1={element().column_1}
                 column_2={element().column_2}

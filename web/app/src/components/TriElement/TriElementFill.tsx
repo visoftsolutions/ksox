@@ -23,7 +23,7 @@ export default function TriElement(props: TriElementFillComponent) {
         style={{
           left: `${Math.min(100, Math.max(0, 100 - props.fill * 100)).toString()}%`,
         }}
-        class={`absolute top-0 bottom-0 right-0 opacity-20 ${props.fill_class}`}
+        class={`absolute bottom-0 right-0 top-0 opacity-20 ${props.fill_class}`}
       />
     </div>
   );

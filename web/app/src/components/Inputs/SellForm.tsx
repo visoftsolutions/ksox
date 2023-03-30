@@ -1,17 +1,17 @@
 import { format, parse } from "numerable";
 import { createMemo } from "solid-js";
 import { createStore } from "solid-js/store";
-import { Asset } from "~/types/asset";
 import { formatTemplate } from "~/utils/precision";
 import SubmitRectangularButton from "../Buttons/SubmitRectangularButton";
+import { AssetResponse } from "../Markets";
 import NumberInput from "./NumberInput";
 import Slider from "./Slider";
 
 export interface FormComponent {
-  quote_asset?: Asset | null;
-  base_asset?: Asset | null;
-  precision?: number | null;
-  available_balance?: number | null;
+  quote_asset?: AssetResponse;
+  base_asset?: AssetResponse;
+  precision?: number;
+  available_balance?: number;
 }
 
 interface SubmitFormComponent {
