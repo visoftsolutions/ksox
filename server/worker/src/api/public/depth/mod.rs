@@ -19,6 +19,7 @@ pub fn router(app_state: &AppState) -> Router {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Request {
     pub quote_asset_id: Uuid,
     pub base_asset_id: Uuid,

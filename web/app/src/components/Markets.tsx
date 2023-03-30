@@ -1,9 +1,9 @@
 import { createEffect, Index } from "solid-js";
 import { createStore } from "solid-js/store";
 import { joinPaths } from "solid-start/islands/server-router";
-import { base } from "~/root";
+import { api, base } from "~/root";
 import SearchInput from "~/components/Inputs/SearchInput";
-import TriElement, { TriElementComponent } from "./TriElement/TriElement";
+import TriElement from "./TriElement/TriElement";
 import TriElementHeader from "~/components/TriElement/TriElementHeader";
 import params from "~/utils/params";
 import z from "zod";
@@ -23,18 +23,14 @@ export const AssetPairRecognitionResult = z.object({
 export type AssetPairRecognitionResult = z.infer<typeof AssetPairRecognitionResult>;
 
 export default function Markets() {
-  const [marketsState, setMarketsState] = createStore<{ search: string; markets: Array<TriElementComponent> }>({
+  const [marketsState, setMarketsState] = createStore<{ search: string; markets: Array<AssetPairRecognitionResult> }>({
     search: "",
     markets: [],
   });
 
-  createEffect(async () => {
-    const BASE_URL = location.pathname;
-    const API_URL = joinPaths(BASE_URL, "/api");
-    const PUBLIC_URL = joinPaths(API_URL, "/public");
-
-    await fetch(
-      `${PUBLIC_URL}/search?${params({
+  createEffect(() => {
+    fetch(
+      `${api}/public/search?${params({
         input: marketsState.search,
       })}`
     )
@@ -43,7 +39,7 @@ export default function Markets() {
       .then((r) =>
         setMarketsState(
           "markets",
-          r.map((el) => ({ column_0: `${el.asset0.symbol}/${el.asset1.symbol}`, column_1: 0, column_2: 0 }))
+          r
         )
       );
   });
@@ -66,9 +62,9 @@ export default function Markets() {
             }}
           />
           <TriElementHeader
-            column_0={<div class="text-left text-markets-sublabel">{"Market"}</div>}
-            column_1={<div class="text-right text-markets-sublabel">{"Price (USDT)"}</div>}
-            column_2={<div class="text-right text-markets-sublabel">{"Change"}</div>}
+            column0={<div class="text-left text-markets-sublabel">{"Market"}</div>}
+            column1={<div class="text-right text-markets-sublabel">{"Price (USDT)"}</div>}
+            column2={<div class="text-right text-markets-sublabel">{"Change"}</div>}
           />
         </div>
       </div>
@@ -81,9 +77,9 @@ export default function Markets() {
                 onClick={() => {
                   console.log("clicked");
                 }}
-                column_0={element().column_0}
-                column_1={element().column_1}
-                column_2={element().column_2}
+                column0={`${element().asset0.symbol}/${element().asset1.symbol}`}
+                column1="0"
+                column2="0"
               />
             )}
           </Index>

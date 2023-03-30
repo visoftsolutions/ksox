@@ -17,13 +17,14 @@ use strsim::jaro_winkler;
 
 use crate::api::public::search::AssetResponse;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct AssetPairRecognition {
     regex_fillter: Regex,
     assets_manager: AssetsManager,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AssetPairRecognitionResult {
     score: OrderedFloat<f64>,
     asset0: AssetResponse,

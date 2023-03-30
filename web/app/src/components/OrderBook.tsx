@@ -1,9 +1,9 @@
 import { format } from "numerable";
 import { Index, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
-import { joinPaths } from "solid-start/islands/server-router";
 import { z } from "zod";
 import { PriceLevel } from "~/api/public/mod";
+import { api } from "~/root";
 import { Asset } from "~/types/asset";
 import { Trade } from "~/types/trade";
 import params from "~/utils/params";
@@ -11,40 +11,37 @@ import { formatTemplate } from "~/utils/precision";
 import TriElementFill, { TriElementFillComponent } from "./TriElement/TriElementFill";
 import TriElementHeader from "./TriElement/TriElementHeader";
 
-export default function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; precission?: number; capacity?: number }) {
+export default function OrderBook(props: { quoteAsset?: Asset; baseAsset?: Asset; precission?: number; capacity?: number }) {
   const [orderBookState, setOrderBookState] = createStore<{
     buys: TriElementFillComponent[];
-    last_price: string | null;
+    lastPrice: string | null;
     sells: TriElementFillComponent[];
   }>({
     buys: [],
-    last_price: null,
+    lastPrice: null,
     sells: [],
   });
 
   onMount(async () => {
-    if (props.quote_asset && props.base_asset && props.precission && props.capacity) {
-      const quote_asset = props.quote_asset;
-      const base_asset = props.base_asset;
+    if (props.quoteAsset && props.baseAsset && props.precission && props.capacity) {
+      const quoteAsset = props.quoteAsset;
+      const baseAsset = props.baseAsset;
       const precission = props.precission;
       const capacity = props.capacity;
-      const BASE_URL = location.pathname;
-      const API_URL = joinPaths(BASE_URL, "/api");
-      const PUBLIC_URL = joinPaths(API_URL, "/public");
 
       const buys_events = new EventSource(
-        `${PUBLIC_URL}/depth/sse?${params({
-          quote_asset_id: quote_asset.id,
-          base_asset_id: base_asset.id,
+        `${api}/public/depth/sse?${params({
+          quoteAssetId: quoteAsset.id,
+          baseAssetId: baseAsset.id,
           limit: capacity,
           precision: precission,
         })}`
       );
       buys_events.onopen = async () =>
         fetch(
-          `${PUBLIC_URL}/depth?${params({
-            quote_asset_id: quote_asset.id,
-            base_asset_id: base_asset.id,
+          `${api}/public/depth?${params({
+            quoteAssetId: quoteAsset.id,
+            baseAssetId: baseAsset.id,
             limit: capacity,
             precision: precission,
           })}`
@@ -62,9 +59,9 @@ export default function OrderBook(props: { quote_asset?: Asset; base_asset?: Ass
               r.map<TriElementFillComponent>((el) => {
                 sum += el.volume;
                 return {
-                  column_0: <span class="text-green">{format(el.price, formatTemplate(precission))}</span>,
-                  column_1: format(el.volume, formatTemplate(precission)),
-                  column_2: format(sum, formatTemplate(precission)),
+                  column0: <span class="text-green">{format(el.price, formatTemplate(precission))}</span>,
+                  column1: format(el.volume, formatTemplate(precission)),
+                  column2: format(sum, formatTemplate(precission)),
                   fill: sum / total,
                   fill_class: "bg-green",
                 };
@@ -83,9 +80,9 @@ export default function OrderBook(props: { quote_asset?: Asset; base_asset?: Ass
           buys.map<TriElementFillComponent>((el) => {
             sum += el.volume;
             return {
-              column_0: <span class="text-green">{format(el.price, formatTemplate(precission))}</span>,
-              column_1: format(el.volume, formatTemplate(precission)),
-              column_2: format(sum, formatTemplate(precission)),
+              column0: <span class="text-green">{format(el.price, formatTemplate(precission))}</span>,
+              column1: format(el.volume, formatTemplate(precission)),
+              column2: format(sum, formatTemplate(precission)),
               fill: sum / total,
               fill_class: "bg-green",
             };
@@ -94,18 +91,18 @@ export default function OrderBook(props: { quote_asset?: Asset; base_asset?: Ass
       };
 
       const sells_events = new EventSource(
-        `${PUBLIC_URL}/depth/sse?${params({
-          quote_asset_id: base_asset.id,
-          base_asset_id: quote_asset.id,
+        `${api}/public/depth/sse?${params({
+          quoteAssetId: baseAsset.id,
+          baseAssetId: quoteAsset.id,
           limit: capacity,
           precision: precission,
         })}`
       );
       sells_events.onopen = async () =>
         fetch(
-          `${PUBLIC_URL}/depth?${params({
-            quote_asset_id: base_asset.id,
-            base_asset_id: quote_asset.id,
+          `${api}/public/depth?${params({
+            quoteAssetId: baseAsset.id,
+            baseAssetId: quoteAsset.id,
             limit: capacity,
             precision: precission,
           })}`
@@ -123,9 +120,9 @@ export default function OrderBook(props: { quote_asset?: Asset; base_asset?: Ass
               r.map<TriElementFillComponent>((el) => {
                 sum += el.volume;
                 return {
-                  column_0: <span class="text-red">{format(1 / el.price, formatTemplate(precission))}</span>,
-                  column_1: format(el.volume, formatTemplate(precission)),
-                  column_2: format(sum, formatTemplate(precission)),
+                  column0: <span class="text-red">{format(1 / el.price, formatTemplate(precission))}</span>,
+                  column1: format(el.volume, formatTemplate(precission)),
+                  column2: format(sum, formatTemplate(precission)),
                   fill: sum / total,
                   fill_class: "bg-red",
                 };
@@ -144,9 +141,9 @@ export default function OrderBook(props: { quote_asset?: Asset; base_asset?: Ass
           sells.map<TriElementFillComponent>((el) => {
             sum += el.volume;
             return {
-              column_0: <span class="text-red">{format(1 / el.price, formatTemplate(precission))}</span>,
-              column_1: format(el.volume, formatTemplate(precission)),
-              column_2: format(sum, formatTemplate(precission)),
+              column0: <span class="text-red">{format(1 / el.price, formatTemplate(precission))}</span>,
+              column1: format(el.volume, formatTemplate(precission)),
+              column2: format(sum, formatTemplate(precission)),
               fill: sum / total,
               fill_class: "bg-red",
             };
@@ -155,16 +152,16 @@ export default function OrderBook(props: { quote_asset?: Asset; base_asset?: Ass
       };
 
       const trades_events = new EventSource(
-        `${PUBLIC_URL}/trades/sse?${params({
-          quote_asset_id: quote_asset.id,
-          base_asset_id: base_asset.id,
+        `${api}/public/trades/sse?${params({
+          quoteAssetId: quoteAsset.id,
+          baseAssetId: baseAsset.id,
         })}`
       );
       trades_events.onopen = async () =>
         fetch(
-          `${PUBLIC_URL}/trades?${params({
-            quote_asset_id: quote_asset.id,
-            base_asset_id: base_asset.id,
+          `${api}/public/trades?${params({
+            quoteAssetId: quoteAsset.id,
+            baseAssetId: baseAsset.id,
             limit: 1,
             offset: 0,
           })}`
@@ -173,19 +170,19 @@ export default function OrderBook(props: { quote_asset?: Asset; base_asset?: Ass
           .then((r) => z.array(Trade).parse(r)[0])
           .then((r) => {
             if (r) {
-              if (r.quote_asset_id == quote_asset.id && r.base_asset_id == base_asset.id) {
-                setOrderBookState("last_price", format(r.taker_base_volume / r.taker_quote_volume, formatTemplate(precission)));
-              } else if (r.quote_asset_id == base_asset.id && r.base_asset_id == quote_asset.id) {
-                setOrderBookState("last_price", format(r.taker_quote_volume / r.taker_base_volume, formatTemplate(precission)));
+              if (r.quoteAssetId == quoteAsset.id && r.baseAssetId == baseAsset.id) {
+                setOrderBookState("lastPrice", format(r.takerBaseVolume / r.takerQuoteVolume, formatTemplate(precission)));
+              } else if (r.quoteAssetId == baseAsset.id && r.baseAssetId == quoteAsset.id) {
+                setOrderBookState("lastPrice", format(r.takerQuoteVolume / r.takerBaseVolume, formatTemplate(precission)));
               }
             }
           });
       trades_events.onmessage = (ev) => {
         const last_trade = Trade.parse(JSON.parse(ev.data));
-        if (last_trade.quote_asset_id == quote_asset.id && last_trade.base_asset_id == base_asset.id) {
-          setOrderBookState("last_price", format(last_trade.taker_base_volume / last_trade.taker_quote_volume, formatTemplate(precission)));
-        } else if (last_trade.quote_asset_id == base_asset.id && last_trade.base_asset_id == quote_asset.id) {
-          setOrderBookState("last_price", format(last_trade.taker_quote_volume / last_trade.taker_base_volume, formatTemplate(precission)));
+        if (last_trade.quoteAssetId == quoteAsset.id && last_trade.baseAssetId == baseAsset.id) {
+          setOrderBookState("lastPrice", format(last_trade.takerBaseVolume / last_trade.takerQuoteVolume, formatTemplate(precission)));
+        } else if (last_trade.quoteAssetId == baseAsset.id && last_trade.baseAssetId == quoteAsset.id) {
+          setOrderBookState("lastPrice", format(last_trade.takerQuoteVolume / last_trade.takerBaseVolume, formatTemplate(precission)));
         }
       };
     }
@@ -197,9 +194,9 @@ export default function OrderBook(props: { quote_asset?: Asset; base_asset?: Ass
         <div class="p-4 font-sanspro text-orderbook-label font-semibold">Orderbook</div>
         <TriElementHeader
           class="py-[4px] px-[12px]"
-          column_0={<div class="text-left text-orderbook-sublabel">{`Price (${props.quote_asset ? props.quote_asset.symbol : "---"})`}</div>}
-          column_1={<div class="text-right text-orderbook-sublabel">{`Quantity (${props.base_asset ? props.base_asset.symbol : "---"})`}</div>}
-          column_2={<div class="text-right text-orderbook-sublabel">{`Total (${props.quote_asset ? props.quote_asset.symbol : "---"})`}</div>}
+          column0={<div class="text-left text-orderbook-sublabel">{`Price (${props.quoteAsset ? props.quoteAsset.symbol : "---"})`}</div>}
+          column1={<div class="text-right text-orderbook-sublabel">{`Quantity (${props.baseAsset ? props.baseAsset.symbol : "---"})`}</div>}
+          column2={<div class="text-right text-orderbook-sublabel">{`Total (${props.quoteAsset ? props.quoteAsset.symbol : "---"})`}</div>}
         />
       </div>
       <div class="relative row-start-2 row-end-3">
@@ -208,9 +205,9 @@ export default function OrderBook(props: { quote_asset?: Asset; base_asset?: Ass
             {(element) => (
               <TriElementFill
                 class="py-[4px] px-[12px] font-sanspro text-orderbook-item"
-                column_0={element().column_0}
-                column_1={element().column_1}
-                column_2={element().column_2}
+                column0={element().column0}
+                column1={element().column1}
+                column2={element().column2}
                 fill={element().fill}
                 fill_class={element().fill_class}
               />
@@ -220,7 +217,7 @@ export default function OrderBook(props: { quote_asset?: Asset; base_asset?: Ass
       </div>
       <div class="row-start-3 row-end-4 min-h-[50px]">
         <div class="flex h-full flex-col justify-center px-[12px]">
-          <div class="text-orderbook-middle font-semibold ">{orderBookState.last_price}</div>
+          <div class="text-orderbook-middle font-semibold ">{orderBookState.lastPrice}</div>
         </div>
       </div>
       <div class="relative row-start-4 row-end-5">
@@ -229,9 +226,9 @@ export default function OrderBook(props: { quote_asset?: Asset; base_asset?: Ass
             {(element) => (
               <TriElementFill
                 class="py-[4px] px-[12px] font-sanspro text-orderbook-item"
-                column_0={element().column_0}
-                column_1={element().column_1}
-                column_2={element().column_2}
+                column0={element().column0}
+                column1={element().column1}
+                column2={element().column2}
                 fill={element().fill}
                 fill_class={element().fill_class}
               />

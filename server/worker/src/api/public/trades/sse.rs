@@ -14,6 +14,7 @@ use serde::Deserialize;
 use crate::models::AppState;
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Request {
     pub quote_asset_id: Uuid,
     pub base_asset_id: Uuid,

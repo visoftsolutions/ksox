@@ -5,8 +5,8 @@ import { CandlestickType } from "./candlestick";
 import { Pagination } from "./primitives/pagination";
 
 export const DepthRequest = z.object({
-  quote_asset_id: Uuid,
-  base_asset_id: Uuid,
+  quoteAssetId: Uuid,
+  baseAssetId: Uuid,
   precision: z.number().optional(),
   limit: z.number().optional(),
 });
@@ -14,10 +14,10 @@ export const DepthRequest = z.object({
 export type DepthRequest = z.infer<typeof DepthRequest>;
 
 export const OhlcvRequest = z.object({
-  quote_asset_id: Uuid,
-  base_asset_id: Uuid,
+  quoteAssetId: Uuid,
+  baseAssetId: Uuid,
   kind: z.nativeEnum(CandlestickType).optional(),
-  reference_point: z.date(),
+  referencePoint: z.date(),
   span: z.number(),
 });
 
@@ -38,23 +38,23 @@ export const AssetResponse = z.object({
 export type AssetResponse = z.infer<typeof AssetResponse>;
 
 export const TradesRequest = z.object({
-  quote_asset_id: Uuid,
-  base_asset_id: Uuid,
+  quoteAssetId: Uuid,
+  baseAssetId: Uuid,
   pagination: z.optional(Pagination),
 });
 
 export type TradesRequest = z.infer<typeof TradesRequest>;
 
 export const SubmitRequest = z.object({
-  quote_asset_id: Uuid,
-  base_asset_id: Uuid,
-  quote_asset_volume: Volume,
-  base_asset_volume: Volume,
+  quoteAssetId: Uuid,
+  baseAssetId: Uuid,
+  quoteAssetVolume: Volume,
+  baseAssetVolume: Volume,
 });
 export type SubmitRequest = z.infer<typeof SubmitRequest>;
 
 export const MintBurnRequest = z.object({
-  asset_id: Uuid,
+  assetId: Uuid,
   amount: Volume,
 });
 
@@ -63,6 +63,6 @@ export type MintBurnRequest = z.infer<typeof MintBurnRequest>;
 export const Session = z.object({});
 
 export const CancelRequest = z.object({
-  order_id: Uuid,
+  orderId: Uuid,
 });
 export type CancelRequest = z.infer<typeof CancelRequest>;

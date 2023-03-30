@@ -1,6 +1,6 @@
-import { createEffect, useContext } from "solid-js";
+import { createEffect } from "solid-js";
 import { createStore } from "solid-js/store";
-import { joinPaths } from "solid-start/islands/server-router";
+import { api } from "~/root";
 import { Asset } from "~/types/asset";
 import { Valut } from "~/types/valut";
 import params from "~/utils/params";
@@ -9,61 +9,65 @@ import { useSession } from "./Buttons/WalletButton";
 import BuyForm from "./Inputs/BuyForm";
 import SellForm from "./Inputs/SellForm";
 
-export default function Submit(props: { quote_asset?: Asset; base_asset?: Asset; precision?: number }) {
+export default function CreateSubmit(baseAssetId?: string, quoteAssetId?: string, precision?: number) {
+
+  return () => {
+    return <Submit quoteAsset={quoteAsset} baseAsset={baseAsset} precision={precision} />;
+  };
+}
+
+export function Submit(props: { quoteAsset?: Asset; baseAsset?: Asset; precision?: number }) {
   const [storeSubmit, setStoreSubmit] = createStore<{
-    buy_available_balance: number | null;
-    sell_available_balance: number | null;
+    buy_availableBalance: number | null;
+    sell_availableBalance: number | null;
   }>({
-    buy_available_balance: null,
-    sell_available_balance: null,
+    buy_availableBalance: null,
+    sell_availableBalance: null,
   });
 
   const session = useSession();
 
   createEffect(async () => {
-    if (session && session() && props.quote_asset && props.base_asset && props.precision) {
-      const BASE_URL = location.pathname;
-      const API_URL = joinPaths(BASE_URL, "/api");
-      const PRIVATE_URL = joinPaths(API_URL, "/private");
-      const quote_asset = props.quote_asset;
-      const base_asset = props.base_asset;
+    if (session && session() && props.quoteAsset && props.baseAsset && props.precision) {
+      const quoteAsset = props.quoteAsset;
+      const baseAsset = props.baseAsset;
 
-      const buy_available_balance_events = new EventSource(
-        `${PRIVATE_URL}/balance/sse?${params({
-          asset_id: quote_asset.id,
+      const buy_availableBalance_events = new EventSource(
+        `${api}/private/balance/sse?${params({
+          asset_id: quoteAsset.id,
         })}`
       );
-      buy_available_balance_events.onopen = async () => {
+      buy_availableBalance_events.onopen = async () => {
         await fetch(
-          `${PRIVATE_URL}/balance?${params({
-            asset_id: quote_asset.id,
+          `${api}/private/balance?${params({
+            asset_id: quoteAsset.id,
           })}`
         )
           .then((r) => r.json())
           .then((r) => Valut.parse(r))
-          .then((r) => setStoreSubmit("buy_available_balance", r.balance));
+          .then((r) => setStoreSubmit("buy_availableBalance", r.balance));
       };
-      buy_available_balance_events.onmessage = (ev) => {
-        setStoreSubmit("buy_available_balance", Valut.parse(JSON.parse(ev.data)).balance);
+      buy_availableBalance_events.onmessage = (ev) => {
+        setStoreSubmit("buy_availableBalance", Valut.parse(JSON.parse(ev.data)).balance);
       };
 
-      const sell_available_balance = new EventSource(
-        `${PRIVATE_URL}/balance/sse?${params({
-          asset_id: base_asset.id,
+      const sell_availableBalance = new EventSource(
+        `${api}/private/balance/sse?${params({
+          asset_id: baseAsset.id,
         })}`
       );
-      sell_available_balance.onopen = async () => {
+      sell_availableBalance.onopen = async () => {
         await fetch(
-          `${PRIVATE_URL}/balance?${params({
-            asset_id: base_asset.id,
+          `${api}/private/balance?${params({
+            asset_id: baseAsset.id,
           })}`
         )
           .then((r) => r.json())
           .then((r) => Valut.parse(r))
-          .then((r) => setStoreSubmit("sell_available_balance", r.balance));
+          .then((r) => setStoreSubmit("sell_availableBalance", r.balance));
       };
-      sell_available_balance.onmessage = (ev) => {
-        setStoreSubmit("sell_available_balance", Valut.parse(JSON.parse(ev.data)).balance);
+      sell_availableBalance.onmessage = (ev) => {
+        setStoreSubmit("sell_availableBalance", Valut.parse(JSON.parse(ev.data)).balance);
       };
     }
   });
@@ -81,17 +85,17 @@ export default function Submit(props: { quote_asset?: Asset; base_asset?: Asset;
         <div class="grid h-full grid-cols-2 grid-rows-1">
           <div class="col-start-1 col-end-2 px-[12px] ">
             <BuyForm
-              available_balance={storeSubmit.buy_available_balance}
-              quote_asset={props.quote_asset}
-              base_asset={props.base_asset}
+              availableBalance={storeSubmit.buy_availableBalance}
+              quoteAsset={props.quoteAsset}
+              baseAsset={props.baseAsset}
               precision={props.precision}
             />
           </div>
           <div class="col-start-2 col-end-3 px-[12px]">
             <SellForm
-              available_balance={storeSubmit.sell_available_balance}
-              quote_asset={props.quote_asset}
-              base_asset={props.base_asset}
+              availableBalance={storeSubmit.sell_availableBalance}
+              quoteAsset={props.quoteAsset}
+              baseAsset={props.baseAsset}
               precision={props.precision}
             />
           </div>

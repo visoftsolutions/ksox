@@ -5,14 +5,14 @@ import { Volume } from "./primitives/volume";
 
 export const Trade = z.object({
   id: Uuid,
-  created_at: Datetime,
-  quote_asset_id: Uuid,
-  base_asset_id: Uuid,
-  taker_id: Uuid,
-  order_id: Uuid,
-  taker_quote_volume: Volume,
-  taker_base_volume: Volume,
-  maker_quote_volume: Volume,
-  maker_base_volume: Volume,
+  createdAt: Datetime,
+  quoteAssetId: Uuid,
+  baseAssetId: Uuid,
+  takerId: Uuid,
+  orderId: Uuid,
+  takerQuoteVolume: Volume,
+  takerBaseVolume: Volume,
+  makerQuoteVolume: Volume,
+  makerBaseVolume: Volume,
 });
 export type Trade = z.infer<typeof Trade>;

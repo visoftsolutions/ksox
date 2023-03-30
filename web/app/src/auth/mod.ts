@@ -39,14 +39,14 @@ export const ValidateSignatureRequest = z.object({
 export type ValidateSignatureRequest = z.infer<typeof ValidateSignatureRequest>;
 
 export const ValidateSignatureResponse = z.object({
-  session_id: SessionId,
-  user_id: UserId,
+  sessionId: SessionId,
+  userId: UserId,
   expiration: Expiration,
 });
 export type ValidateSignatureResponse = z.infer<typeof ValidateSignatureResponse>;
 
 export const User = z.object({
-  session_id: SessionId,
-  user_id: UserId,
+  sessionId: SessionId,
+  userId: UserId,
 });
 export type User = z.infer<typeof User>;

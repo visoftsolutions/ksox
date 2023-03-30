@@ -11,8 +11,8 @@ export enum CandlestickType {
 
 export const Candlestick = z.object({
   id: Uuid,
-  quote_asset_id: Uuid,
-  base_asset_id: Uuid,
+  quoteAssetId: Uuid,
+  baseAssetId: Uuid,
   kind: z.nativeEnum(CandlestickType),
   topen: Datetime,
   tclose: Datetime,
@@ -21,9 +21,9 @@ export const Candlestick = z.object({
   low: Fraction,
   close: Fraction,
   span: z.number(),
-  taker_quote_volume: Volume,
-  taker_base_volume: Volume,
-  maker_quote_volume: Volume,
-  maker_base_volume: Volume,
+  takerQuoteVolume: Volume,
+  takerBaseVolume: Volume,
+  makerQuoteVolume: Volume,
+  makerBaseVolume: Volume,
 });
 export type Candlestick = z.infer<typeof Candlestick>;
