@@ -65,7 +65,7 @@ export default function WalletButton() {
         w ? setSession(await login(w)) : await walletConnect();
       }}
     >
-      <div class="text-mainmenu-wallet font-normal">{!wallet() ? "CONNECT WALLET" : !session() ? "LOGIN" : session()?.userId}</div>
+      <div class="text-mainmenu-wallet font-normal">{!wallet() ? "CONNECT WALLET" : !session() ? "LOGIN" : session()?.user_id}</div>
       <img src={joinPaths(base, "gfx/metamask.webp")} class="m-auto w-[22px]" />
     </div>
   );

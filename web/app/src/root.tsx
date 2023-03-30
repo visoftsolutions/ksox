@@ -1,14 +1,10 @@
 import { Suspense } from "solid-js";
-import { Body, ErrorBoundary, FileRoutes, Head, Html, Meta, Routes, Scripts, Title, Route } from "solid-start";
+import { Body, ErrorBoundary, FileRoutes, Head, Html, Link, Meta, Routes, Scripts, Title } from "solid-start";
 import "~/root.css";
+import "~/api/public/assets";
 import { joinPaths } from "solid-start/islands/server-router";
-import Main from "./components/Main";
 
-export let base = import.meta.env.BASE_URL;
-if (import.meta.env.MODE === "development") {
-  base = import.meta.env.VITE_DEV_BACKEND_URL;
-}
-export const api = joinPaths(base, "/api");
+export const base = import.meta.env.BASE_URL;
 
 export default function Root() {
   return (
@@ -17,12 +13,12 @@ export default function Root() {
         <Title>KsoxExchange</Title>
         <Meta charset="utf-8" />
         <Meta name="viewport" content="width=device-width, initial-scale=1" />
+        <Link rel="icon" type="image/x-icon" href={joinPaths(base, "/favicon.ico")} />
       </Head>
       <Body>
         <Suspense>
           <ErrorBoundary>
             <Routes>
-              <Route path="/:baseAssetId/:quoteAssetId" component={Main} />
               <FileRoutes />
             </Routes>
           </ErrorBoundary>

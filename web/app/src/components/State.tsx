@@ -9,46 +9,46 @@ export enum OrderSide {
 }
 
 enum StateTabs {
-  OpenOrders = "openOrders",
-  OrderHistory = "orderHistory",
-  TradeHistory = "tradeHistory",
+  OpenOrders = "open_orders",
+  OrderHistory = "order_history",
+  TradeHistory = "trade_history",
 }
 
 interface OpenOrders {
-  orderTime: Date;
-  assetPair: [string, string];
-  orderSide: OrderSide;
+  order_time: Date;
+  asset_pair: [string, string];
+  order_side: OrderSide;
   price: string;
   quantity: string;
-  filledQuantity: string;
+  filled_quantity: string;
 }
 
 interface OrderHistory {
-  orderTime: Date;
-  assetPair: [string, string];
-  orderSide: OrderSide;
+  order_time: Date;
+  asset_pair: [string, string];
+  order_side: OrderSide;
   price: string;
   quantity: string;
-  filledQuantity: string;
+  filled_quantity: string;
 }
 
 interface TradeHistory {
-  orderTime: Date;
-  assetPair: [string, string];
-  orderSide: OrderSide;
+  order_time: Date;
+  asset_pair: [string, string];
+  order_side: OrderSide;
   price: string;
   quantity: string;
-  filledQuantity: string;
+  filled_quantity: string;
 }
 
 export interface StateComponent {
   tab: StateTabs;
-  openOrders: OpenOrders[];
-  orderHistory: OrderHistory[];
-  tradeHistory: TradeHistory[];
+  open_orders: OpenOrders[];
+  order_history: OrderHistory[];
+  trade_history: TradeHistory[];
 }
 
-export const [store, setStore] = createStore<StateComponent>({ tab: StateTabs.OpenOrders, openOrders: [], orderHistory: [], tradeHistory: [] });
+export const [store, setStore] = createStore<StateComponent>({ tab: StateTabs.OpenOrders, open_orders: [], order_history: [], trade_history: [] });
 
 export default function State() {
   return (
@@ -98,12 +98,12 @@ export default function State() {
         <Index each={store[store.tab]}>
           {(element, i) => (
             <div class={`grid grid-cols-7 items-center self-center px-[12px] py-[8px] text-state-item font-normal text-white ${i % 2 ? "bg-gray-3" : ""} `}>
-              <div class="col-start-1 col-end-2 text-left">{element().orderTime.toUTCString()}</div>
-              <div class="col-start-2 col-end-3 text-center">{element().assetPair[0] + " / " + element().assetPair[1]}</div>
-              <div class={`col-start-3 col-end-4 text-center ${element().orderSide == OrderSide.Buy ? "text-red" : "text-green"}`}>{element().orderSide}</div>
+              <div class="col-start-1 col-end-2 text-left">{element().order_time.toUTCString()}</div>
+              <div class="col-start-2 col-end-3 text-center">{element().asset_pair[0] + " / " + element().asset_pair[1]}</div>
+              <div class={`col-start-3 col-end-4 text-center ${element().order_side == OrderSide.Buy ? "text-red" : "text-green"}`}>{element().order_side}</div>
               <div class="col-start-4 col-end-5 text-center">{element().price}</div>
               <div class="col-start-5 col-end-6 text-center">{element().quantity}</div>
-              <div class="col-start-6 col-end-7 text-center">{element().filledQuantity}</div>
+              <div class="col-start-6 col-end-7 text-center">{element().filled_quantity}</div>
               <div class="col-start-7 col-end-8 flex justify-end">
                 <StateActionCircularButton class="ml-2 bg-green" />
                 <StateActionCircularButton class="ml-2 bg-gray-4" />

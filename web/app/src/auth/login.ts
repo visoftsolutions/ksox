@@ -1,15 +1,18 @@
 import { mainnet } from "@wagmi/core";
+import { joinPaths } from "solid-start/islands/server-router";
 import { CustomTransport, getAccount, WalletClient } from "viem";
-import { api } from "~/root";
 import params from "~/utils/params";
 import { GenerateMessageRequest, GenerateMessageResponse, ValidateSignatureRequest, ValidateSignatureResponse } from "./mod";
 
 export default async function login(wallet: WalletClient<CustomTransport, typeof mainnet>) {
+  const BASE_URL = location.pathname;
+  const API_URL = joinPaths(BASE_URL, "/api");
+  const AUTH_URL = joinPaths(API_URL, "/auth");
 
   const address = await wallet.getAddresses().then((addresses) => addresses[0]);
 
   const generateMessageResponse = await fetch(
-    `${api}/auth?${params(
+    `${AUTH_URL}?${params(
       GenerateMessageRequest.parse({
         address,
       })
@@ -26,7 +29,7 @@ export default async function login(wallet: WalletClient<CustomTransport, typeof
     message: generateMessageResponse.message,
   });
 
-  const validateSignatureResponse = await fetch(`${api}/auth`, {
+  const validateSignatureResponse = await fetch(`${AUTH_URL}`, {
     method: "POST",
     headers: {
       Accept: "application/json",

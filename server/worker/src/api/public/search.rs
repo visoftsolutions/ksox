@@ -8,13 +8,11 @@ use serde::{Deserialize, Serialize};
 use crate::{api::AppError, models::AppState, recognition::AssetPairRecognitionResult};
 
 #[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct Request {
     pub input: String,
 }
 
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Serialize)]
 pub struct AssetResponse {
     pub id: Uuid,
     pub name: String,

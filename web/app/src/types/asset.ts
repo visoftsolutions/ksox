@@ -5,10 +5,10 @@ import { Uuid } from "./primitives/uuid";
 
 export const Asset = z.object({
   id: Uuid,
-  createdAt: Datetime,
+  created_at: Datetime,
   name: z.string(),
   symbol: z.string(),
-  makerFee: Fraction,
-  takerFee: Fraction,
+  maker_fee: Fraction,
+  taker_fee: Fraction,
 });
 export type Asset = z.infer<typeof Asset>;

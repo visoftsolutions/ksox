@@ -74,4 +74,4 @@ services:
       - ksox-app
       - ksox-landing
     ports:
-      - 8080:80
+      - 7979:80

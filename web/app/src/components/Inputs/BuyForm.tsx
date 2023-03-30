@@ -8,10 +8,10 @@ import NumberInput from "./NumberInput";
 import Slider from "./Slider";
 
 export interface FormComponent {
-  quoteAsset?: Asset | null;
-  baseAsset?: Asset | null;
+  quote_asset?: Asset | null;
+  base_asset?: Asset | null;
   precision?: number | null;
-  availableBalance?: number | null;
+  available_balance?: number | null;
 }
 
 interface SubmitFormComponent {
@@ -38,7 +38,7 @@ export default function BuyForm(props: FormComponent) {
   });
 
   const slider = createMemo(() => {
-    return props.availableBalance && props.availableBalance != 0 ? (storeComponent.value / props.availableBalance) * 100 : 0;
+    return props.available_balance && props.available_balance != 0 ? (storeComponent.value / props.available_balance) * 100 : 0;
   });
 
   const value = createMemo(() => {
@@ -50,7 +50,7 @@ export default function BuyForm(props: FormComponent) {
       <div class="grid justify-between pb-[4px] text-submit-sublabel font-semibold text-gray-4">
         <div class="col-start-1 col-end-2">Available Balance:</div>
         <div class="col-start-2 col-end-3">
-          {format(props.availableBalance, formatTemplate(props.precision ? props.precision : 2))} {props.quoteAsset ? props.quoteAsset.symbol : "---"}
+          {format(props.available_balance, formatTemplate(props.precision ? props.precision : 2))} {props.quote_asset ? props.quote_asset.symbol : "---"}
         </div>
       </div>
       <NumberInput
@@ -63,7 +63,7 @@ export default function BuyForm(props: FormComponent) {
         }}
         precision={props.precision ? props.precision : 2}
         left={"Price"}
-        right={props.quoteAsset ? props.quoteAsset.symbol : "---"}
+        right={props.quote_asset ? props.quote_asset.symbol : "---"}
       />
       <NumberInput
         class="my-[4px] bg-gray-1 p-1 text-submit-label"
@@ -72,27 +72,27 @@ export default function BuyForm(props: FormComponent) {
           const val = parse((e.target as HTMLInputElement).value);
           setStoreComponent(
             "quantity",
-            val && props.availableBalance && val != 0 && storeComponent.price != 0 ? Math.min(props.availableBalance / storeComponent.price, val) : 0
+            val && props.available_balance && val != 0 && storeComponent.price != 0 ? Math.min(props.available_balance / storeComponent.price, val) : 0
           );
           setStoreComponent(
             "value",
-            val && props.availableBalance && val != 0 && storeComponent.price != 0
-              ? Math.min(props.availableBalance / storeComponent.price, val) * storeComponent.price
+            val && props.available_balance && val != 0 && storeComponent.price != 0
+              ? Math.min(props.available_balance / storeComponent.price, val) * storeComponent.price
               : 0
           );
         }}
         precision={props.precision ? props.precision : 2}
         left={"Quantity"}
-        right={props.baseAsset ? props.baseAsset.symbol : "---"}
+        right={props.base_asset ? props.base_asset.symbol : "---"}
       />
       <Slider
         value={slider()}
         onInput={(e) => {
           const val = (e.target as HTMLInputElement).valueAsNumber;
-          setStoreComponent("value", props.availableBalance ? (val / 100) * props.availableBalance : 0);
+          setStoreComponent("value", props.available_balance ? (val / 100) * props.available_balance : 0);
           setStoreComponent(
             "quantity",
-            props.availableBalance && storeComponent.price != 0 ? ((val / 100) * props.availableBalance) / storeComponent.price : 0
+            props.available_balance && storeComponent.price != 0 ? ((val / 100) * props.available_balance) / storeComponent.price : 0
           );
         }}
       />
@@ -101,15 +101,15 @@ export default function BuyForm(props: FormComponent) {
         value={value()}
         onChange={(e) => {
           const val = parse((e.target as HTMLInputElement).value);
-          setStoreComponent("value", val && props.availableBalance && val != 0 ? Math.min(val, props.availableBalance) : 0);
+          setStoreComponent("value", val && props.available_balance && val != 0 ? Math.min(val, props.available_balance) : 0);
           setStoreComponent(
             "quantity",
-            val && props.availableBalance && val != 0 && storeComponent.price != 0 ? Math.min(val, props.availableBalance) / storeComponent.price : 0
+            val && props.available_balance && val != 0 && storeComponent.price != 0 ? Math.min(val, props.available_balance) / storeComponent.price : 0
           );
         }}
         precision={props.precision ? props.precision : 2}
         left={"Value"}
-        right={props.quoteAsset ? props.quoteAsset.symbol : "---"}
+        right={props.quote_asset ? props.quote_asset.symbol : "---"}
       />
       <SubmitRectangularButton class="my-[12px] bg-green">Buy</SubmitRectangularButton>
     </div>
