@@ -144,7 +144,7 @@ BEGIN
         AND base_asset_id = NEW.base_asset_id
         AND is_active = true
         GROUP BY price
-        ORDER BY price
+        ORDER BY price ASC
         LIMIT CAST(TG_ARGV[2] AS BIGINT)
     ) sub;
 

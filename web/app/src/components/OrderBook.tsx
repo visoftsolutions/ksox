@@ -62,7 +62,7 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
           })}`
         )
           .then((r) => r.json())
-          .then((r) => z.array(PriceLevel).parse(r).reverse())
+          .then((r) => z.array(PriceLevel).parse(r))
           .then((r) => {
             let total = 0,
               sum = 0;
@@ -126,7 +126,7 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
           })}`
         )
           .then((r) => r.json())
-          .then((r) => z.array(PriceLevel).parse(r).reverse())
+          .then((r) => z.array(PriceLevel).parse(r))
           .then((r) => {
             let total = 0,
               sum = 0;
@@ -151,7 +151,7 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
       sells_events.onmessage = (ev) => {
         let total = 0,
           sum = 0;
-        const sells = z.array(PriceLevel).parse(JSON.parse(ev.data)).reverse();
+        const sells = z.array(PriceLevel).parse(JSON.parse(ev.data));
         sells.forEach((value) => {
           total += Number(ethers.utils.formatEther(value.volume));
         });

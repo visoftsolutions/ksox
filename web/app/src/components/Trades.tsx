@@ -10,7 +10,7 @@ import { format } from "numerable";
 import { formatTemplate } from "~/utils/precision";
 import { api } from "~/root";
 import { AssetResponse } from "./Markets";
-import { ethers } from "ethers";
+import { fromWei } from "~/converters/wei";
 
 export default function CreateTrades(quote_asset?: AssetResponse, base_asset?: AssetResponse, precission?: number, capacity?: number) {
   return () => <Trades quote_asset={quote_asset} base_asset={base_asset} precission={precission} capacity={capacity} />;
@@ -47,8 +47,8 @@ export function Trades(props: { quote_asset?: AssetResponse; base_asset?: AssetR
           .then((r) => z.array(Trade).parse(r))
           .then((r) => {
             return r.map<TriElementComponent>((el) => {
-              const taker_quote_volume = Number(ethers.utils.formatEther(el.taker_quote_volume));
-              const taker_base_volume = Number(ethers.utils.formatEther(el.taker_base_volume));
+              const taker_quote_volume = fromWei(el.taker_quote_volume);
+              const taker_base_volume = fromWei(el.taker_base_volume);
               const price =
                 el.quote_asset_id == quote_asset.id && el.base_asset_id == base_asset.id
                   ? taker_base_volume / taker_quote_volume
@@ -67,8 +67,8 @@ export function Trades(props: { quote_asset?: AssetResponse; base_asset?: AssetR
           .then((r) => setTradesState("trades", r.slice(0, props.capacity)));
       events.onmessage = (ev) => {
         const last_trade = Trade.parse(JSON.parse(ev.data));
-        const taker_quote_volume = Number(ethers.utils.formatEther(last_trade.taker_quote_volume));
-        const taker_base_volume = Number(ethers.utils.formatEther(last_trade.taker_base_volume));
+        const taker_quote_volume = fromWei(last_trade.taker_quote_volume);
+        const taker_base_volume = fromWei(last_trade.taker_base_volume);
         const price =
           last_trade.quote_asset_id == quote_asset.id && last_trade.base_asset_id == base_asset.id
             ? taker_base_volume / taker_quote_volume

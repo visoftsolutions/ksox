@@ -1,4 +1,3 @@
-import { ethers } from "ethers";
 import { onCleanup, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
 import { ValidateSignatureResponse } from "~/auth/mod";
@@ -103,14 +102,14 @@ export function Submit(props: { quote_asset?: AssetResponse; base_asset?: AssetR
               precision={props.precision}
             />
           </div>
-          {/* <div class="col-start-2 col-end-3 px-[12px]">
+          <div class="col-start-2 col-end-3 px-[12px]">
             <SellForm
               available_balance={storeSubmit.sell_available_balance}
               quote_asset={props.quote_asset}
               base_asset={props.base_asset}
               precision={props.precision}
             />
-          </div> */}
+          </div>
         </div>
       </div>
     </div>

@@ -147,8 +147,37 @@ impl OrdersManager {
             WHERE quote_asset_id = $1
             AND base_asset_id = $2
             AND is_active = true
+            GROUP BY price 
+            ORDER BY price ASC
+            LIMIT $4
+            "#,
+            quote_asset_id,
+            base_asset_id,
+            round,
+            limit
+        )
+        .fetch(&self.database)
+    }
+
+    pub fn get_orderbook_opposite(
+        &self,
+        quote_asset_id: Uuid,
+        base_asset_id: Uuid,
+        round: i32,
+        limit: i64,
+    ) -> Pin<Box<dyn Stream<Item = Result<PriceLevelOption>> + Send + '_>> {
+        sqlx::query_as!(
+            PriceLevelOption,
+            r#"
+            SELECT
+                ROUND(CAST(quote_asset_volume/base_asset_volume AS NUMERIC), CAST($3 AS INTEGER))::float as price,
+                SUM(quote_asset_volume_left) as "volume: Volume"
+            FROM spot.orders
+            WHERE quote_asset_id = $1
+            AND base_asset_id = $2
+            AND is_active = true
             GROUP BY price
-            ORDER BY price
+            ORDER BY price DESC
             LIMIT $4
             "#,
             quote_asset_id,
@@ -600,7 +629,7 @@ impl TableManager<Order> for OrdersManager {
                 quote_asset_volume = $7,
                 base_asset_volume = $8,
                 quote_asset_volume_left = $9,
-                maker_fee = $10
+                maker_fee = $10::fraction
             WHERE
                 id = $1
             "#,
