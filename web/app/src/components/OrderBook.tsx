@@ -1,5 +1,6 @@
+import { ethers } from "ethers";
 import { format } from "numerable";
-import { Index, onMount } from "solid-js";
+import { Index, onCleanup, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
 import { z } from "zod";
 import { api } from "~/root";
@@ -32,6 +33,10 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
     sells: [],
   });
 
+  let buys_events: EventSource | null = null;
+  let sells_events: EventSource | null = null;
+  let trades_events: EventSource | null = null;
+
   onMount(() => {
     if (props.quote_asset && props.base_asset && props.precission && props.capacity) {
       const quote_asset = props.quote_asset;
@@ -39,7 +44,7 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
       const precission = props.precission;
       const capacity = props.capacity;
 
-      const buys_events = new EventSource(
+      buys_events = new EventSource(
         `${api}/public/depth/sse?${params({
           quote_asset_id: quote_asset.id,
           base_asset_id: base_asset.id,
@@ -57,20 +62,22 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
           })}`
         )
           .then((r) => r.json())
-          .then((r) => z.array(PriceLevel).parse(r))
+          .then((r) => z.array(PriceLevel).parse(r).reverse())
           .then((r) => {
             let total = 0,
               sum = 0;
             r.forEach((value) => {
-              total += value.volume;
+              total += Number(ethers.utils.formatEther(value.volume));
             });
+            console.log(r);
             setOrderBookState(
               "buys",
               r.map<TriElementFillComponent>((el) => {
-                sum += el.volume;
+                const volume = Number(ethers.utils.formatEther(el.volume));
+                sum += volume;
                 return {
                   column_0: <span class="text-green">{format(el.price, formatTemplate(precission))}</span>,
-                  column_1: format(el.volume, formatTemplate(precission)),
+                  column_1: format(volume, formatTemplate(precission)),
                   column_2: format(sum, formatTemplate(precission)),
                   fill: sum / total,
                   fill_class: "bg-green",
@@ -83,15 +90,16 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
           sum = 0;
         const buys = z.array(PriceLevel).parse(JSON.parse(ev.data));
         buys.forEach((value) => {
-          total += value.volume;
+          total += Number(ethers.utils.formatEther(value.volume));
         });
         setOrderBookState(
           "buys",
           buys.map<TriElementFillComponent>((el) => {
-            sum += el.volume;
+            const volume = Number(ethers.utils.formatEther(el.volume));
+            sum += volume;
             return {
               column_0: <span class="text-green">{format(el.price, formatTemplate(precission))}</span>,
-              column_1: format(el.volume, formatTemplate(precission)),
+              column_1: format(volume, formatTemplate(precission)),
               column_2: format(sum, formatTemplate(precission)),
               fill: sum / total,
               fill_class: "bg-green",
@@ -100,7 +108,7 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
         );
       };
 
-      const sells_events = new EventSource(
+      sells_events = new EventSource(
         `${api}/public/depth/sse?${params({
           quote_asset_id: base_asset.id,
           base_asset_id: quote_asset.id,
@@ -123,15 +131,16 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
             let total = 0,
               sum = 0;
             r.forEach((value) => {
-              total += value.volume;
+              total += Number(ethers.utils.formatEther(value.volume));
             });
             setOrderBookState(
               "sells",
               r.map<TriElementFillComponent>((el) => {
-                sum += el.volume;
+                const volume = Number(ethers.utils.formatEther(el.volume));
+                sum += volume;
                 return {
-                  column_0: <span class="text-red">{format(1 / el.price, formatTemplate(precission))}</span>,
-                  column_1: format(el.volume, formatTemplate(precission)),
+                  column_0: <span class="text-red">{format(el.price, formatTemplate(precission))}</span>,
+                  column_1: format(volume, formatTemplate(precission)),
                   column_2: format(sum, formatTemplate(precission)),
                   fill: sum / total,
                   fill_class: "bg-red",
@@ -144,15 +153,16 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
           sum = 0;
         const sells = z.array(PriceLevel).parse(JSON.parse(ev.data)).reverse();
         sells.forEach((value) => {
-          total += value.volume;
+          total += Number(ethers.utils.formatEther(value.volume));
         });
         setOrderBookState(
           "sells",
           sells.map<TriElementFillComponent>((el) => {
-            sum += el.volume;
+            const volume = Number(ethers.utils.formatEther(el.volume));
+            sum += volume;
             return {
-              column_0: <span class="text-red">{format(1 / el.price, formatTemplate(precission))}</span>,
-              column_1: format(el.volume, formatTemplate(precission)),
+              column_0: <span class="text-red">{format(el.price, formatTemplate(precission))}</span>,
+              column_1: format(volume, formatTemplate(precission)),
               column_2: format(sum, formatTemplate(precission)),
               fill: sum / total,
               fill_class: "bg-red",
@@ -161,7 +171,7 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
         );
       };
 
-      const trades_events = new EventSource(
+      trades_events = new EventSource(
         `${api}/public/trades/sse?${params({
           quote_asset_id: quote_asset.id,
           base_asset_id: base_asset.id,
@@ -180,23 +190,33 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
           .then((r) => z.array(Trade).parse(r)[0])
           .then((r) => {
             if (r) {
+              const taker_quote_volume = Number(ethers.utils.formatEther(r.taker_quote_volume));
+              const taker_base_volume = Number(ethers.utils.formatEther(r.taker_base_volume));
               if (r.quote_asset_id == quote_asset.id && r.base_asset_id == base_asset.id) {
-                setOrderBookState("last_price", format(r.taker_base_volume / r.taker_quote_volume, formatTemplate(precission)));
+                setOrderBookState("last_price", format(taker_base_volume / taker_quote_volume, formatTemplate(precission)));
               } else if (r.quote_asset_id == base_asset.id && r.base_asset_id == quote_asset.id) {
-                setOrderBookState("last_price", format(r.taker_quote_volume / r.taker_base_volume, formatTemplate(precission)));
+                setOrderBookState("last_price", format(taker_quote_volume / taker_base_volume, formatTemplate(precission)));
               }
             }
           });
       trades_events.onmessage = (ev) => {
         const last_trade = Trade.parse(JSON.parse(ev.data));
+        const taker_quote_volume = Number(ethers.utils.formatEther(last_trade.taker_quote_volume));
+        const taker_base_volume = Number(ethers.utils.formatEther(last_trade.taker_base_volume));
         if (last_trade.quote_asset_id == quote_asset.id && last_trade.base_asset_id == base_asset.id) {
-          setOrderBookState("last_price", format(last_trade.taker_base_volume / last_trade.taker_quote_volume, formatTemplate(precission)));
+          setOrderBookState("last_price", format(taker_base_volume / taker_quote_volume, formatTemplate(precission)));
         } else if (last_trade.quote_asset_id == base_asset.id && last_trade.base_asset_id == quote_asset.id) {
-          setOrderBookState("last_price", format(last_trade.taker_quote_volume / last_trade.taker_base_volume, formatTemplate(precission)));
+          setOrderBookState("last_price", format(taker_quote_volume / taker_base_volume, formatTemplate(precission)));
         }
       };
     }
   });
+
+  onCleanup(() => {
+    buys_events?.close();
+    sells_events?.close();
+    trades_events?.close();
+  })
 
   return (
     <div class="grid h-full grid-cols-1 grid-rows-[auto_1fr_auto_1fr]">

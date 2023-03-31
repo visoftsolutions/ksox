@@ -72,7 +72,7 @@ export default function Markets() {
         </div>
       </div>
       <div class="relative row-start-2 row-end-3">
-        <div class="absolute bottom-0 left-0 right-0 top-0 flex flex-col overflow-scroll">
+        <div class="absolute bottom-0 left-0 right-0 top-0 flex flex-col overflow-y-auto">
           <Index each={marketsState}>
             {(element, i) => (
               <A

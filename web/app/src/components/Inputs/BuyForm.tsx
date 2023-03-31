@@ -1,6 +1,10 @@
+import { ethers } from "ethers";
 import { format, parse } from "numerable";
 import { createMemo } from "solid-js";
 import { createStore } from "solid-js/store";
+import { api } from "~/root";
+import { SubmitRequest } from "~/types/mod";
+import params from "~/utils/params";
 import { formatTemplate } from "~/utils/precision";
 import SubmitRectangularButton from "../Buttons/SubmitRectangularButton";
 import { AssetResponse } from "../Markets";
@@ -11,38 +15,39 @@ export interface FormComponent {
   quote_asset?: AssetResponse;
   base_asset?: AssetResponse;
   precision?: number;
-  available_balance?: number;
+  available_balance?: bigint;
 }
 
 interface SubmitFormComponent {
   price: number;
-  quantity: number;
   slider: number;
-  value: number;
+  base_asset_volume: bigint;
+  quote_asset_volume: bigint;
 }
 
 export default function BuyForm(props: FormComponent) {
   const [storeComponent, setStoreComponent] = createStore<SubmitFormComponent>({
     price: 0,
-    quantity: 0,
     slider: 0,
-    value: 0,
+    base_asset_volume: BigInt(0),
+    quote_asset_volume: BigInt(0),
   });
 
   const price = createMemo(() => {
     return format(storeComponent.price, formatTemplate(props.precision ? props.precision : 2));
   });
 
-  const quantity = createMemo(() => {
-    return format(storeComponent.quantity, formatTemplate(props.precision ? props.precision : 2));
+  const base_asset_volume = createMemo(() => {
+    return format(Number(ethers.utils.formatEther(storeComponent.base_asset_volume)), formatTemplate(props.precision ? props.precision : 2));
   });
 
   const slider = createMemo(() => {
-    return props.available_balance && props.available_balance != 0 ? (storeComponent.value / props.available_balance) * 100 : 0;
+    return props.available_balance && props.available_balance != BigInt(0) ?
+      Number(ethers.utils.formatEther(storeComponent.quote_asset_volume)) / Number(ethers.utils.formatEther(props.available_balance)) * 100 : 0;
   });
 
-  const value = createMemo(() => {
-    return format(storeComponent.value, formatTemplate(props.precision ? props.precision : 2));
+  const quote_asset_volume = createMemo(() => {
+    return format(Number(ethers.utils.formatEther(storeComponent.quote_asset_volume)), formatTemplate(props.precision ? props.precision : 2));
   });
 
   return (
@@ -50,16 +55,17 @@ export default function BuyForm(props: FormComponent) {
       <div class="grid justify-between pb-[4px] text-submit-sublabel font-semibold text-gray-4">
         <div class="col-start-1 col-end-2">Available Balance:</div>
         <div class="col-start-2 col-end-3">
-          {format(props.available_balance, formatTemplate(props.precision ? props.precision : 2))} {props.quote_asset ? props.quote_asset.symbol : "---"}
+          {props.available_balance != undefined ? format(Number(ethers.utils.formatEther(props.available_balance)), formatTemplate(props.precision ? props.precision : 2)) : "---"}
+          {props.quote_asset ? props.quote_asset.symbol : "---"}
         </div>
       </div>
       <NumberInput
         class="my-[4px] bg-gray-1 p-1 text-submit-label"
         value={price()}
         onChange={(e) => {
-          const val = parse((e.target as HTMLInputElement).value);
+          const val = parse((e.target as HTMLInputElement).value) ?? 0;
           setStoreComponent("price", val && val != 0 ? val : 0);
-          setStoreComponent("quantity", val && val != 0 ? storeComponent.value / val : 0);
+          setStoreComponent("base_asset_volume", val && val != 0 ? ethers.utils.parseEther((Number(ethers.utils.formatEther(storeComponent.quote_asset_volume)) / val).toString()).toBigInt() : 0n);
         }}
         precision={props.precision ? props.precision : 2}
         left={"Price"}
@@ -67,19 +73,14 @@ export default function BuyForm(props: FormComponent) {
       />
       <NumberInput
         class="my-[4px] bg-gray-1 p-1 text-submit-label"
-        value={quantity()}
+        value={base_asset_volume()}
         onChange={(e) => {
-          const val = parse((e.target as HTMLInputElement).value);
-          setStoreComponent(
-            "quantity",
-            val && props.available_balance && val != 0 && storeComponent.price != 0 ? Math.min(props.available_balance / storeComponent.price, val) : 0
-          );
-          setStoreComponent(
-            "value",
-            val && props.available_balance && val != 0 && storeComponent.price != 0
-              ? Math.min(props.available_balance / storeComponent.price, val) * storeComponent.price
-              : 0
-          );
+          const val = ethers.utils.parseEther((parse(((e.target as HTMLInputElement).value) ?? 0) ?? 0).toString()).toBigInt();
+          const max_base_asset_volume = ethers.utils.parseEther((Number(ethers.utils.formatEther(props.available_balance ?? 0n)) / storeComponent.price).toString()).toBigInt();
+          const base_asset_volume = val > max_base_asset_volume ? max_base_asset_volume : val
+          setStoreComponent("base_asset_volume", base_asset_volume);
+          const quote_asset_volume = ethers.utils.parseEther((Number(ethers.utils.formatEther(base_asset_volume ?? 0)) * storeComponent.price).toString()).toBigInt();
+          setStoreComponent("quote_asset_volume", quote_asset_volume);
         }}
         precision={props.precision ? props.precision : 2}
         left={"Quantity"}
@@ -88,30 +89,47 @@ export default function BuyForm(props: FormComponent) {
       <Slider
         value={slider()}
         onInput={(e) => {
-          const val = (e.target as HTMLInputElement).valueAsNumber;
-          setStoreComponent("value", props.available_balance ? (val / 100) * props.available_balance : 0);
-          setStoreComponent(
-            "quantity",
-            props.available_balance && storeComponent.price != 0 ? ((val / 100) * props.available_balance) / storeComponent.price : 0
-          );
+          const slider_val = (e.target as HTMLInputElement).valueAsNumber / 100;
+          const quote_asset_volume = ethers.utils.parseEther((Number(ethers.utils.formatEther(props.available_balance ?? 0n)) * slider_val).toString()).toBigInt();
+          setStoreComponent("quote_asset_volume", quote_asset_volume);
+          const base_asset_volume = ethers.utils.parseEther((Number(ethers.utils.formatEther(quote_asset_volume ?? 0)) / storeComponent.price).toString()).toBigInt();
+          setStoreComponent("base_asset_volume", base_asset_volume);
         }}
       />
       <NumberInput
         class="my-[4px] bg-gray-1 p-1 text-submit-label"
-        value={value()}
+        value={quote_asset_volume()}
         onChange={(e) => {
-          const val = parse((e.target as HTMLInputElement).value);
-          setStoreComponent("value", val && props.available_balance && val != 0 ? Math.min(val, props.available_balance) : 0);
-          setStoreComponent(
-            "quantity",
-            val && props.available_balance && val != 0 && storeComponent.price != 0 ? Math.min(val, props.available_balance) / storeComponent.price : 0
-          );
+          const val = ethers.utils.parseEther((parse(((e.target as HTMLInputElement).value) ?? 0) ?? 0).toString()).toBigInt();
+          const quote_asset_volume = val > (props.available_balance ?? 0n) ? (props.available_balance ?? 0n) : val;
+          setStoreComponent("quote_asset_volume", quote_asset_volume);
+          const base_asset_volume = ethers.utils.parseEther((Number(ethers.utils.formatEther(quote_asset_volume ?? 0)) / storeComponent.price).toString()).toBigInt();
+          setStoreComponent("base_asset_volume",base_asset_volume);
         }}
         precision={props.precision ? props.precision : 2}
         left={"Value"}
         right={props.quote_asset ? props.quote_asset.symbol : "---"}
       />
-      <SubmitRectangularButton class="my-[12px] bg-green">Buy</SubmitRectangularButton>
+      <SubmitRectangularButton class="my-[12px] bg-green" onClick={async (e) => {
+        const response = await fetch(`${api}/private/submit`, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          credentials: "same-origin",
+          body: JSON.stringify(
+            SubmitRequest.parse({
+              quote_asset_id: props.quote_asset?.id,
+              base_asset_id: props.base_asset?.id,
+              quote_asset_volume: ethers.utils.parseEther(storeComponent.quote_asset_volume.toString()),
+              base_asset_volume: ethers.utils.parseEther(storeComponent.base_asset_volume.toString()),
+            }), (_, v) => typeof v === 'bigint' ? v.toString() : v
+          ),
+        })
+          .then((r) => r.text())
+        console.log(response);
+      }}>Buy</SubmitRectangularButton>
     </div>
   );
 }

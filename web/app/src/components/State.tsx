@@ -1,7 +1,9 @@
-import { Index } from "solid-js";
+import { Index, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
+import { ValidateSignatureResponse } from "~/auth/mod";
 import RectangularButton from "./Buttons/NavRectangularButton";
 import StateActionCircularButton from "./Buttons/StateActionCircularButton";
+import { AssetResponse } from "./Markets";
 
 export enum OrderSide {
   Buy = "buy",
@@ -48,9 +50,20 @@ export interface StateComponent {
   trade_history: TradeHistory[];
 }
 
-export const [store, setStore] = createStore<StateComponent>({ tab: StateTabs.OpenOrders, open_orders: [], order_history: [], trade_history: [] });
+export default function CreateState(quote_asset?: AssetResponse, base_asset?: AssetResponse, session?: ValidateSignatureResponse, precision?: number) {
+  return () => <State quote_asset={quote_asset} base_asset={base_asset} session={session} precision={precision} />;
+}
 
-export default function State() {
+export function State(props: { quote_asset?: AssetResponse; base_asset?: AssetResponse; session?: ValidateSignatureResponse; precision?: number }) {
+  const [store, setStore] = createStore<StateComponent>({ tab: StateTabs.OpenOrders, open_orders: [], order_history: [], trade_history: [] });
+
+  onMount(() => {
+    if (props.session && props.quote_asset && props.base_asset && props.precision) {
+      const quote_asset = props.quote_asset;
+      const base_asset = props.base_asset;
+    }
+  })
+
   return (
     <div class="grid h-full grid-cols-1 grid-rows-[auto_1fr]">
       <div class="row-start-1 row-end-2 px-[4px] pt-[12px]">

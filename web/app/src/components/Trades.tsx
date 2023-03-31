@@ -1,4 +1,4 @@
-import { Index, onMount } from "solid-js";
+import { Index, onCleanup, onMount } from "solid-js";
 import { createStore } from "solid-js/store";
 import { TriElementComponent } from "~/components/TriElement/TriElement";
 import TriElement from "~/components/TriElement/TriElement";
@@ -10,6 +10,7 @@ import { format } from "numerable";
 import { formatTemplate } from "~/utils/precision";
 import { api } from "~/root";
 import { AssetResponse } from "./Markets";
+import { ethers } from "ethers";
 
 export default function CreateTrades(quote_asset?: AssetResponse, base_asset?: AssetResponse, precission?: number, capacity?: number) {
   return () => <Trades quote_asset={quote_asset} base_asset={base_asset} precission={precission} capacity={capacity} />;
@@ -18,6 +19,8 @@ export default function CreateTrades(quote_asset?: AssetResponse, base_asset?: A
 export function Trades(props: { quote_asset?: AssetResponse; base_asset?: AssetResponse; precission?: number; capacity?: number }) {
   const [tradesState, setTradesState] = createStore<{ trades: TriElementComponent[] }>({ trades: [] });
 
+  let events: EventSource | null = null;
+
   onMount(() => {
     if (props.quote_asset && props.base_asset && props.precission && props.capacity) {
       const quote_asset = props.quote_asset;
@@ -25,7 +28,7 @@ export function Trades(props: { quote_asset?: AssetResponse; base_asset?: AssetR
       const precission = props.precission;
       const capacity = props.capacity;
 
-      const events = new EventSource(
+      events = new EventSource(
         `${api}/public/trades/sse?${params({
           quote_asset_id: quote_asset.id,
           base_asset_id: base_asset.id,
@@ -44,17 +47,19 @@ export function Trades(props: { quote_asset?: AssetResponse; base_asset?: AssetR
           .then((r) => z.array(Trade).parse(r))
           .then((r) => {
             return r.map<TriElementComponent>((el) => {
+              const taker_quote_volume = Number(ethers.utils.formatEther(el.taker_quote_volume));
+              const taker_base_volume = Number(ethers.utils.formatEther(el.taker_base_volume));
               const price =
                 el.quote_asset_id == quote_asset.id && el.base_asset_id == base_asset.id
-                  ? el.taker_base_volume / el.taker_quote_volume
-                  : el.taker_quote_volume / el.taker_base_volume;
+                  ? taker_base_volume / taker_quote_volume
+                  : taker_quote_volume / taker_base_volume;
               return {
                 column_0: (
                   <span class={`${el.quote_asset_id == quote_asset.id && el.base_asset_id == base_asset.id ? "text-green" : "text-red"}`}>
                     {format(price, formatTemplate(precission))}
                   </span>
                 ),
-                column_1: format(el.taker_base_volume, formatTemplate(precission)),
+                column_1: format(taker_base_volume, formatTemplate(precission)),
                 column_2: el.created_at.toLocaleTimeString(),
               };
             });
@@ -62,23 +67,29 @@ export function Trades(props: { quote_asset?: AssetResponse; base_asset?: AssetR
           .then((r) => setTradesState("trades", r.slice(0, props.capacity)));
       events.onmessage = (ev) => {
         const last_trade = Trade.parse(JSON.parse(ev.data));
+        const taker_quote_volume = Number(ethers.utils.formatEther(last_trade.taker_quote_volume));
+        const taker_base_volume = Number(ethers.utils.formatEther(last_trade.taker_base_volume));
         const price =
           last_trade.quote_asset_id == quote_asset.id && last_trade.base_asset_id == base_asset.id
-            ? last_trade.taker_base_volume / last_trade.taker_quote_volume
-            : last_trade.taker_quote_volume / last_trade.taker_base_volume;
+            ? taker_base_volume / taker_quote_volume
+            : taker_quote_volume / taker_base_volume;
         const trade = {
           column_0: (
             <span class={`${last_trade.quote_asset_id == quote_asset.id && last_trade.base_asset_id == base_asset.id ? "text-green" : "text-red"}`}>
               {format(price, formatTemplate(precission))}
             </span>
           ),
-          column_1: format(last_trade.taker_base_volume, formatTemplate(precission)),
+          column_1: format(taker_base_volume, formatTemplate(precission)),
           column_2: last_trade.created_at.toLocaleTimeString(),
         };
         setTradesState("trades", (prev) => [trade, ...prev].slice(0, props.capacity));
       };
     }
   });
+
+  onCleanup(() => {
+    events?.close();
+  })
 
   return (
     <div class="grid h-full grid-cols-1 grid-rows-[auto_1fr]">

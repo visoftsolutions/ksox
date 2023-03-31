@@ -1,3 +1,4 @@
+import { onMount } from "solid-js";
 import { AssetResponse } from "./Markets";
 
 export default function CreateChart(quote_asset?: AssetResponse, base_asset?: AssetResponse, width?: number, height?: number) {
@@ -5,5 +6,10 @@ export default function CreateChart(quote_asset?: AssetResponse, base_asset?: As
 }
 
 export function Chart(props: { quote_asset?: AssetResponse; base_asset?: AssetResponse; width?: number; height?: number }) {
+
+  onMount(() => {
+    
+  })
+
   return <div />;
 }

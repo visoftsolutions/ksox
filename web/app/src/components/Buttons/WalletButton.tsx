@@ -9,25 +9,26 @@ import { createWalletClient, custom, CustomTransport, WalletClient } from "viem"
 import { ValidateSignatureResponse } from "~/auth/mod";
 import login from "~/auth/login";
 import { JSX } from "solid-js/web/types/jsx";
+import logout from "~/auth/logout";
 
 const projectId = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID;
 
-const WalletContext = createContext<Accessor<WalletClient<CustomTransport, typeof mainnet> | null>>();
 const [wallet, setWallet] = createSignal<WalletClient<CustomTransport, typeof mainnet> | null>(null);
+const WalletContext = createContext<Accessor<WalletClient<CustomTransport, typeof mainnet> | null>>(wallet);
 export function WalletProvider(props: { children: JSX.Element }) {
   return <WalletContext.Provider value={wallet}>{props.children}</WalletContext.Provider>;
 }
 export function useWallet() {
-  return useContext<Accessor<WalletClient<CustomTransport, typeof mainnet> | null> | undefined>(WalletContext);
+  return useContext<Accessor<WalletClient<CustomTransport, typeof mainnet> | null>>(WalletContext);
 }
 
-const SessionContext = createContext<Accessor<ValidateSignatureResponse | null>>();
 const [session, setSession] = createSignal<ValidateSignatureResponse | null>(null);
+const SessionContext = createContext<Accessor<ValidateSignatureResponse | null>>(session);
 export function SessionProvider(props: { children: JSX.Element }) {
   return <SessionContext.Provider value={session}>{props.children}</SessionContext.Provider>;
 }
 export function useSession() {
-  return useContext<Accessor<ValidateSignatureResponse | null> | undefined>(SessionContext);
+  return useContext<Accessor<ValidateSignatureResponse | null>>(SessionContext);
 }
 
 export default function WalletButton() {
@@ -62,10 +63,11 @@ export default function WalletButton() {
       class="grid cursor-pointer select-none grid-cols-[auto_auto] grid-rows-[1fr] items-center justify-center gap-4 px-4"
       onClick={async () => {
         const w = wallet();
-        w ? setSession(await login(w)) : await walletConnect();
+        const s = session();
+        !w ? await walletConnect() : !s ? setSession(await login(w)) : setSession(await logout());
       }}
     >
-      <div class="text-mainmenu-wallet font-normal">{!wallet() ? "CONNECT WALLET" : !session() ? "LOGIN" : session()?.user_id}</div>
+      <div class="text-mainmenu-wallet font-normal">{!wallet() ? "CONNECT WALLET" : !session() ? "LOGIN" : "LOGOUT"}</div>
       <img src={joinPaths(base, "gfx/metamask.webp")} class="m-auto w-[22px]" />
     </div>
   );
