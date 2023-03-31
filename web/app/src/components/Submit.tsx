@@ -1,19 +1,26 @@
-import { onCleanup, onMount } from "solid-js";
+import { Match, onCleanup, onMount, Switch } from "solid-js";
 import { createStore } from "solid-js/store";
 import { ValidateSignatureResponse } from "~/auth/mod";
 import { api } from "~/root";
+import { Asset } from "~/types/asset";
 import { Valut } from "~/types/valut";
 import params from "~/utils/params";
+import { Market } from "~/utils/providers/MarketProvider";
 import RectangularButton from "./Buttons/NavRectangularButton";
 import BuyForm from "./Inputs/BuyForm";
 import SellForm from "./Inputs/SellForm";
-import { AssetResponse } from "./Markets";
 
-export default function CreateSubmit(quote_asset?: AssetResponse, base_asset?: AssetResponse, session?: ValidateSignatureResponse, precision?: number) {
-  return () => <Submit quote_asset={quote_asset} base_asset={base_asset} session={session} precision={precision} />;
+export default function CreateSubmit(market: Market, session?: ValidateSignatureResponse, precision?: number) {
+  return () => (
+    <Switch fallback={<Submit />}>
+      <Match when={market && market.quote_asset && market.base_asset && session && precision}>
+        <Submit quote_asset={market.quote_asset} base_asset={market.base_asset} session={session} precision={precision} />
+      </Match>
+    </Switch>
+  );
 }
 
-export function Submit(props: { quote_asset?: AssetResponse; base_asset?: AssetResponse; session?: ValidateSignatureResponse; precision?: number }) {
+export function Submit(props: { quote_asset?: Asset; base_asset?: Asset; session?: ValidateSignatureResponse; precision?: number }) {
   const [storeSubmit, setStoreSubmit] = createStore<{
     buy_available_balance?: bigint;
     sell_available_balance?: bigint;
@@ -33,7 +40,8 @@ export function Submit(props: { quote_asset?: AssetResponse; base_asset?: AssetR
       buy_available_balance_events = new EventSource(
         `${api}/private/balance/sse?${params({
           asset_id: quote_asset.id,
-        })}`, { withCredentials: true }
+        })}`,
+        { withCredentials: true }
       );
       buy_available_balance_events.onopen = async () => {
         await fetch(
@@ -56,7 +64,8 @@ export function Submit(props: { quote_asset?: AssetResponse; base_asset?: AssetR
       sell_available_balance = new EventSource(
         `${api}/private/balance/sse?${params({
           asset_id: base_asset.id,
-        })}`, { withCredentials: true }
+        })}`,
+        { withCredentials: true }
       );
       sell_available_balance.onopen = async () => {
         await fetch(
@@ -81,7 +90,7 @@ export function Submit(props: { quote_asset?: AssetResponse; base_asset?: AssetR
   onCleanup(() => {
     buy_available_balance_events?.close();
     sell_available_balance?.close();
-  })
+  });
 
   return (
     <div class="grid h-full grid-cols-1 grid-rows-[auto_1fr]">

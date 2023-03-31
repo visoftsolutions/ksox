@@ -1,14 +1,15 @@
 import { ethers } from "ethers";
 import { format } from "numerable";
-import { Index, onCleanup, onMount } from "solid-js";
+import { Index, Match, onCleanup, onMount, Show, Switch } from "solid-js";
 import { createStore } from "solid-js/store";
 import { z } from "zod";
 import { api } from "~/root";
+import { Asset } from "~/types/asset";
 import { Volume } from "~/types/primitives/volume";
 import { Trade } from "~/types/trade";
 import params from "~/utils/params";
 import { formatTemplate } from "~/utils/precision";
-import { AssetResponse } from "./Markets";
+import { Market } from "~/utils/providers/MarketProvider";
 import TriElementFill, { TriElementFillComponent } from "./TriElement/TriElementFill";
 import TriElementHeader from "./TriElement/TriElementHeader";
 
@@ -18,11 +19,17 @@ export const PriceLevel = z.object({
 });
 export type PriceLevel = z.infer<typeof PriceLevel>;
 
-export default function CreateOrderBook(quote_asset?: AssetResponse, base_asset?: AssetResponse, precission?: number, capacity?: number) {
-  return () => <OrderBook quote_asset={quote_asset} base_asset={base_asset} precission={precission} capacity={capacity} />;
+export default function CreateOrderBook(market: Market, precision?: number, capacity?: number) {
+  return () => (
+    <Switch fallback={<OrderBook />}>
+      <Match when={market && market.quote_asset && market.base_asset && precision && capacity}>
+        <OrderBook quote_asset={market.quote_asset} base_asset={market.base_asset} precision={precision} capacity={capacity} />
+      </Match>
+    </Switch>
+  );
 }
 
-export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: AssetResponse; precission?: number; capacity?: number }) {
+export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; precision?: number; capacity?: number }) {
   const [orderBookState, setOrderBookState] = createStore<{
     buys: TriElementFillComponent[];
     last_price: string | null;
@@ -38,10 +45,10 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
   let trades_events: EventSource | null = null;
 
   onMount(() => {
-    if (props.quote_asset && props.base_asset && props.precission && props.capacity) {
+    if (props.quote_asset && props.base_asset && props.precision && props.capacity) {
       const quote_asset = props.quote_asset;
       const base_asset = props.base_asset;
-      const precission = props.precission;
+      const precision = props.precision;
       const capacity = props.capacity;
 
       buys_events = new EventSource(
@@ -49,7 +56,7 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
           quote_asset_id: quote_asset.id,
           base_asset_id: base_asset.id,
           limit: capacity,
-          precision: precission,
+          precision: precision,
         })}`
       );
       buys_events.onopen = async () =>
@@ -58,7 +65,7 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
             quote_asset_id: quote_asset.id,
             base_asset_id: base_asset.id,
             limit: capacity,
-            precision: precission,
+            precision: precision,
           })}`
         )
           .then((r) => r.json())
@@ -76,9 +83,9 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
                 const volume = Number(ethers.utils.formatEther(el.volume));
                 sum += volume;
                 return {
-                  column_0: <span class="text-green">{format(el.price, formatTemplate(precission))}</span>,
-                  column_1: format(volume, formatTemplate(precission)),
-                  column_2: format(sum, formatTemplate(precission)),
+                  column_0: <span class="text-green">{format(el.price, formatTemplate(precision))}</span>,
+                  column_1: format(volume, formatTemplate(precision)),
+                  column_2: format(sum, formatTemplate(precision)),
                   fill: sum / total,
                   fill_class: "bg-green",
                 };
@@ -98,9 +105,9 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
             const volume = Number(ethers.utils.formatEther(el.volume));
             sum += volume;
             return {
-              column_0: <span class="text-green">{format(el.price, formatTemplate(precission))}</span>,
-              column_1: format(volume, formatTemplate(precission)),
-              column_2: format(sum, formatTemplate(precission)),
+              column_0: <span class="text-green">{format(el.price, formatTemplate(precision))}</span>,
+              column_1: format(volume, formatTemplate(precision)),
+              column_2: format(sum, formatTemplate(precision)),
               fill: sum / total,
               fill_class: "bg-green",
             };
@@ -113,7 +120,7 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
           quote_asset_id: base_asset.id,
           base_asset_id: quote_asset.id,
           limit: capacity,
-          precision: precission,
+          precision: precision,
         })}`
       );
       sells_events.onopen = async () =>
@@ -122,7 +129,7 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
             quote_asset_id: base_asset.id,
             base_asset_id: quote_asset.id,
             limit: capacity,
-            precision: precission,
+            precision: precision,
           })}`
         )
           .then((r) => r.json())
@@ -139,9 +146,9 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
                 const volume = Number(ethers.utils.formatEther(el.volume));
                 sum += volume;
                 return {
-                  column_0: <span class="text-red">{format(el.price, formatTemplate(precission))}</span>,
-                  column_1: format(volume, formatTemplate(precission)),
-                  column_2: format(sum, formatTemplate(precission)),
+                  column_0: <span class="text-red">{format(el.price, formatTemplate(precision))}</span>,
+                  column_1: format(volume, formatTemplate(precision)),
+                  column_2: format(sum, formatTemplate(precision)),
                   fill: sum / total,
                   fill_class: "bg-red",
                 };
@@ -161,9 +168,9 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
             const volume = Number(ethers.utils.formatEther(el.volume));
             sum += volume;
             return {
-              column_0: <span class="text-red">{format(el.price, formatTemplate(precission))}</span>,
-              column_1: format(volume, formatTemplate(precission)),
-              column_2: format(sum, formatTemplate(precission)),
+              column_0: <span class="text-red">{format(el.price, formatTemplate(precision))}</span>,
+              column_1: format(volume, formatTemplate(precision)),
+              column_2: format(sum, formatTemplate(precision)),
               fill: sum / total,
               fill_class: "bg-red",
             };
@@ -193,9 +200,9 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
               const taker_quote_volume = Number(ethers.utils.formatEther(r.taker_quote_volume));
               const taker_base_volume = Number(ethers.utils.formatEther(r.taker_base_volume));
               if (r.quote_asset_id == quote_asset.id && r.base_asset_id == base_asset.id) {
-                setOrderBookState("last_price", format(taker_base_volume / taker_quote_volume, formatTemplate(precission)));
+                setOrderBookState("last_price", format(taker_base_volume / taker_quote_volume, formatTemplate(precision)));
               } else if (r.quote_asset_id == base_asset.id && r.base_asset_id == quote_asset.id) {
-                setOrderBookState("last_price", format(taker_quote_volume / taker_base_volume, formatTemplate(precission)));
+                setOrderBookState("last_price", format(taker_quote_volume / taker_base_volume, formatTemplate(precision)));
               }
             }
           });
@@ -204,9 +211,9 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
         const taker_quote_volume = Number(ethers.utils.formatEther(last_trade.taker_quote_volume));
         const taker_base_volume = Number(ethers.utils.formatEther(last_trade.taker_base_volume));
         if (last_trade.quote_asset_id == quote_asset.id && last_trade.base_asset_id == base_asset.id) {
-          setOrderBookState("last_price", format(taker_base_volume / taker_quote_volume, formatTemplate(precission)));
+          setOrderBookState("last_price", format(taker_base_volume / taker_quote_volume, formatTemplate(precision)));
         } else if (last_trade.quote_asset_id == base_asset.id && last_trade.base_asset_id == quote_asset.id) {
-          setOrderBookState("last_price", format(taker_quote_volume / taker_base_volume, formatTemplate(precission)));
+          setOrderBookState("last_price", format(taker_quote_volume / taker_base_volume, formatTemplate(precision)));
         }
       };
     }
@@ -216,7 +223,7 @@ export function OrderBook(props: { quote_asset?: AssetResponse; base_asset?: Ass
     buys_events?.close();
     sells_events?.close();
     trades_events?.close();
-  })
+  });
 
   return (
     <div class="grid h-full grid-cols-1 grid-rows-[auto_1fr_auto_1fr]">

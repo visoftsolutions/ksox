@@ -1,4 +1,4 @@
-import { Accessor, createContext, createEffect, createSignal, Index, JSX, useContext } from "solid-js";
+import { createEffect, createSignal, Index } from "solid-js";
 import { createStore } from "solid-js/store";
 import { joinPaths } from "solid-start/islands/server-router";
 import { api, base } from "~/root";
@@ -23,28 +23,19 @@ export const AssetPairRecognitionResult = z.object({
 });
 export type AssetPairRecognitionResult = z.infer<typeof AssetPairRecognitionResult>;
 
-const fetchAssets = async (input: string) => {
+const querySearch = async (input: string) => {
   console.log(`fetching assets: ${api}/public/search`);
   return await fetch(`${api}/public/search?${params({ input })}`)
     .then((r) => r.json())
     .then((r) => z.array(AssetPairRecognitionResult).parse(r));
 };
 
-const [market, setMarket] = createSignal<{ quote_asset: AssetResponse; base_asset: AssetResponse } | null>(null);
-const MarketContext = createContext<Accessor<{ quote_asset: AssetResponse; base_asset: AssetResponse } | null>>(market);
-export function MarketProvider(props: { children: JSX.Element }) {
-  return <MarketContext.Provider value={market}>{props.children}</MarketContext.Provider>;
-}
-export function useMarket() {
-  return useContext<Accessor<{ quote_asset: AssetResponse; base_asset: AssetResponse } | null>>(MarketContext);
-}
-
 export default function Markets() {
   const [search, setSearch] = createSignal("");
   const [marketsState, setMarketsState] = createStore<Array<AssetPairRecognitionResult>>([]);
 
   createEffect(async () => {
-    setMarketsState(await fetchAssets(search()));
+    setMarketsState(await querySearch(search()));
   });
 
   return (
@@ -56,7 +47,7 @@ export default function Markets() {
             class="mx-auto mb-2 w-full text-markets-searchbar"
             left={
               <>
-                <img src={joinPaths(base, "gfx/search.svg")} />
+                <img src={joinPaths(base, "/gfx/search.svg")} />
               </>
             }
             onInput={(e) => {
@@ -75,10 +66,7 @@ export default function Markets() {
         <div class="absolute bottom-0 left-0 right-0 top-0 flex flex-col overflow-y-auto">
           <Index each={marketsState}>
             {(element, i) => (
-              <A
-                href={`/${element().asset0.id}/${element().asset1.id}`}
-                onClick={() => setMarket({ quote_asset: element().asset1, base_asset: element().asset0 })}
-              >
+              <A href={`/${element().asset0.id}/${element().asset1.id}`}>
                 <TriElement
                   class={`cursor-pointer select-none px-[12px] py-2 text-right font-sanspro text-markets-item ${i % 2 ? "bg-gray-3" : ""}`}
                   column_0={`${element().asset0.symbol}/${element().asset1.symbol}`}

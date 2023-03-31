@@ -1,4 +1,4 @@
-import { Index, onCleanup, onMount } from "solid-js";
+import { Index, Match, onCleanup, onMount, Switch } from "solid-js";
 import { createStore } from "solid-js/store";
 import { TriElementComponent } from "~/components/TriElement/TriElement";
 import TriElement from "~/components/TriElement/TriElement";
@@ -9,23 +9,30 @@ import { z } from "zod";
 import { format } from "numerable";
 import { formatTemplate } from "~/utils/precision";
 import { api } from "~/root";
-import { AssetResponse } from "./Markets";
 import { fromWei } from "~/converters/wei";
+import { Asset } from "~/types/asset";
+import { Market } from "~/utils/providers/MarketProvider";
 
-export default function CreateTrades(quote_asset?: AssetResponse, base_asset?: AssetResponse, precission?: number, capacity?: number) {
-  return () => <Trades quote_asset={quote_asset} base_asset={base_asset} precission={precission} capacity={capacity} />;
+export default function CreateTrades(market: Market, precision?: number, capacity?: number) {
+  return () => (
+    <Switch fallback={<Trades />}>
+      <Match when={market && market.quote_asset && market.base_asset && precision && capacity}>
+        <Trades quote_asset={market.quote_asset} base_asset={market.base_asset} precision={precision} capacity={capacity} />
+      </Match>
+    </Switch>
+  );
 }
 
-export function Trades(props: { quote_asset?: AssetResponse; base_asset?: AssetResponse; precission?: number; capacity?: number }) {
+export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precision?: number; capacity?: number }) {
   const [tradesState, setTradesState] = createStore<{ trades: TriElementComponent[] }>({ trades: [] });
 
   let events: EventSource | null = null;
 
   onMount(() => {
-    if (props.quote_asset && props.base_asset && props.precission && props.capacity) {
+    if (props.quote_asset && props.base_asset && props.precision && props.capacity) {
       const quote_asset = props.quote_asset;
       const base_asset = props.base_asset;
-      const precission = props.precission;
+      const precision = props.precision;
       const capacity = props.capacity;
 
       events = new EventSource(
@@ -56,10 +63,10 @@ export function Trades(props: { quote_asset?: AssetResponse; base_asset?: AssetR
               return {
                 column_0: (
                   <span class={`${el.quote_asset_id == quote_asset.id && el.base_asset_id == base_asset.id ? "text-green" : "text-red"}`}>
-                    {format(price, formatTemplate(precission))}
+                    {format(price, formatTemplate(precision))}
                   </span>
                 ),
-                column_1: format(taker_base_volume, formatTemplate(precission)),
+                column_1: format(taker_base_volume, formatTemplate(precision)),
                 column_2: el.created_at.toLocaleTimeString(),
               };
             });
@@ -76,10 +83,10 @@ export function Trades(props: { quote_asset?: AssetResponse; base_asset?: AssetR
         const trade = {
           column_0: (
             <span class={`${last_trade.quote_asset_id == quote_asset.id && last_trade.base_asset_id == base_asset.id ? "text-green" : "text-red"}`}>
-              {format(price, formatTemplate(precission))}
+              {format(price, formatTemplate(precision))}
             </span>
           ),
-          column_1: format(taker_base_volume, formatTemplate(precission)),
+          column_1: format(taker_base_volume, formatTemplate(precision)),
           column_2: last_trade.created_at.toLocaleTimeString(),
         };
         setTradesState("trades", (prev) => [trade, ...prev].slice(0, props.capacity));
@@ -89,7 +96,7 @@ export function Trades(props: { quote_asset?: AssetResponse; base_asset?: AssetR
 
   onCleanup(() => {
     events?.close();
-  })
+  });
 
   return (
     <div class="grid h-full grid-cols-1 grid-rows-[auto_1fr]">

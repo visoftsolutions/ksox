@@ -1,9 +1,10 @@
-import { Index, onMount } from "solid-js";
+import { Index, Match, onMount, Switch } from "solid-js";
 import { createStore } from "solid-js/store";
 import { ValidateSignatureResponse } from "~/auth/mod";
+import { Asset } from "~/types/asset";
+import { Market } from "~/utils/providers/MarketProvider";
 import RectangularButton from "./Buttons/NavRectangularButton";
 import StateActionCircularButton from "./Buttons/StateActionCircularButton";
-import { AssetResponse } from "./Markets";
 
 export enum OrderSide {
   Buy = "buy",
@@ -50,11 +51,17 @@ export interface StateComponent {
   trade_history: TradeHistory[];
 }
 
-export default function CreateState(quote_asset?: AssetResponse, base_asset?: AssetResponse, session?: ValidateSignatureResponse, precision?: number) {
-  return () => <State quote_asset={quote_asset} base_asset={base_asset} session={session} precision={precision} />;
+export default function CreateState(market: Market, session?: ValidateSignatureResponse, precision?: number) {
+  return () => (
+    <Switch fallback={<State />}>
+      <Match when={market && market.quote_asset && market.base_asset && session && precision}>
+        <State quote_asset={market.quote_asset} base_asset={market.base_asset} session={session} precision={precision} />
+      </Match>
+    </Switch>
+  );
 }
 
-export function State(props: { quote_asset?: AssetResponse; base_asset?: AssetResponse; session?: ValidateSignatureResponse; precision?: number }) {
+export function State(props: { quote_asset?: Asset; base_asset?: Asset; session?: ValidateSignatureResponse; precision?: number }) {
   const [store, setStore] = createStore<StateComponent>({ tab: StateTabs.OpenOrders, open_orders: [], order_history: [], trade_history: [] });
 
   onMount(() => {
@@ -62,7 +69,7 @@ export function State(props: { quote_asset?: AssetResponse; base_asset?: AssetRe
       const quote_asset = props.quote_asset;
       const base_asset = props.base_asset;
     }
-  })
+  });
 
   return (
     <div class="grid h-full grid-cols-1 grid-rows-[auto_1fr]">

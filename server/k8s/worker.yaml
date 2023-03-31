@@ -56,7 +56,7 @@ spec:
   rules:
   - http:
       paths:
-      - path: /api(/|$)(.*)
+      - path: /app/api(/|$)(.*)
         pathType: Prefix
         backend:
           service:
