@@ -2702,6 +2702,53 @@
     },
     "query": "\n            SELECT\n                ROUND(CAST(quote_asset_volume/base_asset_volume AS NUMERIC), CAST($3 AS INTEGER))::float as price,\n                SUM(quote_asset_volume_left) as \"volume: Volume\"\n            FROM spot.orders\n            WHERE quote_asset_id = $1\n            AND base_asset_id = $2\n            AND is_active = true\n            GROUP BY price\n            ORDER BY price DESC\n            LIMIT $4\n            "
   },
+<<<<<<< HEAD
+=======
+  "be307754c86194fafda6be11f06fc1ce6fe5186ef4dc41fe73ba6b136e3cbe5d": {
+    "describe": {
+      "columns": [
+        {
+          "name": "drop_spot_orders_notify_trigger_for_orderbook_opposite",
+          "ordinal": 0,
+          "type_info": "Void"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\n                SELECT drop_spot_orders_notify_trigger_for_orderbook_opposite($1)\n                "
+  },
+  "c13d2b10334e565b4a9125588ebd5487010aca5ab292d94669aa6168c92d1bee": {
+    "describe": {
+      "columns": [
+        {
+          "name": "create_spot_orders_notify_trigger_for_orderbook_opposite",
+          "ordinal": 0,
+          "type_info": "Void"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Uuid",
+          "Uuid",
+          "Int4",
+          "Int8"
+        ]
+      }
+    },
+    "query": "\n            SELECT create_spot_orders_notify_trigger_for_orderbook_opposite($1, $2, $3, $4, $5)\n            "
+  },
+>>>>>>> 55078e8 (orderbook done)
   "c938c42db53d642da0bd0882d42887036063634d6f2350b8d7047f15656fa6f4": {
     "describe": {
       "columns": [

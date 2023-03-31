@@ -526,6 +526,84 @@ impl OrdersManager {
             Box::pin(subscribe_stream),
         ))
     }
+
+    pub async fn create_notify_trigger_for_orderbook_opposite(
+        &self,
+        quote_asset_id: Uuid,
+        base_asset_id: Uuid,
+        precission: i32,
+        limit: i64,
+    ) -> Result<NotifyTrigger> {
+        let trigger_name = trigger_name(
+            "spot_orders_notify_trigger_for_orderbook_opposite",
+            vec![
+                Bytes::from(quote_asset_id.as_bytes().to_owned().to_vec()),
+                Bytes::from(base_asset_id.as_bytes().to_owned().to_vec()),
+                Bytes::from(precission.to_le_bytes().to_owned().to_vec()),
+                Bytes::from(limit.to_le_bytes().to_owned().to_vec()),
+            ],
+        );
+        sqlx::query!(
+            r#"
+            SELECT create_spot_orders_notify_trigger_for_orderbook_opposite($1, $2, $3, $4, $5)
+            "#,
+            trigger_name,
+            quote_asset_id,
+            base_asset_id,
+            precission,
+            limit
+        )
+        .execute(&self.database)
+        .await?;
+
+        let db = self.database.clone();
+        let trigger_name_clone = trigger_name.clone();
+        let (tx, rx) = oneshot::channel::<()>();
+        task::spawn(async move {
+            if (rx.await).is_err() {
+                tracing::error!("drop_signal failed");
+            }
+            if let Err(err) = sqlx::query!(
+                r#"
+                SELECT drop_spot_orders_notify_trigger_for_orderbook_opposite($1)
+                "#,
+                trigger_name_clone
+            )
+            .execute(&db)
+            .await
+            {
+                tracing::error!("{err}");
+            }
+        });
+
+        Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
+    }
+
+    pub async fn subscribe_for_orderbook_opposite(
+        &self,
+        quote_asset_id: Uuid,
+        base_asset_id: Uuid,
+        precission: i32,
+        limit: i64,
+    ) -> Result<SubscribeStream<Vec<PriceLevel>>> {
+        let mut listener = PgListener::connect_with(&self.database).await?;
+        let notify_trigger = self
+            .create_notify_trigger_for_orderbook_opposite(quote_asset_id, base_asset_id, precission, limit)
+            .await?;
+        listener.listen(&notify_trigger.channel_name).await?;
+
+        let subscribe_stream = listener.into_stream().map(|element| {
+            element.and_then(|val| {
+                serde_json::from_str::<Vec<PriceLevel>>(val.payload())
+                    .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
+            })
+        });
+
+        Ok(SubscribeStream::new(
+            notify_trigger,
+            Box::pin(subscribe_stream),
+        ))
+    }
 }
 
 impl TableManager<Order> for OrdersManager {
