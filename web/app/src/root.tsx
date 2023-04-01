@@ -20,8 +20,8 @@ export default function Root() {
         <Suspense>
           <ErrorBoundary>
             <Routes>
-              <Route path="/:baseAssetId/:quoteAssetId" component={App} />
-              <FileRoutes />
+              <Route path={["/", "/:baseAssetId/:quoteAssetId"]} component={App} />
+              {/* <FileRoutes /> */}
             </Routes>
           </ErrorBoundary>
         </Suspense>

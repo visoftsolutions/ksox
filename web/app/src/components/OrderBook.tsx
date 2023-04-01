@@ -51,6 +51,7 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
       const precision = props.precision;
       const capacity = props.capacity;
 
+      console.log("ORDERBOOK DEPTH");
       depth_events = new EventSource(
         `${api}/public/depth/sse?${params({
           quote_asset_id: quote_asset.id,
@@ -73,7 +74,7 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
           .then((r) => {
             let total = 0,
               sum = 0;
-            r.buys.forEach((value) => total += fromWei(value.volume));
+            r.buys.forEach((value) => (total += fromWei(value.volume)));
             setOrderBookState(
               "buys",
               r.buys.map<TriElementFillComponent>((el) => {
@@ -91,7 +92,7 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
 
             total = 0;
             sum = 0;
-            r.sells.forEach((value) => total += fromWei(value.volume) * value.price);
+            r.sells.forEach((value) => (total += fromWei(value.volume) * value.price));
             console.log(r);
             setOrderBookState(
               "sells",
@@ -112,7 +113,7 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
         const r = DepthResponse.parse(JSON.parse(e.data));
         let total = 0,
           sum = 0;
-        r.buys.forEach((value) => total += fromWei(value.volume));
+        r.buys.forEach((value) => (total += fromWei(value.volume)));
         setOrderBookState(
           "buys",
           r.buys.map<TriElementFillComponent>((el) => {
@@ -129,7 +130,7 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
         );
         total = 0;
         sum = 0;
-        r.sells.forEach((value) => total += fromWei(value.volume) * value.price);
+        r.sells.forEach((value) => (total += fromWei(value.volume) * value.price));
         setOrderBookState(
           "sells",
           r.sells.map<TriElementFillComponent>((el) => {
@@ -146,6 +147,7 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
         );
       };
 
+      console.log("ORDERBOOK TRADES");
       trades_events = new EventSource(
         `${api}/public/trades/sse?${params({
           quote_asset_id: quote_asset.id,

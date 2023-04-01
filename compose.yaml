@@ -47,6 +47,8 @@ services:
       - postgres
       - redis
       - engine
+    ports:
+      - 7979:80
 
   ksox-app:
     container_name: ksox-app

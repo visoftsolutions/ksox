@@ -35,6 +35,7 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
       const precision = props.precision;
       const capacity = props.capacity;
 
+      console.log("TRADES TRADES");
       events = new EventSource(
         `${api}/public/trades/sse?${params({
           quote_asset_id: quote_asset.id,

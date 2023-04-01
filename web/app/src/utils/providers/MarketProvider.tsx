@@ -13,6 +13,7 @@ export function MarketProvider(props: { children: JSX.Element }) {
   const assets = useAssets();
 
   createEffect(() => {
+    console.log("MARKET");
     if (assets && params.baseAssetId && params.quoteAssetId) {
       setMarket({
         quote_asset: assets().get(params.quoteAssetId),
