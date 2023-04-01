@@ -39,7 +39,7 @@ export default function Main() {
         <Dynamic component={CreateOrderBook(market(), precision, capacity)} />
       </div>
       <div class="col-start-5 col-end-6 row-start-2 row-end-3 bg-gray-2 lg:hidden">
-        {/* <Dynamic component={CreateTrades(market(), precision, capacity)} /> */}
+        <Dynamic component={CreateTrades(market(), precision, capacity)} />
       </div>
       <div class="col-start-2 col-end-4 row-start-3 row-end-4 bg-gray-2 lg:col-end-5">
         <Dynamic component={CreateState(market(), session() ?? undefined, precision, capacity)} />
