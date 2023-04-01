@@ -9,9 +9,9 @@ import { z } from "zod";
 import { format } from "numerable";
 import { formatTemplate } from "~/utils/precision";
 import { api } from "~/root";
-import { fromWei } from "~/converters/wei";
 import { Asset } from "~/types/asset";
 import { Market } from "~/utils/providers/MarketProvider";
+import { fromWei } from "~/utils/converters/wei";
 
 export default function CreateTrades(market: Market, precision?: number, capacity?: number) {
   return () => (
@@ -58,15 +58,16 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
               const taker_base_volume = fromWei(el.taker_base_volume);
               const price =
                 el.quote_asset_id == quote_asset.id && el.base_asset_id == base_asset.id
-                  ? taker_base_volume / taker_quote_volume
-                  : taker_quote_volume / taker_base_volume;
+                  ? taker_quote_volume / taker_base_volume
+                  : taker_base_volume / taker_quote_volume;
+              const volume = el.quote_asset_id == quote_asset.id && el.base_asset_id == base_asset.id ? taker_base_volume : taker_quote_volume;
               return {
                 column_0: (
                   <span class={`${el.quote_asset_id == quote_asset.id && el.base_asset_id == base_asset.id ? "text-green" : "text-red"}`}>
                     {format(price, formatTemplate(precision))}
                   </span>
                 ),
-                column_1: format(taker_base_volume, formatTemplate(precision)),
+                column_1: format(volume, formatTemplate(precision)),
                 column_2: el.created_at.toLocaleTimeString(),
               };
             });
@@ -78,15 +79,16 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
         const taker_base_volume = fromWei(last_trade.taker_base_volume);
         const price =
           last_trade.quote_asset_id == quote_asset.id && last_trade.base_asset_id == base_asset.id
-            ? taker_base_volume / taker_quote_volume
-            : taker_quote_volume / taker_base_volume;
+            ? taker_quote_volume / taker_base_volume
+            : taker_base_volume / taker_quote_volume;
+        const volume = last_trade.quote_asset_id == quote_asset.id && last_trade.base_asset_id == base_asset.id ? taker_base_volume : taker_quote_volume;
         const trade = {
           column_0: (
             <span class={`${last_trade.quote_asset_id == quote_asset.id && last_trade.base_asset_id == base_asset.id ? "text-green" : "text-red"}`}>
               {format(price, formatTemplate(precision))}
             </span>
           ),
-          column_1: format(taker_base_volume, formatTemplate(precision)),
+          column_1: format(volume, formatTemplate(precision)),
           column_2: last_trade.created_at.toLocaleTimeString(),
         };
         setTradesState("trades", (prev) => [trade, ...prev].slice(0, props.capacity));

@@ -8,7 +8,7 @@ pub struct PriceLevelOption {
     pub volume: Option<Volume>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct PriceLevel {
     pub price: f64,
     pub volume: Volume,

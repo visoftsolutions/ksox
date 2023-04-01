@@ -94,14 +94,14 @@ async fn validate_signature(
         HeaderValue::from_str(format!("{}={}", COOKIE_NAME, session_id).as_str())?,
     );
 
-    Ok(
-        (headers,
-        Json(ValidateSignatureResponse{
-            session_id: session_id,
+    Ok((
+        headers,
+        Json(ValidateSignatureResponse {
+            session_id,
             user_id: UserId::new(user.id),
             expiration: SESSION_EXPIRATION_TIME,
-        }))
-    )
+        }),
+    ))
 }
 
 pub async fn logout(State(state): State<AppState>, user: User) -> Result<String, AppError> {

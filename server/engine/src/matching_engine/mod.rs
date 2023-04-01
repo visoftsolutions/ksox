@@ -90,7 +90,7 @@ impl MatchingEngine {
 
         // apply order
         if let Some(mut order) = matching.order {
-            if !(order.fillable()) {
+            if !order.fillable() {
                 order.cancel(&self.valuts_manager).await?;
             }
             self.orders_manager.insert(order).await?;

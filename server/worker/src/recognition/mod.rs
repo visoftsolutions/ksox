@@ -71,10 +71,7 @@ impl AssetPairRecognition {
             .collect()
     }
 
-    pub async fn recognize(
-        self,
-        input: &str,
-    ) -> Result<Vec<AssetPairRecognitionResult>, Error> {
+    pub async fn recognize(self, input: &str) -> Result<Vec<AssetPairRecognitionResult>, Error> {
         let assets = self.get_assets().await?;
         let phrase = self.regex_fillter.replace_all(input, "").to_lowercase();
         let mut result = Vec::<AssetPairRecognitionResult>::new();

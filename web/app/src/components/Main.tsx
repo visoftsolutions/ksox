@@ -5,7 +5,7 @@ import CreateOrderBook from "~/components/OrderBook";
 import SideMenu from "~/components/SideMenu";
 import CreateSubmit from "~/components/Submit";
 import CreateTrades from "~/components/Trades";
-import { SessionProvider, useSession } from "~/components/Buttons/WalletButton";
+import { useSession } from "~/components/Buttons/WalletButton";
 import { Dynamic } from "solid-js/web";
 import CreateState from "~/components/State";
 import { useMarket } from "~/utils/providers/MarketProvider";
@@ -24,9 +24,7 @@ export default function Main() {
   return (
     <>
       <div class="col-start-2 col-end-6 row-start-1 row-end-2 bg-gray-2">
-        <SessionProvider>
-          <MainMenu />
-        </SessionProvider>
+        <MainMenu />
       </div>
       <div class="col-start-1 col-end-2 row-start-1 row-end-4 bg-gray-1">
         <SideMenu />

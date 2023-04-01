@@ -1,5 +1,5 @@
 import { format } from "numerable";
-import { Index, Match, onCleanup, onMount, Switch } from "solid-js";
+import { Index, JSXElement, Match, onCleanup, onMount, Switch } from "solid-js";
 import { createStore } from "solid-js/store";
 import { z } from "zod";
 import { api } from "~/root";
@@ -11,12 +11,12 @@ import { Market } from "~/utils/providers/MarketProvider";
 import TriElementFill, { TriElementFillComponent } from "./TriElement/TriElementFill";
 import TriElementHeader from "./TriElement/TriElementHeader";
 import { PriceLevel } from "~/types/primitives/pricelevel";
-import { fromWei } from "~/converters/wei";
+import { fromWei } from "~/utils/converters/wei";
 
 export const DepthResponse = z.object({
   sells: z.array(PriceLevel),
   buys: z.array(PriceLevel),
-})
+});
 
 export type DepthResponse = z.infer<typeof DepthResponse>;
 
@@ -33,7 +33,7 @@ export default function CreateOrderBook(market: Market, precision?: number, capa
 export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; precision?: number; capacity?: number }) {
   const [orderBookState, setOrderBookState] = createStore<{
     buys: TriElementFillComponent[];
-    last_price: string | null;
+    last_price: JSXElement;
     sells: TriElementFillComponent[];
   }>({
     buys: [],
@@ -71,7 +71,8 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
           .then((r) => r.json())
           .then((r) => DepthResponse.parse(r))
           .then((r) => {
-            let total = 0, sum = 0;
+            let total = 0,
+              sum = 0;
             r.buys.forEach((value) => total += fromWei(value.volume));
             setOrderBookState(
               "buys",
@@ -80,7 +81,7 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
                 sum += volume;
                 return {
                   column_0: <span class="text-green">{format(el.price, formatTemplate(precision))}</span>,
-                  column_1: format(volume, formatTemplate(precision)),
+                  column_1: format(volume / el.price, formatTemplate(precision)),
                   column_2: format(sum, formatTemplate(precision)),
                   fill: sum / total,
                   fill_class: "bg-green",
@@ -88,15 +89,15 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
               })
             );
 
-            total = 0
+            total = 0;
             sum = 0;
-            r.sells.forEach((value) => total += fromWei(value.volume));
+            r.sells.forEach((value) => total += fromWei(value.volume) * value.price);
             console.log(r);
             setOrderBookState(
               "sells",
               r.sells.map<TriElementFillComponent>((el) => {
                 const volume = fromWei(el.volume);
-                sum += volume;
+                sum += volume * el.price;
                 return {
                   column_0: <span class="text-red">{format(el.price, formatTemplate(precision))}</span>,
                   column_1: format(volume, formatTemplate(precision)),
@@ -109,7 +110,8 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
           });
       depth_events.onmessage = (e) => {
         const r = DepthResponse.parse(JSON.parse(e.data));
-        let total = 0, sum = 0;
+        let total = 0,
+          sum = 0;
         r.buys.forEach((value) => total += fromWei(value.volume));
         setOrderBookState(
           "buys",
@@ -118,7 +120,7 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
             sum += volume;
             return {
               column_0: <span class="text-green">{format(el.price, formatTemplate(precision))}</span>,
-              column_1: format(volume, formatTemplate(precision)),
+              column_1: format(volume / el.price, formatTemplate(precision)),
               column_2: format(sum, formatTemplate(precision)),
               fill: sum / total,
               fill_class: "bg-green",
@@ -127,12 +129,12 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
         );
         total = 0;
         sum = 0;
-        r.sells.forEach((value) => total += fromWei(value.volume));
+        r.sells.forEach((value) => total += fromWei(value.volume) * value.price);
         setOrderBookState(
           "sells",
           r.sells.map<TriElementFillComponent>((el) => {
             const volume = fromWei(el.volume);
-            sum += volume;
+            sum += volume * el.price;
             return {
               column_0: <span class="text-red">{format(el.price, formatTemplate(precision))}</span>,
               column_1: format(volume, formatTemplate(precision)),
@@ -166,9 +168,9 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
               const taker_quote_volume = fromWei(r.taker_quote_volume);
               const taker_base_volume = fromWei(r.taker_base_volume);
               if (r.quote_asset_id == quote_asset.id && r.base_asset_id == base_asset.id) {
-                setOrderBookState("last_price", format(taker_base_volume / taker_quote_volume, formatTemplate(precision)));
+                setOrderBookState("last_price", <span class="text-green">{format(taker_quote_volume / taker_base_volume, formatTemplate(precision))}</span>);
               } else if (r.quote_asset_id == base_asset.id && r.base_asset_id == quote_asset.id) {
-                setOrderBookState("last_price", format(taker_quote_volume / taker_base_volume, formatTemplate(precision)));
+                setOrderBookState("last_price", <span class="text-red">{format(taker_base_volume / taker_quote_volume, formatTemplate(precision))}</span>);
               }
             }
           });
@@ -177,9 +179,9 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
         const taker_quote_volume = fromWei(last_trade.taker_quote_volume);
         const taker_base_volume = fromWei(last_trade.taker_base_volume);
         if (last_trade.quote_asset_id == quote_asset.id && last_trade.base_asset_id == base_asset.id) {
-          setOrderBookState("last_price", format(taker_base_volume / taker_quote_volume, formatTemplate(precision)));
+          setOrderBookState("last_price", <span class="text-green">{format(taker_quote_volume / taker_base_volume, formatTemplate(precision))}</span>);
         } else if (last_trade.quote_asset_id == base_asset.id && last_trade.base_asset_id == quote_asset.id) {
-          setOrderBookState("last_price", format(taker_quote_volume / taker_base_volume, formatTemplate(precision)));
+          setOrderBookState("last_price", <span class="text-red">{format(taker_base_volume / taker_quote_volume, formatTemplate(precision))}</span>);
         }
       };
     }

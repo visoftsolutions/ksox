@@ -1,11 +1,9 @@
-import { ethers } from "ethers";
 import { format, parse } from "numerable";
 import { createMemo } from "solid-js";
 import { createStore } from "solid-js/store";
-import { fromWei, toWei } from "~/converters/wei";
+import { fromWei, toWei } from "~/utils/converters/wei";
 import { api } from "~/root";
 import { SubmitRequest } from "~/types/mod";
-import params from "~/utils/params";
 import { formatTemplate } from "~/utils/precision";
 import SubmitRectangularButton from "../Buttons/SubmitRectangularButton";
 import { AssetResponse } from "../Markets";
@@ -43,8 +41,9 @@ export default function BuyForm(props: FormComponent) {
   });
 
   const slider = createMemo(() => {
-    return props.available_balance && props.available_balance != BigInt(0) ?
-      fromWei(storeComponent.quote_asset_volume) / fromWei(props.available_balance) * 100 : 0;
+    return props.available_balance && props.available_balance != BigInt(0)
+      ? (fromWei(storeComponent.quote_asset_volume) / fromWei(props.available_balance)) * 100
+      : 0;
   });
 
   const quote_asset_volume = createMemo(() => {
@@ -76,11 +75,13 @@ export default function BuyForm(props: FormComponent) {
         class="my-[4px] bg-gray-1 p-1 text-submit-label"
         value={base_asset_volume()}
         onChange={(e) => {
-          const val = toWei(parse(((e.target as HTMLInputElement).value) ?? 0) ?? 0);
-          const max_base_asset_volume = storeComponent.price ? toWei(fromWei(props.available_balance ?? 0n) / storeComponent.price) : 0n;
-          const base_asset_volume = val > max_base_asset_volume ? max_base_asset_volume : val
+          const base_val = toWei(parse((e.target as HTMLInputElement).value ?? 0) ?? 0);
+          const max_quote_asset_volume = props.available_balance ?? 0n;
+          const max_base_asset_volume = storeComponent.price ? toWei(fromWei(max_quote_asset_volume) / storeComponent.price) : 0n;
+          const base_asset_volume = base_val > max_base_asset_volume ? max_base_asset_volume : base_val;
           setStoreComponent("base_asset_volume", base_asset_volume);
-          const quote_asset_volume = toWei(fromWei(base_asset_volume ?? 0) * storeComponent.price);
+          const quote_val = toWei(fromWei(base_asset_volume ?? 0) * storeComponent.price);
+          const quote_asset_volume = quote_val > max_quote_asset_volume ? max_quote_asset_volume : quote_val;
           setStoreComponent("quote_asset_volume", quote_asset_volume);
         }}
         precision={props.precision ? props.precision : 2}
@@ -91,7 +92,8 @@ export default function BuyForm(props: FormComponent) {
         value={slider()}
         onInput={(e) => {
           const slider_val = (e.target as HTMLInputElement).valueAsNumber / 100;
-          const quote_asset_volume = toWei(fromWei(props.available_balance ?? 0n) * slider_val);
+          const max_quote_asset_volume = props.available_balance ?? 0n;
+          const quote_asset_volume = toWei(fromWei(max_quote_asset_volume) * slider_val);
           setStoreComponent("quote_asset_volume", quote_asset_volume);
           const base_asset_volume = storeComponent.price ? toWei(fromWei(quote_asset_volume ?? 0) / storeComponent.price) : 0n;
           setStoreComponent("base_asset_volume", base_asset_volume);
@@ -101,38 +103,44 @@ export default function BuyForm(props: FormComponent) {
         class="my-[4px] bg-gray-1 p-1 text-submit-label"
         value={quote_asset_volume()}
         onChange={(e) => {
-          const val = toWei(parse(((e.target as HTMLInputElement).value) ?? 0) ?? 0);
-          const quote_asset_volume = val > (props.available_balance ?? 0n) ? (props.available_balance ?? 0n) : val;
+          const quote_val = toWei(parse((e.target as HTMLInputElement).value ?? 0) ?? 0);
+          const max_quote_asset_volume = props.available_balance ?? 0n;
+          const quote_asset_volume = quote_val > max_quote_asset_volume ? max_quote_asset_volume : quote_val;
           setStoreComponent("quote_asset_volume", quote_asset_volume);
-          const base_asset_volume = storeComponent.price ? toWei(fromWei(quote_asset_volume ?? 0) / storeComponent.price) : 0n;
+          const base_asset_volume = storeComponent.price ? toWei(fromWei(quote_asset_volume) / storeComponent.price) : 0n;
           setStoreComponent("base_asset_volume", base_asset_volume);
         }}
         precision={props.precision ? props.precision : 2}
         left={"Value"}
         right={props.quote_asset ? props.quote_asset.symbol : "---"}
       />
-      <SubmitRectangularButton class="my-[12px] bg-green" onClick={async (e) => {
-        const response = await fetch(`${api}/private/submit`, {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          credentials: "same-origin",
-          body: JSON.stringify(
-            SubmitRequest.parse({
-              quote_asset_id: props.quote_asset?.id,
-              base_asset_id: props.base_asset?.id,
-              quote_asset_volume: storeComponent.quote_asset_volume,
-              base_asset_volume: storeComponent.base_asset_volume,
-            }), (_, v) => typeof v === 'bigint' ? v.toString() : v
-          ),
-        })
-          .then((r) => r.text())
-        setStoreComponent("quote_asset_volume", 0n);
-        setStoreComponent("base_asset_volume", 0n);
-        console.log(response);
-      }}>Buy</SubmitRectangularButton>
+      <SubmitRectangularButton
+        class="my-[12px] bg-green"
+        onClick={async () => {
+          const response = await fetch(`${api}/private/submit`, {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            credentials: "same-origin",
+            body: JSON.stringify(
+              SubmitRequest.parse({
+                quote_asset_id: props.quote_asset?.id,
+                base_asset_id: props.base_asset?.id,
+                quote_asset_volume: storeComponent.quote_asset_volume,
+                base_asset_volume: storeComponent.base_asset_volume,
+              }),
+              (_, v) => (typeof v === "bigint" ? v.toString() : v)
+            ),
+          }).then((r) => r.text());
+          setStoreComponent("quote_asset_volume", 0n);
+          setStoreComponent("base_asset_volume", 0n);
+          console.log(response);
+        }}
+      >
+        Buy
+      </SubmitRectangularButton>
     </div>
   );
 }

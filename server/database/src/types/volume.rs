@@ -11,7 +11,7 @@ use sqlx::{
     Decode, Encode, Postgres,
 };
 
-#[derive(Debug, Clone, Eq, PartialEq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, PartialEq, PartialOrd, Ord, Default)]
 pub struct Volume(BigInt);
 
 impl FromStr for Volume {

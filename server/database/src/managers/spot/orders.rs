@@ -588,7 +588,12 @@ impl OrdersManager {
     ) -> Result<SubscribeStream<Vec<PriceLevel>>> {
         let mut listener = PgListener::connect_with(&self.database).await?;
         let notify_trigger = self
-            .create_notify_trigger_for_orderbook_opposite(quote_asset_id, base_asset_id, precission, limit)
+            .create_notify_trigger_for_orderbook_opposite(
+                quote_asset_id,
+                base_asset_id,
+                precission,
+                limit,
+            )
             .await?;
         listener.listen(&notify_trigger.channel_name).await?;
 
