@@ -19,7 +19,7 @@ use database::{
         },
         users::UsersManager,
     },
-    sqlx::PgPool,
+    sqlx::{postgres::PgPoolOptions},
 };
 use models::AppState;
 use regex::Regex;
@@ -37,7 +37,10 @@ use tower_http::cors::{Any, CorsLayer};
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
 
-    let database = PgPool::connect(std::env::var("DATABASE_URL")?.as_str()).await?;
+    let database = PgPoolOptions::new()
+        .max_connections(100)
+        .connect(std::env::var("DATABASE_URL")?.as_str())
+        .await?;
 
     let app_state = AppState {
         database: database.clone(),
