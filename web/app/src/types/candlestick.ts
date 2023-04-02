@@ -5,8 +5,8 @@ import { Uuid } from "./primitives/uuid";
 import { Volume } from "./primitives/volume";
 
 export enum CandlestickType {
-  Interval,
-  Tick,
+  Interval = "Interval",
+  Tick = "Tick",
 }
 
 export const Candlestick = z.object({

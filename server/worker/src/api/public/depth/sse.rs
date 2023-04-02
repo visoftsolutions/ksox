@@ -27,26 +27,9 @@ pub async fn root(
         let mut buys_stream_subscribe = state.orders_manager.subscribe_for_orderbook_opposite(params.quote_asset_id, params.base_asset_id, params.precision, params.limit).await
             .map_err(|err| Error::new(ErrorKind::BrokenPipe, err))?;
 
-        let mut sells_stream = state
-            .orders_manager
-            .get_orderbook(
-                params.base_asset_id,
-                params.quote_asset_id,
-                params.precision,
-                params.limit,
-            )
-            .map(|f| f.and_then(TryInto::<PriceLevel>::try_into));
-    
-        let mut buys_stream = state
-            .orders_manager
-            .get_orderbook_opposite(
-                params.quote_asset_id,
-                params.base_asset_id,
-                params.precision,
-                params.limit,
-            )
-            .map(|f| f.and_then(TryInto::<PriceLevel>::try_into));
-    
+        let mut sells_stream = state.orders_manager.get_orderbook(params.base_asset_id,params.quote_asset_id,params.precision,params.limit).map(|f| f.and_then(TryInto::<PriceLevel>::try_into));
+
+        let mut buys_stream = state.orders_manager.get_orderbook_opposite(params.quote_asset_id, params.base_asset_id, params.precision, params.limit).map(|f| f.and_then(TryInto::<PriceLevel>::try_into));
         loop {
             select! {
                 Some(e) = sells_stream.next() => {

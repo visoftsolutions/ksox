@@ -127,14 +127,26 @@ impl OhlcvEngine {
     ) -> Pin<Box<dyn Stream<Item = Result<Candlestick, OhlcvEngineError>> + Send + '_>> {
         let stream = async_stream::try_stream! {
             let mut candlestick: Option<Candlestick> = None;
-            let mut trades = self.trades_manager.subscribe_for_asset_pair(quote_asset_id, base_asset_id).await?;
+            let mut trades = self.trades_manager.subscribe_for_asset_pair(quote_asset_id, base_asset_id).await?
+            .map(|trade| {
+                match trade {
+                    Ok(trade) => {
+                        if trade.is_opposite(quote_asset_id, base_asset_id) {
+                            Ok(trade.inverse())
+                        } else {
+                            Ok(trade)
+                        }
+                    },
+                    Err(err) => Err(err)
+                }
+            });
 
             let last_trade = self
                 .trades_manager
                 .get_last_for_asset_pair(quote_asset_id, base_asset_id)
                 .await?;
 
-            if let Some(last_trade) = last_trade {
+            if let Some(last_trade) = last_trade && reference_point <= last_trade.created_at {
                 let last_topen = match kind {
                     CandlestickType::Interval => {
                         last_trade.created_at - Duration::microseconds((last_trade.created_at.timestamp_micros() - reference_point.timestamp_micros()).saturating_abs() % span)
@@ -145,7 +157,19 @@ impl OhlcvEngine {
                     }
                 };
 
-                let mut last_candle_trades = self.trades_manager.get_after_for_asset_pair(quote_asset_id, base_asset_id, last_topen);
+                let mut last_candle_trades = self.trades_manager.get_after_for_asset_pair(quote_asset_id, base_asset_id, last_topen)
+                .map(|trade| {
+                    match trade {
+                        Ok(trade) => {
+                            if trade.is_opposite(quote_asset_id, base_asset_id) {
+                                Ok(trade.inverse())
+                            } else {
+                                Ok(trade)
+                            }
+                        },
+                        Err(err) => Err(err)
+                    }
+                });
 
                 while let Some(trade) = last_candle_trades.next().await {
                     let data: CandlestickData = trade?.try_into()?;
@@ -183,12 +207,24 @@ impl OhlcvEngine {
                     .then(|result| async move {
                         let mut candlestick = result?;
                         if candlestick.is_none() {
-                            let mut trades = self.trades_manager.get_between_for_asset_pair(
-                                quote_asset_id,
-                                base_asset_id,
-                                topen,
-                                tclose,
-                            );
+                            let mut trades = self
+                                .trades_manager
+                                .get_between_for_asset_pair(
+                                    quote_asset_id,
+                                    base_asset_id,
+                                    topen,
+                                    tclose,
+                                )
+                                .map(|trade| match trade {
+                                    Ok(trade) => {
+                                        if trade.is_opposite(quote_asset_id, base_asset_id) {
+                                            Ok(trade.inverse())
+                                        } else {
+                                            Ok(trade)
+                                        }
+                                    }
+                                    Err(err) => Err(err),
+                                });
                             while let Some(trade) = trades.next().await {
                                 let data: CandlestickData = trade?.try_into()?;
                                 self.update(

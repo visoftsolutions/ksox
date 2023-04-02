@@ -1,10 +1,65 @@
-import { Asset } from "~/types/asset";
+import { Show, onMount } from "solid-js";
 import { Market } from "~/utils/providers/MarketProvider";
+import { CandlestickChart } from "./Chart/candlestickChart";
+import { chartOptions, histogramOptions } from "./Chart/config";
+import { api } from "~/root";
+import params from "~/utils/params";
+import { Candlestick } from "~/types/candlestick";
+import { z } from "zod";
 
 export default function CreateChart(market: Market) {
-  return () => <Chart quote_asset={market.quote_asset} base_asset={market.base_asset} width={100} height={100} />;
+  return () => (
+    <Show when={market && market.quote_asset && market.base_asset} fallback={<Chart />}>
+      <Chart market={market} />;
+    </Show>
+  );
 }
 
-export function Chart(props: { quote_asset?: Asset; base_asset?: Asset; width?: number; height?: number }) {
-  return <div />;
+enum ChartType {
+  Interval = "Interval",
+}
+
+export function Chart(props: { market?: Market }) {
+  let ChartDOM!: HTMLDivElement;
+
+  let events: EventSource | null = null;
+
+  onMount(async () => {
+    if (props.market && props.market?.quote_asset && props.market?.base_asset) {
+      const market = props.market;
+      const quote_asset = props.market.quote_asset;
+      const basee_asset = props.market.base_asset;
+      const chart = new CandlestickChart(ChartDOM as HTMLElement, chartOptions(market), histogramOptions);
+      let reference_point = Date.now();
+
+      for (var i = 0; i < 30; i++) {
+        reference_point -= 60000
+        await fetch(
+          `${api}/public/ohlcv?${params({
+            quote_asset_id: quote_asset.id,
+            base_asset_id: basee_asset.id,
+            kind: ChartType.Interval.toString(),
+            reference_point: new Date(reference_point).toISOString(),
+            span: 60000000,
+          })}`
+        )
+          .then((r) => r.json())
+          .then((r) => z.nullable(Candlestick).parse(r))
+          .then((r) => { if (r != null) chart.push(r) });
+      }
+
+      events = new EventSource(
+        `${api}/public/ohlcv/sse?${params({
+          quote_asset_id: quote_asset.id,
+          base_asset_id: basee_asset.id,
+          kind: ChartType.Interval.toString(),
+          reference_point: new Date(reference_point).toISOString(),
+          span: 60000000,
+        })}`
+      );
+      events.onmessage = (ev) => { chart.unshift(Candlestick.parse(JSON.parse(ev.data))) };
+    }
+  });
+
+  return <div ref={ChartDOM} class="absolute bottom-0 left-0 right-0 top-0" />;
 }

@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 #![feature(option_get_or_insert_default)]
+#![feature(let_chains)]
 mod api;
 mod models;
 mod ohlcv;
@@ -19,7 +20,7 @@ use database::{
         },
         users::UsersManager,
     },
-    sqlx::{postgres::PgPoolOptions},
+    sqlx::postgres::PgPoolOptions,
 };
 use models::AppState;
 use regex::Regex;

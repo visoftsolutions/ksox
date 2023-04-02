@@ -48,7 +48,7 @@ impl TradesManager {
                 maker_quote_volume as "maker_quote_volume: Volume",
                 maker_base_volume as "maker_base_volume: Volume"
             FROM spot.trades
-            WHERE quote_asset_id = $1 AND base_asset_id = $2
+            WHERE (quote_asset_id = $1 AND base_asset_id = $2) OR (quote_asset_id = $2 AND base_asset_id = $1)
             ORDER BY created_at DESC
             LIMIT 1
             "#,
@@ -80,7 +80,7 @@ impl TradesManager {
                 maker_quote_volume as "maker_quote_volume: Volume",
                 maker_base_volume as "maker_base_volume: Volume"
             FROM spot.trades
-            WHERE quote_asset_id = $1 AND base_asset_id = $2 AND created_at >= $3
+            WHERE ((quote_asset_id = $1 AND base_asset_id = $2) OR (quote_asset_id = $2 AND base_asset_id = $1)) AND created_at >= $3
             ORDER BY created_at
             "#,
             quote_asset_id,
@@ -112,8 +112,7 @@ impl TradesManager {
                 maker_quote_volume as "maker_quote_volume: Volume",
                 maker_base_volume as "maker_base_volume: Volume"
             FROM spot.trades
-            WHERE quote_asset_id = $1 AND base_asset_id = $2
-            AND created_at >= $3 AND created_at < $4
+            WHERE ((quote_asset_id = $1 AND base_asset_id = $2) OR (quote_asset_id = $2 AND base_asset_id = $1)) AND created_at >= $3 AND created_at < $4
             "#,
             quote_asset_id,
             base_asset_id,

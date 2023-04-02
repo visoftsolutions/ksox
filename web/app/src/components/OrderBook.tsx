@@ -145,7 +145,9 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
         )
           .then((r) => r.json())
           .then((r) => z.array(Trade).parse(r)[0])
-          .then((r) => setOrderBook("price", convertTrade(r)));
+          .then((r) => {
+            if (r) setOrderBook("price", convertTrade(r));
+          });
 
       trades_events.onmessage = (ev) => {
         setOrderBook("price", convertTrade(Trade.parse(JSON.parse(ev.data))));

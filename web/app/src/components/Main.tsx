@@ -32,7 +32,7 @@ export default function Main() {
       <div class="col-start-2 col-end-3 row-start-2 row-end-3 bg-gray-2 xl:hidden">
         <Markets />
       </div>
-      <div class="col-start-3 col-end-4 row-start-2 row-end-3 bg-gray-1 lg:col-end-5 xl:col-start-2">
+      <div class="relative col-start-3 col-end-4 row-start-2 row-end-3 bg-gray-1 lg:col-end-5 xl:col-start-2">
         <Dynamic component={CreateChart(market())} />
       </div>
       <div class="col-start-4 col-end-5 row-start-2 row-end-3 bg-gray-2 lg:col-start-5">
