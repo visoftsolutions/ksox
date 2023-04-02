@@ -9,6 +9,7 @@ import SubmitRectangularButton from "../Buttons/SubmitRectangularButton";
 import NumberInput from "./NumberInput";
 import Slider from "./Slider";
 import { Market } from "~/utils/providers/MarketProvider";
+import { multiplyFloat } from "~/utils/multiplyFloat";
 
 interface FormValues {
   price: number;
@@ -58,7 +59,7 @@ export default function BuyForm(props: { market?: Market; available_balance?: bi
         onChange={(e) => {
           const val = parse((e.target as HTMLInputElement).value) ?? 0;
           setStoreComponent("price", val && val != 0 ? val : 0);
-          setStoreComponent("base_asset_volume", val ? toWei(fromWei(storeComponent.quote_asset_volume) / val) : 0n);
+          setStoreComponent("base_asset_volume", val ? multiplyFloat(storeComponent.quote_asset_volume, 1/val) : 0n);
         }}
         precision={props.precision ? props.precision : 2}
         left={"Price"}
@@ -70,10 +71,10 @@ export default function BuyForm(props: { market?: Market; available_balance?: bi
         onChange={(e) => {
           const base_val = toWei(parse((e.target as HTMLInputElement).value ?? 0) ?? 0);
           const max_quote_asset_volume = props.available_balance ?? 0n;
-          const max_base_asset_volume = storeComponent.price ? toWei(fromWei(max_quote_asset_volume) / storeComponent.price) : 0n;
+          const max_base_asset_volume = storeComponent.price ? multiplyFloat(max_quote_asset_volume, 1/storeComponent.price) : 0n;
           const base_asset_volume = base_val > max_base_asset_volume ? max_base_asset_volume : base_val;
           setStoreComponent("base_asset_volume", base_asset_volume);
-          const quote_val = toWei(fromWei(base_asset_volume ?? 0) * storeComponent.price);
+          const quote_val = multiplyFloat(base_asset_volume, storeComponent.price);
           const quote_asset_volume = quote_val > max_quote_asset_volume ? max_quote_asset_volume : quote_val;
           setStoreComponent("quote_asset_volume", quote_asset_volume);
         }}
@@ -86,9 +87,9 @@ export default function BuyForm(props: { market?: Market; available_balance?: bi
         onInput={(e) => {
           const slider_val = (e.target as HTMLInputElement).valueAsNumber / 100;
           const max_quote_asset_volume = props.available_balance ?? 0n;
-          const quote_asset_volume = toWei(fromWei(max_quote_asset_volume) * slider_val);
+          const quote_asset_volume = multiplyFloat(max_quote_asset_volume, slider_val);
           setStoreComponent("quote_asset_volume", quote_asset_volume);
-          const base_asset_volume = storeComponent.price ? toWei(fromWei(quote_asset_volume ?? 0) / storeComponent.price) : 0n;
+          const base_asset_volume = storeComponent.price ? multiplyFloat(quote_asset_volume, 1/storeComponent.price) : 0n;
           setStoreComponent("base_asset_volume", base_asset_volume);
         }}
       />
@@ -100,7 +101,7 @@ export default function BuyForm(props: { market?: Market; available_balance?: bi
           const max_quote_asset_volume = props.available_balance ?? 0n;
           const quote_asset_volume = quote_val > max_quote_asset_volume ? max_quote_asset_volume : quote_val;
           setStoreComponent("quote_asset_volume", quote_asset_volume);
-          const base_asset_volume = storeComponent.price ? toWei(fromWei(quote_asset_volume) / storeComponent.price) : 0n;
+          const base_asset_volume = storeComponent.price ? multiplyFloat(quote_asset_volume, 1/storeComponent.price) : 0n;
           setStoreComponent("base_asset_volume", base_asset_volume);
         }}
         precision={props.precision ? props.precision : 2}

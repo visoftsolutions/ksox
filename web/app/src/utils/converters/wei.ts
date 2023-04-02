@@ -1,9 +1,11 @@
-import { ethers } from "ethers";
+import { multiplyFloat } from "../multiplyFloat";
 
 export function toWei(number: number): bigint {
-  return ethers.utils.parseEther(number.toFixed(6)).toBigInt();
+  // accurate
+  return multiplyFloat(1000000000000000000n, number)
 }
 
 export function fromWei(number: bigint): number {
-  return Number(ethers.utils.formatEther(number));
+  // not accurate
+  return Number(number) / Number(1000000000000000000n);
 }

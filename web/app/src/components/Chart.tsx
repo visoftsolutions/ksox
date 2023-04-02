@@ -30,23 +30,9 @@ export function Chart(props: { market?: Market }) {
       const quote_asset = props.market.quote_asset;
       const basee_asset = props.market.base_asset;
       const chart = new CandlestickChart(ChartDOM as HTMLElement, chartOptions(market), histogramOptions);
-      let reference_point = Date.now();
-
-      for (var i = 0; i < 30; i++) {
-        reference_point -= 60000
-        await fetch(
-          `${api}/public/ohlcv?${params({
-            quote_asset_id: quote_asset.id,
-            base_asset_id: basee_asset.id,
-            kind: ChartType.Interval.toString(),
-            reference_point: new Date(reference_point).toISOString(),
-            span: 60000000,
-          })}`
-        )
-          .then((r) => r.json())
-          .then((r) => z.nullable(Candlestick).parse(r))
-          .then((r) => { if (r != null) chart.push(r) });
-      }
+      const interval = 60000;
+      const now = Date.now();
+      let reference_point = now - now % interval;
 
       events = new EventSource(
         `${api}/public/ohlcv/sse?${params({
@@ -57,7 +43,24 @@ export function Chart(props: { market?: Market }) {
           span: 60000000,
         })}`
       );
-      events.onmessage = (ev) => { chart.unshift(Candlestick.parse(JSON.parse(ev.data))) };
+      events.onopen = async () => {
+        for (var i = 0; i < 30; i++) {
+          reference_point -= interval
+          await fetch(
+            `${api}/public/ohlcv?${params({
+              quote_asset_id: quote_asset.id,
+              base_asset_id: basee_asset.id,
+              kind: ChartType.Interval.toString(),
+              reference_point: new Date(reference_point).toISOString(),
+              span: 60000000,
+            })}`
+          )
+            .then((r) => r.json())
+            .then((r) => z.nullable(Candlestick).parse(r))
+            .then((r) => { if (r != null) chart.unshift(r) });
+        }
+      }
+      events.onmessage = (ev) => { chart.push(Candlestick.parse(JSON.parse(ev.data))) };
     }
   });
 
