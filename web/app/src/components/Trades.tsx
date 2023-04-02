@@ -1,4 +1,4 @@
-import { Index, Match, onCleanup, onMount, Switch } from "solid-js";
+import { Index, onCleanup, onMount, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import { TriElementComponent } from "~/components/TriElement/TriElement";
 import TriElement from "~/components/TriElement/TriElement";
@@ -15,11 +15,9 @@ import { fromWei } from "~/utils/converters/wei";
 
 export default function CreateTrades(market: Market, precision?: number, capacity?: number) {
   return () => (
-    <Switch fallback={<Trades />}>
-      <Match when={market && market.quote_asset && market.base_asset && precision && capacity}>
-        <Trades quote_asset={market.quote_asset} base_asset={market.base_asset} precision={precision} capacity={capacity} />
-      </Match>
-    </Switch>
+    <Show when={market && market.quote_asset && market.base_asset && precision && capacity} fallback={<Trades />}>
+      <Trades quote_asset={market.quote_asset} base_asset={market.base_asset} precision={precision} capacity={capacity} />
+    </Show>
   );
 }
 
@@ -34,6 +32,28 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
       const base_asset = props.base_asset;
       const precision = props.precision;
       const capacity = props.capacity;
+
+      const convertTrade = (trade: Trade) => {
+        const taker_quote_volume = fromWei(trade.taker_quote_volume);
+        const taker_base_volume = fromWei(trade.taker_base_volume);
+        if (trade.quote_asset_id == quote_asset.id && trade.base_asset_id == base_asset.id) {
+          const price = taker_quote_volume / taker_base_volume;
+          const volume = taker_base_volume;
+          return {
+            column_0: <span class="text-green">{format(price, formatTemplate(precision))}</span>,
+            column_1: format(volume, formatTemplate(precision)),
+            column_2: trade.created_at.toLocaleTimeString(),
+          };
+        } else if (trade.quote_asset_id == base_asset.id && trade.base_asset_id == quote_asset.id) {
+          const price = taker_base_volume / taker_quote_volume;
+          const volume = taker_quote_volume;
+          return {
+            column_0: <span class="text-red">{format(price, formatTemplate(precision))}</span>,
+            column_1: format(volume, formatTemplate(precision)),
+            column_2: trade.created_at.toLocaleTimeString(),
+          };
+        }
+      };
 
       console.log("TRADES TRADES");
       events = new EventSource(
@@ -53,46 +73,13 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
         )
           .then((r) => r.json())
           .then((r) => z.array(Trade).parse(r))
-          .then((r) => {
-            return r.map<TriElementComponent>((el) => {
-              const taker_quote_volume = fromWei(el.taker_quote_volume);
-              const taker_base_volume = fromWei(el.taker_base_volume);
-              const price =
-                el.quote_asset_id == quote_asset.id && el.base_asset_id == base_asset.id
-                  ? taker_quote_volume / taker_base_volume
-                  : taker_base_volume / taker_quote_volume;
-              const volume = el.quote_asset_id == quote_asset.id && el.base_asset_id == base_asset.id ? taker_base_volume : taker_quote_volume;
-              return {
-                column_0: (
-                  <span class={`${el.quote_asset_id == quote_asset.id && el.base_asset_id == base_asset.id ? "text-green" : "text-red"}`}>
-                    {format(price, formatTemplate(precision))}
-                  </span>
-                ),
-                column_1: format(volume, formatTemplate(precision)),
-                column_2: el.created_at.toLocaleTimeString(),
-              };
-            });
-          })
-          .then((r) => setTradesState("trades", r.slice(0, props.capacity)));
+          .then((r) => r.map<TriElementComponent | undefined>((e) => convertTrade(e)).filter((e): e is TriElementComponent => !!e))
+          .then((r) => setTradesState("trades", (prev) => [...prev, ...r].slice(0, props.capacity)));
       events.onmessage = (ev) => {
-        const last_trade = Trade.parse(JSON.parse(ev.data));
-        const taker_quote_volume = fromWei(last_trade.taker_quote_volume);
-        const taker_base_volume = fromWei(last_trade.taker_base_volume);
-        const price =
-          last_trade.quote_asset_id == quote_asset.id && last_trade.base_asset_id == base_asset.id
-            ? taker_quote_volume / taker_base_volume
-            : taker_base_volume / taker_quote_volume;
-        const volume = last_trade.quote_asset_id == quote_asset.id && last_trade.base_asset_id == base_asset.id ? taker_base_volume : taker_quote_volume;
-        const trade = {
-          column_0: (
-            <span class={`${last_trade.quote_asset_id == quote_asset.id && last_trade.base_asset_id == base_asset.id ? "text-green" : "text-red"}`}>
-              {format(price, formatTemplate(precision))}
-            </span>
-          ),
-          column_1: format(volume, formatTemplate(precision)),
-          column_2: last_trade.created_at.toLocaleTimeString(),
-        };
-        setTradesState("trades", (prev) => [trade, ...prev].slice(0, props.capacity));
+        const r = convertTrade(Trade.parse(JSON.parse(ev.data)));
+        if (r) {
+          setTradesState("trades", (prev) => [r, ...prev].slice(0, props.capacity));
+        }
       };
     }
   });

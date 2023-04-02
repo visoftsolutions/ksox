@@ -32,13 +32,13 @@ export default function CreateOrderHistory(market?: Market, session?: ValidateSi
         </div>
       </div>
       <Show when={session && precision}>
-        <OrderHistory session={session} precision={precision} capacity={capacity}/>
+        <OrderHistory session={session} precision={precision} capacity={capacity} />
       </Show>
     </>
   );
 }
 
-export function OrderHistory(props: { market?: Market, session?: ValidateSignatureResponse, precision?: number, capacity?: number } ) {
+export function OrderHistory(props: { market?: Market; session?: ValidateSignatureResponse; precision?: number; capacity?: number }) {
   const [store, setStore] = createStore<OrderHistory[]>([]);
 
   return (

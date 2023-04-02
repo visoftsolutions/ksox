@@ -1,5 +1,5 @@
 import { format } from "numerable";
-import { Index, JSXElement, Match, onCleanup, onMount, Switch } from "solid-js";
+import { Index, JSXElement, onCleanup, onMount, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import { z } from "zod";
 import { api } from "~/root";
@@ -22,22 +22,20 @@ export type DepthResponse = z.infer<typeof DepthResponse>;
 
 export default function CreateOrderBook(market: Market, precision?: number, capacity?: number) {
   return () => (
-    <Switch fallback={<OrderBook />}>
-      <Match when={market && market.quote_asset && market.base_asset && precision && capacity}>
-        <OrderBook quote_asset={market.quote_asset} base_asset={market.base_asset} precision={precision} capacity={capacity} />
-      </Match>
-    </Switch>
+    <Show when={market && market.quote_asset && market.base_asset && precision && capacity} fallback={<OrderBook />}>
+      <OrderBook quote_asset={market.quote_asset} base_asset={market.base_asset} precision={precision} capacity={capacity} />
+    </Show>
   );
 }
 
 export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; precision?: number; capacity?: number }) {
-  const [orderBookState, setOrderBookState] = createStore<{
+  const [orderBook, setOrderBook] = createStore<{
     buys: TriElementFillComponent[];
-    last_price: JSXElement;
+    price: JSXElement;
     sells: TriElementFillComponent[];
   }>({
     buys: [],
-    last_price: null,
+    price: null,
     sells: [],
   });
 
@@ -50,6 +48,50 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
       const base_asset = props.base_asset;
       const precision = props.precision;
       const capacity = props.capacity;
+
+      const convertTrade = (trade: Trade) => {
+        const taker_quote_volume = fromWei(trade.taker_quote_volume);
+        const taker_base_volume = fromWei(trade.taker_base_volume);
+        if (trade.quote_asset_id == quote_asset.id && trade.base_asset_id == base_asset.id) {
+          return <span class="text-green">{format(taker_quote_volume / taker_base_volume, formatTemplate(precision))}</span>;
+        } else if (trade.quote_asset_id == base_asset.id && trade.base_asset_id == quote_asset.id) {
+          return <span class="text-red">{format(taker_base_volume / taker_quote_volume, formatTemplate(precision))}</span>;
+        }
+      };
+
+      const convertBuys = (levels: PriceLevel[]) => {
+        let total = 0,
+          sum = 0;
+        levels.forEach((value) => (total += fromWei(value.volume)));
+        return levels.map<TriElementFillComponent>((el) => {
+          const volume = fromWei(el.volume);
+          sum += volume;
+          return {
+            column_0: <span class="text-green">{format(el.price, formatTemplate(precision))}</span>,
+            column_1: format(volume / el.price, formatTemplate(precision)),
+            column_2: format(sum, formatTemplate(precision)),
+            fill: sum / total,
+            fill_class: "bg-green",
+          };
+        });
+      };
+
+      const convertSells = (levels: PriceLevel[]) => {
+        let total = 0,
+          sum = 0;
+        levels.forEach((value) => (total += fromWei(value.volume) * value.price));
+        return levels.map<TriElementFillComponent>((el) => {
+          const volume = fromWei(el.volume);
+          sum += volume * el.price;
+          return {
+            column_0: <span class="text-red">{format(el.price, formatTemplate(precision))}</span>,
+            column_1: format(volume, formatTemplate(precision)),
+            column_2: format(sum, formatTemplate(precision)),
+            fill: sum / total,
+            fill_class: "bg-red",
+          };
+        });
+      };
 
       console.log("ORDERBOOK DEPTH");
       depth_events = new EventSource(
@@ -72,79 +114,17 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
           .then((r) => r.json())
           .then((r) => DepthResponse.parse(r))
           .then((r) => {
-            let total = 0,
-              sum = 0;
-            r.buys.forEach((value) => (total += fromWei(value.volume)));
-            setOrderBookState(
-              "buys",
-              r.buys.map<TriElementFillComponent>((el) => {
-                const volume = fromWei(el.volume);
-                sum += volume;
-                return {
-                  column_0: <span class="text-green">{format(el.price, formatTemplate(precision))}</span>,
-                  column_1: format(volume / el.price, formatTemplate(precision)),
-                  column_2: format(sum, formatTemplate(precision)),
-                  fill: sum / total,
-                  fill_class: "bg-green",
-                };
-              })
-            );
-
-            total = 0;
-            sum = 0;
-            r.sells.forEach((value) => (total += fromWei(value.volume) * value.price));
-            console.log(r);
-            setOrderBookState(
-              "sells",
-              r.sells.map<TriElementFillComponent>((el) => {
-                const volume = fromWei(el.volume);
-                sum += volume * el.price;
-                return {
-                  column_0: <span class="text-red">{format(el.price, formatTemplate(precision))}</span>,
-                  column_1: format(volume, formatTemplate(precision)),
-                  column_2: format(sum, formatTemplate(precision)),
-                  fill: sum / total,
-                  fill_class: "bg-red",
-                };
-              })
-            );
+            const b = convertBuys(r.buys);
+            const s = convertSells(r.sells);
+            setOrderBook("buys", b);
+            setOrderBook("sells", s);
           });
-      depth_events.onmessage = (e) => {
-        const r = DepthResponse.parse(JSON.parse(e.data));
-        let total = 0,
-          sum = 0;
-        r.buys.forEach((value) => (total += fromWei(value.volume)));
-        setOrderBookState(
-          "buys",
-          r.buys.map<TriElementFillComponent>((el) => {
-            const volume = fromWei(el.volume);
-            sum += volume;
-            return {
-              column_0: <span class="text-green">{format(el.price, formatTemplate(precision))}</span>,
-              column_1: format(volume / el.price, formatTemplate(precision)),
-              column_2: format(sum, formatTemplate(precision)),
-              fill: sum / total,
-              fill_class: "bg-green",
-            };
-          })
-        );
-        total = 0;
-        sum = 0;
-        r.sells.forEach((value) => (total += fromWei(value.volume) * value.price));
-        setOrderBookState(
-          "sells",
-          r.sells.map<TriElementFillComponent>((el) => {
-            const volume = fromWei(el.volume);
-            sum += volume * el.price;
-            return {
-              column_0: <span class="text-red">{format(el.price, formatTemplate(precision))}</span>,
-              column_1: format(volume, formatTemplate(precision)),
-              column_2: format(sum, formatTemplate(precision)),
-              fill: sum / total,
-              fill_class: "bg-red",
-            };
-          })
-        );
+      depth_events.onmessage = (ev) => {
+        const r = DepthResponse.parse(JSON.parse(ev.data));
+        const b = convertBuys(r.buys);
+        const s = convertSells(r.sells);
+        setOrderBook("buys", b);
+        setOrderBook("sells", s);
       };
 
       console.log("ORDERBOOK TRADES");
@@ -165,26 +145,10 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
         )
           .then((r) => r.json())
           .then((r) => z.array(Trade).parse(r)[0])
-          .then((r) => {
-            if (r) {
-              const taker_quote_volume = fromWei(r.taker_quote_volume);
-              const taker_base_volume = fromWei(r.taker_base_volume);
-              if (r.quote_asset_id == quote_asset.id && r.base_asset_id == base_asset.id) {
-                setOrderBookState("last_price", <span class="text-green">{format(taker_quote_volume / taker_base_volume, formatTemplate(precision))}</span>);
-              } else if (r.quote_asset_id == base_asset.id && r.base_asset_id == quote_asset.id) {
-                setOrderBookState("last_price", <span class="text-red">{format(taker_base_volume / taker_quote_volume, formatTemplate(precision))}</span>);
-              }
-            }
-          });
+          .then((r) => setOrderBook("price", convertTrade(r)));
+
       trades_events.onmessage = (ev) => {
-        const last_trade = Trade.parse(JSON.parse(ev.data));
-        const taker_quote_volume = fromWei(last_trade.taker_quote_volume);
-        const taker_base_volume = fromWei(last_trade.taker_base_volume);
-        if (last_trade.quote_asset_id == quote_asset.id && last_trade.base_asset_id == base_asset.id) {
-          setOrderBookState("last_price", <span class="text-green">{format(taker_quote_volume / taker_base_volume, formatTemplate(precision))}</span>);
-        } else if (last_trade.quote_asset_id == base_asset.id && last_trade.base_asset_id == quote_asset.id) {
-          setOrderBookState("last_price", <span class="text-red">{format(taker_base_volume / taker_quote_volume, formatTemplate(precision))}</span>);
-        }
+        setOrderBook("price", convertTrade(Trade.parse(JSON.parse(ev.data))));
       };
     }
   });
@@ -207,7 +171,7 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
       </div>
       <div class="relative row-start-2 row-end-3">
         <div class="absolute bottom-0 left-0 right-0 top-0 flex flex-col-reverse overflow-clip">
-          <Index each={orderBookState.sells}>
+          <Index each={orderBook.sells}>
             {(element) => (
               <TriElementFill
                 class="px-[12px] py-[4px] font-sanspro text-orderbook-item"
@@ -223,12 +187,12 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
       </div>
       <div class="row-start-3 row-end-4 min-h-[50px]">
         <div class="flex h-full flex-col justify-center px-[12px]">
-          <div class="text-orderbook-middle font-semibold ">{orderBookState.last_price}</div>
+          <div class="text-orderbook-middle font-semibold ">{orderBook.price}</div>
         </div>
       </div>
       <div class="relative row-start-4 row-end-5">
         <div class="absolute bottom-0 left-0 right-0 top-0 flex flex-col overflow-clip">
-          <Index each={orderBookState.buys}>
+          <Index each={orderBook.buys}>
             {(element) => (
               <TriElementFill
                 class="px-[12px] py-[4px] font-sanspro text-orderbook-item"

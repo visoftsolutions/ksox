@@ -1,8 +1,7 @@
-import { Match, onCleanup, onMount, Switch } from "solid-js";
+import { onCleanup, onMount, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import { ValidateSignatureResponse } from "~/auth/mod";
 import { api } from "~/root";
-import { Asset } from "~/types/asset";
 import { Valut } from "~/types/valut";
 import params from "~/utils/params";
 import { Market } from "~/utils/providers/MarketProvider";
@@ -12,15 +11,13 @@ import SellForm from "./Inputs/SellForm";
 
 export default function CreateSubmit(market: Market, session?: ValidateSignatureResponse, precision?: number) {
   return () => (
-    <Switch fallback={<Submit />}>
-      <Match when={market && market.quote_asset && market.base_asset && session && precision}>
-        <Submit quote_asset={market.quote_asset} base_asset={market.base_asset} session={session} precision={precision} />
-      </Match>
-    </Switch>
+    <Show when={market && market.quote_asset && market.base_asset && session && precision} fallback={<Submit />}>
+      <Submit market={market} session={session} precision={precision} />
+    </Show>
   );
 }
 
-export function Submit(props: { quote_asset?: Asset; base_asset?: Asset; session?: ValidateSignatureResponse; precision?: number }) {
+export function Submit(props: { market?: Market; session?: ValidateSignatureResponse; precision?: number }) {
   const [storeSubmit, setStoreSubmit] = createStore<{
     buy_available_balance?: bigint;
     sell_available_balance?: bigint;
@@ -33,9 +30,9 @@ export function Submit(props: { quote_asset?: Asset; base_asset?: Asset; session
   let sell_available_balance: EventSource | null = null;
 
   onMount(() => {
-    if (props.session && props.quote_asset && props.base_asset && props.precision) {
-      const quote_asset = props.quote_asset;
-      const base_asset = props.base_asset;
+    if (props.session && props.market?.quote_asset && props.market?.base_asset && props.precision) {
+      const quote_asset = props.market?.quote_asset;
+      const base_asset = props.market?.base_asset;
 
       console.log("SUBMIT BUY");
       buy_available_balance_events = new EventSource(
@@ -106,20 +103,10 @@ export function Submit(props: { quote_asset?: Asset; base_asset?: Asset; session
       <div class="row-start-2 row-end-3 overflow-auto py-[8px]">
         <div class="grid h-full grid-cols-2 grid-rows-1">
           <div class="col-start-1 col-end-2 px-[12px] ">
-            <BuyForm
-              available_balance={storeSubmit.buy_available_balance}
-              quote_asset={props.quote_asset}
-              base_asset={props.base_asset}
-              precision={props.precision}
-            />
+            <BuyForm available_balance={storeSubmit.buy_available_balance} market={props.market} precision={props.precision} />
           </div>
           <div class="col-start-2 col-end-3 px-[12px]">
-            <SellForm
-              available_balance={storeSubmit.sell_available_balance}
-              quote_asset={props.quote_asset}
-              base_asset={props.base_asset}
-              precision={props.precision}
-            />
+            <SellForm available_balance={storeSubmit.sell_available_balance} market={props.market} precision={props.precision} />
           </div>
         </div>
       </div>

@@ -38,7 +38,7 @@ export default function CreateTradeHistory(market?: Market, session?: ValidateSi
   );
 }
 
-export function TradeHistory(props: { market?: Market, session?: ValidateSignatureResponse, precision?: number, capacity?: number}) {
+export function TradeHistory(props: { market?: Market; session?: ValidateSignatureResponse; precision?: number; capacity?: number }) {
   const [store, setStore] = createStore<TradeHistory[]>([]);
 
   return (

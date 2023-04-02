@@ -6,26 +6,19 @@ import { api } from "~/root";
 import { SubmitRequest } from "~/types/mod";
 import { formatTemplate } from "~/utils/precision";
 import SubmitRectangularButton from "../Buttons/SubmitRectangularButton";
-import { AssetResponse } from "../Markets";
 import NumberInput from "./NumberInput";
 import Slider from "./Slider";
+import { Market } from "~/utils/providers/MarketProvider";
 
-export interface FormComponent {
-  quote_asset?: AssetResponse;
-  base_asset?: AssetResponse;
-  precision?: number;
-  available_balance?: bigint;
-}
-
-interface SubmitFormComponent {
+interface FormValues {
   price: number;
   slider: number;
   base_asset_volume: bigint;
   quote_asset_volume: bigint;
 }
 
-export default function SellForm(props: FormComponent) {
-  const [storeComponent, setStoreComponent] = createStore<SubmitFormComponent>({
+export default function SellForm(props: { market?: Market; available_balance?: bigint; precision?: number }) {
+  const [storeComponent, setStoreComponent] = createStore<FormValues>({
     price: 0,
     slider: 0,
     base_asset_volume: BigInt(0),
@@ -56,7 +49,7 @@ export default function SellForm(props: FormComponent) {
         <div class="col-start-1 col-end-2">Available Balance:</div>
         <div class="col-start-2 col-end-3">
           {props.available_balance != undefined ? format(fromWei(props.available_balance), formatTemplate(props.precision ? props.precision : 2)) : "---"}
-          {props.base_asset ? props.base_asset.symbol : "---"}
+          {props.market?.base_asset?.symbol ?? "---"}
         </div>
       </div>
       <NumberInput
@@ -69,7 +62,7 @@ export default function SellForm(props: FormComponent) {
         }}
         precision={props.precision ? props.precision : 2}
         left={"Price"}
-        right={props.quote_asset ? props.quote_asset.symbol : "---"}
+        right={props.market?.quote_asset?.symbol ?? "---"}
       />
       <NumberInput
         class="my-[4px] bg-gray-1 p-1 text-submit-label"
@@ -84,7 +77,7 @@ export default function SellForm(props: FormComponent) {
         }}
         precision={props.precision ? props.precision : 2}
         left={"Quantity"}
-        right={props.base_asset ? props.base_asset.symbol : "---"}
+        right={props.market?.base_asset?.symbol ?? "---"}
       />
       <Slider
         value={slider()}
@@ -112,7 +105,7 @@ export default function SellForm(props: FormComponent) {
         }}
         precision={props.precision ? props.precision : 2}
         left={"Value"}
-        right={props.quote_asset ? props.quote_asset.symbol : "---"}
+        right={props.market?.quote_asset?.symbol ?? "---"}
       />
       <SubmitRectangularButton
         class="my-[12px] bg-red"
@@ -126,8 +119,8 @@ export default function SellForm(props: FormComponent) {
             credentials: "same-origin",
             body: JSON.stringify(
               SubmitRequest.parse({
-                quote_asset_id: props.base_asset?.id,
-                base_asset_id: props.quote_asset?.id,
+                quote_asset_id: props.market?.base_asset?.id,
+                base_asset_id: props.market?.quote_asset?.id,
                 quote_asset_volume: storeComponent.base_asset_volume,
                 base_asset_volume: storeComponent.quote_asset_volume,
               }),

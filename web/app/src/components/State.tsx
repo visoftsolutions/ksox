@@ -2,9 +2,9 @@ import { createSignal, Match, Show, Switch } from "solid-js";
 import { ValidateSignatureResponse } from "~/auth/mod";
 import { Market } from "~/utils/providers/MarketProvider";
 import RectangularButton from "./Buttons/NavRectangularButton";
-import CreateOpenOrders, { OpenOrders } from "./States/OpenOrders";
-import CreateOrderHistory, { OrderHistory } from "./States/OrderHistory";
-import CreateTradeHistory, { TradeHistory } from "./States/TradeHistory";
+import CreateOpenOrders from "./States/OpenOrders";
+import CreateOrderHistory from "./States/OrderHistory";
+import CreateTradeHistory from "./States/TradeHistory";
 
 enum StateTabs {
   OpenOrders,
@@ -63,15 +63,9 @@ export function State(props: { market?: Market; session?: ValidateSignatureRespo
       </div>
 
       <Switch>
-        <Match when={tab() == StateTabs.OpenOrders}>
-          {CreateOpenOrders(props.market, props.session, props.precision, props.capacity)()}
-        </Match>
-        <Match when={tab() == StateTabs.OrderHistory}>
-          {CreateOrderHistory(props.market, props.session, props.precision, props.capacity)()}
-        </Match>
-        <Match when={tab() == StateTabs.TradeHistory}>
-          {CreateTradeHistory(props.market, props.session, props.precision, props.capacity)()}
-        </Match>
+        <Match when={tab() == StateTabs.OpenOrders}>{CreateOpenOrders(props.market, props.session, props.precision, props.capacity)()}</Match>
+        <Match when={tab() == StateTabs.OrderHistory}>{CreateOrderHistory(props.market, props.session, props.precision, props.capacity)()}</Match>
+        <Match when={tab() == StateTabs.TradeHistory}>{CreateTradeHistory(props.market, props.session, props.precision, props.capacity)()}</Match>
       </Switch>
     </div>
   );
