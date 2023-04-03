@@ -9,7 +9,6 @@ import { useSession } from "~/components/Buttons/WalletButton";
 import { Dynamic } from "solid-js/web";
 import CreateState from "~/components/State";
 import { useMarket } from "~/utils/providers/MarketProvider";
-import { createEffect } from "solid-js";
 
 export default function Main() {
   const market = useMarket();
@@ -17,18 +16,8 @@ export default function Main() {
   const precision = 3;
   const capacity = 20;
 
-  createEffect(() => {
-    console.log(`market: ${market().base_asset?.symbol} - ${market().quote_asset?.symbol}`);
-  });
-
   return (
     <>
-      <div class="col-start-2 col-end-6 row-start-1 row-end-2 bg-gray-2">
-        <MainMenu />
-      </div>
-      <div class="col-start-1 col-end-2 row-start-1 row-end-4 bg-gray-1">
-        <SideMenu />
-      </div>
       <div class="col-start-2 col-end-3 row-start-2 row-end-3 bg-gray-2 xl:hidden">
         <Markets />
       </div>
