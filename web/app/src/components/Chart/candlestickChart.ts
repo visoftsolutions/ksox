@@ -52,7 +52,7 @@ export class CandlestickChart {
     this.candlestickSeries.setData(this.tohlc_data);
     this.histogramSeries.setData(this.tv_data);
     this.chart.timeScale().fitContent();
-  };
+  }
 
   push(candlestick: Candlestick) {
     const tohlc: TOHLC = this.extractTOHLC(candlestick);
@@ -62,5 +62,5 @@ export class CandlestickChart {
     this.candlestickSeries.update(tohlc);
     this.histogramSeries.update(tv);
     this.chart.timeScale().fitContent();
-  };
+  }
 }

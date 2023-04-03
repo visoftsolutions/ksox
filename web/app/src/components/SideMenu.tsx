@@ -1,6 +1,7 @@
 import { joinPaths } from "solid-start/islands/server-router";
 import { base } from "~/root";
 import SideMenuCircularButton from "./Buttons/SideMenuCircularButton";
+import { A } from "solid-start";
 
 export default function SideMenu() {
   return (
@@ -9,9 +10,16 @@ export default function SideMenu() {
         <img src={joinPaths(base, "/gfx/logo.png")} class="m-auto h-[47px] w-[36px]" />
       </div>
       <div class="row-start-2 row-end-3 ">
-        <SideMenuCircularButton class="m-3 bg-gray-3" />
-        <SideMenuCircularButton class="m-3 bg-gray-3" />
-        <SideMenuCircularButton class="m-3 bg-gray-3" />
+        <A href="/">
+          <SideMenuCircularButton class="m-3 bg-gray-3">
+            <img src={joinPaths(base, "/gfx/side_menu_spot.svg")} class="h-[36px] w-[36px]" />
+          </SideMenuCircularButton>
+        </A>
+        <A href="/assets">
+          <SideMenuCircularButton class="m-3 bg-gray-3">
+            <img src={joinPaths(base, "/gfx/side_menu_assets.svg")} class="h-[36px] w-[36px]" />
+          </SideMenuCircularButton>
+        </A>
       </div>
       <div class="row-start-3 row-end-4 ">
         <SideMenuCircularButton class="m-3 bg-gray-3" />

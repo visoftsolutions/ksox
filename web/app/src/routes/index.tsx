@@ -1,6 +1,5 @@
 import { AssetsProvider } from "~/utils/providers/AssetsProvider";
 import { MarketProvider } from "~/utils/providers/MarketProvider";
-import Main from "~/components/Main";
 import { SessionProvider } from "~/components/Buttons/WalletButton";
 import { Outlet } from "solid-start";
 import MainMenu from "~/components/MainMenu";

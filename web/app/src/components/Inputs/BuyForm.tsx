@@ -59,7 +59,7 @@ export default function BuyForm(props: { market?: Market; available_balance?: bi
         onChange={(e) => {
           const val = parse((e.target as HTMLInputElement).value) ?? 0;
           setStoreComponent("price", val && val != 0 ? val : 0);
-          setStoreComponent("base_asset_volume", val ? multiplyFloat(storeComponent.quote_asset_volume, 1/val) : 0n);
+          setStoreComponent("base_asset_volume", val ? multiplyFloat(storeComponent.quote_asset_volume, 1 / val) : 0n);
         }}
         precision={props.precision ? props.precision : 2}
         left={"Price"}
@@ -71,7 +71,7 @@ export default function BuyForm(props: { market?: Market; available_balance?: bi
         onChange={(e) => {
           const base_val = toWei(parse((e.target as HTMLInputElement).value ?? 0) ?? 0);
           const max_quote_asset_volume = props.available_balance ?? 0n;
-          const max_base_asset_volume = storeComponent.price ? multiplyFloat(max_quote_asset_volume, 1/storeComponent.price) : 0n;
+          const max_base_asset_volume = storeComponent.price ? multiplyFloat(max_quote_asset_volume, 1 / storeComponent.price) : 0n;
           const base_asset_volume = base_val > max_base_asset_volume ? max_base_asset_volume : base_val;
           setStoreComponent("base_asset_volume", base_asset_volume);
           const quote_val = multiplyFloat(base_asset_volume, storeComponent.price);
@@ -89,7 +89,7 @@ export default function BuyForm(props: { market?: Market; available_balance?: bi
           const max_quote_asset_volume = props.available_balance ?? 0n;
           const quote_asset_volume = multiplyFloat(max_quote_asset_volume, slider_val);
           setStoreComponent("quote_asset_volume", quote_asset_volume);
-          const base_asset_volume = storeComponent.price ? multiplyFloat(quote_asset_volume, 1/storeComponent.price) : 0n;
+          const base_asset_volume = storeComponent.price ? multiplyFloat(quote_asset_volume, 1 / storeComponent.price) : 0n;
           setStoreComponent("base_asset_volume", base_asset_volume);
         }}
       />
@@ -101,7 +101,7 @@ export default function BuyForm(props: { market?: Market; available_balance?: bi
           const max_quote_asset_volume = props.available_balance ?? 0n;
           const quote_asset_volume = quote_val > max_quote_asset_volume ? max_quote_asset_volume : quote_val;
           setStoreComponent("quote_asset_volume", quote_asset_volume);
-          const base_asset_volume = storeComponent.price ? multiplyFloat(quote_asset_volume, 1/storeComponent.price) : 0n;
+          const base_asset_volume = storeComponent.price ? multiplyFloat(quote_asset_volume, 1 / storeComponent.price) : 0n;
           setStoreComponent("base_asset_volume", base_asset_volume);
         }}
         precision={props.precision ? props.precision : 2}

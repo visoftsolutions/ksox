@@ -100,7 +100,7 @@ export default function SellForm(props: { market?: Market; available_balance?: b
           const max_quote_asset_volume = multiplyFloat(max_base_asset_volume, storeComponent.price);
           const quote_asset_volume = quote_val > max_quote_asset_volume ? max_quote_asset_volume : quote_val;
           setStoreComponent("quote_asset_volume", quote_asset_volume);
-          const base_val = storeComponent.price ? multiplyFloat(quote_asset_volume, 1/storeComponent.price) : 0n;
+          const base_val = storeComponent.price ? multiplyFloat(quote_asset_volume, 1 / storeComponent.price) : 0n;
           const base_asset_volume = base_val > max_base_asset_volume ? max_base_asset_volume : base_val;
           setStoreComponent("base_asset_volume", base_asset_volume);
         }}

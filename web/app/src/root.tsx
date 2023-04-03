@@ -3,9 +3,6 @@ import { Body, ErrorBoundary, FileRoutes, Head, Html, Link, Meta, Route, Routes,
 import "~/root.css";
 import { joinPaths } from "solid-start/islands/server-router";
 import App from "~/routes";
-import { SessionProvider } from "./components/Buttons/WalletButton";
-import { MarketProvider } from "./utils/providers/MarketProvider";
-import { AssetsProvider } from "./utils/providers/AssetsProvider";
 import Main from "./components/Main";
 import Assets from "./components/Assets";
 import Account from "./components/Account";

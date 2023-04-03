@@ -1,7 +1,7 @@
 import { JSX } from "solid-js";
 
 export interface RectangularButtonComponent {
-  highlighted: boolean;
+  highlighted?: boolean;
   disabled?: boolean;
   children?: JSX.Element;
   class?: JSX.HTMLAttributes<HTMLElement>["class"];

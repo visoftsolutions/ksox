@@ -44,7 +44,7 @@ export default function NumberInput(props: NumberInputComponent) {
 
   return (
     <div
-      class={`grid cursor-text grid-cols-[auto_1fr_auto] items-center rounded-md ${props.class} ${props.disabled ? props.disabledClass : ""}`}
+      class={`grid cursor-text grid-cols-[auto_1fr_auto] items-center rounded-md bg-gray-1 ${props.class} ${props.disabled ? props.disabledClass : ""}`}
       onClick={() => {
         inputDOM.focus();
       }}

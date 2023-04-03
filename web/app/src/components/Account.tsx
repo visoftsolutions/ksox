@@ -7,9 +7,7 @@ export default function Assets() {
 
   return (
     <>
-      <div class="col-start-2 col-end-6 row-start-2 row-end-4 bg-blue-500">
-        account
-      </div>
+      <div class="col-start-2 col-end-6 row-start-2 row-end-4 bg-blue-500">account</div>
     </>
   );
 }

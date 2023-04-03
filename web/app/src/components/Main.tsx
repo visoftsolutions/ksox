@@ -1,8 +1,6 @@
 import Markets from "~/components/Markets";
 import CreateChart from "~/components/Chart";
-import MainMenu from "~/components/MainMenu";
 import CreateOrderBook from "~/components/OrderBook";
-import SideMenu from "~/components/SideMenu";
 import CreateSubmit from "~/components/Submit";
 import CreateTrades from "~/components/Trades";
 import { useSession } from "~/components/Buttons/WalletButton";

@@ -137,16 +137,21 @@ export function OpenOrders(props: { market?: Market; session?: ValidateSignature
             <div class="col-start-5 col-end-6 text-center">{format(element().order_value, formatTemplate(props.precision ?? 2))}</div>
             <div class="col-start-6 col-end-7 text-center">{format(element().order_qty, formatTemplate(props.precision ?? 2))}</div>
             <div class="col-start-7 col-end-8 text-center">{format(element().filled_qty, formatTemplate(props.precision ?? 2))}</div>
-            <div class="col-start-8 col-end-9 flex justify-end cursor-pointer" onClick={async () => {
-              await fetch(
-                `${api}/private/cancel?${params({
-                  order_id: element().id,
-                })}`,
-                { method: "DELETE", credentials: "same-origin" }
-              )
-                .then((r) => r.text())
-                .then((r) => console.log(r))
-            }}>Cancel</div>
+            <div
+              class="col-start-8 col-end-9 flex cursor-pointer justify-end"
+              onClick={async () => {
+                await fetch(
+                  `${api}/private/cancel?${params({
+                    order_id: element().id,
+                  })}`,
+                  { method: "DELETE", credentials: "same-origin" }
+                )
+                  .then((r) => r.text())
+                  .then((r) => console.log(r));
+              }}
+            >
+              Cancel
+            </div>
           </div>
         )}
       </Index>

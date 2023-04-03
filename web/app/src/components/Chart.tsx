@@ -32,7 +32,7 @@ export function Chart(props: { market?: Market }) {
       const chart = new CandlestickChart(ChartDOM as HTMLElement, chartOptions(market), histogramOptions);
       const interval = 60000;
       const now = Date.now();
-      let reference_point = now - now % interval;
+      let reference_point = now - (now % interval);
 
       events = new EventSource(
         `${api}/public/ohlcv/sse?${params({
@@ -44,8 +44,8 @@ export function Chart(props: { market?: Market }) {
         })}`
       );
       events.onopen = async () => {
-        for (var i = 0; i < 30; i++) {
-          reference_point -= interval
+        for (let i = 0; i < 30; i++) {
+          reference_point -= interval;
           await fetch(
             `${api}/public/ohlcv?${params({
               quote_asset_id: quote_asset.id,
@@ -57,10 +57,14 @@ export function Chart(props: { market?: Market }) {
           )
             .then((r) => r.json())
             .then((r) => z.nullable(Candlestick).parse(r))
-            .then((r) => { if (r != null) chart.unshift(r) });
+            .then((r) => {
+              if (r != null) chart.unshift(r);
+            });
         }
-      }
-      events.onmessage = (ev) => { chart.push(Candlestick.parse(JSON.parse(ev.data))) };
+      };
+      events.onmessage = (ev) => {
+        chart.push(Candlestick.parse(JSON.parse(ev.data)));
+      };
     }
   });
 
