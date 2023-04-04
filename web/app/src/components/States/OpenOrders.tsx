@@ -4,7 +4,7 @@ import { ValidateSignatureResponse } from "~/auth/mod";
 import { Asset } from "~/types/asset";
 import { fromWei } from "~/utils/converters/wei";
 import { Direction } from "../State";
-import { api } from "~/root";
+import { api, base } from "~/root";
 import params from "~/utils/params";
 import { Order } from "~/types/order";
 import { z } from "zod";
@@ -13,6 +13,7 @@ import { useAssets } from "~/utils/providers/AssetsProvider";
 import { Market } from "~/utils/providers/MarketProvider";
 import { format } from "numerable";
 import { formatTemplate } from "~/utils/precision";
+import { joinPaths } from "solid-start/islands/server-router";
 
 interface OpenOrder {
   id: Uuid;
@@ -150,7 +151,7 @@ export function OpenOrders(props: { market?: Market; session?: ValidateSignature
                   .then((r) => console.log(r));
               }}
             >
-              Cancel
+              <img src={joinPaths(base, "/gfx/cancel.svg")} class="h-[12px] w-[12px]" />
             </div>
           </div>
         )}

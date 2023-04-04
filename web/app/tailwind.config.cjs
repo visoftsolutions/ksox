@@ -17,6 +17,7 @@ module.exports = {
       },
       fontFamily: {
         sanspro: ["Source Sans Pro", "sans-serif"],
+        lexend: ["Lexend", "sans-serif"],
       },
       fontSize: {
         "mainmenu-wallet": ["14px", "18px"],

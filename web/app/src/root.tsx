@@ -6,6 +6,7 @@ import App from "~/routes";
 import Main from "./components/Main";
 import Assets from "./components/Assets";
 import Account from "./components/Account";
+import { Nav, NavProvider, setNav } from "./utils/providers/NavProvider";
 
 export const base = import.meta.env.BASE_URL;
 export const api = joinPaths(base, "/api");
@@ -22,14 +23,16 @@ export default function Root() {
       <Body>
         <Suspense>
           <ErrorBoundary>
-            <Routes>
-              <Route path="/" component={App}>
-                <Route path={["/", "/:baseAssetId/:quoteAssetId"]} component={Main} />
-                <Route path="/assets" component={Assets} />
-                <Route path="/account" component={Account} />
-              </Route>
-              <FileRoutes />
-            </Routes>
+            <NavProvider>
+              <Routes>
+                <Route path="/" component={App}>
+                  <Route path={["/", "/:baseAssetId/:quoteAssetId"]} element={<Main />} preload={() => setNav(Nav.Spot)}/>
+                  <Route path="/assets" element={<Assets/>} preload={() => setNav(Nav.Assets)} />
+                  <Route path="/account" element={<Account/>} preload={() => setNav(Nav.Account)} />
+                </Route>
+                <FileRoutes />
+              </Routes>
+            </NavProvider>
           </ErrorBoundary>
         </Suspense>
         <Scripts />

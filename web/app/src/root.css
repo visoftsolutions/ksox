@@ -19,6 +19,12 @@ html {
     font-weight: 600;
     src: url("/fonts/SourceSansPro-SemiBold.ttf") format("truetype");
   }
+  @font-face {
+    font-family: "Lexend";
+    font-style: normal;
+    font-weight: 200;
+    src: url("/fonts/Lexend-ExtraLight.ttf") format("truetype");
+  }
 }
 
 @layer utilities {
