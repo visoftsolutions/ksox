@@ -62,19 +62,48 @@ npx npm-check-updates -u
 ## run code in kubernetes
 make sure you have minikube, docker and skaffold installed
 make sure you are in a docker group
+```shell
+minikube start --driver=docker --cpus 16 --memory 8192
+helm upgrade --install metallb metallb \
+    --repo https://metallb.github.io/metallb \
+    --create-namespace \
+    --namespace metallb-system
+istio install
+kubectl label namespace default istio-injection=enabled
 ```
-minikube start --driver=docker --cpus 8 --memory 4096 && \
-minikube addons enable ingress
+```yaml
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: pool
+  namespace: metallb-system
+spec:
+  addresses:
+  - 192.168.49.10-192.168.49.20
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: base
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+  - pool
 ```
+
+```shell
+skaffold run -n ksox-exchange --default-repo registry.internal.visoft.solutions
+```
+
 you can now connect with your browser to ingress, ask minikube for ip
-```
+```shell
 minikube ip
 ```
 To deploy application do
-```
+```shell
 skaffold run
 ```
 You can also work in development mode
-```
+```shell
 skaffold dev
 ```

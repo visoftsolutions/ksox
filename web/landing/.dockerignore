@@ -6,18 +6,22 @@ dist
 .netlify
 netlify
 
+# kubernetes manifests
+k8s
+
 # dependencies
-/node_modules
+node_modules
 
 # IDEs and editors
-/.idea
+.idea
 .project
 .classpath
 *.launch
-.settings/
+.settings
 
-# Temp
-gitignore
+# Ignores
+.dockerignore
+.gitignore
 
 # System Files
 .DS_Store

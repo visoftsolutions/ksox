@@ -25,13 +25,13 @@ spec:
           value: http://server-engine-service/
         - name: REDIS_URL
           value: redis://redis-service/
-      initContainers:
-      - name: wait-for-postgres
-        image: busybox
-        command: ['sh', '-c', 'until nc -z postgres-service 5432; do echo waiting for postgres; sleep 2; done;']
-      - name: wait-for-redis
-        image: busybox
-        command: ['sh', '-c', 'until nc -z redis-service 6379; do echo waiting for redis; sleep 2; done;']
+      # initContainers:
+      # - name: wait-for-postgres
+      #   image: busybox
+      #   command: ['sh', '-c', 'until nc -z postgres-service 5432; do echo waiting for postgres; sleep 2; done;']
+      # - name: wait-for-redis
+      #   image: busybox
+      #   command: ['sh', '-c', 'until nc -z redis-service 6379; do echo waiting for redis; sleep 2; done;']
 ---
 apiVersion: v1
 kind: Service
@@ -50,11 +50,15 @@ kind: Ingress
 metadata:
   name: server-worker-ingress
   annotations:
-    nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
+  tls:
+    - hosts:
+      - ksox.exchange
+      secretName: ksox-exchange-tls
   rules:
-  - http:
+  - host: ksox.exchange
+    http:
       paths:
       - path: /app/api(/|$)(.*)
         pathType: Prefix

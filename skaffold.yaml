@@ -1,8 +1,6 @@
 apiVersion: skaffold/v4beta3
 kind: Config
 build:
-  local:
-    push: false
   artifacts:
   - image: postgres-database
     context: ./postgres
@@ -30,6 +28,7 @@ build:
       dockerfile: Dockerfile
 manifests:
   rawYaml:
+    - ./k8s/*
     - ./postgres/k8s/*
     - ./redis/k8s/*
     - ./server/k8s/*
