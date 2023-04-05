@@ -1,5 +1,6 @@
 import {
   BusinessDay,
+  CandlestickSeriesPartialOptions,
   ChartOptions,
   ColorType,
   CrosshairMode,
@@ -9,55 +10,63 @@ import {
   PriceScaleMode,
   UTCTimestamp,
 } from "lightweight-charts";
+import { M } from "viem/dist/parseGwei-361e8a12";
 import { Market } from "~/utils/providers/MarketProvider";
 
 export function chartOptions(makret?: Market): DeepPartial<ChartOptions> {
   const r: DeepPartial<ChartOptions> = {
     watermark: {
-      color: "#FFFFFF08",
+      color: "#7C7C8A08",
       visible: true,
       text: makret?.base_asset?.symbol + "/" + makret?.quote_asset?.symbol,
       fontSize: 100,
+      fontFamily: "sans-serif",
+      horzAlign: "center",
+      vertAlign: "center",
     },
     layout: {
       background: {
         type: ColorType.Solid,
-        color: "#111118",
+        color: "#1B1B23",
       },
-      textColor: "#eeeeee",
+      textColor: "#7C7C8A",
       fontSize: 11,
+      fontFamily: "sans-serif"
     },
     rightPriceScale: {
       autoScale: true,
       mode: PriceScaleMode.Normal,
       invertScale: false,
       visible: true,
+      textColor: "#7C7C8A",
+      borderVisible: false,
     },
     timeScale: {
       rightOffset: 10,
       timeVisible: true,
+      borderVisible: false
     },
     crosshair: {
       mode: CrosshairMode.Normal,
       vertLine: {
-        color: "#FFFFFF44",
+        color: "#7C7C8A",
         style: LineStyle.Dashed,
         visible: true,
       },
       horzLine: {
-        color: "#FFFFFF44",
+        color: "#7C7C8A",
         style: LineStyle.Dashed,
         visible: true,
       },
     },
     grid: {
       vertLines: {
-        color: "#FFFFFF22",
+        color: "#7C7C8A",
         style: LineStyle.SparseDotted,
         visible: true,
       },
       horzLines: {
-        color: "#FFFFFF22",
+        color: "#7C7C8A",
         style: LineStyle.SparseDotted,
         visible: true,
       },
@@ -71,14 +80,24 @@ export function chartOptions(makret?: Market): DeepPartial<ChartOptions> {
   return r;
 }
 
+export const candlestickOptions = {
+  upColor: "#45B780",
+  downColor: "#C73B3B",
+  borderUpColor: "#45B780",
+  borderDownColor: "#C73B3B",
+  wickUpColor: "#45B780",
+  wickDownColor: "#C73B3B",
+} as CandlestickSeriesPartialOptions
+
 export const histogramOptions = {
-  color: "#FFFFFF22",
-  priceFormat: {
-    type: "volume",
-  },
-  overlay: true,
+  color: "#7C7C8A",
+  lineWidth: 2,
+	priceFormat: {
+		type: 'volume',
+	},
+	overlay: true,
   scaleMargins: {
-    top: 0.8,
+  	top: 0.6,
     bottom: 0,
   },
 } as HistogramSeriesPartialOptions;

@@ -19,7 +19,7 @@ export interface Time {
 }
 
 export interface Volume {
-  volume: number;
+  value: number;
 }
 
 export interface OHLC {

@@ -1,4 +1,4 @@
-import { ChartOptions, createChart, DeepPartial, HistogramSeriesPartialOptions, IChartApi, ISeriesApi, UTCTimestamp } from "lightweight-charts";
+import { CandlestickSeriesPartialOptions, ChartOptions, createChart, DeepPartial, HistogramSeriesPartialOptions, IChartApi, ISeriesApi, UTCTimestamp } from "lightweight-charts";
 import { TOHLC, TV } from "./models";
 import { Candlestick } from "~/types/candlestick";
 import { evaluateInv } from "~/types/primitives/fraction";
@@ -10,7 +10,7 @@ export class CandlestickChart {
   private chart: IChartApi;
   private candlestickSeries: ISeriesApi<"Candlestick">;
   private histogramSeries: ISeriesApi<"Histogram">;
-  constructor(container: HTMLElement, chartOptions: DeepPartial<ChartOptions>, histogramOptions: HistogramSeriesPartialOptions) {
+  constructor(container: HTMLElement, chartOptions: DeepPartial<ChartOptions>, histogramOptions: HistogramSeriesPartialOptions, candlestickOptions: CandlestickSeriesPartialOptions) {
     this.tohlc_data = [];
     this.tv_data = [];
     this.chart = createChart(container, chartOptions);
@@ -23,7 +23,7 @@ export class CandlestickChart {
     }).observe(container as Element);
 
     this.histogramSeries = this.chart.addHistogramSeries(histogramOptions);
-    this.candlestickSeries = this.chart.addCandlestickSeries();
+    this.candlestickSeries = this.chart.addCandlestickSeries(candlestickOptions);
     this.chart.timeScale().fitContent();
   }
 
@@ -40,7 +40,7 @@ export class CandlestickChart {
   extractTV(candlestick: Candlestick): TV {
     return {
       time: Math.floor(candlestick.topen.getTime() / 1000) as UTCTimestamp,
-      volume: fromWei(candlestick.taker_quote_volume),
+      value: fromWei(candlestick.taker_quote_volume),
     };
   }
 
@@ -50,7 +50,7 @@ export class CandlestickChart {
     this.tohlc_data.unshift(tohlc);
     this.tv_data.unshift(tv);
     this.candlestickSeries.setData(this.tohlc_data);
-    this.histogramSeries.setData(this.tv_data);
+    // this.histogramSeries.setData(this.tv_data);
     this.chart.timeScale().fitContent();
   }
 
@@ -60,7 +60,7 @@ export class CandlestickChart {
     this.tohlc_data.push(tohlc);
     this.tv_data.push(tv);
     this.candlestickSeries.update(tohlc);
-    this.histogramSeries.update(tv);
+    // this.histogramSeries.update(tv);
     this.chart.timeScale().fitContent();
   }
 }

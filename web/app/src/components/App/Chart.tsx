@@ -1,7 +1,7 @@
 import { Show, onMount } from "solid-js";
 import { Market } from "~/utils/providers/MarketProvider";
 import { CandlestickChart } from "./Chart/candlestickChart";
-import { chartOptions, histogramOptions } from "./Chart/config";
+import { chartOptions, histogramOptions, candlestickOptions } from "./Chart/config";
 import { api } from "~/root";
 import params from "~/utils/params";
 import { Candlestick } from "~/types/candlestick";
@@ -29,7 +29,7 @@ export function Chart(props: { market?: Market }) {
       const market = props.market;
       const quote_asset = props.market.quote_asset;
       const basee_asset = props.market.base_asset;
-      const chart = new CandlestickChart(ChartDOM as HTMLElement, chartOptions(market), histogramOptions);
+      const chart = new CandlestickChart(ChartDOM as HTMLElement, chartOptions(market), histogramOptions, candlestickOptions);
       const interval = 60000;
       const now = Date.now();
       let reference_point = now - (now % interval);
@@ -68,5 +68,5 @@ export function Chart(props: { market?: Market }) {
     }
   });
 
-  return <div ref={ChartDOM} class="absolute bottom-0 left-0 right-0 top-0" />;
+  return <div ref={ChartDOM} class="absolute bottom-0 left-0 right-0 top-0 bg-gray-2" />;
 }
