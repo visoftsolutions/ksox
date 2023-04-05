@@ -1,6 +1,6 @@
 import { joinPaths } from "solid-start/islands/server-router";
 import { base } from "~/root";
-import SideMenuCircularButton from "./Buttons/SideMenuCircularButton";
+import SideMenuCircularButton from "./SideMenu/Buttons/CircularButton";
 import { A } from "solid-start";
 import { Nav, useNav } from "~/utils/providers/NavProvider";
 
@@ -14,7 +14,7 @@ export default function SideMenu() {
       </div>
       <div class="row-start-2 row-end-3 ">
         <A href="/">
-          <SideMenuCircularButton class="m-3 bg-gray-3" highlighted={nav() == Nav.Spot}>
+          <SideMenuCircularButton class="m-3 bg-gray-3" highlighted={nav() == Nav.App}>
             <img src={joinPaths(base, "/gfx/side_menu_spot.svg")} class="h-[36px] w-[36px]" />
           </SideMenuCircularButton>
         </A>

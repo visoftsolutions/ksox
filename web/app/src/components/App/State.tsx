@@ -1,10 +1,10 @@
 import { createSignal, Match, Show, Switch } from "solid-js";
 import { ValidateSignatureResponse } from "~/auth/mod";
 import { Market } from "~/utils/providers/MarketProvider";
-import RectangularButton from "./Buttons/NavRectangularButton";
-import CreateOpenOrders from "./States/OpenOrders";
-import CreateOrderHistory from "./States/OrderHistory";
-import CreateTradeHistory from "./States/TradeHistory";
+import RectangularButton from "./Buttons/NavButton";
+import CreateOpenOrders from "./State/OpenOrders";
+import CreateOrderHistory from "./State/OrderHistory";
+import CreateTradeHistory from "./State/TradeHistory";
 
 enum StateTabs {
   OpenOrders,

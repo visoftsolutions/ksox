@@ -1,8 +1,8 @@
 import { Index, onCleanup, onMount, Show } from "solid-js";
 import { createStore } from "solid-js/store";
-import { TriElementComponent } from "~/components/TriElement/TriElement";
-import TriElement from "~/components/TriElement/TriElement";
-import TriElementHeader from "~/components/TriElement/TriElementHeader";
+import { TriElementComponent } from "~/components/App/TriElement/TriElement";
+import TriElement from "~/components/App/TriElement/TriElement";
+import TriElementHeader from "~/components/App/TriElement/TriElementHeader";
 import { Trade } from "~/types/trade";
 import params from "~/utils/params";
 import { z } from "zod";

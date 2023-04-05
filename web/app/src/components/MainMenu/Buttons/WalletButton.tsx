@@ -1,35 +1,16 @@
 import { joinPaths } from "solid-start/islands/server-router";
 import { base } from "~/root";
-import { Accessor, createContext, createSignal, useContext } from "solid-js";
 import { EthereumClient, w3mConnectors, w3mProvider } from "@web3modal/ethereum";
 import { Web3Modal } from "@web3modal/html";
 import { configureChains, createClient } from "@wagmi/core";
 import { mainnet, polygon } from "@wagmi/core/chains";
-import { createWalletClient, custom, CustomTransport, WalletClient } from "viem";
-import { ValidateSignatureResponse } from "~/auth/mod";
+import { createWalletClient, custom } from "viem";
 import login from "~/auth/login";
-import { JSX } from "solid-js/web/types/jsx";
 import logout from "~/auth/logout";
+import { setWallet, wallet } from "~/utils/providers/WalletProvider";
+import { session, setSession } from "~/utils/providers/SessionProvider";
 
 const projectId = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID;
-
-const [wallet, setWallet] = createSignal<WalletClient<CustomTransport, typeof mainnet> | null>(null);
-const WalletContext = createContext<Accessor<WalletClient<CustomTransport, typeof mainnet> | null>>(wallet);
-export function WalletProvider(props: { children: JSX.Element }) {
-  return <WalletContext.Provider value={wallet}>{props.children}</WalletContext.Provider>;
-}
-export function useWallet() {
-  return useContext<Accessor<WalletClient<CustomTransport, typeof mainnet> | null>>(WalletContext);
-}
-
-const [session, setSession] = createSignal<ValidateSignatureResponse | null>(null);
-const SessionContext = createContext<Accessor<ValidateSignatureResponse | null>>(session);
-export function SessionProvider(props: { children: JSX.Element }) {
-  return <SessionContext.Provider value={session}>{props.children}</SessionContext.Provider>;
-}
-export function useSession() {
-  return useContext<Accessor<ValidateSignatureResponse | null>>(SessionContext);
-}
 
 export default function WalletButton() {
   const walletConnect = async () => {

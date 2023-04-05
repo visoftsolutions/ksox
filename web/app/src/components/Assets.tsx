@@ -1,18 +1,15 @@
-import { useSession } from "~/components/Buttons/WalletButton";
-import { api, base } from "~/root";
+import { base } from "~/root";
 import { joinPaths } from "solid-start/islands/server-router";
 import { Index, JSX, Match, Show, Switch, createEffect, createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
-import { fromWei, toWei } from "~/utils/converters/wei";
-import { format, parse } from "numerable";
-import { formatTemplate } from "~/utils/precision";
 import { useAssets } from "~/utils/providers/AssetsProvider";
-import NumberInput from "./Inputs/NumberInput";
 import { Uuid } from "~/types/primitives/uuid";
-import { MintBurnRequest } from "~/types/mod";
 import SearchInput from "./Inputs/SearchInput";
+import { useSession } from "~/utils/providers/SessionProvider";
+import Mint from "./Assets/Mint";
+import Burn from "./Assets/Burn";
 
-interface AssetInfo {
+export interface AssetInfo {
   id: Uuid;
   icon: JSX.Element;
   name: string;
@@ -41,7 +38,6 @@ export default function Assets() {
 
   createEffect(() => {
     if (session() && assets()) {
-      console.log(assets());
       assets().forEach((e) => {
         setAssetsState("assets", (prev) => [
           ...prev,
@@ -105,7 +101,7 @@ export default function Assets() {
             <div class="row-start-1 row-end-2 grid grid-cols-[80px_1fr] items-center justify-center ">
               <div class="col-start-1 col-end-2 mr-2">{assetsState.selected_asset!.icon}</div>
               <div class="col-start-2 col-end-3 text-white">
-              {`${assetsState.selected_asset!.name} (${assetsState.selected_asset!.symbol})`}
+                {`${assetsState.selected_asset!.name} (${assetsState.selected_asset!.symbol})`}
                 {/* <div class="row-start-1 row-end-2 text-white">{`${assetsState.selected_asset!.name} (${assetsState.selected_asset!.symbol})`}</div> */}
                 {/* <div class="row-start-2 row-end-3 text-orderbook-item">{format(fromWei(assetsState.selected_asset!.balance), formatTemplate(precision))}</div> */}
               </div>
@@ -150,84 +146,10 @@ export default function Assets() {
           <Show when={assetsState.selected_asset}>
             <Switch>
               <Match when={tab() == Tab.Mint}>
-                <div class="font-lexend font-extralight text-[32px]">Mint assets</div>
-                <div class="grid items-center justify-start gap-6">
-                  <NumberInput
-                    class="col-start-1 col-end-2 my-4 w-72"
-                    precision={precision}
-                    left={"Quantity"}
-                    right={assetsState.selected_asset?.symbol}
-                    value={format(fromWei(assetsState.amount), formatTemplate(precision))}
-                    onChange={(e) => {
-                      const value = toWei(parse((e.target as HTMLInputElement).value ?? 0) ?? 0);
-                      setAssetsState({ amount: value });
-                    }}
-                  />
-                  <div
-                    class="col-start-2 col-end-3 grid h-[32px] w-[100px] cursor-pointer items-center justify-center rounded-md bg-ksox-2 text-markets-label"
-                    onClick={async () => {
-                      await fetch(`${api}/private/mint`, {
-                        method: "POST",
-                        headers: {
-                          Accept: "application/json",
-                          "Content-Type": "application/json",
-                        },
-                        credentials: "same-origin",
-                        body: JSON.stringify(
-                          MintBurnRequest.parse({
-                            asset_id: assetsState.selected_asset?.id,
-                            amount: assetsState.amount,
-                          }),
-                          (_, v) => (typeof v === "bigint" ? v.toString() : v)
-                        ),
-                      })
-                        .then((r) => r.text())
-                        .then((r) => console.log(r));
-                    }}
-                  >
-                    MINT
-                  </div>
-                </div>
+                <Mint asset={assetsState.selected_asset!} precision={precision} />
               </Match>
               <Match when={tab() == Tab.Burn}>
-                <div class="font-lexend font-extralight text-[32px]">Burn assets</div>
-                <div class="grid items-center justify-start gap-6">
-                  <NumberInput
-                    class="col-start-1 col-end-2 my-4 w-72"
-                    precision={precision}
-                    left={"Quantity"}
-                    right={assetsState.selected_asset?.symbol}
-                    value={format(fromWei(assetsState.amount), formatTemplate(precision))}
-                    onChange={(e) => {
-                      const value = toWei(parse((e.target as HTMLInputElement).value ?? 0) ?? 0);
-                      setAssetsState({ amount: value });
-                    }}
-                  />
-                  <div
-                    class="col-start-2 col-end-3 grid h-[32px] w-[100px] cursor-pointer items-center justify-center rounded-md bg-ksox-2 text-markets-label"
-                    onClick={async () => {
-                      await fetch(`${api}/private/burn`, {
-                        method: "POST",
-                        headers: {
-                          Accept: "application/json",
-                          "Content-Type": "application/json",
-                        },
-                        credentials: "same-origin",
-                        body: JSON.stringify(
-                          MintBurnRequest.parse({
-                            asset_id: assetsState.selected_asset?.id,
-                            amount: assetsState.amount,
-                          }),
-                          (_, v) => (typeof v === "bigint" ? v.toString() : v)
-                        ),
-                      })
-                        .then((r) => r.text())
-                        .then((r) => console.log(r));
-                    }}
-                  >
-                    BURN
-                  </div>
-                </div>
+                <Burn asset={assetsState.selected_asset!} precision={precision} />
               </Match>
               <Match when={tab() == Tab.History}>
                 <div></div>

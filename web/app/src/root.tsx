@@ -2,10 +2,9 @@ import { Suspense } from "solid-js";
 import { Body, ErrorBoundary, FileRoutes, Head, Html, Link, Meta, Route, Routes, Scripts, Title } from "solid-start";
 import "~/root.css";
 import { joinPaths } from "solid-start/islands/server-router";
-import App from "~/routes";
-import Main from "./components/Main";
+import Index from "~/routes";
+import App from "./components/App";
 import Assets from "./components/Assets";
-import Account from "./components/Account";
 import { Nav, NavProvider, setNav } from "./utils/providers/NavProvider";
 
 export const base = import.meta.env.BASE_URL;
@@ -25,10 +24,9 @@ export default function Root() {
           <ErrorBoundary>
             <NavProvider>
               <Routes>
-                <Route path="/" component={App}>
-                  <Route path={["/", "/:baseAssetId/:quoteAssetId"]} element={<Main />} preload={() => setNav(Nav.Spot)}/>
+                <Route path="/" component={Index}>
+                  <Route path={["/", "/:baseAssetId/:quoteAssetId"]} element={<App />} preload={() => setNav(Nav.App)}/>
                   <Route path="/assets" element={<Assets/>} preload={() => setNav(Nav.Assets)} />
-                  <Route path="/account" element={<Account/>} preload={() => setNav(Nav.Account)} />
                 </Route>
                 <FileRoutes />
               </Routes>

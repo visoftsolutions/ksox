@@ -5,9 +5,9 @@ import { api } from "~/root";
 import { Valut } from "~/types/valut";
 import params from "~/utils/params";
 import { Market } from "~/utils/providers/MarketProvider";
-import RectangularButton from "./Buttons/NavRectangularButton";
-import BuyForm from "./Inputs/BuyForm";
-import SellForm from "./Inputs/SellForm";
+import RectangularButton from "./Buttons/NavButton";
+import BuyForm from "./Submit/BuyForm";
+import SellForm from "./Submit/SellForm";
 
 export default function CreateSubmit(market: Market, session?: ValidateSignatureResponse, precision?: number) {
   return () => (

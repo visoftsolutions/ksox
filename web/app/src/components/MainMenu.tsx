@@ -1,4 +1,4 @@
-import WalletButton from "./Buttons/WalletButton";
+import WalletButton from "./MainMenu/Buttons/WalletButton";
 
 export default function MainMenu() {
   return (

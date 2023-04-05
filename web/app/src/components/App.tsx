@@ -1,14 +1,14 @@
-import Markets from "~/components/Markets";
-import CreateChart from "~/components/Chart";
-import CreateOrderBook from "~/components/OrderBook";
-import CreateSubmit from "~/components/Submit";
-import CreateTrades from "~/components/Trades";
-import { useSession } from "~/components/Buttons/WalletButton";
+import Markets from "~/components/App/Markets";
+import CreateChart from "~/components/App/Chart";
+import CreateOrderBook from "~/components/App/OrderBook";
+import CreateSubmit from "~/components/App/Submit";
+import CreateTrades from "~/components/App/Trades";
 import { Dynamic } from "solid-js/web";
-import CreateState from "~/components/State";
+import CreateState from "~/components/App/State";
 import { useMarket } from "~/utils/providers/MarketProvider";
+import { useSession } from "~/utils/providers/SessionProvider";
 
-export default function Main() {
+export default function App() {
   const market = useMarket();
   const session = useSession();
   const precision = 3;

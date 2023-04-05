@@ -5,9 +5,9 @@ import { fromWei, toWei } from "~/utils/converters/wei";
 import { api } from "~/root";
 import { SubmitRequest } from "~/types/mod";
 import { formatTemplate } from "~/utils/precision";
-import SubmitRectangularButton from "../Buttons/SubmitRectangularButton";
-import NumberInput from "./NumberInput";
-import Slider from "./Slider";
+import SubmitRectangularButton from "./SubmitButton";
+import NumberInput from "~/components/Inputs/NumberInput";
+import Slider from "~/components/Inputs/Slider";
 import { Market } from "~/utils/providers/MarketProvider";
 import { multiplyFloat } from "~/utils/multiplyFloat";
 
@@ -18,7 +18,7 @@ interface FormValues {
   quote_asset_volume: bigint;
 }
 
-export default function BuyForm(props: { market?: Market; available_balance?: bigint; precision?: number }) {
+export default function SellForm(props: { market?: Market; available_balance?: bigint; precision?: number }) {
   const [storeComponent, setStoreComponent] = createStore<FormValues>({
     price: 0,
     slider: 0,
@@ -36,7 +36,7 @@ export default function BuyForm(props: { market?: Market; available_balance?: bi
 
   const slider = createMemo(() => {
     return props.available_balance && props.available_balance != BigInt(0)
-      ? (fromWei(storeComponent.quote_asset_volume) / fromWei(props.available_balance)) * 100
+      ? (fromWei(storeComponent.base_asset_volume) / fromWei(props.available_balance)) * 100
       : 0;
   });
 
@@ -50,7 +50,7 @@ export default function BuyForm(props: { market?: Market; available_balance?: bi
         <div class="col-start-1 col-end-2">Available Balance:</div>
         <div class="col-start-2 col-end-3">
           {props.available_balance != undefined ? format(fromWei(props.available_balance), formatTemplate(props.precision ? props.precision : 2)) : "---"}
-          {props.market?.quote_asset?.symbol ?? "---"}
+          {props.market?.base_asset?.symbol ?? "---"}
         </div>
       </div>
       <NumberInput
@@ -59,7 +59,7 @@ export default function BuyForm(props: { market?: Market; available_balance?: bi
         onChange={(e) => {
           const val = parse((e.target as HTMLInputElement).value) ?? 0;
           setStoreComponent("price", val && val != 0 ? val : 0);
-          setStoreComponent("base_asset_volume", val ? multiplyFloat(storeComponent.quote_asset_volume, 1 / val) : 0n);
+          setStoreComponent("quote_asset_volume", multiplyFloat(storeComponent.base_asset_volume, val));
         }}
         precision={props.precision ? props.precision : 2}
         left={"Price"}
@@ -70,12 +70,10 @@ export default function BuyForm(props: { market?: Market; available_balance?: bi
         value={base_asset_volume()}
         onChange={(e) => {
           const base_val = toWei(parse((e.target as HTMLInputElement).value ?? 0) ?? 0);
-          const max_quote_asset_volume = props.available_balance ?? 0n;
-          const max_base_asset_volume = storeComponent.price ? multiplyFloat(max_quote_asset_volume, 1 / storeComponent.price) : 0n;
+          const max_base_asset_volume = props.available_balance ?? 0n;
           const base_asset_volume = base_val > max_base_asset_volume ? max_base_asset_volume : base_val;
           setStoreComponent("base_asset_volume", base_asset_volume);
-          const quote_val = multiplyFloat(base_asset_volume, storeComponent.price);
-          const quote_asset_volume = quote_val > max_quote_asset_volume ? max_quote_asset_volume : quote_val;
+          const quote_asset_volume = multiplyFloat(base_asset_volume, storeComponent.price);
           setStoreComponent("quote_asset_volume", quote_asset_volume);
         }}
         precision={props.precision ? props.precision : 2}
@@ -86,11 +84,11 @@ export default function BuyForm(props: { market?: Market; available_balance?: bi
         value={slider()}
         onInput={(e) => {
           const slider_val = (e.target as HTMLInputElement).valueAsNumber / 100;
-          const max_quote_asset_volume = props.available_balance ?? 0n;
-          const quote_asset_volume = multiplyFloat(max_quote_asset_volume, slider_val);
-          setStoreComponent("quote_asset_volume", quote_asset_volume);
-          const base_asset_volume = storeComponent.price ? multiplyFloat(quote_asset_volume, 1 / storeComponent.price) : 0n;
+          const max_base_asset_volume = props.available_balance ?? 0n;
+          const base_asset_volume = multiplyFloat(max_base_asset_volume, slider_val);
           setStoreComponent("base_asset_volume", base_asset_volume);
+          const quote_asset_volume = multiplyFloat(base_asset_volume, storeComponent.price);
+          setStoreComponent("quote_asset_volume", quote_asset_volume);
         }}
       />
       <NumberInput
@@ -98,10 +96,12 @@ export default function BuyForm(props: { market?: Market; available_balance?: bi
         value={quote_asset_volume()}
         onChange={(e) => {
           const quote_val = toWei(parse((e.target as HTMLInputElement).value ?? 0) ?? 0);
-          const max_quote_asset_volume = props.available_balance ?? 0n;
+          const max_base_asset_volume = props.available_balance ?? 0n;
+          const max_quote_asset_volume = multiplyFloat(max_base_asset_volume, storeComponent.price);
           const quote_asset_volume = quote_val > max_quote_asset_volume ? max_quote_asset_volume : quote_val;
           setStoreComponent("quote_asset_volume", quote_asset_volume);
-          const base_asset_volume = storeComponent.price ? multiplyFloat(quote_asset_volume, 1 / storeComponent.price) : 0n;
+          const base_val = storeComponent.price ? multiplyFloat(quote_asset_volume, 1 / storeComponent.price) : 0n;
+          const base_asset_volume = base_val > max_base_asset_volume ? max_base_asset_volume : base_val;
           setStoreComponent("base_asset_volume", base_asset_volume);
         }}
         precision={props.precision ? props.precision : 2}
@@ -109,7 +109,7 @@ export default function BuyForm(props: { market?: Market; available_balance?: bi
         right={props.market?.quote_asset?.symbol ?? "---"}
       />
       <SubmitRectangularButton
-        class="my-[12px] bg-green"
+        class="my-[12px] bg-red"
         onClick={async () => {
           const response = await fetch(`${api}/private/submit`, {
             method: "POST",
@@ -120,10 +120,10 @@ export default function BuyForm(props: { market?: Market; available_balance?: bi
             credentials: "same-origin",
             body: JSON.stringify(
               SubmitRequest.parse({
-                quote_asset_id: props.market?.quote_asset?.id,
-                base_asset_id: props.market?.base_asset?.id,
-                quote_asset_volume: storeComponent.quote_asset_volume,
-                base_asset_volume: storeComponent.base_asset_volume,
+                quote_asset_id: props.market?.base_asset?.id,
+                base_asset_id: props.market?.quote_asset?.id,
+                quote_asset_volume: storeComponent.base_asset_volume,
+                base_asset_volume: storeComponent.quote_asset_volume,
               }),
               (_, v) => (typeof v === "bigint" ? v.toString() : v)
             ),
@@ -133,7 +133,7 @@ export default function BuyForm(props: { market?: Market; available_balance?: bi
           console.log(response);
         }}
       >
-        Buy
+        Sell
       </SubmitRectangularButton>
     </div>
   );

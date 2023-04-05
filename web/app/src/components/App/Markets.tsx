@@ -4,7 +4,7 @@ import { joinPaths } from "solid-start/islands/server-router";
 import { api, base } from "~/root";
 import SearchInput from "~/components/Inputs/SearchInput";
 import TriElement from "./TriElement/TriElement";
-import TriElementHeader from "~/components/TriElement/TriElementHeader";
+import TriElementHeader from "~/components/App/TriElement/TriElementHeader";
 import params from "~/utils/params";
 import z from "zod";
 import { A } from "solid-start";
