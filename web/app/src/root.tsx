@@ -25,8 +25,8 @@ export default function Root() {
             <NavProvider>
               <Routes>
                 <Route path="/" component={Index}>
-                  <Route path={["/", "/:baseAssetId/:quoteAssetId"]} element={<App />} preload={() => setNav(Nav.App)}/>
-                  <Route path="/assets" element={<Assets/>} preload={() => setNav(Nav.Assets)} />
+                  <Route path={["/", "/:baseAssetId/:quoteAssetId"]} element={<App />} preload={() => setNav(Nav.App)} />
+                  <Route path="/assets" element={<Assets />} preload={() => setNav(Nav.Assets)} />
                 </Route>
                 <FileRoutes />
               </Routes>

@@ -1,9 +1,9 @@
 import { Accessor, createContext, createSignal, JSX, useContext } from "solid-js";
 
 export enum Nav {
-    App,
-    Assets,
-    Account
+  App,
+  Assets,
+  Account,
 }
 
 export const [nav, setNav] = createSignal<Nav>(Nav.App);

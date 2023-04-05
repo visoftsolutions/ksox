@@ -57,8 +57,8 @@ export default function Assets() {
     <>
       <div class="col-start-2 col-end-6 row-start-2 row-end-4 grid grid-cols-[320px_200px_1fr] grid-rows-1 gap-[1px] bg-gray-1 font-sanspro">
         <div class="col-start-1 col-end-2 grid grid-rows-[80px_1fr] bg-gray-2">
-          <div class="row-start-1 row-end-2 pt-4 px-4">
-            <div class="grid grid-rows-[auto_1fr] h-full">
+          <div class="row-start-1 row-end-2 px-4 pt-4">
+            <div class="grid h-full grid-rows-[auto_1fr]">
               <SearchInput
                 class="row-start-1 row-end-2 mx-auto mb-2 w-full text-markets-searchbar"
                 left={<img src={joinPaths(base, "/gfx/search.svg")} />}
@@ -78,7 +78,7 @@ export default function Assets() {
               <Index each={assetsState.assets}>
                 {(element, i) => (
                   <div
-                    class={`h-[56px] grid cursor-pointer items-center justify-between px-4 py-2 text-orderbook-label
+                    class={`grid h-[56px] cursor-pointer items-center justify-between px-4 py-2 text-orderbook-label
                     ${i % 2 ? "bg-gray-3" : ""}
                     ${element() == assetsState.selected_asset ? "bg-ksox-1 bg-opacity-40 text-white" : ""}`}
                     onClick={() => {
@@ -96,7 +96,7 @@ export default function Assets() {
             </div>
           </div>
         </div>
-        <div class="col-start-2 col-end-3 bg-gray-2 text-orderbook-label text-gray-4 grid grid-rows-[80px_1fr]">
+        <div class="col-start-2 col-end-3 grid grid-rows-[80px_1fr] bg-gray-2 text-orderbook-label text-gray-4">
           <Show when={assetsState.selected_asset}>
             <div class="row-start-1 row-end-2 grid grid-cols-[80px_1fr] items-center justify-center ">
               <div class="col-start-1 col-end-2 mr-2">{assetsState.selected_asset!.icon}</div>
@@ -108,32 +108,36 @@ export default function Assets() {
             </div>
             <div class="row-start-2 row-end-3">
               <div
-                class={`h-[36px] mb-[1px] grid cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${tab() == Tab.Mint ? "bg-ksox-1 bg-opacity-40 text-white" : ""
-                  } `}
+                class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
+                  tab() == Tab.Mint ? "bg-ksox-1 bg-opacity-40 text-white" : ""
+                } `}
                 onClick={() => setTab(Tab.Mint)}
               >
                 <img src={joinPaths(base, "/gfx/assets_arrow_down.svg")} class="col-start-1 col-end-2" />
                 <div class="col-start-2 col-end-3">Mint</div>
               </div>
               <div
-                class={`h-[36px] mb-[1px] grid cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${tab() == Tab.Burn ? "bg-ksox-1 bg-opacity-40 text-white" : ""
-                  }`}
+                class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
+                  tab() == Tab.Burn ? "bg-ksox-1 bg-opacity-40 text-white" : ""
+                }`}
                 onClick={() => setTab(Tab.Burn)}
               >
                 <img src={joinPaths(base, "/gfx/assets_arrow_up.svg")} class="col-start-1 col-end-2" />
                 <div class="col-start-2 col-end-3">Burn</div>
               </div>
               <div
-                class={`h-[36px] mb-[1px] grid cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${tab() == Tab.History ? "bg-ksox-1 bg-opacity-40 text-white" : ""
-                  }`}
+                class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
+                  tab() == Tab.History ? "bg-ksox-1 bg-opacity-40 text-white" : ""
+                }`}
                 onClick={() => setTab(Tab.History)}
               >
                 <img src={joinPaths(base, "/gfx/assets_clock.svg")} class="col-start-1 col-end-2" />
                 <div class="col-start-2 col-end-3">History</div>
               </div>
               <div
-                class={`h-[36px] mb-[1px] grid cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${tab() == Tab.OwnTransfer ? "bg-ksox-1 bg-opacity-40 text-white" : ""
-                  }`}
+                class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
+                  tab() == Tab.OwnTransfer ? "bg-ksox-1 bg-opacity-40 text-white" : ""
+                }`}
                 onClick={() => setTab(Tab.OwnTransfer)}
               >
                 <img src={joinPaths(base, "/gfx/assets_transfer.svg")} class="col-start-1 col-end-2" />
