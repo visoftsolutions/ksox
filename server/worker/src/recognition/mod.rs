@@ -79,10 +79,10 @@ impl AssetPairRecognition {
         for (score0, (asset0, phr1)) in self.recognize_first(phrase.as_str(), &assets).into_iter() {
             let rem_phr = phrase[std::cmp::min(phrase.len(), phr1.len())..].to_string();
             for (score1, (asset1, _phr2)) in
-                self.recognize_first(rem_phr.as_str(), &assets).into_iter()
+                self.recognize_first(rem_phr.as_str(), &assets).into_iter().map(|e| (e.0*0.9, e.1))
             {
                 let score_sum = score0 + score1;
-                if asset0 == asset1 || score_sum == OrderedFloat(0_f64) {
+                if asset0 == asset1 {
                     continue;
                 }
                 result.push(AssetPairRecognitionResult {

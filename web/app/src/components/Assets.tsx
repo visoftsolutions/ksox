@@ -25,7 +25,6 @@ enum Tab {
 }
 
 export default function Assets() {
-  const session = useSession();
   const assets = useAssets();
   const [search, setSearch] = createSignal<string>("");
   const [tab, setTab] = createSignal<Tab>(Tab.Mint);
@@ -37,7 +36,7 @@ export default function Assets() {
   const precision = 3;
 
   createEffect(() => {
-    if (session() && assets()) {
+    if (assets()) {
       assets().forEach((e) => {
         setAssetsState("assets", (prev) => [
           ...prev,

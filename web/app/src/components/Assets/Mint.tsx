@@ -6,9 +6,11 @@ import { format, parse } from "numerable";
 import { formatTemplate } from "~/utils/precision";
 import { api } from "~/root";
 import { MintBurnRequest } from "~/types/mod";
+import { useSession } from "~/utils/providers/SessionProvider";
 
 export default function Mint(props: { asset: AssetInfo; precision: number }) {
   const [amount, setAmount] = createSignal<bigint>(0n);
+  const session = useSession();
   return (
     <>
       <div class="font-lexend text-[32px] font-extralight">Mint assets</div>
@@ -25,25 +27,27 @@ export default function Mint(props: { asset: AssetInfo; precision: number }) {
           }}
         />
         <div
-          class="col-start-2 col-end-3 grid h-[32px] w-[100px] cursor-pointer select-none items-center justify-center rounded-md bg-ksox-2 text-markets-label transition-colors duration-75 active:bg-opacity-70"
+          class={`col-start-2 col-end-3 grid h-[32px] w-[100px] ${session() ? "cursor-pointer bg-ksox-2 active:bg-opacity-70" : "bg-gray-3"} select-none items-center justify-center rounded-md  text-markets-label transition-colors duration-75`}
           onClick={async () => {
-            await fetch(`${api}/private/mint`, {
-              method: "POST",
-              headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-              },
-              credentials: "same-origin",
-              body: JSON.stringify(
-                MintBurnRequest.parse({
-                  asset_id: props.asset.id,
-                  amount: amount(),
-                }),
-                (_, v) => (typeof v === "bigint" ? v.toString() : v)
-              ),
-            })
-              .then((r) => r.text())
-              .then((r) => console.log(r));
+            if (session()) {
+              await fetch(`${api}/private/mint`, {
+                method: "POST",
+                headers: {
+                  Accept: "application/json",
+                  "Content-Type": "application/json",
+                },
+                credentials: "same-origin",
+                body: JSON.stringify(
+                  MintBurnRequest.parse({
+                    asset_id: props.asset.id,
+                    amount: amount(),
+                  }),
+                  (_, v) => (typeof v === "bigint" ? v.toString() : v)
+                ),
+              })
+                .then((r) => r.text())
+                .then((r) => console.log(r));
+            }
           }}
         >
           Mint
