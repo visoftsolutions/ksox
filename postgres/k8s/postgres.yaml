@@ -18,6 +18,13 @@ spec:
         image: postgres-database
         ports:
         - containerPort: 5432
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "500m"
+          limits:
+            memory: "256Mi"
+            cpu: "1000m"
         env:
         - name: POSTGRES_USER
           value: ksoxuser
@@ -31,11 +38,9 @@ kind: Service
 metadata:
   name: postgres-service
 spec:
-  type: NodePort
   selector:
     app: postgres-database
   ports:
     - protocol: TCP
       port: 5432
       targetPort: 5432
-      nodePort: 30432

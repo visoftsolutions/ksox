@@ -12,3 +12,6 @@ spec:
     - http01:
         ingress:
           class: ingress-nginx
+      selector:
+        dnsZones:
+        - ksox.exchange

@@ -2,6 +2,10 @@ apiVersion: skaffold/v4beta3
 kind: Config
 build:
   artifacts:
+  - image: busybox
+    context: ./containers
+    docker:
+      dockerfile: busybox.dockerfile
   - image: postgres-database
     context: ./postgres
     docker:

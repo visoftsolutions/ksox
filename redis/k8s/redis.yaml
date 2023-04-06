@@ -18,6 +18,13 @@ spec:
         image: redis-database
         ports:
         - containerPort: 6379
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "500m"
+          limits:
+            memory: "256Mi"
+            cpu: "1000m"
 ---
 apiVersion: v1
 kind: Service
