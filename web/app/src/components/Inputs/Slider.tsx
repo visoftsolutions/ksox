@@ -1,8 +1,9 @@
-import { JSX } from "solid-js";
+import { JSX, createUniqueId } from "solid-js";
 
 export interface SliderComponent {
   value: number;
   class?: JSX.HTMLAttributes<HTMLElement>["class"];
+  inputClass?: JSX.HTMLAttributes<HTMLElement>["class"];
   disabled?: boolean;
   disabledClass?: JSX.HTMLAttributes<HTMLElement>["class"];
   onInput?: (e: Event) => void;
@@ -45,12 +46,15 @@ export default function Slider(props: SliderComponent) {
     sliderDOM.removeEventListener("input", handler);
   }
 
+  const id = createUniqueId();
+
   return (
     <div class={`relative ${props.class} ${props.disabled ? props.disabledClass : ""}`}>
       <div class="fixed hidden rounded-sm bg-slate-700 px-[8px] py-[4px] text-submit-sublabel" ref={popupDOM} />
       <div class="flex-1 text-center">
         <input
-          class="slider w-full appearance-none"
+          id={id}
+          class={`slider w-full appearance-none ${props.inputClass}`}
           type="range"
           min="0"
           max="100"

@@ -7,12 +7,13 @@ import { Dynamic } from "solid-js/web";
 import CreateState from "~/components/App/State";
 import { useMarket } from "~/utils/providers/MarketProvider";
 import { useSession } from "~/utils/providers/SessionProvider";
+import { usePrecision } from "~/utils/providers/PrecisionProvider";
 
 export default function App() {
   const market = useMarket();
   const session = useSession();
-  const precision = 3;
-  const capacity = 20;
+  const precision = usePrecision();
+  const capacity = 40;
 
   return (
     <>
@@ -23,16 +24,16 @@ export default function App() {
         <Dynamic component={CreateChart(market())} />
       </div>
       <div class="col-start-4 col-end-5 row-start-2 row-end-3 bg-gray-2 lg:col-start-5">
-        <Dynamic component={CreateOrderBook(market(), precision, capacity)} />
+        <Dynamic component={CreateOrderBook(market(), precision(), capacity)} />
       </div>
       <div class="col-start-5 col-end-6 row-start-2 row-end-3 bg-gray-2 lg:hidden">
-        <Dynamic component={CreateTrades(market(), precision, capacity)} />
+        <Dynamic component={CreateTrades(market(), precision(), capacity)} />
       </div>
       <div class="col-start-2 col-end-4 row-start-3 row-end-4 bg-gray-2 lg:col-end-5">
-        <Dynamic component={CreateState(market(), session() ?? undefined, precision, capacity)} />
+        <Dynamic component={CreateState(market(), session(), precision(), capacity)} />
       </div>
       <div class="col-start-4 col-end-6 row-start-3 row-end-4 bg-gray-2 lg:col-start-5">
-        <Dynamic component={CreateSubmit(market(), session() ?? undefined, precision)} />
+        <Dynamic component={CreateSubmit(market(), session(), precision())} />
       </div>
     </>
   );

@@ -1,4 +1,4 @@
-import { createMemo, JSX } from "solid-js";
+import { createMemo, createUniqueId, JSX } from "solid-js";
 
 export interface NumberInputComponent {
   value?: string;
@@ -42,6 +42,8 @@ export default function NumberInput(props: NumberInputComponent) {
     return props.value == undefined ? "" : props.value;
   });
 
+  const id = createUniqueId();
+
   return (
     <div
       class={`grid cursor-text grid-cols-[auto_1fr_auto] items-center rounded-md bg-gray-1 ${props.class} ${props.disabled ? props.disabledClass : ""}`}
@@ -49,9 +51,10 @@ export default function NumberInput(props: NumberInputComponent) {
         inputDOM.focus();
       }}
     >
-      <div class="col-start-1 col-end-2 min-w-[50px] px-[8px] text-left text-submit-sublabel text-gray-4">{props.left}</div>
+      <label for={id} class="col-start-1 col-end-2 min-w-[50px] px-[8px] text-left text-submit-sublabel text-gray-4">{props.left}</label>
       <div class="col-start-2 col-end-3 text-right">
         <input
+          id={id}
           class={"number_input w-full max-w-[150px] bg-transparent p-1 text-right outline-none"}
           type="text"
           spellcheck={true}

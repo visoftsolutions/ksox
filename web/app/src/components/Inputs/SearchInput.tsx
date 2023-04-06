@@ -1,4 +1,4 @@
-import { createMemo, JSX } from "solid-js";
+import { createMemo, createUniqueId, JSX } from "solid-js";
 
 export interface SearchInputComponent {
   value?: string;
@@ -16,16 +16,19 @@ export default function SearchInput(props: SearchInputComponent) {
     return props.value == null || props.value == undefined ? "" : props.value;
   });
 
+  const id = createUniqueId();
+
   return (
     <div
-      class={`grid cursor-text grid-cols-[auto_1fr] items-center rounded-md bg-gray-1 p-1 ${props.class} ${props.disabled ? props.disabledClass : ""}`}
+      class={`grid cursor-text text-searchInput font-sanspro font-normal grid-cols-[auto_1fr] items-center rounded-md bg-gray-1 p-[3px] ${props.class} ${props.disabled ? props.disabledClass : ""}`}
       onClick={() => {
         inputDOM.focus();
       }}
     >
-      <div class="col-start-1 col-end-2 px-[8px] text-gray-4">{props.left}</div>
+      <label for={id} class="col-start-1 col-end-2 px-[6px]">{props.left}</label>
       <div class="col-start-2 col-end-3 text-right">
         <input
+          id={id}
           class={"w-full bg-transparent p-1 text-left placeholder-gray-4 outline-none"}
           type="text"
           spellcheck={true}

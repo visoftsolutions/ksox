@@ -17,7 +17,12 @@ export default function Root() {
         <Title>KsoxExchange</Title>
         <Meta charset="utf-8" />
         <Meta name="viewport" content="width=device-width, initial-scale=1" />
-        <Link rel="icon" type="image/x-icon" href={joinPaths(base, "/favicon.ico")} />
+        <Meta name="theme-color" content="#0F0D12" />
+        <Meta
+          name="description"
+          content="Ksox Cryptocurrency Exchange"
+        />
+        <Link rel="icon" href="/gfx/logo.svg" />
       </Head>
       <Body>
         <Suspense>

@@ -6,5 +6,5 @@ export default async function logout() {
     credentials: "same-origin",
   }).then((r) => r.text());
   console.log(response);
-  return null;
+  return undefined;
 }

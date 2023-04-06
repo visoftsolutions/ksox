@@ -5,9 +5,9 @@ import { createStore } from "solid-js/store";
 import { useAssets } from "~/utils/providers/AssetsProvider";
 import { Uuid } from "~/types/primitives/uuid";
 import SearchInput from "./Inputs/SearchInput";
-import { useSession } from "~/utils/providers/SessionProvider";
 import Mint from "./Assets/Mint";
 import Burn from "./Assets/Burn";
+import { usePrecision } from "~/utils/providers/PrecisionProvider";
 
 export interface AssetInfo {
   id: Uuid;
@@ -26,6 +26,7 @@ enum Tab {
 
 export default function Assets() {
   const assets = useAssets();
+  const precision = usePrecision();
   const [search, setSearch] = createSignal<string>("");
   const [tab, setTab] = createSignal<Tab>(Tab.Mint);
   const [assetsState, setAssetsState] = createStore<{
@@ -33,7 +34,6 @@ export default function Assets() {
     selected_asset?: AssetInfo;
     amount: bigint;
   }>({ assets: [], selected_asset: undefined, amount: 0n });
-  const precision = 3;
 
   createEffect(() => {
     if (assets()) {
@@ -60,7 +60,7 @@ export default function Assets() {
             <div class="grid h-full grid-rows-[auto_1fr]">
               <SearchInput
                 class="row-start-1 row-end-2 mx-auto mb-2 w-full text-markets-searchbar"
-                left={<img src={joinPaths(base, "/gfx/search.svg")} />}
+                left={<img src={joinPaths(base, "/gfx/search.svg")} alt="search" width="20px"/>}
                 onInput={(e) => {
                   const value = (e.target as HTMLInputElement).value;
                   setSearch(value);
@@ -149,10 +149,10 @@ export default function Assets() {
           <Show when={assetsState.selected_asset}>
             <Switch>
               <Match when={tab() == Tab.Mint}>
-                <Mint asset={assetsState.selected_asset!} precision={precision} />
+                <Mint asset={assetsState.selected_asset!} precision={precision()} />
               </Match>
               <Match when={tab() == Tab.Burn}>
-                <Burn asset={assetsState.selected_asset!} precision={precision} />
+                <Burn asset={assetsState.selected_asset!} precision={precision()} />
               </Match>
               <Match when={tab() == Tab.History}>
                 <div></div>

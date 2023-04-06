@@ -161,17 +161,15 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
   });
 
   return (
-    <div class="grid h-full grid-cols-1 grid-rows-[auto_1fr_auto_1fr]">
-      <div class="row-start-1 row-end-2">
-        <div class="p-4 font-sanspro text-orderbook-label font-semibold">Orderbook</div>
-        <TriElementHeader
-          class="px-[12px] py-[4px]"
-          column_0={<div class="text-left text-orderbook-sublabel">{`Price (${props.quote_asset ? props.quote_asset.symbol : "---"})`}</div>}
-          column_1={<div class="text-right text-orderbook-sublabel">{`Quantity (${props.base_asset ? props.base_asset.symbol : "---"})`}</div>}
-          column_2={<div class="text-right text-orderbook-sublabel">{`Total (${props.quote_asset ? props.quote_asset.symbol : "---"})`}</div>}
+    <div class="grid h-full grid-rows-[auto_36px_1fr_40px_1fr]">
+      <div class="row-start-1 row-end-2 p-3 font-sanspro text-orderbook-label font-semibold">Orderbook</div>
+      <TriElementHeader
+          class="px-3 row-start-2 row-end-3 grid justify-center items-center"
+          column_0={`Price (${props.quote_asset ? props.quote_asset.symbol : "---"})`}
+          column_1={`Quantity (${props.base_asset ? props.base_asset.symbol : "---"})`}
+          column_2={`Total (${props.quote_asset ? props.quote_asset.symbol : "---"})`}
         />
-      </div>
-      <div class="relative row-start-2 row-end-3">
+      <div class="relative row-start-3 row-end-4">
         <div class="absolute bottom-0 left-0 right-0 top-0 flex flex-col-reverse overflow-clip">
           <Index each={orderBook.sells}>
             {(element) => (
@@ -187,17 +185,17 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
           </Index>
         </div>
       </div>
-      <div class="row-start-3 row-end-4 min-h-[50px]">
-        <div class="flex h-full flex-col justify-center px-[12px]">
-          <div class="text-orderbook-middle font-semibold ">{orderBook.price}</div>
+      <div class="row-start-4 row-end-5">
+        <div class="flex h-full flex-col justify-center px-3">
+          <div class="text-orderbookMiddle font-bold ">{orderBook.price}</div>
         </div>
       </div>
-      <div class="relative row-start-4 row-end-5">
+      <div class="relative row-start-5 row-end-6">
         <div class="absolute bottom-0 left-0 right-0 top-0 flex flex-col overflow-clip">
           <Index each={orderBook.buys}>
             {(element) => (
               <TriElementFill
-                class="px-[12px] py-[4px] font-sanspro text-orderbook-item"
+                class="px-3 mt-[1px] py-1 font-sanspro text-orderbook-item"
                 column_0={element().column_0}
                 column_1={element().column_1}
                 column_2={element().column_2}

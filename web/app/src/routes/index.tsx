@@ -4,6 +4,7 @@ import { Outlet } from "solid-start";
 import MainMenu from "~/components/MainMenu";
 import SideMenu from "~/components/SideMenu";
 import { SessionProvider } from "~/utils/providers/SessionProvider";
+import { PrecisionProvider } from "~/utils/providers/PrecisionProvider";
 
 export default function Index() {
   return (
@@ -17,8 +18,9 @@ export default function Index() {
             <SideMenu />
           </div>
           <AssetsProvider>
-
-            <Outlet />
+            <PrecisionProvider>
+              <Outlet />
+            </PrecisionProvider>
           </AssetsProvider>
         </main>
       </MarketProvider>

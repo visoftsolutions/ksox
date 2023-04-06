@@ -92,9 +92,9 @@ export function Submit(props: { market?: Market; session?: ValidateSignatureResp
   });
 
   return (
-    <div class="grid h-full grid-cols-1 grid-rows-[auto_1fr]">
-      <div class="row-start-1 row-end-2 px-[4px] pt-[12px]">
-        <div class="inline-grid grid-cols-[auto_auto_auto] grid-rows-1 gap-1">
+    <div class="grid h-full grid-rows-[auto_1fr]">
+      <div class="row-start-1 row-end-2">
+        <div class="inline-grid gap-1">
           <RectangularButton class="col-start-1 col-end-2" highlighted={false}>
             <span class="text-openorders-label">Limit</span>
           </RectangularButton>

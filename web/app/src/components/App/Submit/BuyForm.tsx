@@ -84,6 +84,7 @@ export default function BuyForm(props: { market?: Market; available_balance?: bi
       />
       <Slider
         value={slider()}
+        inputClass="slider-green"
         onInput={(e) => {
           const slider_val = (e.target as HTMLInputElement).valueAsNumber / 100;
           const max_quote_asset_volume = props.available_balance ?? 0n;

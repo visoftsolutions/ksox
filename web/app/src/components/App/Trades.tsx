@@ -89,22 +89,20 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
   });
 
   return (
-    <div class="grid h-full grid-cols-1 grid-rows-[auto_1fr]">
-      <div class="row-start-1 row-end-2">
-        <div class="p-4 font-sanspro text-trades-label font-semibold">Trades</div>
-        <TriElementHeader
-          class="px-[12px] py-[4px]"
-          column_0={<div class="text-left text-trades-sublabel">{`Price (${props.quote_asset ? props.quote_asset.symbol : "---"})`}</div>}
-          column_1={<div class="text-right text-trades-sublabel">{`Quantity (${props.base_asset ? props.base_asset.symbol : "---"})`}</div>}
-          column_2={<div class="text-right text-trades-sublabel">{"Time"}</div>}
-        />
-      </div>
-      <div class="relative row-start-2 row-end-3">
+    <div class="grid h-full grid-rows-[auto_36px_1fr]">
+      <div class="row-start-1 row-end-2 p-3 font-sanspro text-orderbook-label font-semibold">Trades</div>
+      <TriElementHeader
+        class="px-3 row-start-2 row-end-3"
+        column_0={`Price (${props.quote_asset ? props.quote_asset.symbol : "---"})`}
+        column_1={`Quantity (${props.base_asset ? props.base_asset.symbol : "---"})`}
+        column_2={"Time"}
+      />
+      <div class="relative row-start-3 row-end-4">
         <div class="absolute bottom-0 left-0 right-0 top-0 flex flex-col overflow-clip">
           <Index each={tradesState.trades}>
             {(element, i) => (
               <TriElement
-                class={`px-[12px] py-[4px] font-sanspro text-trades-item ${i % 2 ? "bg-gray-3" : ""}`}
+                class={`px-3 py-1 font-sanspro text-trades-item ${i % 2 ? "bg-gray-3" : ""}`}
                 column_0={element().column_0}
                 column_1={element().column_1}
                 column_2={element().column_2}

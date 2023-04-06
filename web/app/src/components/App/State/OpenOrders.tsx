@@ -29,17 +29,15 @@ interface OpenOrder {
 export default function CreateOpenOrders(market?: Market, session?: ValidateSignatureResponse, precision?: number, capacity?: number) {
   return () => (
     <>
-      <div class="row-start-2 row-end-3">
-        <div class="grid grid-cols-8 items-center self-center px-[8px] py-[8px] text-state-sublabel font-semibold text-gray-4">
-          <div class="col-start-1 col-end-2 text-left">Order Time</div>
-          <div class="col-start-2 col-end-3 text-center">Asset Pair</div>
-          <div class="col-start-3 col-end-4 text-center">Direction</div>
-          <div class="col-start-4 col-end-5 text-center">Order Price</div>
-          <div class="col-start-5 col-end-6 text-center">Order Value</div>
-          <div class="col-start-6 col-end-7 text-center">Order Qty</div>
-          <div class="col-start-7 col-end-8 text-center">Filled Qty</div>
-          <div class="col-start-8 col-end-9 text-right">Action</div>
-        </div>
+      <div class="row-start-2 row-end-3 grid grid-cols-8 items-center self-center px-3 text-stateHeader font-semibold text-gray-4">
+        <div class="col-start-1 col-end-2 text-left">Order Time</div>
+        <div class="col-start-2 col-end-3 text-center">Asset Pair</div>
+        <div class="col-start-3 col-end-4 text-center">Direction</div>
+        <div class="col-start-4 col-end-5 text-center">Order Price</div>
+        <div class="col-start-5 col-end-6 text-center">Order Value</div>
+        <div class="col-start-6 col-end-7 text-center">Order Qty</div>
+        <div class="col-start-7 col-end-8 text-center">Filled Qty</div>
+        <div class="col-start-8 col-end-9 text-right">Action</div>
       </div>
       <Show when={market && session && precision}>
         <OpenOrders market={market} session={session} precision={precision} capacity={capacity} />

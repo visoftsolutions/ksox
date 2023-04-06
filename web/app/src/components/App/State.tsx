@@ -1,7 +1,7 @@
 import { createSignal, Match, Show, Switch } from "solid-js";
 import { ValidateSignatureResponse } from "~/auth/mod";
 import { Market } from "~/utils/providers/MarketProvider";
-import RectangularButton from "./Buttons/NavButton";
+import NavButton from "./Buttons/NavButton";
 import CreateOpenOrders from "./State/OpenOrders";
 import CreateOrderHistory from "./State/OrderHistory";
 import CreateTradeHistory from "./State/TradeHistory";
@@ -29,10 +29,10 @@ export function State(props: { market?: Market; session?: ValidateSignatureRespo
   const [tab, setTab] = createSignal<StateTabs>(StateTabs.OpenOrders);
 
   return (
-    <div class="grid h-full grid-cols-1 grid-rows-[auto_auto_1fr]">
-      <div class="row-start-1 row-end-2 px-[4px] pt-[12px]">
-        <div class="inline-grid grid-cols-[auto_auto_auto] grid-rows-1 gap-1">
-          <RectangularButton
+    <div class="grid h-full grid-cols-1 grid-rows-[auto_36px_1fr]">
+      <div class="row-start-1 row-end-2">
+        <div class="inline-grid grid-cols-[auto_auto_auto] grid-rows-1 gap-[1px]">
+          <NavButton
             class="col-start-1 col-end-2"
             highlighted={tab() == StateTabs.OpenOrders}
             onClick={() => {
@@ -40,8 +40,8 @@ export function State(props: { market?: Market; session?: ValidateSignatureRespo
             }}
           >
             <span class="text-state-label">Open Orders</span>
-          </RectangularButton>
-          <RectangularButton
+          </NavButton>
+          <NavButton
             class="col-start-2 col-end-3"
             highlighted={tab() == StateTabs.OrderHistory}
             onClick={() => {
@@ -49,8 +49,8 @@ export function State(props: { market?: Market; session?: ValidateSignatureRespo
             }}
           >
             <span class="text-state-label">Order History</span>
-          </RectangularButton>
-          <RectangularButton
+          </NavButton>
+          <NavButton
             class="col-start-3 col-end-4"
             highlighted={tab() == StateTabs.TradeHistory}
             onClick={() => {
@@ -58,7 +58,7 @@ export function State(props: { market?: Market; session?: ValidateSignatureRespo
             }}
           >
             <span class="text-state-label">Trade History</span>
-          </RectangularButton>
+          </NavButton>
         </div>
       </div>
 

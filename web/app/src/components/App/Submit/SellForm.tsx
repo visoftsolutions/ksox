@@ -82,6 +82,7 @@ export default function SellForm(props: { market?: Market; available_balance?: b
       />
       <Slider
         value={slider()}
+        inputClass="slider-red"
         onInput={(e) => {
           const slider_val = (e.target as HTMLInputElement).valueAsNumber / 100;
           const max_base_asset_volume = props.available_balance ?? 0n;
