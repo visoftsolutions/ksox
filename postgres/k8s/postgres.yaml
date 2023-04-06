@@ -1,3 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pv-claim
+spec:
+  storageClassName: openebs-hostpath
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -13,11 +25,18 @@ spec:
       labels:
         app: postgres-database
     spec:
+      volumes:
+      - name: postgres-pv-storage
+        persistentVolumeClaim:
+          claimName: postgres-pv-claim
       containers:
       - name: postgres-database
         image: postgres-database
         ports:
         - containerPort: 5432
+        volumeMounts:
+        - mountPath: "/var/lib/postgresql/data"
+          name: postgres-pv-storage
         resources:
           requests:
             memory: "128Mi"
