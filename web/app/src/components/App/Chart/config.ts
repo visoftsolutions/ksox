@@ -10,13 +10,12 @@ import {
   PriceScaleMode,
   UTCTimestamp,
 } from "lightweight-charts";
-import { M } from "viem/dist/parseGwei-361e8a12";
 import { Market } from "~/utils/providers/MarketProvider";
 
 export function chartOptions(makret?: Market): DeepPartial<ChartOptions> {
   const r: DeepPartial<ChartOptions> = {
     watermark: {
-      color: "#7C7C8A08",
+      color: "#7C7C8A15",
       visible: true,
       text: makret?.base_asset?.symbol + "/" + makret?.quote_asset?.symbol,
       fontSize: 100,

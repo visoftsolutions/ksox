@@ -3,9 +3,11 @@ import { base } from "~/root";
 import SideMenuCircularButton from "./SideMenu/Buttons/CircularButton";
 import { A } from "solid-start";
 import { Nav, useNav } from "~/utils/providers/NavProvider";
+import { useMarket } from "~/utils/providers/MarketProvider";
 
 export default function SideMenu() {
   const nav = useNav();
+  const market = useMarket();
 
   return (
     <div class="grid h-full grid-rows-[100px_1fr_100px] justify-center">
@@ -13,7 +15,7 @@ export default function SideMenu() {
         <img src={joinPaths(base, "/gfx/logo.png")} class="m-auto h-[47px] w-[36px]" />
       </div>
       <div class="row-start-2 row-end-3 ">
-        <A href="/">
+        <A href={`${market().base_asset && market().quote_asset ? "/" + market().base_asset?.id + "/" + market().quote_asset?.id : "/"}`}>
           <SideMenuCircularButton class="m-3 bg-gray-3" highlighted={nav() == Nav.App}>
             <img src={joinPaths(base, "/gfx/side_menu_spot.svg")} class="h-[36px] w-[36px]" />
           </SideMenuCircularButton>
