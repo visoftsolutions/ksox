@@ -48,8 +48,9 @@ metadata:
 spec:
   tls:
     - hosts:
+        - ksox.exchange
         - www.ksox.exchange
-      secretName: www-ksox-exchange-tls
+      secretName: ksox-exchange-tls
   rules:
     - host: www.ksox.exchange
       http:

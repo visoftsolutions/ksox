@@ -35,10 +35,13 @@ spec:
       initContainers:
       - name: wait-for-postgres
         image: busybox
-        command: ['sh', '-c', 'until nc -z postgres-service 5432; do echo waiting for postgres; sleep 2; done;']
+        command: ['sh', '-c', 'until nc -z postgres-service 5432; do echo waiting for postgres; sleep 1; done;']
       - name: wait-for-redis
         image: busybox
-        command: ['sh', '-c', 'until nc -z redis-service 6379; do echo waiting for redis; sleep 2; done;']
+        command: ['sh', '-c', 'until nc -z redis-service 6379; do echo waiting for redis; sleep 1; done;']
+      - name: wait-for-engine
+        image: busybox
+        command: ['sh', '-c', 'until nc -z server-engine-service 80; do echo waiting for engine; sleep 1; done;']
 ---
 apiVersion: v1
 kind: Service
@@ -62,8 +65,9 @@ metadata:
 spec:
   tls:
     - hosts:
-      - www.ksox.exchange
-      secretName: www-ksox-exchange-tls
+        - ksox.exchange
+        - www.ksox.exchange
+      secretName: ksox-exchange-tls
   rules:
   - host: www.ksox.exchange
     http:
