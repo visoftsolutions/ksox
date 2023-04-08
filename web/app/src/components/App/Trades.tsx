@@ -55,7 +55,6 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
         }
       };
 
-      console.log("TRADES TRADES");
       events = new EventSource(
         `${api}/public/trades/sse?${params({
           quote_asset_id: quote_asset.id,
@@ -92,7 +91,7 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
     <div class="grid h-full grid-rows-[auto_36px_1fr]">
       <div class="row-start-1 row-end-2 p-3 font-sanspro text-orderbook-label font-semibold">Trades</div>
       <TriElementHeader
-        class="px-3 row-start-2 row-end-3"
+        class="row-start-2 row-end-3 px-3"
         column_0={`Price (${props.quote_asset ? props.quote_asset.symbol : "---"})`}
         column_1={`Quantity (${props.base_asset ? props.base_asset.symbol : "---"})`}
         column_2={"Time"}

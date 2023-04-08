@@ -30,7 +30,7 @@ export function chartOptions(makret?: Market): DeepPartial<ChartOptions> {
       },
       textColor: "#7C7C8A",
       fontSize: 11,
-      fontFamily: "sans-serif"
+      fontFamily: "sans-serif",
     },
     rightPriceScale: {
       autoScale: true,
@@ -43,7 +43,7 @@ export function chartOptions(makret?: Market): DeepPartial<ChartOptions> {
     timeScale: {
       rightOffset: 10,
       timeVisible: true,
-      borderVisible: false
+      borderVisible: false,
     },
     crosshair: {
       mode: CrosshairMode.Normal,
@@ -86,17 +86,17 @@ export const candlestickOptions = {
   borderDownColor: "#C73B3B",
   wickUpColor: "#45B780",
   wickDownColor: "#C73B3B",
-} as CandlestickSeriesPartialOptions
+} as CandlestickSeriesPartialOptions;
 
 export const histogramOptions = {
   color: "#7C7C8A",
   lineWidth: 2,
-	priceFormat: {
-		type: 'volume',
-	},
-	overlay: true,
+  priceFormat: {
+    type: "volume",
+  },
+  overlay: true,
   scaleMargins: {
-  	top: 0.6,
+    top: 0.6,
     bottom: 0,
   },
 } as HistogramSeriesPartialOptions;

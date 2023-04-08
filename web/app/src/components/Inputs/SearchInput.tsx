@@ -20,12 +20,16 @@ export default function SearchInput(props: SearchInputComponent) {
 
   return (
     <div
-      class={`grid cursor-text text-searchInput font-sanspro font-normal grid-cols-[auto_1fr] items-center rounded-md bg-gray-1 p-[3px] ${props.class} ${props.disabled ? props.disabledClass : ""}`}
+      class={`grid cursor-text grid-cols-[auto_1fr] items-center rounded-md bg-gray-1 p-[3px] font-sanspro text-searchInput font-normal ${props.class} ${
+        props.disabled ? props.disabledClass : ""
+      }`}
       onClick={() => {
         inputDOM.focus();
       }}
     >
-      <label for={id} class="col-start-1 col-end-2 px-[6px]">{props.left}</label>
+      <label for={id} class="col-start-1 col-end-2 px-[6px]">
+        {props.left}
+      </label>
       <div class="col-start-2 col-end-3 text-right">
         <input
           id={id}

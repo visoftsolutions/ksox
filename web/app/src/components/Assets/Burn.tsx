@@ -1,14 +1,23 @@
 import { AssetInfo } from "../Assets";
 import NumberInput from "../Inputs/NumberInput";
-import { createSignal } from "solid-js";
+import { Show, createSignal } from "solid-js";
 import { fromWei, toWei } from "~/utils/converters/wei";
 import { format, parse } from "numerable";
 import { formatTemplate } from "~/utils/precision";
 import { api } from "~/root";
 import { MintBurnRequest } from "~/types/mod";
 import { useSession } from "~/utils/providers/SessionProvider";
+import { Asset } from "~/types/asset";
 
-export default function Burn(props: { asset: AssetInfo; precision: number }) {
+export default function CreateBurn(asset?: Asset, precision?: number) {
+  return () => (
+    <Show when={asset && precision}>
+      <Burn asset={asset!} precision={precision!} />
+    </Show>
+  );
+}
+
+export function Burn(props: { asset: AssetInfo; precision: number }) {
   const [amount, setAmount] = createSignal<bigint>(0n);
   const session = useSession();
 
@@ -28,7 +37,9 @@ export default function Burn(props: { asset: AssetInfo; precision: number }) {
           }}
         />
         <div
-          class={`col-start-2 col-end-3 grid h-[32px] w-[100px] ${session() ? "cursor-pointer bg-ksox-2 active:bg-opacity-70" : "bg-gray-3"} select-none items-center justify-center rounded-md  text-markets-label transition-colors duration-75`}
+          class={`col-start-2 col-end-3 grid h-[32px] w-[100px] ${
+            session() ? "cursor-pointer bg-ksox-2 active:bg-opacity-70" : "bg-gray-3"
+          } select-none items-center justify-center rounded-md  text-markets-label transition-colors duration-75`}
           onClick={async () => {
             if (session()) {
               await fetch(`${api}/private/burn`, {
@@ -45,9 +56,7 @@ export default function Burn(props: { asset: AssetInfo; precision: number }) {
                   }),
                   (_, v) => (typeof v === "bigint" ? v.toString() : v)
                 ),
-              })
-                .then((r) => r.text())
-                .then((r) => console.log(r));
+              }).then((r) => r.text());
             }
           }}
         >

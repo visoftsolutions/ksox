@@ -51,7 +51,9 @@ export default function NumberInput(props: NumberInputComponent) {
         inputDOM.focus();
       }}
     >
-      <label for={id} class="col-start-1 col-end-2 min-w-[50px] px-[8px] text-left text-submit-sublabel text-gray-4">{props.left}</label>
+      <label for={id} class="col-start-1 col-end-2 min-w-[50px] px-[8px] text-left text-submit-sublabel text-gray-4">
+        {props.left}
+      </label>
       <div class="col-start-2 col-end-3 text-right">
         <input
           id={id}

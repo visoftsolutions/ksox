@@ -93,7 +93,6 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
         });
       };
 
-      console.log("ORDERBOOK DEPTH");
       depth_events = new EventSource(
         `${api}/public/depth/sse?${params({
           quote_asset_id: quote_asset.id,
@@ -127,7 +126,6 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
         setOrderBook("sells", s);
       };
 
-      console.log("ORDERBOOK TRADES");
       trades_events = new EventSource(
         `${api}/public/trades/sse?${params({
           quote_asset_id: quote_asset.id,
@@ -164,11 +162,11 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
     <div class="grid h-full grid-rows-[auto_36px_1fr_40px_1fr]">
       <div class="row-start-1 row-end-2 p-3 font-sanspro text-orderbook-label font-semibold">Orderbook</div>
       <TriElementHeader
-          class="px-3 row-start-2 row-end-3 grid justify-center items-center"
-          column_0={`Price (${props.quote_asset ? props.quote_asset.symbol : "---"})`}
-          column_1={`Quantity (${props.base_asset ? props.base_asset.symbol : "---"})`}
-          column_2={`Total (${props.quote_asset ? props.quote_asset.symbol : "---"})`}
-        />
+        class="row-start-2 row-end-3 grid items-center justify-center px-3"
+        column_0={`Price (${props.quote_asset ? props.quote_asset.symbol : "---"})`}
+        column_1={`Quantity (${props.base_asset ? props.base_asset.symbol : "---"})`}
+        column_2={`Total (${props.quote_asset ? props.quote_asset.symbol : "---"})`}
+      />
       <div class="relative row-start-3 row-end-4">
         <div class="absolute bottom-0 left-0 right-0 top-0 flex flex-col-reverse overflow-clip">
           <Index each={orderBook.sells}>
@@ -195,7 +193,7 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
           <Index each={orderBook.buys}>
             {(element) => (
               <TriElementFill
-                class="px-3 mt-[1px] py-1 font-sanspro text-orderbook-item"
+                class="mt-[1px] px-3 py-1 font-sanspro text-orderbook-item"
                 column_0={element().column_0}
                 column_1={element().column_1}
                 column_2={element().column_2}

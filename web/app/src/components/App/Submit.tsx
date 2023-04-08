@@ -34,7 +34,6 @@ export function Submit(props: { market?: Market; session?: ValidateSignatureResp
       const quote_asset = props.market?.quote_asset;
       const base_asset = props.market?.base_asset;
 
-      console.log("SUBMIT BUY");
       buy_available_balance_events = new EventSource(
         `${api}/private/balance/sse?${params({
           asset_id: quote_asset.id,
@@ -59,7 +58,6 @@ export function Submit(props: { market?: Market; session?: ValidateSignatureResp
         setStoreSubmit("buy_available_balance", Valut.parse(JSON.parse(ev.data)).balance);
       };
 
-      console.log("SUBMIT SELL");
       sell_available_balance = new EventSource(
         `${api}/private/balance/sse?${params({
           asset_id: base_asset.id,

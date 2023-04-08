@@ -1,21 +1,15 @@
 import { base } from "~/root";
 import { joinPaths } from "solid-start/islands/server-router";
-import { Index, JSX, Match, Show, Switch, createEffect, createSignal } from "solid-js";
-import { createStore } from "solid-js/store";
+import { Index, Match, Switch, createMemo, createSignal } from "solid-js";
 import { useAssets } from "~/utils/providers/AssetsProvider";
-import { Uuid } from "~/types/primitives/uuid";
 import SearchInput from "./Inputs/SearchInput";
-import Mint from "./Assets/Mint";
-import Burn from "./Assets/Burn";
 import { usePrecision } from "~/utils/providers/PrecisionProvider";
-
-export interface AssetInfo {
-  id: Uuid;
-  icon: JSX.Element;
-  name: string;
-  symbol: string;
-  balance: bigint;
-}
+import { Dynamic } from "solid-js/web";
+import CreateAssetInfo from "./Assets/AssetInfo";
+import { Asset } from "~/types/asset";
+import CreateMint from "./Assets/Mint";
+import CreateBurn from "./Assets/Burn";
+import { useSession } from "~/utils/providers/SessionProvider";
 
 enum Tab {
   Mint,
@@ -26,31 +20,13 @@ enum Tab {
 
 export default function Assets() {
   const assets = useAssets();
+  const session = useSession();
   const precision = usePrecision();
+  const assetsList = createMemo(() => [...assets().values()]);
+
   const [search, setSearch] = createSignal<string>("");
   const [tab, setTab] = createSignal<Tab>(Tab.Mint);
-  const [assetsState, setAssetsState] = createStore<{
-    assets: AssetInfo[];
-    selected_asset?: AssetInfo;
-    amount: bigint;
-  }>({ assets: [], selected_asset: undefined, amount: 0n });
-
-  createEffect(() => {
-    if (assets()) {
-      assets().forEach((e) => {
-        setAssetsState("assets", (prev) => [
-          ...prev,
-          {
-            id: e.id,
-            icon: <></>,
-            name: e.name,
-            symbol: e.symbol,
-            balance: 0n,
-          },
-        ]);
-      });
-    }
-  });
+  const [selectedAsset, setSelectedAsset] = createSignal<Asset | undefined>(undefined);
 
   return (
     <>
@@ -59,8 +35,8 @@ export default function Assets() {
           <div class="row-start-1 row-end-2 px-4 pt-4">
             <div class="grid h-full grid-rows-[auto_1fr]">
               <SearchInput
-                class="row-start-1 row-end-2 mx-auto mb-2 w-full text-markets-searchbar"
-                left={<img src={joinPaths(base, "/gfx/search.svg")} alt="search" width="20px"/>}
+                class="text-markets-searchbar row-start-1 row-end-2 mx-auto mb-2 w-full"
+                left={<img src={joinPaths(base, "/gfx/search.svg")} alt="search" width="20px" />}
                 onInput={(e) => {
                   const value = (e.target as HTMLInputElement).value;
                   setSearch(value);
@@ -74,21 +50,22 @@ export default function Assets() {
           </div>
           <div class="relative row-start-2 row-end-3">
             <div class="absolute bottom-0 left-0 right-0 top-0 flex flex-col overflow-y-auto">
-              <Index each={assetsState.assets}>
+              <Index each={assetsList()}>
                 {(element, i) => (
                   <div
                     class={`grid h-[56px] cursor-pointer items-center justify-between px-4 py-2 text-orderbook-label
                     ${i % 2 ? "bg-gray-3" : ""}
-                    ${element() == assetsState.selected_asset ? "bg-ksox-1 bg-opacity-40 text-white" : ""}`}
+                    ${element() == selectedAsset() ? "bg-ksox-1 bg-opacity-40 text-white" : ""}`}
                     onClick={() => {
-                      setAssetsState({ selected_asset: element() });
+                      setSelectedAsset(element());
                     }}
                   >
                     <div class="col-start-1 col-end-2 inline-grid items-center">
-                      <div class="col-start-1 col-end-2 mr-1">{element().icon}</div>
+                      <div class="col-start-1 col-end-2 mr-1">
+                        <img src={joinPaths(base, "/gfx/asset_icons/" + element().symbol.toLowerCase() + ".svg")} width="28px" height="28px" />
+                      </div>
                       <div class="col-start-2 col-end-3">{`${element().name} (${element().symbol})`}</div>
                     </div>
-                    {/* <div class="col-start-2 col-end-3">{format(fromWei(element().balance), formatTemplate(precision))}</div> */}
                   </div>
                 )}
               </Index>
@@ -96,72 +73,61 @@ export default function Assets() {
           </div>
         </div>
         <div class="col-start-2 col-end-3 grid grid-rows-[80px_1fr] bg-gray-2 text-orderbook-label text-gray-4">
-          <Show when={assetsState.selected_asset}>
-            <div class="row-start-1 row-end-2 grid grid-cols-[80px_1fr] items-center justify-center ">
-              <div class="col-start-1 col-end-2 mr-2">{assetsState.selected_asset!.icon}</div>
-              <div class="col-start-2 col-end-3 text-white">
-                {`${assetsState.selected_asset!.name} (${assetsState.selected_asset!.symbol})`}
-                {/* <div class="row-start-1 row-end-2 text-white">{`${assetsState.selected_asset!.name} (${assetsState.selected_asset!.symbol})`}</div> */}
-                {/* <div class="row-start-2 row-end-3 text-orderbook-item">{format(fromWei(assetsState.selected_asset!.balance), formatTemplate(precision))}</div> */}
-              </div>
+          <Dynamic component={CreateAssetInfo(session(), selectedAsset(), precision())} />
+          <div class="row-start-2 row-end-3">
+            <div
+              class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
+                tab() == Tab.Mint ? "bg-ksox-1 bg-opacity-40 text-white" : ""
+              } `}
+              onClick={() => setTab(Tab.Mint)}
+            >
+              <img src={joinPaths(base, "/gfx/assets_arrow_down.svg")} alt="arrow_down" class="col-start-1 col-end-2" />
+              <div class="col-start-2 col-end-3">Mint</div>
             </div>
-            <div class="row-start-2 row-end-3">
-              <div
-                class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
-                  tab() == Tab.Mint ? "bg-ksox-1 bg-opacity-40 text-white" : ""
-                } `}
-                onClick={() => setTab(Tab.Mint)}
-              >
-                <img src={joinPaths(base, "/gfx/assets_arrow_down.svg")} class="col-start-1 col-end-2" />
-                <div class="col-start-2 col-end-3">Mint</div>
-              </div>
-              <div
-                class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
-                  tab() == Tab.Burn ? "bg-ksox-1 bg-opacity-40 text-white" : ""
-                }`}
-                onClick={() => setTab(Tab.Burn)}
-              >
-                <img src={joinPaths(base, "/gfx/assets_arrow_up.svg")} class="col-start-1 col-end-2" />
-                <div class="col-start-2 col-end-3">Burn</div>
-              </div>
-              <div
-                class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
-                  tab() == Tab.History ? "bg-ksox-1 bg-opacity-40 text-white" : ""
-                }`}
-                onClick={() => setTab(Tab.History)}
-              >
-                <img src={joinPaths(base, "/gfx/assets_clock.svg")} class="col-start-1 col-end-2" />
-                <div class="col-start-2 col-end-3">History</div>
-              </div>
-              <div
-                class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
-                  tab() == Tab.OwnTransfer ? "bg-ksox-1 bg-opacity-40 text-white" : ""
-                }`}
-                onClick={() => setTab(Tab.OwnTransfer)}
-              >
-                <img src={joinPaths(base, "/gfx/assets_transfer.svg")} class="col-start-1 col-end-2" />
-                <div class="col-start-2 col-end-3">Own Transfer</div>
-              </div>
+            <div
+              class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
+                tab() == Tab.Burn ? "bg-ksox-1 bg-opacity-40 text-white" : ""
+              }`}
+              onClick={() => setTab(Tab.Burn)}
+            >
+              <img src={joinPaths(base, "/gfx/assets_arrow_up.svg")} alt="arrow_up" class="col-start-1 col-end-2" />
+              <div class="col-start-2 col-end-3">Burn</div>
             </div>
-          </Show>
+            <div
+              class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
+                tab() == Tab.History ? "bg-ksox-1 bg-opacity-40 text-white" : ""
+              }`}
+              onClick={() => setTab(Tab.History)}
+            >
+              <img src={joinPaths(base, "/gfx/assets_clock.svg")} alt="clock" class="col-start-1 col-end-2" />
+              <div class="col-start-2 col-end-3">History</div>
+            </div>
+            <div
+              class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
+                tab() == Tab.OwnTransfer ? "bg-ksox-1 bg-opacity-40 text-white" : ""
+              }`}
+              onClick={() => setTab(Tab.OwnTransfer)}
+            >
+              <img src={joinPaths(base, "/gfx/assets_transfer.svg")} alt="transfer" class="col-start-1 col-end-2" />
+              <div class="col-start-2 col-end-3">Own Transfer</div>
+            </div>
+          </div>
         </div>
         <div class="col-start-3 col-end-4 bg-gray-2 p-4">
-          <Show when={assetsState.selected_asset}>
-            <Switch>
-              <Match when={tab() == Tab.Mint}>
-                <Mint asset={assetsState.selected_asset!} precision={precision()} />
-              </Match>
-              <Match when={tab() == Tab.Burn}>
-                <Burn asset={assetsState.selected_asset!} precision={precision()} />
-              </Match>
-              <Match when={tab() == Tab.History}>
-                <div></div>
-              </Match>
-              <Match when={tab() == Tab.OwnTransfer}>
-                <div></div>
-              </Match>
-            </Switch>
-          </Show>
+          <Switch>
+            <Match when={tab() == Tab.Mint}>
+              <Dynamic component={CreateMint(selectedAsset(), precision())} />
+            </Match>
+            <Match when={tab() == Tab.Burn}>
+              <Dynamic component={CreateBurn(selectedAsset(), precision())} />
+            </Match>
+            <Match when={tab() == Tab.History}>
+              <div></div>
+            </Match>
+            <Match when={tab() == Tab.OwnTransfer}>
+              <div></div>
+            </Match>
+          </Switch>
         </div>
       </div>
     </>

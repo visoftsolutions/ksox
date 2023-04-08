@@ -26,11 +26,10 @@ export type AssetPairRecognitionResult = z.infer<typeof AssetPairRecognitionResu
 
 enum Tab {
   Markets,
-  Favorites
+  Favorites,
 }
 
 const querySearch = async (input: string) => {
-  console.log(`fetching assets: ${api}/public/search`);
   return await fetch(`${api}/public/search?${params({ input })}`)
     .then((r) => r.json())
     .then((r) => z.array(AssetPairRecognitionResult).parse(r));
@@ -47,7 +46,7 @@ export default function Markets() {
 
   return (
     <div class="grid h-full grid-cols-1 grid-rows-[auto_76px_1fr]">
-      <div class="row-start-1 row-end-2 grid gap-[1px] justify-start items-start">
+      <div class="row-start-1 row-end-2 grid items-start justify-start gap-[1px]">
         <NavButton
           class="col-start-1 col-end-2"
           highlighted={tab() == Tab.Markets}
@@ -64,18 +63,18 @@ export default function Markets() {
             setTab(Tab.Favorites);
           }}
         >
-          <div class="grid justify-center items-center gap-1 text-navButton">
+          <div class="grid items-center justify-center gap-1 text-navButton">
             <img src={joinPaths(base, "/gfx/star.svg")} alt="star" width="16px" height="16px" class="col-start-1 col-end-2" />
             <div class="col-start-2 col-end-3">Favorites</div>
           </div>
         </NavButton>
       </div>
-      <div class="row-start-2 row-end-3 px-3 grid justify-center items-center">
+      <div class="row-start-2 row-end-3 grid items-center justify-center px-3">
         <SearchInput
-          class="row-start-1 row-end-2 mx-auto w-full text-markets-searchbar mt-3"
+          class="text-markets-searchbar row-start-1 row-end-2 mx-auto mt-3 w-full"
           left={
             <>
-              <img src={joinPaths(base, "/gfx/search.svg")} alt="search" width="20px"/>
+              <img src={joinPaths(base, "/gfx/search.svg")} alt="search" width="20px" />
             </>
           }
           onInput={(e) => {

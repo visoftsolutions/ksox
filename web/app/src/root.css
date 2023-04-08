@@ -37,7 +37,7 @@ html {
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply rounded-sm bg-gray-1 cursor-pointer;
+    @apply cursor-pointer rounded-sm bg-gray-1;
   }
 
   ::-webkit-scrollbar-thumb:hover {
@@ -48,7 +48,6 @@ html {
 .slider {
   @apply h-[8px] appearance-none overflow-visible rounded-md bg-gray-3;
 }
-
 
 /* .slider::-webkit-slider-runnable-track {} */
 

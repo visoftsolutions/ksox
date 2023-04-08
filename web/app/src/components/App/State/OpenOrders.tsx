@@ -144,9 +144,7 @@ export function OpenOrders(props: { market?: Market; session?: ValidateSignature
                     order_id: element().id,
                   })}`,
                   { method: "DELETE", credentials: "same-origin" }
-                )
-                  .then((r) => r.text())
-                  .then((r) => console.log(r));
+                ).then((r) => r.text());
               }}
             >
               <img src={joinPaths(base, "/gfx/cancel.svg")} class="h-[12px] w-[12px]" />

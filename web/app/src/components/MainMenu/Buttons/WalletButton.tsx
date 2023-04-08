@@ -9,7 +9,6 @@ import login from "~/auth/login";
 import logout from "~/auth/logout";
 import { setWallet, wallet } from "~/utils/providers/WalletProvider";
 import { session, setSession } from "~/utils/providers/SessionProvider";
-import { firstLastChars } from "~/utils/formatters/AddressFormatter";
 
 const projectId = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID;
 
@@ -42,17 +41,21 @@ export default function WalletButton() {
 
   return (
     <div
-      class={`grid cursor-pointer select-none h-[32px] grid-cols-[auto_1fr] items-center justify-center gap-2 px-5 rounded-[40px] ${!wallet() || !session()  ? "bg-ksox-1" : "bg-gray-3"}`}
+      class={`grid h-[32px] cursor-pointer select-none grid-cols-[auto_1fr] items-center justify-center gap-2 rounded-[40px] px-5 ${
+        !wallet() || !session() ? "bg-ksox-1" : "bg-gray-3"
+      }`}
       onClick={async () => {
         const w = wallet();
         const s = session();
         !w ? await walletConnect() : !s ? setSession(await login(w)) : setSession(await logout());
       }}
     >
-      { !session() ? 
-      <img src={joinPaths(base, "gfx/wallet.svg")} alt="wallet" width="22px" class="m-auto" />
-      : <img src={joinPaths(base, "gfx/user.svg")} alt="user" width="16px" class="m-auto" />}
-      <div class="text-wallet font-semibold text-ellipsis">{!wallet() ? "CONNECT WALLET" : !session() ? "LOGIN" : session()?.user_id}</div>
+      {!session() ? (
+        <img src={joinPaths(base, "gfx/wallet.svg")} alt="wallet" width="22px" class="m-auto" />
+      ) : (
+        <img src={joinPaths(base, "gfx/user.svg")} alt="user" width="16px" class="m-auto" />
+      )}
+      <div class="text-ellipsis text-wallet font-semibold">{!wallet() ? "CONNECT WALLET" : !session() ? "LOGIN" : session()?.user_id}</div>
     </div>
   );
 }
