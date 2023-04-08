@@ -11,16 +11,16 @@ use sqlx::{
 
 use crate::{
     projections::spot::candlestick::Candlestick,
-    traits::table_manager::TableManager,
+    traits::{table_manager::TableManager, get_modified::GetModified},
     types::{CandlestickType, Fraction, Volume},
 };
 
 #[derive(Debug, Clone)]
-pub struct CandlestickManager {
+pub struct CandlesticksManager {
     database: PgPool,
 }
 
-impl CandlestickManager {
+impl CandlesticksManager {
     pub fn new(database: PgPool) -> Self {
         Self { database }
     }
@@ -36,6 +36,8 @@ impl CandlestickManager {
             r#"
             SELECT
                 id,
+                created_at,
+                last_modification_at,
                 quote_asset_id,
                 base_asset_id,
                 kind as "kind: CandlestickType",
@@ -64,13 +66,15 @@ impl CandlestickManager {
     }
 }
 
-impl TableManager<Candlestick> for CandlestickManager {
+impl TableManager<Candlestick> for CandlesticksManager {
     fn get_all(&self) -> Pin<Box<dyn Stream<Item = Result<Candlestick>> + Send + '_>> {
         sqlx::query_as!(
             Candlestick,
             r#"
             SELECT
                 id,
+                created_at,
+                last_modification_at,
                 quote_asset_id,
                 base_asset_id,
                 kind as "kind: CandlestickType",
@@ -96,6 +100,8 @@ impl TableManager<Candlestick> for CandlestickManager {
             r#"
             SELECT
                 id,
+                created_at,
+                last_modification_at,
                 quote_asset_id,
                 base_asset_id,
                 kind as "kind: CandlestickType",
@@ -239,6 +245,39 @@ impl TableManager<Candlestick> for CandlestickManager {
             element.id,
         )
         .execute(&self.database)
+        .await
+    }
+}
+
+impl GetModified<Candlestick> for CandlesticksManager {
+    async fn get_modified(&self, last_modification_at: DateTime<Utc>) -> Result<Vec<Candlestick>> {
+        sqlx::query_as!(
+            Candlestick,
+            r#"
+            SELECT
+                id,
+                created_at,
+                last_modification_at,
+                quote_asset_id,
+                base_asset_id,
+                kind as "kind: CandlestickType",
+                topen,
+                tclose,
+                open as "open: Fraction",
+                high as "high: Fraction",
+                low as "low: Fraction",
+                close as "close: Fraction",
+                span,
+                taker_quote_volume as "taker_quote_volume: Volume",
+                taker_base_volume as "taker_base_volume: Volume",
+                maker_quote_volume as "maker_quote_volume: Volume",
+                maker_base_volume as "maker_base_volume: Volume"
+            FROM spot.candlesticks
+            WHERE spot.candlesticks.last_modification_at > $1
+            "#,
+            last_modification_at
+        )
+        .fetch_all(&self.database)
         .await
     }
 }

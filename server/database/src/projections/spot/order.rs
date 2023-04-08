@@ -12,6 +12,7 @@ use crate::{
 pub struct Order {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,
+    pub last_modification_at: DateTime<Utc>,
     pub user_id: Uuid,
     pub is_active: bool,
     pub quote_asset_id: Uuid,

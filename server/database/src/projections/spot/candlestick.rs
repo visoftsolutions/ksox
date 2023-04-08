@@ -8,6 +8,8 @@ use crate::types::{fraction::FractionError, CandlestickType, Fraction, Volume};
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Candlestick {
     pub id: Uuid,
+    pub created_at: DateTime<Utc>,
+    pub last_modification_at: DateTime<Utc>,
     pub quote_asset_id: Uuid,
     pub base_asset_id: Uuid,
     pub kind: CandlestickType,
@@ -33,6 +35,8 @@ impl Candlestick {
     ) -> Self {
         Candlestick {
             id: Uuid::new_v4(),
+            created_at: data.created_at,
+            last_modification_at: data.last_modification_at,
             quote_asset_id: data.quote_asset_id,
             base_asset_id: data.base_asset_id,
             kind,
@@ -63,6 +67,8 @@ impl Candlestick {
 }
 
 pub struct CandlestickData {
+    pub created_at: DateTime<Utc>,
+    pub last_modification_at: DateTime<Utc>,
     pub quote_asset_id: Uuid,
     pub base_asset_id: Uuid,
     pub price: Fraction,
@@ -73,22 +79,24 @@ pub struct CandlestickData {
     pub maker_base_volume: Volume,
 }
 
-impl TryFrom<Trade> for CandlestickData {
-    type Error = FractionError;
-    fn try_from(value: Trade) -> Result<Self, Self::Error> {
-        Ok(Self {
-            quote_asset_id: value.quote_asset_id,
-            base_asset_id: value.base_asset_id,
-            price: (
-                value.taker_base_volume.clone(),
-                value.taker_quote_volume.clone(),
-            )
-                .try_into()?,
-            time: value.created_at,
-            taker_quote_volume: value.taker_quote_volume,
-            taker_base_volume: value.taker_base_volume,
-            maker_quote_volume: value.maker_quote_volume,
-            maker_base_volume: value.maker_base_volume,
-        })
-    }
-}
+// impl TryFrom<Trade> for CandlestickData {
+//     type Error = FractionError;
+//     fn try_from(value: Trade) -> Result<Self, Self::Error> {
+//         Ok(Self {
+//             created_at: value.created_at,
+//             last_modification_at: value.created_at,
+//             quote_asset_id: value.quote_asset_id,
+//             base_asset_id: value.base_asset_id,
+//             price: (
+//                 value.taker_base_volume.clone(),
+//                 value.taker_quote_volume.clone(),
+//             )
+//                 .try_into()?,
+//             time: value.created_at,
+//             taker_quote_volume: value.taker_quote_volume,
+//             taker_base_volume: value.taker_base_volume,
+//             maker_quote_volume: value.maker_quote_volume,
+//             maker_base_volume: value.maker_base_volume,
+//         })
+//     }
+// }

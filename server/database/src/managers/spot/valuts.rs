@@ -1,20 +1,17 @@
 use std::pin::Pin;
 
 use bigdecimal::BigDecimal;
-use bytes::Bytes;
-use futures::{Stream, StreamExt};
+use futures::Stream;
 use sqlx::{
-    postgres::{PgListener, PgPool, PgQueryResult},
+    postgres::{PgPool, PgQueryResult},
     types::Uuid,
     Result,
 };
-use tokio::{sync::oneshot, task};
 
 use crate::{
     projections::spot::valut::Valut,
-    traits::table_manager::TableManager,
-    types::{NotifyTrigger, SubscribeStream, Volume},
-    utils::trigger_name,
+    traits::{get_modified::GetModified, table_manager::TableManager},
+    types::Volume,
 };
 
 #[derive(Debug, Clone)]
@@ -38,6 +35,8 @@ impl ValutsManager {
             r#"
             SELECT
                 id,
+                created_at,
+                last_modification_at,
                 user_id,
                 asset_id,
                 balance as "balance: Volume"
@@ -60,6 +59,8 @@ impl ValutsManager {
             r#"
             SELECT
                 id,
+                created_at,
+                last_modification_at,
                 user_id,
                 asset_id,
                 balance as "balance: Volume"
@@ -74,75 +75,75 @@ impl ValutsManager {
         .await
     }
 
-    pub async fn create_notify_trigger_for_user_asset(
-        &self,
-        user_id: Uuid,
-        asset_id: Uuid,
-    ) -> Result<NotifyTrigger> {
-        let trigger_name = trigger_name(
-            "spot_valuts_notify_trigger_for_user_asset",
-            vec![
-                Bytes::from(user_id.as_bytes().to_owned().to_vec()),
-                Bytes::from(asset_id.as_bytes().to_owned().to_vec()),
-            ],
-        );
-        sqlx::query!(
-            r#"
-            SELECT create_spot_valuts_notify_trigger_for_user_asset($1, $2, $3)
-            "#,
-            trigger_name,
-            user_id,
-            asset_id
-        )
-        .execute(&self.database)
-        .await?;
+    // pub async fn create_notify_trigger_for_user_asset(
+    //     &self,
+    //     user_id: Uuid,
+    //     asset_id: Uuid,
+    // ) -> Result<NotifyTrigger> {
+    //     let trigger_name = trigger_name(
+    //         "spot_valuts_notify_trigger_for_user_asset",
+    //         vec![
+    //             Bytes::from(user_id.as_bytes().to_owned().to_vec()),
+    //             Bytes::from(asset_id.as_bytes().to_owned().to_vec()),
+    //         ],
+    //     );
+    //     sqlx::query!(
+    //         r#"
+    //         SELECT create_spot_valuts_notify_trigger_for_user_asset($1, $2, $3)
+    //         "#,
+    //         trigger_name,
+    //         user_id,
+    //         asset_id
+    //     )
+    //     .execute(&self.database)
+    //     .await?;
 
-        let db = self.database.clone();
-        let trigger_name_clone = trigger_name.clone();
-        let (tx, rx) = oneshot::channel::<()>();
-        task::spawn(async move {
-            if (rx.await).is_err() {
-                tracing::error!("drop_signal failed");
-            }
-            if let Err(err) = sqlx::query!(
-                r#"
-                SELECT drop_spot_valuts_notify_trigger_for_user_asset($1)
-                "#,
-                trigger_name_clone
-            )
-            .execute(&db)
-            .await
-            {
-                tracing::error!("{err}");
-            }
-        });
+    //     let db = self.database.clone();
+    //     let trigger_name_clone = trigger_name.clone();
+    //     let (tx, rx) = oneshot::channel::<()>();
+    //     task::spawn(async move {
+    //         if (rx.await).is_err() {
+    //             tracing::error!("drop_signal failed");
+    //         }
+    //         if let Err(err) = sqlx::query!(
+    //             r#"
+    //             SELECT drop_spot_valuts_notify_trigger_for_user_asset($1)
+    //             "#,
+    //             trigger_name_clone
+    //         )
+    //         .execute(&db)
+    //         .await
+    //         {
+    //             tracing::error!("{err}");
+    //         }
+    //     });
 
-        Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
-    }
+    //     Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
+    // }
 
-    pub async fn subscribe_for_user_asset(
-        &self,
-        user_id: Uuid,
-        asset_id: Uuid,
-    ) -> Result<SubscribeStream<Valut>> {
-        let mut listener = PgListener::connect_with(&self.database).await?;
-        let notify_trigger = self
-            .create_notify_trigger_for_user_asset(user_id, asset_id)
-            .await?;
-        listener.listen(&notify_trigger.channel_name).await?;
+    // pub async fn subscribe_for_user_asset(
+    //     &self,
+    //     user_id: Uuid,
+    //     asset_id: Uuid,
+    // ) -> Result<SubscribeStream<Valut>> {
+    //     let mut listener = PgListener::connect_with(&self.database).await?;
+    //     let notify_trigger = self
+    //         .create_notify_trigger_for_user_asset(user_id, asset_id)
+    //         .await?;
+    //     listener.listen(&notify_trigger.channel_name).await?;
 
-        let subscribe_stream = listener.into_stream().map(|element| {
-            element.and_then(|val| {
-                serde_json::from_str::<Valut>(val.payload())
-                    .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
-            })
-        });
+    //     let subscribe_stream = listener.into_stream().map(|element| {
+    //         element.and_then(|val| {
+    //             serde_json::from_str::<Valut>(val.payload())
+    //                 .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
+    //         })
+    //     });
 
-        Ok(SubscribeStream::new(
-            notify_trigger,
-            Box::pin(subscribe_stream),
-        ))
-    }
+    //     Ok(SubscribeStream::new(
+    //         notify_trigger,
+    //         Box::pin(subscribe_stream),
+    //     ))
+    // }
 
     pub async fn get_or_create_for_user_asset(
         &self,
@@ -173,6 +174,8 @@ impl TableManager<Valut> for ValutsManager {
             r#"
             SELECT
                 id,
+                created_at,
+                last_modification_at,
                 user_id,
                 asset_id,
                 balance as "balance: Volume"
@@ -188,6 +191,8 @@ impl TableManager<Valut> for ValutsManager {
             r#"
             SELECT
                 id,
+                created_at,
+                last_modification_at,
                 user_id,
                 asset_id,
                 balance as "balance: Volume"
@@ -252,6 +257,31 @@ impl TableManager<Valut> for ValutsManager {
             element.id,
         )
         .execute(&self.database)
+        .await
+    }
+}
+
+impl GetModified<Valut> for ValutsManager {
+    async fn get_modified(
+        &self,
+        last_modification_at: chrono::DateTime<chrono::Utc>,
+    ) -> Result<Vec<Valut>> {
+        sqlx::query_as!(
+            Valut,
+            r#"
+                SELECT
+                    id,
+                    created_at,
+                    last_modification_at,
+                    user_id,
+                    asset_id,
+                    balance as "balance: Volume"
+                FROM spot.valuts
+                WHERE last_modification_at > $1
+                "#,
+            last_modification_at
+        )
+        .fetch_all(&self.database)
         .await
     }
 }

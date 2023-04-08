@@ -13,6 +13,7 @@ use crate::{
 pub struct User {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,
+    pub last_modification_at: DateTime<Utc>,
     pub address: EvmAddress,
 }
 
@@ -28,6 +29,7 @@ impl FromRow<'_, PgRow> for User {
         Ok(User {
             id: row.try_get("id")?,
             created_at: row.try_get("created_at")?,
+            last_modification_at: row.try_get("last_modification_at")?,
             address: evm_address,
         })
     }

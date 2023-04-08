@@ -8,6 +8,7 @@ use crate::types::Volume;
 pub struct Trade {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,
+    pub last_modification_at: DateTime<Utc>,
     pub quote_asset_id: Uuid,
     pub base_asset_id: Uuid,
     pub taker_id: Uuid,
@@ -26,6 +27,7 @@ impl Trade {
         Self {
             id: self.id,
             created_at: self.created_at,
+            last_modification_at: self.last_modification_at,
             quote_asset_id: self.base_asset_id,
             base_asset_id: self.quote_asset_id,
             taker_id: self.taker_id,

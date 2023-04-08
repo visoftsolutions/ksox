@@ -3,7 +3,7 @@ use std::pin::Pin;
 use futures::Stream;
 use sqlx::{postgres::PgPool, types::Uuid, Result};
 
-use crate::{projections::user::User, traits::table_manager::TableManager, types::EvmAddress};
+use crate::{projections::user::User, traits::{table_manager::TableManager, get_modified::GetModified}, types::EvmAddress};
 
 #[derive(Debug, Clone)]
 pub struct UsersManager {
@@ -23,6 +23,7 @@ impl UsersManager {
             SELECT
                 users.id,
                 users.created_at,
+                users.last_modification_at,
                 users.address as "address: EvmAddress"
             FROM users
             WHERE users.address = $1
@@ -41,7 +42,7 @@ impl UsersManager {
             INSERT INTO 
                 users 
                 (address) VALUES ($1)
-                RETURNING id, created_at, address as "address: EvmAddress"
+                RETURNING id, created_at, last_modification_at, address as "address: EvmAddress"
             "#,
             evm_address_string.as_str()
         )
@@ -58,6 +59,7 @@ impl TableManager<User> for UsersManager {
             SELECT
                 users.id,
                 users.created_at,
+                users.last_modification_at,
                 users.address as "address: EvmAddress"
             FROM users
             "#
@@ -72,6 +74,7 @@ impl TableManager<User> for UsersManager {
             SELECT
                 users.id,
                 users.created_at,
+                users.last_modification_at,
                 users.address as "address: EvmAddress"
             FROM users
             WHERE users.id = $1
@@ -131,6 +134,26 @@ impl TableManager<User> for UsersManager {
             element.id,
         )
         .execute(&self.database)
+        .await
+    }
+}
+
+impl GetModified<User> for UsersManager {
+    async fn get_modified(&self, last_modification_at: chrono::DateTime<chrono::Utc>) -> Result<Vec<User>> {
+        sqlx::query_as!(
+            User,
+            r#"
+            SELECT
+                users.id,
+                users.created_at,
+                users.last_modification_at,
+                users.address as "address: EvmAddress"
+            FROM users
+            WHERE users.last_modification_at > $1
+            "#,
+            last_modification_at
+        )
+        .fetch_all(&self.database)
         .await
     }
 }

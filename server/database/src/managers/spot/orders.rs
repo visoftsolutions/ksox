@@ -1,22 +1,20 @@
 use std::pin::Pin;
 
 use bigdecimal::BigDecimal;
-use bytes::Bytes;
-use futures::{Stream, StreamExt};
+use chrono::{DateTime, Utc};
+use futures::Stream;
 use sqlx::{
-    postgres::{PgListener, PgPool, PgQueryResult},
+    postgres::{PgPool, PgQueryResult},
     types::Uuid,
     Result,
 };
-use tokio::{sync::oneshot, task};
 
 use crate::{
     projections::spot::order::Order,
-    traits::table_manager::TableManager,
+    traits::{table_manager::TableManager, get_modified::GetModified},
     types::{
-        price_level::PriceLevelOption, Fraction, NotifyTrigger, PriceLevel, SubscribeStream, Volume,
+        Fraction, Volume, price_level::PriceLevelOption,
     },
-    utils::trigger_name,
 };
 
 #[derive(Debug, Clone)]
@@ -41,6 +39,7 @@ impl OrdersManager {
             SELECT
                 id,
                 created_at,
+                last_modification_at,
                 user_id,
                 is_active,
                 quote_asset_id,
@@ -51,11 +50,47 @@ impl OrdersManager {
                 maker_fee as "maker_fee: Fraction"
             FROM spot.orders
             WHERE user_id = $1
-            ORDER BY created_at
+            ORDER BY last_modification_at DESC, created_at DESC
             LIMIT $2
             OFFSET $3
             "#,
             user_id,
+            limit,
+            offset
+        )
+        .fetch(&self.database)
+    }
+
+    pub fn get_for_user_after_last_modification_at(
+        &self,
+        user_id: Uuid,
+        last_modification_at: DateTime<Utc>,
+        limit: i64,
+        offset: i64,
+    ) -> Pin<Box<dyn Stream<Item = Result<Order>> + Send + '_>> {
+        sqlx::query_as!(
+            Order,
+            r#"
+            SELECT
+                id,
+                created_at,
+                last_modification_at,
+                user_id,
+                is_active,
+                quote_asset_id,
+                base_asset_id,
+                quote_asset_volume as "quote_asset_volume: Volume",
+                base_asset_volume as "base_asset_volume: Volume",
+                quote_asset_volume_left as "quote_asset_volume_left: Volume",
+                maker_fee as "maker_fee: Fraction"
+            FROM spot.orders
+            WHERE user_id = $1 AND last_modification_at > $2
+            ORDER BY last_modification_at DESC, created_at DESC
+            LIMIT $3
+            OFFSET $4
+            "#,
+            user_id,
+            last_modification_at,
             limit,
             offset
         )
@@ -74,6 +109,7 @@ impl OrdersManager {
             SELECT
                 id,
                 created_at,
+                last_modification_at,
                 user_id,
                 is_active,
                 quote_asset_id,
@@ -84,11 +120,47 @@ impl OrdersManager {
                 maker_fee as "maker_fee: Fraction"
             FROM spot.orders
             WHERE user_id = $1 AND is_active = true
-            ORDER BY created_at
+            ORDER BY last_modification_at DESC, created_at DESC
             LIMIT $2
             OFFSET $3
             "#,
             user_id,
+            limit,
+            offset
+        )
+        .fetch(&self.database)
+    }
+
+    pub fn get_active_for_user_after_last_modification_at(
+        &self,
+        user_id: Uuid,
+        last_modification_at: DateTime<Utc>,
+        limit: i64,
+        offset: i64,
+    ) -> Pin<Box<dyn Stream<Item = Result<Order>> + Send + '_>> {
+        sqlx::query_as!(
+            Order,
+            r#"
+            SELECT
+                id,
+                created_at,
+                last_modification_at,
+                user_id,
+                is_active,
+                quote_asset_id,
+                base_asset_id,
+                quote_asset_volume as "quote_asset_volume: Volume",
+                base_asset_volume as "base_asset_volume: Volume",
+                quote_asset_volume_left as "quote_asset_volume_left: Volume",
+                maker_fee as "maker_fee: Fraction"
+            FROM spot.orders
+            WHERE user_id = $1 AND is_active = true AND last_modification_at > $2
+            ORDER BY last_modification_at DESC, created_at DESC
+            LIMIT $3
+            OFFSET $4
+            "#,
+            user_id,
+            last_modification_at,
             limit,
             offset
         )
@@ -108,6 +180,7 @@ impl OrdersManager {
             SELECT
                 id,
                 created_at,
+                last_modification_at,
                 user_id,
                 is_active,
                 quote_asset_id,
@@ -118,7 +191,7 @@ impl OrdersManager {
                 maker_fee as "maker_fee: Fraction"
             FROM spot.orders
             WHERE quote_asset_id = $1 AND quote_asset_id = $2
-            ORDER BY created_at
+            ORDER BY last_modification_at DESC, created_at DESC
             LIMIT $3
             OFFSET $4
             "#,
@@ -203,6 +276,7 @@ impl OrdersManager {
             SELECT
                 id,
                 created_at,
+                last_modification_at,
                 user_id,
                 is_active,
                 quote_asset_id,
@@ -241,6 +315,7 @@ impl OrdersManager {
             SELECT
                 id,
                 created_at,
+                last_modification_at,
                 user_id,
                 is_active,
                 quote_asset_id,
@@ -264,351 +339,351 @@ impl OrdersManager {
         .fetch(&self.database)
     }
 
-    pub async fn create_notify_trigger_for_user(&self, user_id: Uuid) -> Result<NotifyTrigger> {
-        let trigger_name = trigger_name(
-            "spot_orders_notify_trigger_for_user",
-            vec![Bytes::from(user_id.as_bytes().to_owned().to_vec())],
-        );
-        sqlx::query!(
-            r#"
-            SELECT create_spot_orders_notify_trigger_for_user($1, $2)
-            "#,
-            trigger_name,
-            user_id
-        )
-        .execute(&self.database)
-        .await?;
+    // pub async fn create_notify_trigger_for_user(&self, user_id: Uuid) -> Result<NotifyTrigger> {
+    //     let trigger_name = trigger_name(
+    //         "spot_orders_notify_trigger_for_user",
+    //         vec![Bytes::from(user_id.as_bytes().to_owned().to_vec())],
+    //     );
+    //     sqlx::query!(
+    //         r#"
+    //         SELECT create_spot_orders_notify_trigger_for_user($1, $2)
+    //         "#,
+    //         trigger_name,
+    //         user_id
+    //     )
+    //     .execute(&self.database)
+    //     .await?;
 
-        let db = self.database.clone();
-        let trigger_name_clone = trigger_name.clone();
-        let (tx, rx) = oneshot::channel::<()>();
-        task::spawn(async move {
-            if (rx.await).is_err() {
-                tracing::error!("drop_signal failed");
-            }
-            if let Err(err) = sqlx::query!(
-                r#"
-                SELECT drop_spot_orders_notify_trigger_for_user($1)
-                "#,
-                trigger_name_clone
-            )
-            .execute(&db)
-            .await
-            {
-                tracing::error!("{err}");
-            }
-        });
+    //     let db = self.database.clone();
+    //     let trigger_name_clone = trigger_name.clone();
+    //     let (tx, rx) = oneshot::channel::<()>();
+    //     task::spawn(async move {
+    //         if (rx.await).is_err() {
+    //             tracing::error!("drop_signal failed");
+    //         }
+    //         if let Err(err) = sqlx::query!(
+    //             r#"
+    //             SELECT drop_spot_orders_notify_trigger_for_user($1)
+    //             "#,
+    //             trigger_name_clone
+    //         )
+    //         .execute(&db)
+    //         .await
+    //         {
+    //             tracing::error!("{err}");
+    //         }
+    //     });
 
-        Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
-    }
+    //     Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
+    // }
 
-    pub async fn subscribe_for_user(&self, user_id: Uuid) -> Result<SubscribeStream<Order>> {
-        let mut listener = PgListener::connect_with(&self.database).await?;
-        let notify_trigger = self.create_notify_trigger_for_user(user_id).await?;
-        listener.listen(&notify_trigger.channel_name).await?;
+    // pub async fn subscribe_for_user(&self, user_id: Uuid) -> Result<SubscribeStream<Order>> {
+    //     let mut listener = PgListener::connect_with(&self.database).await?;
+    //     let notify_trigger = self.create_notify_trigger_for_user(user_id).await?;
+    //     listener.listen(&notify_trigger.channel_name).await?;
 
-        let subscribe_stream = listener.into_stream().map(|element| {
-            element.and_then(|val| {
-                serde_json::from_str::<Order>(val.payload())
-                    .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
-            })
-        });
+    //     let subscribe_stream = listener.into_stream().map(|element| {
+    //         element.and_then(|val| {
+    //             serde_json::from_str::<Order>(val.payload())
+    //                 .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
+    //         })
+    //     });
 
-        Ok(SubscribeStream::new(
-            notify_trigger,
-            Box::pin(subscribe_stream),
-        ))
-    }
+    //     Ok(SubscribeStream::new(
+    //         notify_trigger,
+    //         Box::pin(subscribe_stream),
+    //     ))
+    // }
 
-    pub async fn create_notify_trigger_active_for_user(
-        &self,
-        user_id: Uuid,
-    ) -> Result<NotifyTrigger> {
-        let trigger_name = trigger_name(
-            "spot_orders_notify_trigger_active_for_user",
-            vec![Bytes::from(user_id.as_bytes().to_owned().to_vec())],
-        );
-        sqlx::query!(
-            r#"
-            SELECT create_spot_orders_notify_trigger_active_for_user($1, $2)
-            "#,
-            trigger_name,
-            user_id
-        )
-        .execute(&self.database)
-        .await?;
+    // pub async fn create_notify_trigger_active_for_user(
+    //     &self,
+    //     user_id: Uuid,
+    // ) -> Result<NotifyTrigger> {
+    //     let trigger_name = trigger_name(
+    //         "spot_orders_notify_trigger_active_for_user",
+    //         vec![Bytes::from(user_id.as_bytes().to_owned().to_vec())],
+    //     );
+    //     sqlx::query!(
+    //         r#"
+    //         SELECT create_spot_orders_notify_trigger_active_for_user($1, $2)
+    //         "#,
+    //         trigger_name,
+    //         user_id
+    //     )
+    //     .execute(&self.database)
+    //     .await?;
 
-        let db = self.database.clone();
-        let trigger_name_clone = trigger_name.clone();
-        let (tx, rx) = oneshot::channel::<()>();
-        task::spawn(async move {
-            if (rx.await).is_err() {
-                tracing::error!("drop_signal failed");
-            }
-            if let Err(err) = sqlx::query!(
-                r#"
-                SELECT drop_spot_orders_notify_trigger_active_for_user($1)
-                "#,
-                trigger_name_clone
-            )
-            .execute(&db)
-            .await
-            {
-                tracing::error!("{err}");
-            }
-        });
+    //     let db = self.database.clone();
+    //     let trigger_name_clone = trigger_name.clone();
+    //     let (tx, rx) = oneshot::channel::<()>();
+    //     task::spawn(async move {
+    //         if (rx.await).is_err() {
+    //             tracing::error!("drop_signal failed");
+    //         }
+    //         if let Err(err) = sqlx::query!(
+    //             r#"
+    //             SELECT drop_spot_orders_notify_trigger_active_for_user($1)
+    //             "#,
+    //             trigger_name_clone
+    //         )
+    //         .execute(&db)
+    //         .await
+    //         {
+    //             tracing::error!("{err}");
+    //         }
+    //     });
 
-        Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
-    }
+    //     Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
+    // }
 
-    pub async fn subscribe_active_for_user(&self, user_id: Uuid) -> Result<SubscribeStream<Order>> {
-        let mut listener = PgListener::connect_with(&self.database).await?;
-        let notify_trigger = self.create_notify_trigger_for_user(user_id).await?;
-        listener.listen(&notify_trigger.channel_name).await?;
+    // pub async fn subscribe_active_for_user(&self, user_id: Uuid) -> Result<SubscribeStream<Order>> {
+    //     let mut listener = PgListener::connect_with(&self.database).await?;
+    //     let notify_trigger = self.create_notify_trigger_for_user(user_id).await?;
+    //     listener.listen(&notify_trigger.channel_name).await?;
 
-        let subscribe_stream = listener.into_stream().map(|element| {
-            element.and_then(|val| {
-                serde_json::from_str::<Order>(val.payload())
-                    .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
-            })
-        });
+    //     let subscribe_stream = listener.into_stream().map(|element| {
+    //         element.and_then(|val| {
+    //             serde_json::from_str::<Order>(val.payload())
+    //                 .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
+    //         })
+    //     });
 
-        Ok(SubscribeStream::new(
-            notify_trigger,
-            Box::pin(subscribe_stream),
-        ))
-    }
+    //     Ok(SubscribeStream::new(
+    //         notify_trigger,
+    //         Box::pin(subscribe_stream),
+    //     ))
+    // }
 
-    pub async fn create_notify_trigger_for_asset_pair(
-        &self,
-        quote_asset_id: Uuid,
-        base_asset_id: Uuid,
-    ) -> Result<NotifyTrigger> {
-        let trigger_name = trigger_name(
-            "spot_orders_notify_trigger_for_asset_pair",
-            vec![
-                Bytes::from(quote_asset_id.as_bytes().to_owned().to_vec()),
-                Bytes::from(base_asset_id.as_bytes().to_owned().to_vec()),
-            ],
-        );
-        sqlx::query!(
-            r#"
-            SELECT create_spot_orders_notify_trigger_for_asset_pair($1, $2, $3)
-            "#,
-            trigger_name,
-            quote_asset_id,
-            base_asset_id
-        )
-        .execute(&self.database)
-        .await?;
+    // pub async fn create_notify_trigger_for_asset_pair(
+    //     &self,
+    //     quote_asset_id: Uuid,
+    //     base_asset_id: Uuid,
+    // ) -> Result<NotifyTrigger> {
+    //     let trigger_name = trigger_name(
+    //         "spot_orders_notify_trigger_for_asset_pair",
+    //         vec![
+    //             Bytes::from(quote_asset_id.as_bytes().to_owned().to_vec()),
+    //             Bytes::from(base_asset_id.as_bytes().to_owned().to_vec()),
+    //         ],
+    //     );
+    //     sqlx::query!(
+    //         r#"
+    //         SELECT create_spot_orders_notify_trigger_for_asset_pair($1, $2, $3)
+    //         "#,
+    //         trigger_name,
+    //         quote_asset_id,
+    //         base_asset_id
+    //     )
+    //     .execute(&self.database)
+    //     .await?;
 
-        let db = self.database.clone();
-        let trigger_name_clone = trigger_name.clone();
-        let (tx, rx) = oneshot::channel::<()>();
-        task::spawn(async move {
-            if (rx.await).is_err() {
-                tracing::error!("drop_signal failed");
-            }
-            if let Err(err) = sqlx::query!(
-                r#"
-                SELECT drop_spot_orders_notify_trigger_for_asset_pair($1)
-                "#,
-                trigger_name_clone
-            )
-            .execute(&db)
-            .await
-            {
-                tracing::error!("{err}");
-            }
-        });
+    //     let db = self.database.clone();
+    //     let trigger_name_clone = trigger_name.clone();
+    //     let (tx, rx) = oneshot::channel::<()>();
+    //     task::spawn(async move {
+    //         if (rx.await).is_err() {
+    //             tracing::error!("drop_signal failed");
+    //         }
+    //         if let Err(err) = sqlx::query!(
+    //             r#"
+    //             SELECT drop_spot_orders_notify_trigger_for_asset_pair($1)
+    //             "#,
+    //             trigger_name_clone
+    //         )
+    //         .execute(&db)
+    //         .await
+    //         {
+    //             tracing::error!("{err}");
+    //         }
+    //     });
 
-        Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
-    }
+    //     Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
+    // }
 
-    pub async fn subscribe_for_asset_pair(
-        &self,
-        quote_asset_id: Uuid,
-        base_asset_id: Uuid,
-    ) -> Result<SubscribeStream<Order>> {
-        let mut listener = PgListener::connect_with(&self.database).await?;
-        let notify_trigger = self
-            .create_notify_trigger_for_asset_pair(quote_asset_id, base_asset_id)
-            .await?;
-        listener.listen(&notify_trigger.channel_name).await?;
+    // pub async fn subscribe_for_asset_pair(
+    //     &self,
+    //     quote_asset_id: Uuid,
+    //     base_asset_id: Uuid,
+    // ) -> Result<SubscribeStream<Order>> {
+    //     let mut listener = PgListener::connect_with(&self.database).await?;
+    //     let notify_trigger = self
+    //         .create_notify_trigger_for_asset_pair(quote_asset_id, base_asset_id)
+    //         .await?;
+    //     listener.listen(&notify_trigger.channel_name).await?;
 
-        let subscribe_stream = listener.into_stream().map(|element| {
-            element.and_then(|val| {
-                serde_json::from_str::<Order>(val.payload())
-                    .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
-            })
-        });
+    //     let subscribe_stream = listener.into_stream().map(|element| {
+    //         element.and_then(|val| {
+    //             serde_json::from_str::<Order>(val.payload())
+    //                 .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
+    //         })
+    //     });
 
-        Ok(SubscribeStream::new(
-            notify_trigger,
-            Box::pin(subscribe_stream),
-        ))
-    }
+    //     Ok(SubscribeStream::new(
+    //         notify_trigger,
+    //         Box::pin(subscribe_stream),
+    //     ))
+    // }
 
-    pub async fn create_notify_trigger_for_orderbook(
-        &self,
-        quote_asset_id: Uuid,
-        base_asset_id: Uuid,
-        precission: i32,
-        limit: i64,
-    ) -> Result<NotifyTrigger> {
-        let trigger_name = trigger_name(
-            "spot_orders_notify_trigger_for_orderbook",
-            vec![
-                Bytes::from(quote_asset_id.as_bytes().to_owned().to_vec()),
-                Bytes::from(base_asset_id.as_bytes().to_owned().to_vec()),
-                Bytes::from(precission.to_le_bytes().to_owned().to_vec()),
-                Bytes::from(limit.to_le_bytes().to_owned().to_vec()),
-            ],
-        );
-        sqlx::query!(
-            r#"
-            SELECT create_spot_orders_notify_trigger_for_orderbook($1, $2, $3, $4, $5)
-            "#,
-            trigger_name,
-            quote_asset_id,
-            base_asset_id,
-            precission,
-            limit
-        )
-        .execute(&self.database)
-        .await?;
+    // pub async fn create_notify_trigger_for_orderbook(
+    //     &self,
+    //     quote_asset_id: Uuid,
+    //     base_asset_id: Uuid,
+    //     precission: i32,
+    //     limit: i64,
+    // ) -> Result<NotifyTrigger> {
+    //     let trigger_name = trigger_name(
+    //         "spot_orders_notify_trigger_for_orderbook",
+    //         vec![
+    //             Bytes::from(quote_asset_id.as_bytes().to_owned().to_vec()),
+    //             Bytes::from(base_asset_id.as_bytes().to_owned().to_vec()),
+    //             Bytes::from(precission.to_le_bytes().to_owned().to_vec()),
+    //             Bytes::from(limit.to_le_bytes().to_owned().to_vec()),
+    //         ],
+    //     );
+    //     sqlx::query!(
+    //         r#"
+    //         SELECT create_spot_orders_notify_trigger_for_orderbook($1, $2, $3, $4, $5)
+    //         "#,
+    //         trigger_name,
+    //         quote_asset_id,
+    //         base_asset_id,
+    //         precission,
+    //         limit
+    //     )
+    //     .execute(&self.database)
+    //     .await?;
 
-        let db = self.database.clone();
-        let trigger_name_clone = trigger_name.clone();
-        let (tx, rx) = oneshot::channel::<()>();
-        task::spawn(async move {
-            if (rx.await).is_err() {
-                tracing::error!("drop_signal failed");
-            }
-            if let Err(err) = sqlx::query!(
-                r#"
-                SELECT drop_spot_orders_notify_trigger_for_orderbook($1)
-                "#,
-                trigger_name_clone
-            )
-            .execute(&db)
-            .await
-            {
-                tracing::error!("{err}");
-            }
-        });
+    //     let db = self.database.clone();
+    //     let trigger_name_clone = trigger_name.clone();
+    //     let (tx, rx) = oneshot::channel::<()>();
+    //     task::spawn(async move {
+    //         if (rx.await).is_err() {
+    //             tracing::error!("drop_signal failed");
+    //         }
+    //         if let Err(err) = sqlx::query!(
+    //             r#"
+    //             SELECT drop_spot_orders_notify_trigger_for_orderbook($1)
+    //             "#,
+    //             trigger_name_clone
+    //         )
+    //         .execute(&db)
+    //         .await
+    //         {
+    //             tracing::error!("{err}");
+    //         }
+    //     });
 
-        Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
-    }
+    //     Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
+    // }
 
-    pub async fn subscribe_for_orderbook(
-        &self,
-        quote_asset_id: Uuid,
-        base_asset_id: Uuid,
-        precission: i32,
-        limit: i64,
-    ) -> Result<SubscribeStream<Vec<PriceLevel>>> {
-        let mut listener = PgListener::connect_with(&self.database).await?;
-        let notify_trigger = self
-            .create_notify_trigger_for_orderbook(quote_asset_id, base_asset_id, precission, limit)
-            .await?;
-        listener.listen(&notify_trigger.channel_name).await?;
+    // pub async fn subscribe_for_orderbook(
+    //     &self,
+    //     quote_asset_id: Uuid,
+    //     base_asset_id: Uuid,
+    //     precission: i32,
+    //     limit: i64,
+    // ) -> Result<SubscribeStream<Vec<PriceLevel>>> {
+    //     let mut listener = PgListener::connect_with(&self.database).await?;
+    //     let notify_trigger = self
+    //         .create_notify_trigger_for_orderbook(quote_asset_id, base_asset_id, precission, limit)
+    //         .await?;
+    //     listener.listen(&notify_trigger.channel_name).await?;
 
-        let subscribe_stream = listener.into_stream().map(|element| {
-            element.and_then(|val| {
-                serde_json::from_str::<Vec<PriceLevel>>(val.payload())
-                    .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
-            })
-        });
+    //     let subscribe_stream = listener.into_stream().map(|element| {
+    //         element.and_then(|val| {
+    //             serde_json::from_str::<Vec<PriceLevel>>(val.payload())
+    //                 .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
+    //         })
+    //     });
 
-        Ok(SubscribeStream::new(
-            notify_trigger,
-            Box::pin(subscribe_stream),
-        ))
-    }
+    //     Ok(SubscribeStream::new(
+    //         notify_trigger,
+    //         Box::pin(subscribe_stream),
+    //     ))
+    // }
 
-    pub async fn create_notify_trigger_for_orderbook_opposite(
-        &self,
-        quote_asset_id: Uuid,
-        base_asset_id: Uuid,
-        precission: i32,
-        limit: i64,
-    ) -> Result<NotifyTrigger> {
-        let trigger_name = trigger_name(
-            "spot_orders_notify_trigger_for_orderbook_opposite",
-            vec![
-                Bytes::from(quote_asset_id.as_bytes().to_owned().to_vec()),
-                Bytes::from(base_asset_id.as_bytes().to_owned().to_vec()),
-                Bytes::from(precission.to_le_bytes().to_owned().to_vec()),
-                Bytes::from(limit.to_le_bytes().to_owned().to_vec()),
-            ],
-        );
-        sqlx::query!(
-            r#"
-            SELECT create_spot_orders_notify_trigger_for_orderbook_opposite($1, $2, $3, $4, $5)
-            "#,
-            trigger_name,
-            quote_asset_id,
-            base_asset_id,
-            precission,
-            limit
-        )
-        .execute(&self.database)
-        .await?;
+    // pub async fn create_notify_trigger_for_orderbook_opposite(
+    //     &self,
+    //     quote_asset_id: Uuid,
+    //     base_asset_id: Uuid,
+    //     precission: i32,
+    //     limit: i64,
+    // ) -> Result<NotifyTrigger> {
+    //     let trigger_name = trigger_name(
+    //         "spot_orders_notify_trigger_for_orderbook_opposite",
+    //         vec![
+    //             Bytes::from(quote_asset_id.as_bytes().to_owned().to_vec()),
+    //             Bytes::from(base_asset_id.as_bytes().to_owned().to_vec()),
+    //             Bytes::from(precission.to_le_bytes().to_owned().to_vec()),
+    //             Bytes::from(limit.to_le_bytes().to_owned().to_vec()),
+    //         ],
+    //     );
+    //     sqlx::query!(
+    //         r#"
+    //         SELECT create_spot_orders_notify_trigger_for_orderbook_opposite($1, $2, $3, $4, $5)
+    //         "#,
+    //         trigger_name,
+    //         quote_asset_id,
+    //         base_asset_id,
+    //         precission,
+    //         limit
+    //     )
+    //     .execute(&self.database)
+    //     .await?;
 
-        let db = self.database.clone();
-        let trigger_name_clone = trigger_name.clone();
-        let (tx, rx) = oneshot::channel::<()>();
-        task::spawn(async move {
-            if (rx.await).is_err() {
-                tracing::error!("drop_signal failed");
-            }
-            if let Err(err) = sqlx::query!(
-                r#"
-                SELECT drop_spot_orders_notify_trigger_for_orderbook_opposite($1)
-                "#,
-                trigger_name_clone
-            )
-            .execute(&db)
-            .await
-            {
-                tracing::error!("{err}");
-            }
-        });
+    //     let db = self.database.clone();
+    //     let trigger_name_clone = trigger_name.clone();
+    //     let (tx, rx) = oneshot::channel::<()>();
+    //     task::spawn(async move {
+    //         if (rx.await).is_err() {
+    //             tracing::error!("drop_signal failed");
+    //         }
+    //         if let Err(err) = sqlx::query!(
+    //             r#"
+    //             SELECT drop_spot_orders_notify_trigger_for_orderbook_opposite($1)
+    //             "#,
+    //             trigger_name_clone
+    //         )
+    //         .execute(&db)
+    //         .await
+    //         {
+    //             tracing::error!("{err}");
+    //         }
+    //     });
 
-        Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
-    }
+    //     Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
+    // }
 
-    pub async fn subscribe_for_orderbook_opposite(
-        &self,
-        quote_asset_id: Uuid,
-        base_asset_id: Uuid,
-        precission: i32,
-        limit: i64,
-    ) -> Result<SubscribeStream<Vec<PriceLevel>>> {
-        let mut listener = PgListener::connect_with(&self.database).await?;
-        let notify_trigger = self
-            .create_notify_trigger_for_orderbook_opposite(
-                quote_asset_id,
-                base_asset_id,
-                precission,
-                limit,
-            )
-            .await?;
-        listener.listen(&notify_trigger.channel_name).await?;
+    // pub async fn subscribe_for_orderbook_opposite(
+    //     &self,
+    //     quote_asset_id: Uuid,
+    //     base_asset_id: Uuid,
+    //     precission: i32,
+    //     limit: i64,
+    // ) -> Result<SubscribeStream<Vec<PriceLevel>>> {
+    //     let mut listener = PgListener::connect_with(&self.database).await?;
+    //     let notify_trigger = self
+    //         .create_notify_trigger_for_orderbook_opposite(
+    //             quote_asset_id,
+    //             base_asset_id,
+    //             precission,
+    //             limit,
+    //         )
+    //         .await?;
+    //     listener.listen(&notify_trigger.channel_name).await?;
 
-        let subscribe_stream = listener.into_stream().map(|element| {
-            element.and_then(|val| {
-                serde_json::from_str::<Vec<PriceLevel>>(val.payload())
-                    .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
-            })
-        });
+    //     let subscribe_stream = listener.into_stream().map(|element| {
+    //         element.and_then(|val| {
+    //             serde_json::from_str::<Vec<PriceLevel>>(val.payload())
+    //                 .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
+    //         })
+    //     });
 
-        Ok(SubscribeStream::new(
-            notify_trigger,
-            Box::pin(subscribe_stream),
-        ))
-    }
+    //     Ok(SubscribeStream::new(
+    //         notify_trigger,
+    //         Box::pin(subscribe_stream),
+    //     ))
+    // }
 }
 
 impl TableManager<Order> for OrdersManager {
@@ -619,6 +694,7 @@ impl TableManager<Order> for OrdersManager {
             SELECT
                 id,
                 created_at,
+                last_modification_at,
                 user_id,
                 is_active,
                 quote_asset_id,
@@ -640,6 +716,7 @@ impl TableManager<Order> for OrdersManager {
             SELECT
                 id,
                 created_at,
+                last_modification_at,
                 user_id,
                 is_active,
                 quote_asset_id,
@@ -667,7 +744,7 @@ impl TableManager<Order> for OrdersManager {
                 spot.orders
                 (
                     id, 
-                    created_at, 
+                    created_at,
                     user_id, 
                     is_active, 
                     quote_asset_id, 
@@ -742,6 +819,36 @@ impl TableManager<Order> for OrdersManager {
             element.id,
         )
         .execute(&self.database)
+        .await
+    }
+}
+
+impl GetModified<Order> for OrdersManager {
+    async fn get_modified(
+        &self,
+        last_modification_at: DateTime<Utc>,
+    ) -> Result<Vec<Order>> {
+        sqlx::query_as!(
+            Order,
+            r#"
+            SELECT
+                id,
+                created_at,
+                last_modification_at,
+                user_id,
+                is_active,
+                quote_asset_id,
+                base_asset_id,
+                quote_asset_volume as "quote_asset_volume: Volume",
+                base_asset_volume as "base_asset_volume: Volume",
+                quote_asset_volume_left as "quote_asset_volume_left: Volume",
+                maker_fee as "maker_fee: Fraction"
+            FROM spot.orders
+            WHERE last_modification_at > $1
+            "#,
+            last_modification_at
+        )
+        .fetch_all(&self.database)
         .await
     }
 }

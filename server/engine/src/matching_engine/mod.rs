@@ -196,9 +196,11 @@ impl MatchingEngine {
                 taker_base_asset_volume_given.to_owned(),
             );
 
+            let now = Utc::now();
             response.trades.push(Trade {
                 id: Uuid::new_v4(),
-                created_at: Utc::now(),
+                created_at: now,
+                last_modification_at: now,
                 quote_asset_id: input.quote_asset_id,
                 base_asset_id: input.base_asset_id,
                 taker_id: input.user_id,
@@ -213,9 +215,11 @@ impl MatchingEngine {
         }
 
         if taker_quote_asset_volume_left > Volume::from(0) {
+            let now = Utc::now();
             response.order = Some(Order {
                 id: Uuid::new_v4(),
-                created_at: Utc::now(),
+                created_at: now,
+                last_modification_at: now,
                 user_id: input.user_id,
                 is_active: true,
                 quote_asset_id: input.quote_asset_id,

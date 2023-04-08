@@ -1,21 +1,18 @@
 use std::pin::Pin;
 
 use bigdecimal::BigDecimal;
-use bytes::Bytes;
 use chrono::{DateTime, Utc};
-use futures::{Stream, StreamExt};
+use futures::Stream;
 use sqlx::{
-    postgres::{PgListener, PgPool, PgQueryResult},
+    postgres::{PgPool, PgQueryResult},
     types::Uuid,
     Result,
 };
-use tokio::{sync::oneshot, task};
 
 use crate::{
     projections::spot::trade::Trade,
-    traits::table_manager::TableManager,
-    types::{NotifyTrigger, SubscribeStream, Volume},
-    utils::trigger_name,
+    traits::{table_manager::TableManager, get_modified::GetModified},
+    types::{Volume},
 };
 
 #[derive(Debug, Clone)]
@@ -26,6 +23,36 @@ pub struct TradesManager {
 impl TradesManager {
     pub fn new(database: PgPool) -> Self {
         TradesManager { database }
+    }
+
+    pub async fn get_after_last_modification_at(
+        &self,
+        last_modification_at: DateTime<Utc>,
+    ) -> Result<Option<Trade>> {
+        sqlx::query_as!(
+            Trade,
+            r#"
+            SELECT
+                id,
+                created_at,
+                last_modification_at,
+                quote_asset_id,
+                base_asset_id,
+                taker_id,
+                order_id,
+                taker_quote_volume as "taker_quote_volume: Volume",
+                taker_base_volume as "taker_base_volume: Volume",
+                maker_quote_volume as "maker_quote_volume: Volume",
+                maker_base_volume as "maker_base_volume: Volume"
+            FROM spot.trades
+            WHERE (last_modification_at > $1)
+            ORDER BY last_modification_at ASC
+            LIMIT 1
+            "#,
+            last_modification_at
+        )
+        .fetch_optional(&self.database)
+        .await
     }
 
     pub async fn get_last_for_asset_pair(
@@ -39,6 +66,7 @@ impl TradesManager {
             SELECT
                 id,
                 created_at,
+                last_modification_at,
                 quote_asset_id,
                 base_asset_id,
                 taker_id,
@@ -71,6 +99,7 @@ impl TradesManager {
             SELECT
                 id,
                 created_at,
+                last_modification_at,
                 quote_asset_id,
                 base_asset_id,
                 taker_id,
@@ -103,6 +132,7 @@ impl TradesManager {
             SELECT
                 id,
                 created_at,
+                last_modification_at,
                 quote_asset_id,
                 base_asset_id,
                 taker_id,
@@ -132,6 +162,7 @@ impl TradesManager {
             SELECT
                 spot.trades.id,
                 spot.trades.created_at,
+                spot.trades.last_modification_at,
                 spot.trades.quote_asset_id,
                 spot.trades.base_asset_id,
                 spot.trades.taker_id,
@@ -160,6 +191,7 @@ impl TradesManager {
             SELECT
                 spot.trades.id,
                 spot.trades.created_at,
+                spot.trades.last_modification_at,
                 spot.trades.quote_asset_id,
                 spot.trades.base_asset_id,
                 spot.trades.taker_id,
@@ -190,6 +222,7 @@ impl TradesManager {
             SELECT
                 id,
                 created_at,
+                last_modification_at,
                 quote_asset_id,
                 base_asset_id,
                 taker_id,
@@ -224,6 +257,7 @@ impl TradesManager {
             SELECT
                 id,
                 created_at,
+                last_modification_at,
                 quote_asset_id,
                 base_asset_id,
                 taker_id,
@@ -246,131 +280,131 @@ impl TradesManager {
         .fetch(&self.database)
     }
 
-    pub async fn create_notify_trigger_for_taker(&self, taker_id: Uuid) -> Result<NotifyTrigger> {
-        let trigger_name = trigger_name(
-            "spot_trades_notify_trigger_for_taker",
-            vec![Bytes::from(taker_id.as_bytes().to_owned().to_vec())],
-        );
-        sqlx::query!(
-            r#"
-            SELECT create_spot_trades_notify_trigger_for_taker($1, $2)
-            "#,
-            trigger_name,
-            taker_id
-        )
-        .execute(&self.database)
-        .await?;
+    // pub async fn create_notify_trigger_for_taker(&self, taker_id: Uuid) -> Result<NotifyTrigger> {
+    //     let trigger_name = trigger_name(
+    //         "spot_trades_notify_trigger_for_taker",
+    //         vec![Bytes::from(taker_id.as_bytes().to_owned().to_vec())],
+    //     );
+    //     sqlx::query!(
+    //         r#"
+    //         SELECT create_spot_trades_notify_trigger_for_taker($1, $2)
+    //         "#,
+    //         trigger_name,
+    //         taker_id
+    //     )
+    //     .execute(&self.database)
+    //     .await?;
 
-        let db = self.database.clone();
-        let trigger_name_clone = trigger_name.clone();
-        let (tx, rx) = oneshot::channel::<()>();
-        task::spawn(async move {
-            if (rx.await).is_err() {
-                tracing::error!("drop_signal failed");
-            }
-            if let Err(err) = sqlx::query!(
-                r#"
-                SELECT drop_spot_trades_notify_trigger_for_taker($1)
-                "#,
-                trigger_name_clone
-            )
-            .execute(&db)
-            .await
-            {
-                tracing::error!("{err}");
-            }
-        });
+    //     let db = self.database.clone();
+    //     let trigger_name_clone = trigger_name.clone();
+    //     let (tx, rx) = oneshot::channel::<()>();
+    //     task::spawn(async move {
+    //         if (rx.await).is_err() {
+    //             tracing::error!("drop_signal failed");
+    //         }
+    //         if let Err(err) = sqlx::query!(
+    //             r#"
+    //             SELECT drop_spot_trades_notify_trigger_for_taker($1)
+    //             "#,
+    //             trigger_name_clone
+    //         )
+    //         .execute(&db)
+    //         .await
+    //         {
+    //             tracing::error!("{err}");
+    //         }
+    //     });
 
-        Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
-    }
+    //     Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
+    // }
 
-    pub async fn subscribe_for_taker(&self, taker_id: Uuid) -> Result<SubscribeStream<Trade>> {
-        let mut listener = PgListener::connect_with(&self.database).await?;
-        let notify_trigger = self.create_notify_trigger_for_taker(taker_id).await?;
-        listener.listen(&notify_trigger.channel_name).await?;
+    // pub async fn subscribe_for_taker(&self, taker_id: Uuid) -> Result<SubscribeStream<Trade>> {
+    //     let mut listener = PgListener::connect_with(&self.database).await?;
+    //     let notify_trigger = self.create_notify_trigger_for_taker(taker_id).await?;
+    //     listener.listen(&notify_trigger.channel_name).await?;
 
-        let subscribe_stream = listener.into_stream().map(|element| {
-            element.and_then(|val| {
-                serde_json::from_str::<Trade>(val.payload())
-                    .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
-            })
-        });
+    //     let subscribe_stream = listener.into_stream().map(|element| {
+    //         element.and_then(|val| {
+    //             serde_json::from_str::<Trade>(val.payload())
+    //                 .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
+    //         })
+    //     });
 
-        Ok(SubscribeStream::new(
-            notify_trigger,
-            Box::pin(subscribe_stream),
-        ))
-    }
+    //     Ok(SubscribeStream::new(
+    //         notify_trigger,
+    //         Box::pin(subscribe_stream),
+    //     ))
+    // }
 
-    pub async fn create_notify_trigger_for_asset_pair(
-        &self,
-        quote_asset_id: Uuid,
-        base_asset_id: Uuid,
-    ) -> Result<NotifyTrigger> {
-        let trigger_name = trigger_name(
-            "spot_trades_notify_trigger_for_asset_pair",
-            vec![
-                Bytes::from(quote_asset_id.as_bytes().to_owned().to_vec()),
-                Bytes::from(base_asset_id.as_bytes().to_owned().to_vec()),
-            ],
-        );
-        sqlx::query!(
-            r#"
-            SELECT create_spot_trades_notify_trigger_for_asset_pair($1, $2, $3)
-            "#,
-            trigger_name,
-            quote_asset_id,
-            base_asset_id
-        )
-        .execute(&self.database)
-        .await?;
+    // pub async fn create_notify_trigger_for_asset_pair(
+    //     &self,
+    //     quote_asset_id: Uuid,
+    //     base_asset_id: Uuid,
+    // ) -> Result<NotifyTrigger> {
+    //     let trigger_name = trigger_name(
+    //         "spot_trades_notify_trigger_for_asset_pair",
+    //         vec![
+    //             Bytes::from(quote_asset_id.as_bytes().to_owned().to_vec()),
+    //             Bytes::from(base_asset_id.as_bytes().to_owned().to_vec()),
+    //         ],
+    //     );
+    //     sqlx::query!(
+    //         r#"
+    //         SELECT create_spot_trades_notify_trigger_for_asset_pair($1, $2, $3)
+    //         "#,
+    //         trigger_name,
+    //         quote_asset_id,
+    //         base_asset_id
+    //     )
+    //     .execute(&self.database)
+    //     .await?;
 
-        let db = self.database.clone();
-        let trigger_name_clone = trigger_name.clone();
-        let (tx, rx) = oneshot::channel::<()>();
-        task::spawn(async move {
-            if (rx.await).is_err() {
-                tracing::error!("drop_signal failed");
-            }
-            if let Err(err) = sqlx::query!(
-                r#"
-                SELECT drop_spot_trades_notify_trigger_for_asset_pair($1)
-                "#,
-                trigger_name_clone
-            )
-            .execute(&db)
-            .await
-            {
-                tracing::error!("{err}");
-            }
-        });
+    //     let db = self.database.clone();
+    //     let trigger_name_clone = trigger_name.clone();
+    //     let (tx, rx) = oneshot::channel::<()>();
+    //     task::spawn(async move {
+    //         if (rx.await).is_err() {
+    //             tracing::error!("drop_signal failed");
+    //         }
+    //         if let Err(err) = sqlx::query!(
+    //             r#"
+    //             SELECT drop_spot_trades_notify_trigger_for_asset_pair($1)
+    //             "#,
+    //             trigger_name_clone
+    //         )
+    //         .execute(&db)
+    //         .await
+    //         {
+    //             tracing::error!("{err}");
+    //         }
+    //     });
 
-        Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
-    }
+    //     Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
+    // }
 
-    pub async fn subscribe_for_asset_pair(
-        &self,
-        quote_asset_id: Uuid,
-        base_asset_id: Uuid,
-    ) -> Result<SubscribeStream<Trade>> {
-        let mut listener = PgListener::connect_with(&self.database).await?;
-        let notify_trigger = self
-            .create_notify_trigger_for_asset_pair(quote_asset_id, base_asset_id)
-            .await?;
-        listener.listen(&notify_trigger.channel_name).await?;
+    // pub async fn subscribe_for_asset_pair(
+    //     &self,
+    //     quote_asset_id: Uuid,
+    //     base_asset_id: Uuid,
+    // ) -> Result<SubscribeStream<Trade>> {
+    //     let mut listener = PgListener::connect_with(&self.database).await?;
+    //     let notify_trigger = self
+    //         .create_notify_trigger_for_asset_pair(quote_asset_id, base_asset_id)
+    //         .await?;
+    //     listener.listen(&notify_trigger.channel_name).await?;
 
-        let subscribe_stream = listener.into_stream().map(|element| {
-            element.and_then(|val| {
-                serde_json::from_str::<Trade>(val.payload())
-                    .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
-            })
-        });
+    //     let subscribe_stream = listener.into_stream().map(|element| {
+    //         element.and_then(|val| {
+    //             serde_json::from_str::<Trade>(val.payload())
+    //                 .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
+    //         })
+    //     });
 
-        Ok(SubscribeStream::new(
-            notify_trigger,
-            Box::pin(subscribe_stream),
-        ))
-    }
+    //     Ok(SubscribeStream::new(
+    //         notify_trigger,
+    //         Box::pin(subscribe_stream),
+    //     ))
+    // }
 }
 
 impl TableManager<Trade> for TradesManager {
@@ -381,6 +415,7 @@ impl TableManager<Trade> for TradesManager {
             SELECT
                 id,
                 created_at,
+                last_modification_at,
                 quote_asset_id,
                 base_asset_id,
                 taker_id,
@@ -402,6 +437,7 @@ impl TableManager<Trade> for TradesManager {
             SELECT
                 id,
                 created_at,
+                last_modification_at,
                 quote_asset_id,
                 base_asset_id,
                 taker_id,
@@ -495,6 +531,33 @@ impl TableManager<Trade> for TradesManager {
             element.id,
         )
         .execute(&self.database)
+        .await
+    }
+}
+
+impl GetModified<Trade> for TradesManager {
+    async fn get_modified(&self, last_modification_at: DateTime<Utc>) -> Result<Vec<Trade>> {
+        sqlx::query_as!(
+            Trade,
+            r#"
+            SELECT
+                id,
+                created_at,
+                last_modification_at,
+                quote_asset_id,
+                base_asset_id,
+                taker_id,
+                order_id,
+                spot.trades.taker_quote_volume as "taker_quote_volume: Volume",
+                spot.trades.taker_base_volume as "taker_base_volume: Volume",
+                spot.trades.maker_quote_volume as "maker_quote_volume: Volume",
+                spot.trades.maker_base_volume as "maker_base_volume: Volume"
+            FROM spot.trades
+            WHERE last_modification_at > $1
+            "#,
+            last_modification_at
+        )
+        .fetch_all(&self.database)
         .await
     }
 }

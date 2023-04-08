@@ -8,6 +8,7 @@ use crate::types::Fraction;
 pub struct Asset {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,
+    pub last_modification_at: DateTime<Utc>,
     pub name: String,
     pub symbol: String,
     pub maker_fee: Fraction,

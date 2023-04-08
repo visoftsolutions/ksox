@@ -8,7 +8,9 @@ use sqlx::{
 };
 
 use crate::{
-    projections::spot::asset::Asset, traits::table_manager::TableManager, types::Fraction,
+    projections::spot::asset::Asset,
+    traits::{get_modified::GetModified, table_manager::TableManager},
+    types::Fraction,
 };
 
 #[derive(Debug, Clone)]
@@ -30,6 +32,7 @@ impl TableManager<Asset> for AssetsManager {
             SELECT
                 id,
                 created_at,
+                last_modification_at,
                 name,
                 symbol,
                 maker_fee as "maker_fee: Fraction",
@@ -47,6 +50,7 @@ impl TableManager<Asset> for AssetsManager {
             SELECT
                 id,
                 created_at,
+                last_modification_at,
                 name,
                 symbol,
                 maker_fee as "maker_fee: Fraction",
@@ -86,16 +90,14 @@ impl TableManager<Asset> for AssetsManager {
             UPDATE 
                 spot.assets 
             SET
-                created_at = $2,
-                name = $3,
-                symbol = $4,
-                maker_fee = $5,
-                taker_fee = $6
+                name = $2,
+                symbol = $3,
+                maker_fee = $4,
+                taker_fee = $5
             WHERE
                 id = $1
             "#,
             element.id,
-            element.created_at,
             element.name,
             element.symbol,
             element.maker_fee.to_string() as _,
@@ -116,6 +118,32 @@ impl TableManager<Asset> for AssetsManager {
             element.id,
         )
         .execute(&self.database)
+        .await
+    }
+}
+
+impl GetModified<Asset> for AssetsManager {
+    async fn get_modified(
+        &self,
+        last_modification_at: chrono::DateTime<chrono::Utc>,
+    ) -> Result<Vec<Asset>> {
+        sqlx::query_as!(
+            Asset,
+            r#"
+            SELECT
+                id,
+                created_at,
+                last_modification_at,
+                name,
+                symbol,
+                maker_fee as "maker_fee: Fraction",
+                taker_fee as "taker_fee: Fraction"
+            FROM spot.assets
+            WHERE spot.assets.last_modification_at > $1
+            "#,
+            last_modification_at
+        )
+        .fetch_all(&self.database)
         .await
     }
 }

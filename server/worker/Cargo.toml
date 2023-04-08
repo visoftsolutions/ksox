@@ -19,6 +19,7 @@ headers = "0.3.8"
 http = "0.2.8"
 num-bigint = { version = "0.4.3", features = ["serde"] }
 ordered-float = { version = "3.4.0", features = ["serde"] }
+predicates = "3.0.2"
 prefix-hex = "0.7.0"
 prost = "0.11.6"
 rand = "0.8.5"
