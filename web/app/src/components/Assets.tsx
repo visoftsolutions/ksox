@@ -10,6 +10,7 @@ import { Asset } from "~/types/asset";
 import CreateMint from "./Assets/Mint";
 import CreateBurn from "./Assets/Burn";
 import { useSession } from "~/utils/providers/SessionProvider";
+import TriElementHeader from "./App/TriElement/TriElementHeader";
 
 enum Tab {
   Mint,
@@ -31,29 +32,28 @@ export default function Assets() {
   return (
     <>
       <div class="col-start-2 col-end-6 row-start-2 row-end-4 grid grid-cols-[320px_200px_1fr] grid-rows-1 gap-[1px] bg-gray-1 font-sanspro">
-        <div class="col-start-1 col-end-2 grid grid-rows-[80px_1fr] bg-gray-2">
-          <div class="row-start-1 row-end-2 px-4 pt-4">
-            <div class="grid h-full grid-rows-[auto_1fr]">
-              <SearchInput
-                class="text-markets-searchbar row-start-1 row-end-2 mx-auto mb-2 w-full"
-                left={<img src={joinPaths(base, "/gfx/search.svg")} alt="search" width="20px" />}
-                onInput={(e) => {
-                  const value = (e.target as HTMLInputElement).value;
-                  setSearch(value);
-                }}
-              />
-              <div class="row-start-2 row-end-3 grid items-end justify-between overflow-hidden text-ellipsis text-markets-sublabel font-semibold text-gray-4">
-                <div class="col-start-1 col-end-2">Coin</div>
-                <div class="col-start-2 col-end-3">Balance</div>
-              </div>
-            </div>
+        <div class="col-start-1 col-end-2 grid h-full grid-rows-[76px_1fr] bg-gray-2">
+          <div class="row-start-1 row-end-2 grid items-center px-3">
+            <SearchInput
+              class="text-markets-searchbar row-start-1 row-end-2 mx-auto mt-3 w-full"
+              left={
+                <>
+                  <img src={joinPaths(base, "/gfx/search.svg")} alt="search" width="20px" />
+                </>
+              }
+              onInput={(e) => {
+                const value = (e.target as HTMLInputElement).value;
+                setSearch(value);
+              }}
+            />
+            <TriElementHeader class="row-start-2 row-end-3 self-end" column_0={"Coin"} />
           </div>
           <div class="relative row-start-2 row-end-3">
             <div class="absolute bottom-0 left-0 right-0 top-0 flex flex-col overflow-y-auto">
               <Index each={assetsList()}>
                 {(element, i) => (
                   <div
-                    class={`grid h-[56px] cursor-pointer items-center justify-between px-4 py-2 text-orderbook-label
+                    class={`grid h-[56px] cursor-pointer items-center justify-between px-3 py-2 text-orderbook-label
                     ${i % 2 ? "bg-gray-3" : ""}
                     ${element() == selectedAsset() ? "bg-ksox-1 bg-opacity-40 text-white" : ""}`}
                     onClick={() => {
@@ -72,40 +72,36 @@ export default function Assets() {
             </div>
           </div>
         </div>
-        <div class="col-start-2 col-end-3 grid grid-rows-[80px_1fr] bg-gray-2 text-orderbook-label text-gray-4">
+        <div class="col-start-2 col-end-3 grid grid-rows-[76px_1fr] bg-gray-2 text-orderbook-label text-gray-4">
           <Dynamic component={CreateAssetInfo(session(), selectedAsset(), precision())} />
           <div class="row-start-2 row-end-3">
             <div
-              class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
-                tab() == Tab.Mint ? "bg-ksox-1 bg-opacity-40 text-white" : ""
-              } `}
+              class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${tab() == Tab.Mint ? "bg-ksox-1 bg-opacity-40 text-white" : ""
+                } `}
               onClick={() => setTab(Tab.Mint)}
             >
               <img src={joinPaths(base, "/gfx/assets_arrow_down.svg")} alt="arrow_down" class="col-start-1 col-end-2" />
               <div class="col-start-2 col-end-3">Mint</div>
             </div>
             <div
-              class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
-                tab() == Tab.Burn ? "bg-ksox-1 bg-opacity-40 text-white" : ""
-              }`}
+              class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${tab() == Tab.Burn ? "bg-ksox-1 bg-opacity-40 text-white" : ""
+                }`}
               onClick={() => setTab(Tab.Burn)}
             >
               <img src={joinPaths(base, "/gfx/assets_arrow_up.svg")} alt="arrow_up" class="col-start-1 col-end-2" />
               <div class="col-start-2 col-end-3">Burn</div>
             </div>
             <div
-              class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
-                tab() == Tab.History ? "bg-ksox-1 bg-opacity-40 text-white" : ""
-              }`}
+              class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${tab() == Tab.History ? "bg-ksox-1 bg-opacity-40 text-white" : ""
+                }`}
               onClick={() => setTab(Tab.History)}
             >
               <img src={joinPaths(base, "/gfx/assets_clock.svg")} alt="clock" class="col-start-1 col-end-2" />
               <div class="col-start-2 col-end-3">History</div>
             </div>
             <div
-              class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
-                tab() == Tab.OwnTransfer ? "bg-ksox-1 bg-opacity-40 text-white" : ""
-              }`}
+              class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${tab() == Tab.OwnTransfer ? "bg-ksox-1 bg-opacity-40 text-white" : ""
+                }`}
               onClick={() => setTab(Tab.OwnTransfer)}
             >
               <img src={joinPaths(base, "/gfx/assets_transfer.svg")} alt="transfer" class="col-start-1 col-end-2" />

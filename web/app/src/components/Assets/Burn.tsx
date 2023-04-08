@@ -1,4 +1,3 @@
-import { AssetInfo } from "../Assets";
 import NumberInput from "../Inputs/NumberInput";
 import { Show, createSignal } from "solid-js";
 import { fromWei, toWei } from "~/utils/converters/wei";
@@ -17,7 +16,7 @@ export default function CreateBurn(asset?: Asset, precision?: number) {
   );
 }
 
-export function Burn(props: { asset: AssetInfo; precision: number }) {
+export function Burn(props: { asset: Asset; precision: number }) {
   const [amount, setAmount] = createSignal<bigint>(0n);
   const session = useSession();
 
@@ -26,7 +25,7 @@ export function Burn(props: { asset: AssetInfo; precision: number }) {
       <div class="font-lexend text-[32px] font-extralight">Burn assets</div>
       <div class="grid items-center justify-start gap-6">
         <NumberInput
-          class="col-start-1 col-end-2 my-4 w-72"
+          class="col-start-1 col-end-2 my-4 w-72 bg-gray-1 p-1 text-submit-label"
           precision={props.precision}
           left={"Quantity"}
           right={props.asset.symbol}

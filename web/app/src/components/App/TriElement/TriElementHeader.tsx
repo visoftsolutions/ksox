@@ -2,9 +2,9 @@ import { JSX } from "solid-js";
 
 export interface TriElementHeaderComponent {
   class?: JSX.HTMLAttributes<HTMLElement>["class"];
-  column_0: JSX.Element;
-  column_1: JSX.Element;
-  column_2: JSX.Element;
+  column_0?: JSX.Element;
+  column_1?: JSX.Element;
+  column_2?: JSX.Element;
 }
 
 export default function TriElementHeader(props: TriElementHeaderComponent) {

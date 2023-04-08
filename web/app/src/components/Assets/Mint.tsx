@@ -23,8 +23,8 @@ export function Mint(props: { asset: Asset; precision: number }) {
     <>
       <div class="font-lexend text-[32px] font-extralight">Mint assets</div>
       <div class="grid items-center justify-start gap-6">
-        <NumberInput
-          class="col-start-1 col-end-2 my-4 w-72"
+      <NumberInput
+          class="col-start-1 col-end-2 my-4 w-72 bg-gray-1 p-1 text-submit-label"
           precision={props.precision}
           left={"Quantity"}
           right={props.asset.symbol}

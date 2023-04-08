@@ -69,7 +69,7 @@ export default function Markets() {
           </div>
         </NavButton>
       </div>
-      <div class="row-start-2 row-end-3 grid items-center justify-center px-3">
+      <div class="row-start-2 row-end-3 grid items-center px-3">
         <SearchInput
           class="text-markets-searchbar row-start-1 row-end-2 mx-auto mt-3 w-full"
           left={
