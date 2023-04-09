@@ -1,4 +1,4 @@
-import { createMemo, createUniqueId, JSX } from "solid-js";
+import { createUniqueId, JSX } from "solid-js";
 
 export interface SearchInputComponent {
   value?: string;
@@ -12,17 +12,15 @@ export interface SearchInputComponent {
 
 export default function SearchInput(props: SearchInputComponent) {
   let inputDOM!: HTMLInputElement;
-  const valueDOM = createMemo(() => {
-    return props.value == null || props.value == undefined ? "" : props.value;
-  });
 
   const id = createUniqueId();
 
   return (
     <div
-      class={`grid cursor-text grid-cols-[auto_1fr] items-center rounded-md bg-gray-1 p-[3px] font-sanspro text-searchInput font-normal ${props.class} ${
-        props.disabled ? props.disabledClass : ""
-      }`}
+      class={`grid cursor-text grid-cols-[auto_1fr] items-center rounded-md bg-gray-1 p-[3px] font-sanspro text-searchInput font-normal
+        ${props.class}
+        ${props.disabled && props.disabledClass}
+      `}
       onClick={() => {
         inputDOM.focus();
       }}
@@ -37,7 +35,7 @@ export default function SearchInput(props: SearchInputComponent) {
           type="text"
           spellcheck={true}
           ref={inputDOM}
-          value={valueDOM()}
+          value={props.value}
           placeholder="Search"
           disabled={props.disabled}
           onInput={(ev) => (props.onInput ? props.onInput(ev) : {})}

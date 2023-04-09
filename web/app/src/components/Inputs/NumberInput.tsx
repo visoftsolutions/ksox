@@ -1,18 +1,21 @@
+import { format } from "numerable";
 import { createMemo, createUniqueId, JSX } from "solid-js";
+import { Fraction } from "~/types/primitives/fraction";
+import { formatTemplate } from "~/utils/precision";
 
 export interface NumberInputComponent {
-  value?: string;
+  value?: Fraction;
   left?: JSX.Element;
   right?: JSX.Element;
   class?: JSX.HTMLAttributes<HTMLElement>["class"];
   disabled?: boolean;
   disabledClass?: JSX.HTMLAttributes<HTMLElement>["class"];
   precision?: number;
-  onInput?: (e: Event) => void;
-  onChange?: (e: Event) => void;
+  onInput?: (f: Fraction) => void;
+  onChange?: (f: Fraction) => void;
 }
 
-function formatInput(input: string, precision: number) {
+function formatHumanReadable(input: string, precision: number) {
   // Remove all non-digit and non-dot characters
   let formatted = precision > 0 ? input.replace(/[^0-9.]/g, "") : input.replace(/[^0-9]/g, "");
   formatted = formatted.replace(/(\..*?)\..*/g, "$1").replace(/^0[^.]/, "0");
@@ -36,10 +39,20 @@ function formatInput(input: string, precision: number) {
   return formatted;
 }
 
+function humanReadableToBigint(input: string) {
+  const decimalNumber = input.replace(/,/g, "");
+  const index = decimalNumber.indexOf(".");
+  const decimalPlaces = index >= 0 ? BigInt(decimalNumber.length - index - 1) : 0n;
+  return Fraction.parse({
+    numerator: BigInt(decimalNumber.replace(".", "")),
+    denominator: 10n ** decimalPlaces,
+  });
+}
+
 export default function NumberInput(props: NumberInputComponent) {
   let inputDOM!: HTMLInputElement;
   const valueDOM = createMemo(() => {
-    return props.value == undefined ? "" : props.value;
+    return props.value == undefined ? { numerator: 0n, denominator: 1n } : props.value;
   });
 
   const id = createUniqueId();
@@ -61,17 +74,17 @@ export default function NumberInput(props: NumberInputComponent) {
           type="text"
           spellcheck={true}
           ref={inputDOM}
-          value={valueDOM()}
+          value={format(Number(valueDOM().numerator) / Number(valueDOM().denominator), formatTemplate(props.precision ?? 3))}
           disabled={props.disabled}
           onInput={(e) => {
-            (e.target as HTMLInputElement).value = formatInput((e.target as HTMLInputElement).value, props.precision != undefined ? props.precision : 0);
+            (e.target as HTMLInputElement).value = formatHumanReadable((e.target as HTMLInputElement).value, props.precision ?? 3);
             if (props.onInput != undefined) {
-              props.onInput(e);
+              props.onInput(humanReadableToBigint((e.target as HTMLInputElement).value));
             }
           }}
           onChange={(e) => {
             if (props.onChange != undefined) {
-              props.onChange(e);
+              props.onChange(humanReadableToBigint((e.target as HTMLInputElement).value));
             }
           }}
           onFocus={(e) => {

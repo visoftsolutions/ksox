@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { Volume } from "./volume";
-import { fromWei } from "~/utils/converters/wei";
 
 export const Fraction = z.object({
   numerator: Volume,
@@ -8,10 +7,26 @@ export const Fraction = z.object({
 });
 export type Fraction = z.infer<typeof Fraction>;
 
-export function evaluate(f: Fraction): number {
-  return fromWei(f.numerator) / fromWei(f.denominator);
+export function finv(f: Fraction): Fraction {
+  return { numerator: f.denominator, denominator: f.numerator };
 }
 
-export function evaluateInv(f: Fraction): number {
-  return fromWei(f.denominator) / fromWei(f.numerator);
+export function fmul(a: Fraction, b: Fraction): Fraction {
+  return { numerator: a.numerator * b.numerator, denominator: a.denominator * b.denominator };
+}
+
+export function fFromBigint(n: bigint): Fraction {
+  return { numerator: n, denominator: 1n };
+}
+
+export function fmax(a: Fraction, b: Fraction): Fraction {
+  return a.numerator * b.denominator > a.denominator * b.numerator ? a : b;
+}
+
+export function fmin(a: Fraction, b: Fraction): Fraction {
+  return a.numerator * b.denominator < a.denominator * b.numerator ? a : b;
+}
+
+export function ev(f: Fraction): number {
+  return Number(f.numerator) / Number(f.denominator);
 }

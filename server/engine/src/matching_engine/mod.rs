@@ -156,10 +156,10 @@ impl MatchingEngine {
         // && taker_quote_asset_volume_left > Volume::from(0)
         while let Some(maker_order) = input.maker_orders.next().await && taker_quote_asset_volume_left > Volume::from(0) {
             let maker_order = maker_order?;
-            let maker_order_base_asset_volume_left = maker_order.base_asset_volume_left_ceil();
+            let maker_order_base_asset_volume_left = maker_order.base_asset_volume_left_floor();
 
-            if maker_order.quote_asset_volume_left.to_owned() * input.quote_asset_volume.to_owned()
-                < maker_order_base_asset_volume_left.to_owned() * input.base_asset_volume.to_owned()
+            if maker_order.quote_asset_volume.to_owned() * input.quote_asset_volume.to_owned()
+                < maker_order.base_asset_volume.to_owned() * input.base_asset_volume.to_owned()
                 || input.quote_asset_id != maker_order.base_asset_id
                 || input.base_asset_id != maker_order.quote_asset_id
                 || input.quote_asset_volume <= Volume::from(0)

@@ -806,99 +806,6 @@
     },
     "query": "\n            DELETE FROM \n                spot.trades \n            WHERE\n                id = $1\n            "
   },
-  "3ba8aa749b87a0aed4185221947ea39b382381ac6418117051b54c5e215ddafc": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "created_at",
-          "ordinal": 1,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "user_id",
-          "ordinal": 2,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "is_active",
-          "ordinal": 3,
-          "type_info": "Bool"
-        },
-        {
-          "name": "quote_asset_id",
-          "ordinal": 4,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "base_asset_id",
-          "ordinal": 5,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "quote_asset_volume: Volume",
-          "ordinal": 6,
-          "type_info": "Numeric"
-        },
-        {
-          "name": "base_asset_volume: Volume",
-          "ordinal": 7,
-          "type_info": "Numeric"
-        },
-        {
-          "name": "quote_asset_volume_left: Volume",
-          "ordinal": 8,
-          "type_info": "Numeric"
-        },
-        {
-          "name": "maker_fee: Fraction",
-          "ordinal": 9,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numerator",
-                    "Numeric"
-                  ],
-                  [
-                    "denominator",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Uuid",
-          "Numeric",
-          "Numeric"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                id,\n                created_at,\n                user_id,\n                is_active,\n                quote_asset_id,\n                base_asset_id,\n                quote_asset_volume as \"quote_asset_volume: Volume\",\n                base_asset_volume as \"base_asset_volume: Volume\",\n                quote_asset_volume_left as \"quote_asset_volume_left: Volume\",\n                maker_fee as \"maker_fee: Fraction\"\n            FROM spot.orders\n            WHERE quote_asset_id = $1\n            AND base_asset_id = $2\n            AND spot.orders.is_active = true\n            AND $3 * CEIL(base_asset_volume*quote_asset_volume_left/quote_asset_volume) <= quote_asset_volume_left * $4\n            ORDER BY (base_asset_volume / quote_asset_volume) ASC\n            "
-  },
   "3f7ae485b14b328b5d48599e636cf118aa03e43c1d0f42c42d8f0c2241b6455e": {
     "describe": {
       "columns": [
@@ -2877,6 +2784,99 @@
       }
     },
     "query": "\n            SELECT\n                users.id,\n                users.created_at,\n                users.address as \"address: EvmAddress\"\n            FROM users\n            WHERE users.address = $1\n            "
+  },
+  "d050d8eb3ca8478b0fce532603363c405bba78b8e531a835e91beefd46ebc891": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 2,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "is_active",
+          "ordinal": 3,
+          "type_info": "Bool"
+        },
+        {
+          "name": "quote_asset_id",
+          "ordinal": 4,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "base_asset_id",
+          "ordinal": 5,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "quote_asset_volume: Volume",
+          "ordinal": 6,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "base_asset_volume: Volume",
+          "ordinal": 7,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "quote_asset_volume_left: Volume",
+          "ordinal": 8,
+          "type_info": "Numeric"
+        },
+        {
+          "name": "maker_fee: Fraction",
+          "ordinal": 9,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numerator",
+                    "Numeric"
+                  ],
+                  [
+                    "denominator",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid",
+          "Numeric",
+          "Numeric"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                created_at,\n                user_id,\n                is_active,\n                quote_asset_id,\n                base_asset_id,\n                quote_asset_volume as \"quote_asset_volume: Volume\",\n                base_asset_volume as \"base_asset_volume: Volume\",\n                quote_asset_volume_left as \"quote_asset_volume_left: Volume\",\n                maker_fee as \"maker_fee: Fraction\"\n            FROM spot.orders\n            WHERE quote_asset_id = $1\n            AND base_asset_id = $2\n            AND spot.orders.is_active = true\n            AND $3 * base_asset_volume <= quote_asset_volume * $4\n            ORDER BY (base_asset_volume / quote_asset_volume) ASC\n            "
   },
   "d3069086c998e8aa7792d3611ef671daa6a76dd58df12676aaccbeeced96b776": {
     "describe": {

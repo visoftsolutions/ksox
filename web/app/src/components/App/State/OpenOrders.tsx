@@ -2,7 +2,7 @@ import { batch, Index, onCleanup, onMount, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import { ValidateSignatureResponse } from "~/auth/mod";
 import { Asset } from "~/types/asset";
-import { fromWei } from "~/utils/converters/wei";
+import { fFromWei } from "~/utils/converters/wei";
 import { Direction } from "../State";
 import { api, base } from "~/root";
 import params from "~/utils/params";
@@ -14,6 +14,7 @@ import { Market } from "~/utils/providers/MarketProvider";
 import { format } from "numerable";
 import { formatTemplate } from "~/utils/precision";
 import { joinPaths } from "solid-start/islands/server-router";
+import { ev } from "~/types/primitives/fraction";
 
 interface OpenOrder {
   id: Uuid;
@@ -59,9 +60,9 @@ export function OpenOrders(props: { market?: Market; session?: ValidateSignature
       const capacity = props.capacity;
 
       const convertOpenOrder = (order: Order) => {
-        const quote_asset_volume = fromWei(order.quote_asset_volume);
-        const base_asset_volume = fromWei(order.base_asset_volume);
-        const quote_asset_volume_left = fromWei(order.quote_asset_volume_left);
+        const quote_asset_volume = ev(fFromWei(order.quote_asset_volume));
+        const base_asset_volume = ev(fFromWei(order.base_asset_volume));
+        const quote_asset_volume_left = ev(fFromWei(order.quote_asset_volume_left));
         if (order.quote_asset_id == quote_asset.id && order.base_asset_id == base_asset.id && order.is_active) {
           const asset_pair: [Asset | undefined, Asset | undefined] = [assets().get(order.base_asset_id), assets().get(order.quote_asset_id)];
           const price = quote_asset_volume / base_asset_volume;
@@ -128,7 +129,7 @@ export function OpenOrders(props: { market?: Market; session?: ValidateSignature
     <div class="row-start-3 row-end-4 overflow-auto">
       <Index each={Object.values(openOrders)}>
         {(element, i) => (
-          <div class={`grid grid-cols-8 items-center self-center px-[12px] py-[8px] text-state-item font-normal text-white ${i % 2 ? "bg-gray-3" : ""} `}>
+          <div class={`grid grid-cols-8 items-center self-center px-[12px] py-[8px] text-state-item font-normal text-white ${i % 2 && "bg-gray-3"} `}>
             <div class="col-start-1 col-end-2 text-left">{element().order_time.toUTCString()}</div>
             <div class="col-start-2 col-end-3 text-center">{element().asset_pair[0]?.symbol + " / " + element().asset_pair[1]?.symbol}</div>
             <div class={`col-start-3 col-end-4 text-center ${element().direction == Direction.Buy ? "text-green" : "text-red"}`}>{element().direction}</div>
