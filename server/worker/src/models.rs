@@ -3,8 +3,11 @@ use cache::redis::Client;
 use database::{
     managers::{
         spot::{
-            assets::AssetsManager, candlesticks::CandlestickManager, orders::OrdersManager,
-            trades::TradesManager, valuts::ValutsManager,
+            assets::{AssetsManager, AssetsNotificationManager},
+            candlesticks::{CandlesticksManager, CandlesticksNotificationManager},
+            orders::{OrdersManager, OrdersNotificationManager},
+            trades::{TradesManager, TradesNotificationManager},
+            valuts::{ValutsManager, ValutsNotificationManager},
         },
         users::UsersManager,
     },
@@ -20,10 +23,15 @@ pub struct AppState {
     pub session_store: Client,
     pub users_manager: UsersManager,
     pub assets_manager: AssetsManager,
+    pub assets_notification_manager: AssetsNotificationManager,
     pub valuts_manager: ValutsManager,
+    pub valuts_notification_manager: ValutsNotificationManager,
     pub trades_manager: TradesManager,
+    pub trades_notification_manager: TradesNotificationManager,
     pub orders_manager: OrdersManager,
-    pub candlesticks_manager: CandlestickManager,
+    pub orders_notification_manager: OrdersNotificationManager,
+    pub candlesticks_manager: CandlesticksManager,
+    pub candlesticks_notification_manager: CandlesticksNotificationManager,
     pub assets_pair_recognition: AssetPairRecognition,
     pub engine_client: EngineClient<Channel>,
 }

@@ -25,12 +25,10 @@ pub async fn root(
     Query(params): Query<Request>,
 ) -> Sse<impl Stream<Item = Result<Event, std::io::Error>>> {
     let stream = async_stream::try_stream! {
-        let mut stream = state.trades_manager.subscribe_for_asset_pair(params.quote_asset_id, params.base_asset_id).await
+        let mut stream = state.trades_notification_manager.subscribe_to_asset_pair(params.quote_asset_id, params.base_asset_id).await
             .map_err(|err| Error::new(ErrorKind::BrokenPipe, err))?;
         while let Some(element) = stream.next().await {
-            yield Event::default().json_data(
-                element.map_err(|err| Error::new(ErrorKind::BrokenPipe, err))?
-            ).map_err(Error::from);
+            yield Event::default().json_data(element).map_err(Error::from);
         }
     }
     .map(|a| a.and_then(|b| b))

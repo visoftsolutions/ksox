@@ -11,7 +11,7 @@ use sqlx::{
 use crate::{
     projections::spot::valut::Valut,
     traits::{get_modified::GetModified, table_manager::TableManager},
-    types::Volume,
+    types::{Volume, SubscribeStream}, managers::notifications::{NotificationManagerSubscriber, NotificationManagerPredicateInput, NotificationManagerOutput}
 };
 
 #[derive(Debug, Clone)]
@@ -74,76 +74,6 @@ impl ValutsManager {
         .fetch_one(&self.database)
         .await
     }
-
-    // pub async fn create_notify_trigger_for_user_asset(
-    //     &self,
-    //     user_id: Uuid,
-    //     asset_id: Uuid,
-    // ) -> Result<NotifyTrigger> {
-    //     let trigger_name = trigger_name(
-    //         "spot_valuts_notify_trigger_for_user_asset",
-    //         vec![
-    //             Bytes::from(user_id.as_bytes().to_owned().to_vec()),
-    //             Bytes::from(asset_id.as_bytes().to_owned().to_vec()),
-    //         ],
-    //     );
-    //     sqlx::query!(
-    //         r#"
-    //         SELECT create_spot_valuts_notify_trigger_for_user_asset($1, $2, $3)
-    //         "#,
-    //         trigger_name,
-    //         user_id,
-    //         asset_id
-    //     )
-    //     .execute(&self.database)
-    //     .await?;
-
-    //     let db = self.database.clone();
-    //     let trigger_name_clone = trigger_name.clone();
-    //     let (tx, rx) = oneshot::channel::<()>();
-    //     task::spawn(async move {
-    //         if (rx.await).is_err() {
-    //             tracing::error!("drop_signal failed");
-    //         }
-    //         if let Err(err) = sqlx::query!(
-    //             r#"
-    //             SELECT drop_spot_valuts_notify_trigger_for_user_asset($1)
-    //             "#,
-    //             trigger_name_clone
-    //         )
-    //         .execute(&db)
-    //         .await
-    //         {
-    //             tracing::error!("{err}");
-    //         }
-    //     });
-
-    //     Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
-    // }
-
-    // pub async fn subscribe_for_user_asset(
-    //     &self,
-    //     user_id: Uuid,
-    //     asset_id: Uuid,
-    // ) -> Result<SubscribeStream<Valut>> {
-    //     let mut listener = PgListener::connect_with(&self.database).await?;
-    //     let notify_trigger = self
-    //         .create_notify_trigger_for_user_asset(user_id, asset_id)
-    //         .await?;
-    //     listener.listen(&notify_trigger.channel_name).await?;
-
-    //     let subscribe_stream = listener.into_stream().map(|element| {
-    //         element.and_then(|val| {
-    //             serde_json::from_str::<Valut>(val.payload())
-    //                 .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
-    //         })
-    //     });
-
-    //     Ok(SubscribeStream::new(
-    //         notify_trigger,
-    //         Box::pin(subscribe_stream),
-    //     ))
-    // }
 
     pub async fn get_or_create_for_user_asset(
         &self,
@@ -283,5 +213,43 @@ impl GetModified<Valut> for ValutsManager {
         )
         .fetch_all(&self.database)
         .await
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ValutsNotificationManager {
+    notification_manager_subscriber: NotificationManagerSubscriber,
+}
+impl ValutsNotificationManager {
+    pub fn new(notification_manager_subscriber: NotificationManagerSubscriber) -> Self {
+        Self {
+            notification_manager_subscriber,
+        }
+    }
+
+    pub async fn subscribe_for_user_asset(
+        &self,
+        user_id: Uuid,
+        asset_id: Uuid,
+    ) -> Result<SubscribeStream<Vec<Valut>>> {
+        let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
+            match input {
+                NotificationManagerPredicateInput::SpotValutsChanged(valut) => valut.user_id == user_id && valut.asset_id == asset_id,
+                _ => false,
+            }
+        });
+
+        if let Ok(mut rx) = self.notification_manager_subscriber.subscribe_to(Box::new(p)).await {
+            let stream = async_stream::stream! {
+                while let Some(notification) = rx.recv().await {
+                    if let NotificationManagerOutput::SpotValutsChanged(valuts) = notification {
+                        yield valuts;
+                    }
+                }
+            };
+            Ok(Box::pin(stream))
+        } else {
+            Err(sqlx::Error::RowNotFound)
+        }
     }
 }

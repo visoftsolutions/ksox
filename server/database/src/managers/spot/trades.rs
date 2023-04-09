@@ -3,16 +3,16 @@ use std::pin::Pin;
 use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
 use futures::Stream;
+use thiserror::Error;
 use sqlx::{
     postgres::{PgPool, PgQueryResult},
     types::Uuid,
-    Result,
 };
 
 use crate::{
     projections::spot::trade::Trade,
     traits::{table_manager::TableManager, get_modified::GetModified},
-    types::{Volume},
+    types::{Volume, SubscribeStream}, managers::notifications::{NotificationManagerSubscriber, NotificationManagerPredicateInput, NotificationManagerOutput},
 };
 
 #[derive(Debug, Clone)]
@@ -28,7 +28,7 @@ impl TradesManager {
     pub async fn get_after_last_modification_at(
         &self,
         last_modification_at: DateTime<Utc>,
-    ) -> Result<Option<Trade>> {
+    ) -> sqlx::Result<Option<Trade>> {
         sqlx::query_as!(
             Trade,
             r#"
@@ -59,7 +59,7 @@ impl TradesManager {
         &self,
         quote_asset_id: Uuid,
         base_asset_id: Uuid,
-    ) -> Result<Option<Trade>> {
+    ) -> sqlx::Result<Option<Trade>> {
         sqlx::query_as!(
             Trade,
             r#"
@@ -92,7 +92,7 @@ impl TradesManager {
         quote_asset_id: Uuid,
         base_asset_id: Uuid,
         time: DateTime<Utc>,
-    ) -> Pin<Box<dyn Stream<Item = Result<Trade>> + Send + '_>> {
+    ) -> Pin<Box<dyn Stream<Item = sqlx::Result<Trade>> + Send + '_>> {
         sqlx::query_as!(
             Trade,
             r#"
@@ -125,7 +125,7 @@ impl TradesManager {
         base_asset_id: Uuid,
         topen: DateTime<Utc>,
         tclose: DateTime<Utc>,
-    ) -> Pin<Box<dyn Stream<Item = Result<Trade>> + Send + '_>> {
+    ) -> Pin<Box<dyn Stream<Item = sqlx::Result<Trade>> + Send + '_>> {
         sqlx::query_as!(
             Trade,
             r#"
@@ -155,7 +155,7 @@ impl TradesManager {
     pub fn get_ordered_asc(
         &self,
         user_id: Uuid,
-    ) -> Pin<Box<dyn Stream<Item = Result<Trade>> + Send + '_>> {
+    ) -> Pin<Box<dyn Stream<Item = sqlx::Result<Trade>> + Send + '_>> {
         sqlx::query_as!(
             Trade,
             r#"
@@ -184,7 +184,7 @@ impl TradesManager {
     pub fn get_ordered_desc(
         &self,
         user_id: Uuid,
-    ) -> Pin<Box<dyn Stream<Item = Result<Trade>> + Send + '_>> {
+    ) -> Pin<Box<dyn Stream<Item = sqlx::Result<Trade>> + Send + '_>> {
         sqlx::query_as!(
             Trade,
             r#"
@@ -215,7 +215,7 @@ impl TradesManager {
         taker_id: Uuid,
         limit: i64,
         offset: i64,
-    ) -> Pin<Box<dyn Stream<Item = Result<Trade>> + Send + '_>> {
+    ) -> Pin<Box<dyn Stream<Item = sqlx::Result<Trade>> + Send + '_>> {
         sqlx::query_as!(
             Trade,
             r#"
@@ -250,7 +250,7 @@ impl TradesManager {
         base_asset_id: Uuid,
         limit: i64,
         offset: i64,
-    ) -> Pin<Box<dyn Stream<Item = Result<Trade>> + Send + '_>> {
+    ) -> Pin<Box<dyn Stream<Item = sqlx::Result<Trade>> + Send + '_>> {
         sqlx::query_as!(
             Trade,
             r#"
@@ -280,7 +280,7 @@ impl TradesManager {
         .fetch(&self.database)
     }
 
-    // pub async fn create_notify_trigger_for_taker(&self, taker_id: Uuid) -> Result<NotifyTrigger> {
+    // pub async fn create_notify_trigger_for_taker(&self, taker_id: Uuid) -> sqlx::Result<NotifyTrigger> {
     //     let trigger_name = trigger_name(
     //         "spot_trades_notify_trigger_for_taker",
     //         vec![Bytes::from(taker_id.as_bytes().to_owned().to_vec())],
@@ -318,7 +318,7 @@ impl TradesManager {
     //     Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
     // }
 
-    // pub async fn subscribe_for_taker(&self, taker_id: Uuid) -> Result<SubscribeStream<Trade>> {
+    // pub async fn subscribe_for_taker(&self, taker_id: Uuid) -> sqlx::Result<SubscribeStream<Trade>> {
     //     let mut listener = PgListener::connect_with(&self.database).await?;
     //     let notify_trigger = self.create_notify_trigger_for_taker(taker_id).await?;
     //     listener.listen(&notify_trigger.channel_name).await?;
@@ -340,7 +340,7 @@ impl TradesManager {
     //     &self,
     //     quote_asset_id: Uuid,
     //     base_asset_id: Uuid,
-    // ) -> Result<NotifyTrigger> {
+    // ) -> sqlx::Result<NotifyTrigger> {
     //     let trigger_name = trigger_name(
     //         "spot_trades_notify_trigger_for_asset_pair",
     //         vec![
@@ -386,7 +386,7 @@ impl TradesManager {
     //     &self,
     //     quote_asset_id: Uuid,
     //     base_asset_id: Uuid,
-    // ) -> Result<SubscribeStream<Trade>> {
+    // ) -> sqlx::Result<SubscribeStream<Trade>> {
     //     let mut listener = PgListener::connect_with(&self.database).await?;
     //     let notify_trigger = self
     //         .create_notify_trigger_for_asset_pair(quote_asset_id, base_asset_id)
@@ -408,7 +408,7 @@ impl TradesManager {
 }
 
 impl TableManager<Trade> for TradesManager {
-    fn get_all(&self) -> Pin<Box<dyn Stream<Item = Result<Trade>> + Send + '_>> {
+    fn get_all(&self) -> Pin<Box<dyn Stream<Item = sqlx::Result<Trade>> + Send + '_>> {
         sqlx::query_as!(
             Trade,
             r#"
@@ -430,7 +430,7 @@ impl TableManager<Trade> for TradesManager {
         .fetch(&self.database)
     }
 
-    async fn get_by_id(&self, id: Uuid) -> Result<Trade> {
+    async fn get_by_id(&self, id: Uuid) -> sqlx::Result<Trade> {
         sqlx::query_as!(
             Trade,
             r#"
@@ -455,7 +455,7 @@ impl TableManager<Trade> for TradesManager {
         .await
     }
 
-    async fn insert(&self, element: Trade) -> Result<PgQueryResult> {
+    async fn insert(&self, element: Trade) -> sqlx::Result<PgQueryResult> {
         let taker_quote_volume: BigDecimal = element.taker_quote_volume.into();
         let maker_quote_volume: BigDecimal = element.maker_quote_volume.into();
         let taker_base_volume: BigDecimal = element.taker_base_volume.into();
@@ -483,7 +483,7 @@ impl TableManager<Trade> for TradesManager {
         .await
     }
 
-    async fn update(&self, element: Trade) -> Result<PgQueryResult> {
+    async fn update(&self, element: Trade) -> sqlx::Result<PgQueryResult> {
         let taker_quote_volume: BigDecimal = element.taker_quote_volume.into();
         let maker_quote_volume: BigDecimal = element.maker_quote_volume.into();
         let taker_base_volume: BigDecimal = element.taker_base_volume.into();
@@ -520,7 +520,7 @@ impl TableManager<Trade> for TradesManager {
         .await
     }
 
-    async fn delete(&self, element: Trade) -> Result<PgQueryResult> {
+    async fn delete(&self, element: Trade) -> sqlx::Result<PgQueryResult> {
         sqlx::query!(
             r#"
             DELETE FROM 
@@ -536,7 +536,7 @@ impl TableManager<Trade> for TradesManager {
 }
 
 impl GetModified<Trade> for TradesManager {
-    async fn get_modified(&self, last_modification_at: DateTime<Utc>) -> Result<Vec<Trade>> {
+    async fn get_modified(&self, last_modification_at: DateTime<Utc>) -> sqlx::Result<Vec<Trade>> {
         sqlx::query_as!(
             Trade,
             r#"
@@ -559,5 +559,73 @@ impl GetModified<Trade> for TradesManager {
         )
         .fetch_all(&self.database)
         .await
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum TradesNotificationManagerError {}
+
+#[derive(Debug, Clone)]
+pub struct TradesNotificationManager {
+    notification_manager_subscriber: NotificationManagerSubscriber,
+}
+impl TradesNotificationManager {
+    pub fn new(notification_manager_subscriber: NotificationManagerSubscriber) -> Self {
+        Self {
+            notification_manager_subscriber,
+        }
+    }
+
+    pub async fn subscribe_to_asset_pair(
+        &self,
+        quote_asset_id: Uuid,
+        base_asset_id: Uuid,
+    ) -> sqlx::Result<SubscribeStream<Vec<Trade>>> {
+        let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
+            match input {
+                NotificationManagerPredicateInput::SpotTradesChanged(trade) =>
+                    (trade.quote_asset_id == quote_asset_id && trade.base_asset_id == base_asset_id)
+                        || (trade.quote_asset_id == base_asset_id && trade.base_asset_id == quote_asset_id),
+                _ => false,
+            }
+        });
+
+        if let Ok(mut rx) = self.notification_manager_subscriber.subscribe_to(Box::new(p)).await {
+            let stream = async_stream::stream! {
+                while let Some(notification) = rx.recv().await {
+                    if let NotificationManagerOutput::SpotTradesChanged(trades) = notification {
+                        yield trades;
+                    }
+                }
+            };
+            Ok(Box::pin(stream))
+        } else {
+            Err(sqlx::Error::RowNotFound)
+        }
+    }
+
+    pub async fn subscribe_to_taker(
+        &self,
+        taker_id: Uuid,
+    ) -> sqlx::Result<SubscribeStream<Vec<Trade>>> {
+        let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
+            match input {
+                NotificationManagerPredicateInput::SpotTradesChanged(trade) => trade.taker_id == taker_id,
+                _ => false,
+            }
+        });
+
+        if let Ok(mut rx) = self.notification_manager_subscriber.subscribe_to(Box::new(p)).await {
+            let stream = async_stream::stream! {
+                while let Some(notification) = rx.recv().await {
+                    if let NotificationManagerOutput::SpotTradesChanged(trades) = notification {
+                        yield trades;
+                    }
+                }
+            };
+            Ok(Box::pin(stream))
+        } else {
+            Err(sqlx::Error::RowNotFound)
+        }
     }
 }

@@ -8,9 +8,9 @@ use sqlx::{
 };
 
 use crate::{
-    projections::spot::asset::Asset,
+    projections::spot::{asset::Asset, trade::Trade},
     traits::{get_modified::GetModified, table_manager::TableManager},
-    types::Fraction,
+    types::{Fraction, SubscribeStream}, managers::notifications::{NotificationManagerSubscriber, NotificationManagerPredicateInput, NotificationManagerOutput},
 };
 
 #[derive(Debug, Clone)]
@@ -145,5 +145,43 @@ impl GetModified<Asset> for AssetsManager {
         )
         .fetch_all(&self.database)
         .await
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct AssetsNotificationManager {
+    notification_manager_subscriber: NotificationManagerSubscriber
+}
+impl AssetsNotificationManager {
+    pub fn new(notification_manager_subscriber: NotificationManagerSubscriber) -> Self {
+        Self { notification_manager_subscriber }
+    }
+
+    pub async fn subscribe_to_asset_pair(
+        &self,
+        quote_asset_id: Uuid,
+        base_asset_id: Uuid,
+    ) -> sqlx::Result<SubscribeStream<Vec<Trade>>> {
+        let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
+            match input {
+                NotificationManagerPredicateInput::SpotTradesChanged(trade) =>
+                    (trade.quote_asset_id == quote_asset_id && trade.base_asset_id == base_asset_id)
+                        || (trade.quote_asset_id == base_asset_id && trade.base_asset_id == quote_asset_id),
+                _ => false,
+            }
+        });
+
+        if let Ok(mut rx) = self.notification_manager_subscriber.subscribe_to(Box::new(p)).await {
+            let stream = async_stream::stream! {
+                while let Some(notification) = rx.recv().await {
+                    if let NotificationManagerOutput::SpotTradesChanged(trades) = notification {
+                        yield trades;
+                    }
+                }
+            };
+            Ok(Box::pin(stream))
+        } else {
+            Err(sqlx::Error::RowNotFound)
+        }
     }
 }

@@ -6,19 +6,22 @@ use std::{
 use chrono::{DateTime, Duration, Utc};
 use database::{
     managers::spot::{
-        candlesticks::CandlestickManager, orders::OrdersManager, trades::TradesManager,
+        candlesticks::CandlesticksManager,
+        orders::OrdersManager,
+        trades::{TradesManager, TradesNotificationManager},
     },
     projections::spot::candlestick::{Candlestick, CandlestickData},
-    sqlx::{self, types::Uuid, PgPool},
+    sqlx::{self, types::Uuid},
     traits::TableManager,
     types::{fraction::FractionError, CandlestickType},
 };
 use futures::{FutureExt, Stream, StreamExt};
 use thiserror::Error;
 pub struct OhlcvEngine {
-    pub trades_manager: TradesManager,
-    pub orders_manager: OrdersManager,
-    pub candlesticks_manager: CandlestickManager,
+    trades_manager: TradesManager,
+    trades_notification_manager: TradesNotificationManager,
+    orders_manager: OrdersManager,
+    candlesticks_manager: CandlesticksManager,
 }
 pub struct Ohlcv {}
 
@@ -77,11 +80,17 @@ impl Ohlcv {
 }
 
 impl OhlcvEngine {
-    pub fn new(database: PgPool) -> Self {
+    pub fn new(
+        trades_manager: TradesManager,
+        trades_notification_manager: TradesNotificationManager,
+        orders_manager: OrdersManager,
+        candlesticks_manager: CandlesticksManager,
+    ) -> Self {
         Self {
-            trades_manager: TradesManager::new(database.clone()),
-            orders_manager: OrdersManager::new(database.clone()),
-            candlesticks_manager: CandlestickManager::new(database),
+            trades_manager,
+            trades_notification_manager,
+            orders_manager,
+            candlesticks_manager,
         }
     }
 
@@ -125,20 +134,24 @@ impl OhlcvEngine {
         reference_point: DateTime<Utc>,
         span: i64,
     ) -> Pin<Box<dyn Stream<Item = Result<Candlestick, OhlcvEngineError>> + Send + '_>> {
+        let trades = self
+            .trades_notification_manager
+            .subscribe_to_asset_pair(quote_asset_id, base_asset_id)
+            .await
+            .unwrap();
         let stream = async_stream::try_stream! {
             let mut candlestick: Option<Candlestick> = None;
-            let mut trades = self.trades_manager.subscribe_for_asset_pair(quote_asset_id, base_asset_id).await?
-            .map(|trade| {
-                match trade {
-                    Ok(trade) => {
-                        if trade.is_opposite(quote_asset_id, base_asset_id) {
-                            Ok(trade.inverse())
-                        } else {
-                            Ok(trade)
-                        }
-                    },
-                    Err(err) => Err(err)
+            let mut trades = self.trades_notification_manager.subscribe_to_asset_pair(quote_asset_id, base_asset_id).await.unwrap()
+            .map(|trades| {
+                let mut result = Vec::new();
+                for trade in trades {
+                    if trade.is_opposite(quote_asset_id, base_asset_id) {
+                        result.push(trade.inverse());
+                    } else {
+                        result.push(trade);
+                    }
                 }
+                result
             });
 
             let last_trade = self
@@ -175,18 +188,20 @@ impl OhlcvEngine {
                     let data: CandlestickData = trade?.try_into()?;
                     self.update(&mut candlestick, data, kind.to_owned(),reference_point.to_owned(), span)?;
                 }
-
             };
 
             if let Some(candlestick) = candlestick.to_owned() {
                 yield candlestick;
             }
 
-            while let Some(trade) = trades.next().await {
-                let data: CandlestickData = trade?.try_into()?;
-                yield self.update(&mut candlestick, data, kind.to_owned(),reference_point.to_owned(), span)?;
+            while let Some(trades) = trades.next().await {
+                for trade in trades {
+                    let data: CandlestickData = trade.try_into()?;
+                    yield self.update(&mut candlestick, data, kind.to_owned(),reference_point.to_owned(), span)?;
+                }
             }
         };
+
         Box::pin(stream)
     }
 

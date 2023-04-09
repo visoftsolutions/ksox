@@ -8,7 +8,7 @@ use axum::{
     response::sse::{Event, Sse},
 };
 use database::types::PriceLevel;
-use futures::{stream::Stream, StreamExt, TryStreamExt};
+use futures::{stream::Stream, StreamExt};
 use tokio::select;
 
 use super::{DepthResponse, Request};

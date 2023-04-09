@@ -12,7 +12,7 @@ use sqlx::{
 use crate::{
     projections::spot::candlestick::Candlestick,
     traits::{table_manager::TableManager, get_modified::GetModified},
-    types::{CandlestickType, Fraction, Volume},
+    types::{CandlestickType, Fraction, Volume}, managers::notifications::NotificationManagerSubscriber,
 };
 
 #[derive(Debug, Clone)]
@@ -279,5 +279,17 @@ impl GetModified<Candlestick> for CandlesticksManager {
         )
         .fetch_all(&self.database)
         .await
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct CandlesticksNotificationManager {
+    notification_manager_subscriber: NotificationManagerSubscriber
+}
+impl CandlesticksNotificationManager {
+    pub fn new(notification_manager_subscriber: NotificationManagerSubscriber) -> Self {
+        Self {
+            notification_manager_subscriber
+        }
     }
 }

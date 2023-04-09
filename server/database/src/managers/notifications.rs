@@ -11,7 +11,7 @@ use tokio::{
 };
 use uuid::Uuid;
 
-use crate::{managers, projections, traits::GetModified};
+use crate::{managers, projections, traits::GetModified, types};
 
 #[derive(Debug, Clone, Deserialize)]
 pub enum NotificationManagerEvent {
@@ -40,12 +40,14 @@ pub enum NotificationManagerOutput {
     SpotCandlesticksChanged(Vec<projections::spot::candlestick::Candlestick>),
 }
 
-pub struct SetEntry {
+pub struct NotificationManagerEntry
+{
     id: uuid::Uuid,
     predicate: Box<dyn Predicate<NotificationManagerPredicateInput> + Send + Sync>,
     sender: mpsc::Sender<NotificationManagerOutput>,
 }
-impl SetEntry {
+impl NotificationManagerEntry
+{
     pub fn new(
         predicate: Box<dyn Predicate<NotificationManagerPredicateInput> + Send + Sync>,
         sender: mpsc::Sender<NotificationManagerOutput>,
@@ -57,35 +59,34 @@ impl SetEntry {
         }
     }
 }
-impl PartialEq for SetEntry {
+impl PartialEq for NotificationManagerEntry
+{
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id
     }
 }
-impl Eq for SetEntry {}
-impl std::hash::Hash for SetEntry {
+impl Eq for NotificationManagerEntry {}
+impl std::hash::Hash for NotificationManagerEntry
+{
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.id.hash(state);
     }
 }
 
-pub struct NotificationManager {
-    database: PgPool,
-    tx: mpsc::Sender<SetEntry>,
-}
-
+pub struct NotificationManager {}
 impl NotificationManager {
     pub async fn start(
         database: PgPool,
         trigger_name: &str,
     ) -> sqlx::Result<NotificationManagerController> {
+        let mut last_modification_at = Utc::now();
         let mut listener = PgListener::connect_with(&database).await?;
         listener.listen(trigger_name).await?;
         let mut stream = listener.into_stream();
 
-        let mut set = collections::HashMap::<Uuid, SetEntry>::new();
+        let mut set = collections::HashMap::<Uuid, NotificationManagerEntry>::new();
 
-        let (tx, mut rx) = mpsc::channel::<SetEntry>(100);
+        let (tx, mut rx) = mpsc::channel::<NotificationManagerEntry>(100);
         let (shutdown_tx, mut shutdown_rx) = oneshot::channel();
 
         let join_handle = tokio::spawn(async move {
@@ -99,6 +100,7 @@ impl NotificationManager {
             loop {
                 select! {
                     _ = &mut shutdown_rx => {
+                        tracing::info!("NotificationManager shutdown");
                         break;
                     },
                     set_entry = rx.recv() => {
@@ -116,7 +118,7 @@ impl NotificationManager {
                             Ok(value) => {
                                 match serde_json::from_str::<NotificationManagerEvent>(&value.payload()) {
                                     Ok(NotificationManagerEvent::SpotValutsChanged) => {
-                                        match valuts_manager.get_modified(Utc::now()).await {
+                                        match valuts_manager.get_modified(last_modification_at).await {
                                             Ok(valuts) => {
                                                 let mut set_entry_to_remove_ids = Vec::new();
                                                 for set_entry in set.values() {
@@ -139,6 +141,11 @@ impl NotificationManager {
                                                 for set_entry_to_remove_id in set_entry_to_remove_ids {
                                                     set.remove(&set_entry_to_remove_id);
                                                 }
+                                                for valut in valuts.iter() {
+                                                    if valut.last_modification_at > last_modification_at {
+                                                        last_modification_at = valut.last_modification_at;
+                                                    }
+                                                }
                                             },
                                             Err(err) => {
                                                 tracing::error!("Error: {}", err);
@@ -146,7 +153,7 @@ impl NotificationManager {
                                         }
                                     },
                                     Ok(NotificationManagerEvent::SpotAssetsChanged) => {
-                                        match assets_manager.get_modified(Utc::now()).await {
+                                        match assets_manager.get_modified(last_modification_at).await {
                                             Ok(assets) => {
                                                 let mut set_entry_to_remove_ids = Vec::new();
                                                 for set_entry in set.values() {
@@ -169,6 +176,11 @@ impl NotificationManager {
                                                 for set_entry_to_remove_id in set_entry_to_remove_ids {
                                                     set.remove(&set_entry_to_remove_id);
                                                 }
+                                                for asset in assets.iter() {
+                                                    if asset.last_modification_at > last_modification_at {
+                                                        last_modification_at = asset.last_modification_at;
+                                                    }
+                                                }
                                             },
                                             Err(err) => {
                                                 tracing::error!("Error: {}", err);
@@ -177,7 +189,7 @@ impl NotificationManager {
 
                                     },
                                     Ok(NotificationManagerEvent::SpotOrdersChanged) => {
-                                        match orders_manager.get_modified(Utc::now()).await {
+                                        match orders_manager.get_modified(last_modification_at).await {
                                             Ok(orders) => {
                                                 let mut set_entry_to_remove_ids = Vec::new();
                                                 for set_entry in set.values() {
@@ -200,15 +212,19 @@ impl NotificationManager {
                                                 for set_entry_to_remove_id in set_entry_to_remove_ids {
                                                     set.remove(&set_entry_to_remove_id);
                                                 }
+                                                for order in orders.iter() {
+                                                    if order.last_modification_at > last_modification_at {
+                                                        last_modification_at = order.last_modification_at;
+                                                    }
+                                                }
                                             },
                                             Err(err) => {
                                                 tracing::error!("Error: {}", err);
                                             }
                                         }
-
                                     },
                                     Ok(NotificationManagerEvent::SpotTradesChanged) => {
-                                        match trades_manager.get_modified(Utc::now()).await {
+                                        match trades_manager.get_modified(last_modification_at).await {
                                             Ok(trades) => {
                                                 let mut set_entry_to_remove_ids = Vec::new();
                                                 for set_entry in set.values() {
@@ -231,15 +247,19 @@ impl NotificationManager {
                                                 for set_entry_to_remove_id in set_entry_to_remove_ids {
                                                     set.remove(&set_entry_to_remove_id);
                                                 }
+                                                for trade in trades.iter() {
+                                                    if trade.last_modification_at > last_modification_at {
+                                                        last_modification_at = trade.last_modification_at;
+                                                    }
+                                                }
                                             },
                                             Err(err) => {
                                                 tracing::error!("Error: {}", err);
                                             }
                                         }
-
                                     },
                                     Ok(NotificationManagerEvent::SpotCandlesticksChanged) => {
-                                        match candlesticks_manager.get_modified(Utc::now()).await {
+                                        match candlesticks_manager.get_modified(last_modification_at).await {
                                             Ok(candlesticks) => {
                                                 let mut set_entry_to_remove_ids = Vec::new();
                                                 for set_entry in set.values() {
@@ -261,6 +281,11 @@ impl NotificationManager {
                                                 }
                                                 for set_entry_to_remove_id in set_entry_to_remove_ids {
                                                     set.remove(&set_entry_to_remove_id);
+                                                }
+                                                for candlestick in candlesticks.iter() {
+                                                    if candlestick.last_modification_at > last_modification_at {
+                                                        last_modification_at = candlestick.last_modification_at;
+                                                    }
                                                 }
                                             },
                                             Err(err) => {
@@ -292,24 +317,45 @@ impl NotificationManager {
     }
 }
 
-pub struct NotificationManagerController {
-    tx: mpsc::Sender<SetEntry>,
+#[derive(Debug)]
+pub struct NotificationManagerController
+{
+    tx: mpsc::Sender<NotificationManagerEntry>,
     shutdown_tx: oneshot::Sender<()>,
     join_handle: tokio::task::JoinHandle<()>,
 }
-impl NotificationManagerController {
+impl NotificationManagerController
+{
     pub async fn shutdown(self) -> Result<(), tokio::task::JoinError> {
         self.shutdown_tx.send(());
         self.join_handle.await?;
         Ok(())
     }
 
+    pub fn is_finished(&self) -> bool {
+        self.join_handle.is_finished()
+    }
+
+    pub fn get_subscriber(&self) -> NotificationManagerSubscriber {
+        NotificationManagerSubscriber {
+            tx: self.tx.clone(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct NotificationManagerSubscriber
+{
+    tx: mpsc::Sender<NotificationManagerEntry>,
+}
+impl NotificationManagerSubscriber
+{
     pub async fn subscribe_to(
         &self,
         predicate: Box<dyn Predicate<NotificationManagerPredicateInput> + Send + Sync>,
-    ) -> Result<mpsc::Receiver<NotificationManagerOutput>, mpsc::error::SendError<SetEntry>> {
+    ) -> Result<mpsc::Receiver<NotificationManagerOutput>, mpsc::error::SendError<NotificationManagerEntry>> {
         let (tx, rx) = mpsc::channel(100);
-        let set_entry = SetEntry::new(predicate, tx);
+        let set_entry = NotificationManagerEntry::new(predicate, tx);
         self.tx.send(set_entry).await?;
         Ok(rx)
     }

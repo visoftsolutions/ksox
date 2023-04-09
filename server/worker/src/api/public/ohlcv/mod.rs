@@ -33,7 +33,12 @@ pub async fn root(
     State(state): State<AppState>,
     Query(params): Query<Request>,
 ) -> Result<Json<Option<Candlestick>>, AppError> {
-    let ohlcv_engine = OhlcvEngine::new(state.database);
+    let ohlcv_engine = OhlcvEngine::new(
+        state.trades_manager,
+        state.trades_notification_manager,
+        state.orders_manager,
+        state.candlesticks_manager,
+    );
     Ok(Json(
         ohlcv_engine
             .get(

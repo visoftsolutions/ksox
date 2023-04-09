@@ -1,6 +1,13 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use super::Volume;
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AssetPair {
+    pub base_asset_id: Uuid,
+    pub quote_asset_id: Uuid,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PriceLevelOption {

@@ -18,7 +18,7 @@ pub async fn root(
     Query(params): Query<Request>,
 ) -> Sse<impl Stream<Item = Result<Event, std::io::Error>>> {
     let stream = async_stream::try_stream! {
-        let ohlcv_engine = OhlcvEngine::new(state.database);
+        let ohlcv_engine = OhlcvEngine::new(state.trades_manager, state.trades_notification_manager, state.orders_manager, state.candlesticks_manager);
         let mut stream = ohlcv_engine.subscribe(params.quote_asset_id, params.base_asset_id, params.kind, params.reference_point, params.span).await;
         while let Some(element) = stream.next().await {
             yield Event::default().json_data(

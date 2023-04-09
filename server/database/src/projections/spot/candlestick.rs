@@ -79,24 +79,24 @@ pub struct CandlestickData {
     pub maker_base_volume: Volume,
 }
 
-// impl TryFrom<Trade> for CandlestickData {
-//     type Error = FractionError;
-//     fn try_from(value: Trade) -> Result<Self, Self::Error> {
-//         Ok(Self {
-//             created_at: value.created_at,
-//             last_modification_at: value.created_at,
-//             quote_asset_id: value.quote_asset_id,
-//             base_asset_id: value.base_asset_id,
-//             price: (
-//                 value.taker_base_volume.clone(),
-//                 value.taker_quote_volume.clone(),
-//             )
-//                 .try_into()?,
-//             time: value.created_at,
-//             taker_quote_volume: value.taker_quote_volume,
-//             taker_base_volume: value.taker_base_volume,
-//             maker_quote_volume: value.maker_quote_volume,
-//             maker_base_volume: value.maker_base_volume,
-//         })
-//     }
-// }
+impl TryFrom<Trade> for CandlestickData {
+    type Error = FractionError;
+    fn try_from(value: Trade) -> Result<Self, Self::Error> {
+        Ok(Self {
+            created_at: value.created_at,
+            last_modification_at: value.created_at,
+            quote_asset_id: value.quote_asset_id,
+            base_asset_id: value.base_asset_id,
+            price: (
+                value.taker_base_volume.clone(),
+                value.taker_quote_volume.clone(),
+            )
+                .try_into()?,
+            time: value.created_at,
+            taker_quote_volume: value.taker_quote_volume,
+            taker_base_volume: value.taker_base_volume,
+            maker_quote_volume: value.maker_quote_volume,
+            maker_base_volume: value.maker_base_volume,
+        })
+    }
+}

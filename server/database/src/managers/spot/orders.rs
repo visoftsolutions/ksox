@@ -2,7 +2,7 @@ use std::pin::Pin;
 
 use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
-use futures::Stream;
+use futures::{Stream, StreamExt};
 use sqlx::{
     postgres::{PgPool, PgQueryResult},
     types::Uuid,
@@ -10,11 +10,12 @@ use sqlx::{
 };
 
 use crate::{
-    projections::spot::order::Order,
-    traits::{table_manager::TableManager, get_modified::GetModified},
-    types::{
-        Fraction, Volume, price_level::PriceLevelOption,
+    managers::notifications::{
+        NotificationManagerOutput, NotificationManagerPredicateInput, NotificationManagerSubscriber,
     },
+    projections::spot::order::Order,
+    traits::{get_modified::GetModified, table_manager::TableManager},
+    types::{price_level::PriceLevelOption, Fraction, PriceLevel, SubscribeStream, Volume},
 };
 
 #[derive(Debug, Clone)]
@@ -824,10 +825,7 @@ impl TableManager<Order> for OrdersManager {
 }
 
 impl GetModified<Order> for OrdersManager {
-    async fn get_modified(
-        &self,
-        last_modification_at: DateTime<Utc>,
-    ) -> Result<Vec<Order>> {
+    async fn get_modified(&self, last_modification_at: DateTime<Utc>) -> Result<Vec<Order>> {
         sqlx::query_as!(
             Order,
             r#"
@@ -850,5 +848,83 @@ impl GetModified<Order> for OrdersManager {
         )
         .fetch_all(&self.database)
         .await
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct OrdersNotificationManager {
+    notification_manager_subscriber: NotificationManagerSubscriber,
+    orders_manager: OrdersManager,
+}
+impl OrdersNotificationManager {
+    pub fn new(
+        notification_manager_subscriber: NotificationManagerSubscriber,
+        orders_manager: OrdersManager,
+    ) -> Self {
+        Self {
+            notification_manager_subscriber,
+            orders_manager,
+        }
+    }
+
+    // pub async fn subscribe_for_orderbook(
+    //     &self,
+    //     quote_asset_id: Uuid,
+    //     base_asset_id: Uuid,
+    //     precission: i32,
+    //     limit: i64,
+    // ) -> Result<SubscribeStream<Vec<PriceLevel>>> {
+    //     let mut listener = PgListener::connect_with(&self.database).await?;
+    //     let notify_trigger = self
+    //         .create_notify_trigger_for_orderbook(quote_asset_id, base_asset_id, precission, limit)
+    //         .await?;
+    //     listener.listen(&notify_trigger.channel_name).await?;
+
+    //     let subscribe_stream = listener.into_stream().map(|element| {
+    //         element.and_then(|val| {
+    //             serde_json::from_str::<Vec<PriceLevel>>(val.payload())
+    //                 .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
+    //         })
+    //     });
+
+    //     Ok(SubscribeStream::new(
+    //         notify_trigger,
+    //         Box::pin(subscribe_stream),
+    //     ))
+    // }
+
+    pub async fn subscribe_to_orderbook(
+        &self,
+        quote_asset_id: Uuid,
+        base_asset_id: Uuid,
+        precission: i32,
+        limit: i64,
+    ) -> Result<SubscribeStream<Vec<PriceLevel>>> {
+        let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
+            match input {
+                NotificationManagerPredicateInput::SpotOrdersChanged(order) => {
+                    order.quote_asset_id == quote_asset_id && order.base_asset_id == base_asset_id
+                }
+                _ => false,
+            }
+        });
+
+        if let Ok(mut rx) = self
+            .notification_manager_subscriber
+            .subscribe_to(Box::new(p))
+            .await
+        {
+            let stream = async_stream::stream! {
+                while let Some(notification) = rx.recv().await {
+                    if let NotificationManagerOutput::SpotOrdersChanged(orders) = notification {
+                        let price_levels = self.orders_manager.get_orderbook(quote_asset_id, base_asset_id, precission, limit);
+                        
+                    }
+                }
+            };
+            Ok(Box::pin(stream))
+        } else {
+            Err(sqlx::Error::RowNotFound)
+        }
     }
 }

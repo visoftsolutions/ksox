@@ -14,9 +14,13 @@ use axum::{routing::get, Router};
 use cache::get_client;
 use database::{
     managers::{
+        notifications::NotificationManager,
         spot::{
-            assets::AssetsManager, candlesticks::CandlestickManager, orders::OrdersManager,
-            trades::TradesManager, valuts::ValutsManager,
+            assets::{AssetsManager, AssetsNotificationManager},
+            candlesticks::{CandlesticksManager, CandlesticksNotificationManager},
+            orders::{OrdersManager, OrdersNotificationManager},
+            trades::{TradesManager, TradesNotificationManager},
+            valuts::{ValutsManager, ValutsNotificationManager},
         },
         users::UsersManager,
     },
@@ -43,15 +47,33 @@ async fn main() -> Result<()> {
         .connect(std::env::var("DATABASE_URL")?.as_str())
         .await?;
 
+    let notification_manager_controller =
+        NotificationManager::start(database, "notifications").await?;
+
     let app_state = AppState {
         database: database.clone(),
         session_store: get_client()?,
         users_manager: UsersManager::new(database.clone()),
         assets_manager: AssetsManager::new(database.clone()),
+        assets_notification_manager: AssetsNotificationManager::new(
+            notification_manager_controller.get_subscriber(),
+        ),
         valuts_manager: ValutsManager::new(database.clone()),
+        valuts_notification_manager: ValutsNotificationManager::new(
+            notification_manager_controller.get_subscriber(),
+        ),
         trades_manager: TradesManager::new(database.clone()),
+        trades_notification_manager: TradesNotificationManager::new(
+            notification_manager_controller.get_subscriber(),
+        ),
         orders_manager: OrdersManager::new(database.clone()),
-        candlesticks_manager: CandlestickManager::new(database.clone()),
+        orders_notification_manager: OrdersNotificationManager::new(
+            notification_manager_controller.get_subscriber(),
+        ),
+        candlesticks_manager: CandlesticksManager::new(database.clone()),
+        candlesticks_notification_manager: CandlesticksNotificationManager::new(
+            notification_manager_controller.get_subscriber(),
+        ),
         assets_pair_recognition: AssetPairRecognition::new(database, Regex::new(r"[^a-zA-Z]+")?),
         engine_client: EngineClient::connect(
             std::env::var("ENGINE_URL").unwrap().as_str().to_owned(),
@@ -76,6 +98,7 @@ async fn main() -> Result<()> {
             shutdown_signal::listen().await;
         })
         .await?;
+    notification_manager_controller.shutdown().await?;
 
     Ok(())
 }
