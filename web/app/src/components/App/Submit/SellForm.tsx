@@ -131,7 +131,6 @@ export default function SellForm(props: { market?: Market; available_balance?: b
           }).then((r) => r.text());
           setStoreComponent("quote_asset_volume", 0n);
           setStoreComponent("base_asset_volume", 0n);
-          console.log(response);
         }}
       >
         Sell

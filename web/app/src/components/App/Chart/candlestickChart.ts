@@ -1,4 +1,13 @@
-import { CandlestickSeriesPartialOptions, ChartOptions, createChart, DeepPartial, HistogramSeriesPartialOptions, IChartApi, ISeriesApi, UTCTimestamp } from "lightweight-charts";
+import {
+  CandlestickSeriesPartialOptions,
+  ChartOptions,
+  createChart,
+  DeepPartial,
+  HistogramSeriesPartialOptions,
+  IChartApi,
+  ISeriesApi,
+  UTCTimestamp,
+} from "lightweight-charts";
 import { TOHLC, TV } from "./models";
 import { Candlestick } from "~/types/candlestick";
 import { evaluateInv } from "~/types/primitives/fraction";
@@ -10,7 +19,12 @@ export class CandlestickChart {
   private chart: IChartApi;
   private candlestickSeries: ISeriesApi<"Candlestick">;
   private histogramSeries: ISeriesApi<"Histogram">;
-  constructor(container: HTMLElement, chartOptions: DeepPartial<ChartOptions>, histogramOptions: HistogramSeriesPartialOptions, candlestickOptions: CandlestickSeriesPartialOptions) {
+  constructor(
+    container: HTMLElement,
+    chartOptions: DeepPartial<ChartOptions>,
+    histogramOptions: HistogramSeriesPartialOptions,
+    candlestickOptions: CandlestickSeriesPartialOptions
+  ) {
     this.tohlc_data = [];
     this.tv_data = [];
     this.chart = createChart(container, chartOptions);
