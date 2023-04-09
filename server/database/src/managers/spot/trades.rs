@@ -3,16 +3,19 @@ use std::pin::Pin;
 use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
 use futures::Stream;
-use thiserror::Error;
 use sqlx::{
     postgres::{PgPool, PgQueryResult},
     types::Uuid,
 };
+use thiserror::Error;
 
 use crate::{
+    managers::notifications::{
+        NotificationManagerOutput, NotificationManagerPredicateInput, NotificationManagerSubscriber,
+    },
     projections::spot::trade::Trade,
-    traits::{table_manager::TableManager, get_modified::GetModified},
-    types::{Volume, SubscribeStream}, managers::notifications::{NotificationManagerSubscriber, NotificationManagerPredicateInput, NotificationManagerOutput},
+    traits::{get_modified::GetModified, table_manager::TableManager},
+    types::{SubscribeStream, Volume},
 };
 
 #[derive(Debug, Clone)]
@@ -279,132 +282,6 @@ impl TradesManager {
         )
         .fetch(&self.database)
     }
-
-    // pub async fn create_notify_trigger_for_taker(&self, taker_id: Uuid) -> sqlx::Result<NotifyTrigger> {
-    //     let trigger_name = trigger_name(
-    //         "spot_trades_notify_trigger_for_taker",
-    //         vec![Bytes::from(taker_id.as_bytes().to_owned().to_vec())],
-    //     );
-    //     sqlx::query!(
-    //         r#"
-    //         SELECT create_spot_trades_notify_trigger_for_taker($1, $2)
-    //         "#,
-    //         trigger_name,
-    //         taker_id
-    //     )
-    //     .execute(&self.database)
-    //     .await?;
-
-    //     let db = self.database.clone();
-    //     let trigger_name_clone = trigger_name.clone();
-    //     let (tx, rx) = oneshot::channel::<()>();
-    //     task::spawn(async move {
-    //         if (rx.await).is_err() {
-    //             tracing::error!("drop_signal failed");
-    //         }
-    //         if let Err(err) = sqlx::query!(
-    //             r#"
-    //             SELECT drop_spot_trades_notify_trigger_for_taker($1)
-    //             "#,
-    //             trigger_name_clone
-    //         )
-    //         .execute(&db)
-    //         .await
-    //         {
-    //             tracing::error!("{err}");
-    //         }
-    //     });
-
-    //     Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
-    // }
-
-    // pub async fn subscribe_for_taker(&self, taker_id: Uuid) -> sqlx::Result<SubscribeStream<Trade>> {
-    //     let mut listener = PgListener::connect_with(&self.database).await?;
-    //     let notify_trigger = self.create_notify_trigger_for_taker(taker_id).await?;
-    //     listener.listen(&notify_trigger.channel_name).await?;
-
-    //     let subscribe_stream = listener.into_stream().map(|element| {
-    //         element.and_then(|val| {
-    //             serde_json::from_str::<Trade>(val.payload())
-    //                 .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
-    //         })
-    //     });
-
-    //     Ok(SubscribeStream::new(
-    //         notify_trigger,
-    //         Box::pin(subscribe_stream),
-    //     ))
-    // }
-
-    // pub async fn create_notify_trigger_for_asset_pair(
-    //     &self,
-    //     quote_asset_id: Uuid,
-    //     base_asset_id: Uuid,
-    // ) -> sqlx::Result<NotifyTrigger> {
-    //     let trigger_name = trigger_name(
-    //         "spot_trades_notify_trigger_for_asset_pair",
-    //         vec![
-    //             Bytes::from(quote_asset_id.as_bytes().to_owned().to_vec()),
-    //             Bytes::from(base_asset_id.as_bytes().to_owned().to_vec()),
-    //         ],
-    //     );
-    //     sqlx::query!(
-    //         r#"
-    //         SELECT create_spot_trades_notify_trigger_for_asset_pair($1, $2, $3)
-    //         "#,
-    //         trigger_name,
-    //         quote_asset_id,
-    //         base_asset_id
-    //     )
-    //     .execute(&self.database)
-    //     .await?;
-
-    //     let db = self.database.clone();
-    //     let trigger_name_clone = trigger_name.clone();
-    //     let (tx, rx) = oneshot::channel::<()>();
-    //     task::spawn(async move {
-    //         if (rx.await).is_err() {
-    //             tracing::error!("drop_signal failed");
-    //         }
-    //         if let Err(err) = sqlx::query!(
-    //             r#"
-    //             SELECT drop_spot_trades_notify_trigger_for_asset_pair($1)
-    //             "#,
-    //             trigger_name_clone
-    //         )
-    //         .execute(&db)
-    //         .await
-    //         {
-    //             tracing::error!("{err}");
-    //         }
-    //     });
-
-    //     Ok(NotifyTrigger::new(format!("c_{trigger_name}"), tx))
-    // }
-
-    // pub async fn subscribe_for_asset_pair(
-    //     &self,
-    //     quote_asset_id: Uuid,
-    //     base_asset_id: Uuid,
-    // ) -> sqlx::Result<SubscribeStream<Trade>> {
-    //     let mut listener = PgListener::connect_with(&self.database).await?;
-    //     let notify_trigger = self
-    //         .create_notify_trigger_for_asset_pair(quote_asset_id, base_asset_id)
-    //         .await?;
-    //     listener.listen(&notify_trigger.channel_name).await?;
-
-    //     let subscribe_stream = listener.into_stream().map(|element| {
-    //         element.and_then(|val| {
-    //             serde_json::from_str::<Trade>(val.payload())
-    //                 .map_err(|err| sqlx::Error::from(std::io::Error::from(err)))
-    //         })
-    //     });
-
-    //     Ok(SubscribeStream::new(
-    //         notify_trigger,
-    //         Box::pin(subscribe_stream),
-    //     ))
-    // }
 }
 
 impl TableManager<Trade> for TradesManager {
@@ -460,7 +337,15 @@ impl TableManager<Trade> for TradesManager {
         let maker_quote_volume: BigDecimal = element.maker_quote_volume.into();
         let taker_base_volume: BigDecimal = element.taker_base_volume.into();
         let maker_base_volume: BigDecimal = element.maker_base_volume.into();
+        let mut transaction = self.database.begin().await?;
         sqlx::query!(
+            r#"
+            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
+            "#
+        )
+        .execute(&mut transaction)
+        .await?;
+        let result = sqlx::query!(
             r#"
             INSERT INTO
                 spot.trades
@@ -479,8 +364,10 @@ impl TableManager<Trade> for TradesManager {
             taker_base_volume,
             maker_base_volume
         )
-        .execute(&self.database)
-        .await
+        .execute(&mut transaction)
+        .await?;
+        transaction.commit().await?;
+        Ok(result)
     }
 
     async fn update(&self, element: Trade) -> sqlx::Result<PgQueryResult> {
@@ -488,7 +375,15 @@ impl TableManager<Trade> for TradesManager {
         let maker_quote_volume: BigDecimal = element.maker_quote_volume.into();
         let taker_base_volume: BigDecimal = element.taker_base_volume.into();
         let maker_base_volume: BigDecimal = element.maker_base_volume.into();
+        let mut transaction = self.database.begin().await?;
         sqlx::query!(
+            r#"
+            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
+            "#
+        )
+        .execute(&mut transaction)
+        .await?;
+        let result = sqlx::query!(
             r#"
             UPDATE 
                 spot.trades 
@@ -516,12 +411,22 @@ impl TableManager<Trade> for TradesManager {
             taker_base_volume,
             maker_base_volume
         )
-        .execute(&self.database)
-        .await
+        .execute(&mut transaction)
+        .await?;
+        transaction.commit().await?;
+        Ok(result)
     }
 
     async fn delete(&self, element: Trade) -> sqlx::Result<PgQueryResult> {
+        let mut transaction = self.database.begin().await?;
         sqlx::query!(
+            r#"
+            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
+            "#
+        )
+        .execute(&mut transaction)
+        .await?;
+        let result = sqlx::query!(
             r#"
             DELETE FROM 
                 spot.trades 
@@ -530,8 +435,10 @@ impl TableManager<Trade> for TradesManager {
             "#,
             element.id,
         )
-        .execute(&self.database)
-        .await
+        .execute(&mut transaction)
+        .await?;
+        transaction.commit().await?;
+        Ok(result)
     }
 }
 
@@ -583,14 +490,20 @@ impl TradesNotificationManager {
     ) -> sqlx::Result<SubscribeStream<Vec<Trade>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
-                NotificationManagerPredicateInput::SpotTradesChanged(trade) =>
+                NotificationManagerPredicateInput::SpotTradesChanged(trade) => {
                     (trade.quote_asset_id == quote_asset_id && trade.base_asset_id == base_asset_id)
-                        || (trade.quote_asset_id == base_asset_id && trade.base_asset_id == quote_asset_id),
+                        || (trade.quote_asset_id == base_asset_id
+                            && trade.base_asset_id == quote_asset_id)
+                }
                 _ => false,
             }
         });
 
-        if let Ok(mut rx) = self.notification_manager_subscriber.subscribe_to(Box::new(p)).await {
+        if let Ok(mut rx) = self
+            .notification_manager_subscriber
+            .subscribe_to(Box::new(p))
+            .await
+        {
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
                     if let NotificationManagerOutput::SpotTradesChanged(trades) = notification {
@@ -610,12 +523,18 @@ impl TradesNotificationManager {
     ) -> sqlx::Result<SubscribeStream<Vec<Trade>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
-                NotificationManagerPredicateInput::SpotTradesChanged(trade) => trade.taker_id == taker_id,
+                NotificationManagerPredicateInput::SpotTradesChanged(trade) => {
+                    trade.taker_id == taker_id
+                }
                 _ => false,
             }
         });
 
-        if let Ok(mut rx) = self.notification_manager_subscriber.subscribe_to(Box::new(p)).await {
+        if let Ok(mut rx) = self
+            .notification_manager_subscriber
+            .subscribe_to(Box::new(p))
+            .await
+        {
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
                     if let NotificationManagerOutput::SpotTradesChanged(trades) = notification {

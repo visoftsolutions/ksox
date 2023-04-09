@@ -5,7 +5,7 @@ use database::{
     projections::spot::{order::Order, trade::Trade},
     sqlx::{
         types::{chrono::Utc, Uuid},
-        Pool, Postgres,
+        Pool, Postgres, postgres::PgAdvisoryLock,
     },
     traits::table_manager::TableManager,
     types::Volume,
@@ -28,12 +28,12 @@ pub struct MatchingEngine {
 }
 
 impl MatchingEngine {
-    pub fn new(database: Pool<Postgres>) -> MatchingEngine {
+    pub fn new(database: Pool<Postgres>, lock: PgAdvisoryLock) -> MatchingEngine {
         MatchingEngine {
             orders_manager: OrdersManager::new(database.clone()),
             assets_manager: AssetsManager::new(database.clone()),
             trades_manager: TradesManager::new(database.clone()),
-            valuts_manager: ValutsManager::new(database),
+            valuts_manager: ValutsManager::new(database, lock),
         }
     }
 

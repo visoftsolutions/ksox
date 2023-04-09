@@ -24,7 +24,7 @@ use database::{
         },
         users::UsersManager,
     },
-    sqlx::postgres::PgPoolOptions,
+    sqlx::postgres::{PgAdvisoryLock, PgPoolOptions},
 };
 use models::AppState;
 use regex::Regex;
@@ -36,7 +36,6 @@ pub mod engine_base {
 }
 
 use engine_base::engine_client::EngineClient;
-use tower_http::cors::{Any, CorsLayer};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -47,8 +46,10 @@ async fn main() -> Result<()> {
         .connect(std::env::var("DATABASE_URL")?.as_str())
         .await?;
 
+    let lock = PgAdvisoryLock::new("main_lock");
+
     let notification_manager_controller =
-        NotificationManager::start(database, "notifications").await?;
+        NotificationManager::start(database.clone(), "notifications", lock.clone()).await?;
 
     let app_state = AppState {
         database: database.clone(),
@@ -58,7 +59,7 @@ async fn main() -> Result<()> {
         assets_notification_manager: AssetsNotificationManager::new(
             notification_manager_controller.get_subscriber(),
         ),
-        valuts_manager: ValutsManager::new(database.clone()),
+        valuts_manager: ValutsManager::new(database.clone(), lock.clone()),
         valuts_notification_manager: ValutsNotificationManager::new(
             notification_manager_controller.get_subscriber(),
         ),
@@ -69,6 +70,7 @@ async fn main() -> Result<()> {
         orders_manager: OrdersManager::new(database.clone()),
         orders_notification_manager: OrdersNotificationManager::new(
             notification_manager_controller.get_subscriber(),
+            OrdersManager::new(database.clone()),
         ),
         candlesticks_manager: CandlesticksManager::new(database.clone()),
         candlesticks_notification_manager: CandlesticksNotificationManager::new(
@@ -86,8 +88,7 @@ async fn main() -> Result<()> {
         .route("/sse", get(api::sse))
         .nest("/auth", api::auth::router(&app_state))
         .nest("/private", api::private::router(&app_state))
-        .nest("/public", api::public::router(&app_state))
-        .layer(CorsLayer::new().allow_origin(Any));
+        .nest("/public", api::public::router(&app_state));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));
     tracing::info!("listening on {}", addr);

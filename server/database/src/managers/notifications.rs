@@ -4,14 +4,14 @@ use chrono::Utc;
 use futures::StreamExt;
 use predicates::prelude::*;
 use serde::Deserialize;
-use sqlx::{postgres::PgListener, PgPool};
+use sqlx::{postgres::{PgListener, PgAdvisoryLock}, PgPool};
 use tokio::{
     select,
     sync::{mpsc, oneshot},
 };
 use uuid::Uuid;
 
-use crate::{managers, projections, traits::GetModified, types};
+use crate::{managers, projections, traits::GetModified};
 
 #[derive(Debug, Clone, Deserialize)]
 pub enum NotificationManagerEvent {
@@ -40,14 +40,12 @@ pub enum NotificationManagerOutput {
     SpotCandlesticksChanged(Vec<projections::spot::candlestick::Candlestick>),
 }
 
-pub struct NotificationManagerEntry
-{
+pub struct NotificationManagerEntry {
     id: uuid::Uuid,
     predicate: Box<dyn Predicate<NotificationManagerPredicateInput> + Send + Sync>,
     sender: mpsc::Sender<NotificationManagerOutput>,
 }
-impl NotificationManagerEntry
-{
+impl NotificationManagerEntry {
     pub fn new(
         predicate: Box<dyn Predicate<NotificationManagerPredicateInput> + Send + Sync>,
         sender: mpsc::Sender<NotificationManagerOutput>,
@@ -59,15 +57,13 @@ impl NotificationManagerEntry
         }
     }
 }
-impl PartialEq for NotificationManagerEntry
-{
+impl PartialEq for NotificationManagerEntry {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id
     }
 }
 impl Eq for NotificationManagerEntry {}
-impl std::hash::Hash for NotificationManagerEntry
-{
+impl std::hash::Hash for NotificationManagerEntry {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.id.hash(state);
     }
@@ -78,6 +74,7 @@ impl NotificationManager {
     pub async fn start(
         database: PgPool,
         trigger_name: &str,
+        lock: PgAdvisoryLock,
     ) -> sqlx::Result<NotificationManagerController> {
         let mut last_modification_at = Utc::now();
         let mut listener = PgListener::connect_with(&database).await?;
@@ -90,7 +87,7 @@ impl NotificationManager {
         let (shutdown_tx, mut shutdown_rx) = oneshot::channel();
 
         let join_handle = tokio::spawn(async move {
-            let valuts_manager = managers::spot::valuts::ValutsManager::new(database.clone());
+            let valuts_manager = managers::spot::valuts::ValutsManager::new(database.clone(), lock.clone());
             let assets_manager = managers::spot::assets::AssetsManager::new(database.clone());
             let orders_manager = managers::spot::orders::OrdersManager::new(database.clone());
             let trades_manager = managers::spot::trades::TradesManager::new(database.clone());
@@ -98,6 +95,7 @@ impl NotificationManager {
                 managers::spot::candlesticks::CandlesticksManager::new(database.clone());
 
             loop {
+                tracing::info!("NotificationManager loop");
                 select! {
                     _ = &mut shutdown_rx => {
                         tracing::info!("NotificationManager shutdown");
@@ -107,6 +105,7 @@ impl NotificationManager {
                         match set_entry {
                             Some(set_entry) => {
                                 set.insert(set_entry.id, set_entry);
+                                tracing::info!("NotificationManager set new entry -----------");
                             },
                             None => {
                                 break;
@@ -116,10 +115,12 @@ impl NotificationManager {
                     Some(element) = stream.next() => {
                         match element {
                             Ok(value) => {
+                                tracing::error!("NotificationManager element: {:?}", value);
                                 match serde_json::from_str::<NotificationManagerEvent>(&value.payload()) {
                                     Ok(NotificationManagerEvent::SpotValutsChanged) => {
                                         match valuts_manager.get_modified(last_modification_at).await {
                                             Ok(valuts) => {
+                                                tracing::error!("NotificationManager valuts: {:?}", valuts);
                                                 let mut set_entry_to_remove_ids = Vec::new();
                                                 for set_entry in set.values() {
                                                     let mut result = Vec::new();
@@ -292,11 +293,9 @@ impl NotificationManager {
                                                 tracing::error!("Error: {}", err);
                                             }
                                         }
-
                                     },
                                     Err(err) => {
                                         tracing::error!("Error: {}", err);
-                                        break;
                                     }
                                 }
                             },
@@ -307,6 +306,7 @@ impl NotificationManager {
                     },
                 }
             }
+            tracing::info!("Notification manager finished");
         });
 
         Ok(NotificationManagerController {
@@ -318,14 +318,12 @@ impl NotificationManager {
 }
 
 #[derive(Debug)]
-pub struct NotificationManagerController
-{
+pub struct NotificationManagerController {
     tx: mpsc::Sender<NotificationManagerEntry>,
     shutdown_tx: oneshot::Sender<()>,
     join_handle: tokio::task::JoinHandle<()>,
 }
-impl NotificationManagerController
-{
+impl NotificationManagerController {
     pub async fn shutdown(self) -> Result<(), tokio::task::JoinError> {
         self.shutdown_tx.send(());
         self.join_handle.await?;
@@ -344,19 +342,25 @@ impl NotificationManagerController
 }
 
 #[derive(Debug, Clone)]
-pub struct NotificationManagerSubscriber
-{
+pub struct NotificationManagerSubscriber {
     tx: mpsc::Sender<NotificationManagerEntry>,
 }
-impl NotificationManagerSubscriber
-{
+impl NotificationManagerSubscriber {
     pub async fn subscribe_to(
         &self,
         predicate: Box<dyn Predicate<NotificationManagerPredicateInput> + Send + Sync>,
-    ) -> Result<mpsc::Receiver<NotificationManagerOutput>, mpsc::error::SendError<NotificationManagerEntry>> {
+    ) -> Result<
+        mpsc::Receiver<NotificationManagerOutput>,
+        mpsc::error::SendError<NotificationManagerEntry>,
+    > {
+        tracing::info!("Subscribe to ----------------------");
         let (tx, rx) = mpsc::channel(100);
         let set_entry = NotificationManagerEntry::new(predicate, tx);
-        self.tx.send(set_entry).await?;
-        Ok(rx)
+        if let Err(err) = self.tx.send(set_entry).await {
+            tracing::error!("Error: {}", err);
+            Err(err)
+        } else {
+            Ok(rx)
+        }
     }
 }

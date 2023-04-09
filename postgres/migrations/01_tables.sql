@@ -1,4 +1,3 @@
-
 CREATE TABLE "users" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -75,56 +74,46 @@ CREATE TABLE "spot"."candlesticks" (
 );
 
 ALTER TABLE "spot"."valuts" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-
 ALTER TABLE "spot"."valuts" ADD FOREIGN KEY ("asset_id") REFERENCES "spot"."assets" ("id");
-
 ALTER TABLE "spot"."orders" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-
 ALTER TABLE "spot"."orders" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "spot"."assets" ("id");
-
 ALTER TABLE "spot"."orders" ADD FOREIGN KEY ("base_asset_id") REFERENCES "spot"."assets" ("id");
-
 ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("taker_id") REFERENCES "users" ("id");
-
 ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("order_id") REFERENCES "spot"."orders" ("id");
-
 ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "spot"."assets" ("id");
-
 ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("base_asset_id") REFERENCES "spot"."assets" ("id");
-
 ALTER TABLE "spot"."candlesticks" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "spot"."assets" ("id");
-
 ALTER TABLE "spot"."candlesticks" ADD FOREIGN KEY ("base_asset_id") REFERENCES "spot"."assets" ("id");
 
 CREATE OR REPLACE FUNCTION update_last_modification_at()
 RETURNS TRIGGER AS $$
 BEGIN
    NEW.last_modification_at = now();
-   PERFORM pg_notify("notifications", TG_ARGV[0]::text);
+   PERFORM pg_notify('notifications', TG_ARGV[0]::text);
    RETURN NEW;
 END;
 $$ language 'plpgsql';
 
 CREATE OR REPLACE TRIGGER users_update_last_modification_at
-AFTER UPDATE ON "users"
-FOR EACH ROW EXECUTE FUNCTION update_last_modification_at("UsersChanged");
+AFTER INSERT OR UPDATE ON "users"
+FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"UsersChanged"');
 
 CREATE OR REPLACE TRIGGER spot_valuts_update_last_modification_at
-AFTER UPDATE ON "spot"."valuts"
-FOR EACH ROW EXECUTE FUNCTION update_last_modification_at("SpotValutsChanged");
+AFTER INSERT OR UPDATE ON "spot"."valuts"
+FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"SpotValutsChanged"');
 
 CREATE OR REPLACE TRIGGER spot_assets_update_last_modification_at
-AFTER UPDATE ON "spot"."assets"
-FOR EACH ROW EXECUTE FUNCTION update_last_modification_at("SpotAssetsChanged");
+AFTER INSERT OR UPDATE ON "spot"."assets"
+FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"SpotAssetsChanged"');
 
 CREATE OR REPLACE TRIGGER spot_orders_update_last_modification_at
-AFTER UPDATE ON "spot"."orders"
-FOR EACH ROW EXECUTE FUNCTION update_last_modification_at("SpotOrdersChanged");
+AFTER INSERT OR UPDATE ON "spot"."orders"
+FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"SpotOrdersChanged"');
 
 CREATE OR REPLACE TRIGGER spot_trades_update_last_modification_at
-AFTER UPDATE ON "spot"."trades"
-FOR EACH ROW EXECUTE FUNCTION update_last_modification_at("SpotTradesChanged");
+AFTER INSERT OR UPDATE ON "spot"."trades"
+FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"SpotTradesChanged"');
 
 CREATE OR REPLACE TRIGGER spot_candlesticks_update_last_modification_at
-AFTER UPDATE ON "spot"."candlesticks"
-FOR EACH ROW EXECUTE FUNCTION update_last_modification_at("SpotCandlesticksChanged");
+AFTER INSERT OR UPDATE ON "spot"."candlesticks"
+FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"SpotCandlesticksChanged"');

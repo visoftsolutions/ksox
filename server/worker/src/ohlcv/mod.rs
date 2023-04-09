@@ -23,8 +23,8 @@ pub struct OhlcvEngine {
     orders_manager: OrdersManager,
     candlesticks_manager: CandlesticksManager,
 }
-pub struct Ohlcv {}
 
+pub struct Ohlcv {}
 impl Ohlcv {
     pub fn merge(
         candlestick: Candlestick,
@@ -134,14 +134,9 @@ impl OhlcvEngine {
         reference_point: DateTime<Utc>,
         span: i64,
     ) -> Pin<Box<dyn Stream<Item = Result<Candlestick, OhlcvEngineError>> + Send + '_>> {
-        let trades = self
-            .trades_notification_manager
-            .subscribe_to_asset_pair(quote_asset_id, base_asset_id)
-            .await
-            .unwrap();
         let stream = async_stream::try_stream! {
             let mut candlestick: Option<Candlestick> = None;
-            let mut trades = self.trades_notification_manager.subscribe_to_asset_pair(quote_asset_id, base_asset_id).await.unwrap()
+            let mut trades = self.trades_notification_manager.subscribe_to_asset_pair(quote_asset_id, base_asset_id).await?
             .map(|trades| {
                 let mut result = Vec::new();
                 for trade in trades {

@@ -8,9 +8,12 @@ use sqlx::{
 };
 
 use crate::{
+    managers::notifications::{
+        NotificationManagerOutput, NotificationManagerPredicateInput, NotificationManagerSubscriber,
+    },
     projections::spot::{asset::Asset, trade::Trade},
     traits::{get_modified::GetModified, table_manager::TableManager},
-    types::{Fraction, SubscribeStream}, managers::notifications::{NotificationManagerSubscriber, NotificationManagerPredicateInput, NotificationManagerOutput},
+    types::{Fraction, SubscribeStream},
 };
 
 #[derive(Debug, Clone)]
@@ -65,7 +68,15 @@ impl TableManager<Asset> for AssetsManager {
     }
 
     async fn insert(&self, element: Asset) -> Result<PgQueryResult> {
+        let mut transaction = self.database.begin().await?;
         sqlx::query!(
+            r#"
+            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
+            "#
+        )
+        .execute(&mut transaction)
+        .await?;
+        let result = sqlx::query!(
             r#"
             INSERT INTO 
                 spot.assets 
@@ -80,12 +91,22 @@ impl TableManager<Asset> for AssetsManager {
             element.maker_fee.to_string() as _,
             element.taker_fee.to_string() as _
         )
-        .execute(&self.database)
-        .await
+        .execute(&mut transaction)
+        .await?;
+        transaction.commit().await?;
+        Ok(result)
     }
 
     async fn update(&self, element: Asset) -> Result<PgQueryResult> {
+        let mut transaction = self.database.begin().await?;
         sqlx::query!(
+            r#"
+            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
+            "#
+        )
+        .execute(&mut transaction)
+        .await?;
+        let result = sqlx::query!(
             r#"
             UPDATE 
                 spot.assets 
@@ -103,12 +124,22 @@ impl TableManager<Asset> for AssetsManager {
             element.maker_fee.to_string() as _,
             element.taker_fee.to_string() as _
         )
-        .execute(&self.database)
-        .await
+        .execute(&mut transaction)
+        .await?;
+        transaction.commit().await?;
+        Ok(result)
     }
 
     async fn delete(&self, element: Asset) -> Result<PgQueryResult> {
+        let mut transaction = self.database.begin().await?;
         sqlx::query!(
+            r#"
+            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
+            "#
+        )
+        .execute(&mut transaction)
+        .await?;
+        let result = sqlx::query!(
             r#"
             DELETE FROM 
                 spot.assets 
@@ -117,8 +148,10 @@ impl TableManager<Asset> for AssetsManager {
             "#,
             element.id,
         )
-        .execute(&self.database)
-        .await
+        .execute(&mut transaction)
+        .await?;
+        transaction.commit().await?;
+        Ok(result)
     }
 }
 
@@ -150,11 +183,13 @@ impl GetModified<Asset> for AssetsManager {
 
 #[derive(Debug, Clone)]
 pub struct AssetsNotificationManager {
-    notification_manager_subscriber: NotificationManagerSubscriber
+    notification_manager_subscriber: NotificationManagerSubscriber,
 }
 impl AssetsNotificationManager {
     pub fn new(notification_manager_subscriber: NotificationManagerSubscriber) -> Self {
-        Self { notification_manager_subscriber }
+        Self {
+            notification_manager_subscriber,
+        }
     }
 
     pub async fn subscribe_to_asset_pair(
@@ -164,14 +199,20 @@ impl AssetsNotificationManager {
     ) -> sqlx::Result<SubscribeStream<Vec<Trade>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
-                NotificationManagerPredicateInput::SpotTradesChanged(trade) =>
+                NotificationManagerPredicateInput::SpotTradesChanged(trade) => {
                     (trade.quote_asset_id == quote_asset_id && trade.base_asset_id == base_asset_id)
-                        || (trade.quote_asset_id == base_asset_id && trade.base_asset_id == quote_asset_id),
+                        || (trade.quote_asset_id == base_asset_id
+                            && trade.base_asset_id == quote_asset_id)
+                }
                 _ => false,
             }
         });
 
-        if let Ok(mut rx) = self.notification_manager_subscriber.subscribe_to(Box::new(p)).await {
+        if let Ok(mut rx) = self
+            .notification_manager_subscriber
+            .subscribe_to(Box::new(p))
+            .await
+        {
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
                     if let NotificationManagerOutput::SpotTradesChanged(trades) = notification {

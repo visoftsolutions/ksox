@@ -3,25 +3,29 @@ use std::pin::Pin;
 use bigdecimal::BigDecimal;
 use futures::Stream;
 use sqlx::{
-    postgres::{PgPool, PgQueryResult},
+    postgres::{PgAdvisoryLock, PgPool, PgQueryResult},
     types::Uuid,
     Result,
 };
 
 use crate::{
+    managers::notifications::{
+        NotificationManagerOutput, NotificationManagerPredicateInput, NotificationManagerSubscriber,
+    },
     projections::spot::valut::Valut,
     traits::{get_modified::GetModified, table_manager::TableManager},
-    types::{Volume, SubscribeStream}, managers::notifications::{NotificationManagerSubscriber, NotificationManagerPredicateInput, NotificationManagerOutput}
+    types::{SubscribeStream, Volume},
 };
 
 #[derive(Debug, Clone)]
 pub struct ValutsManager {
     database: PgPool,
+    lock: PgAdvisoryLock,
 }
 
 impl ValutsManager {
-    pub fn new(database: PgPool) -> Self {
-        ValutsManager { database }
+    pub fn new(database: PgPool, lock: PgAdvisoryLock) -> Self {
+        ValutsManager { database, lock }
     }
 
     pub fn get_for_user(
@@ -80,6 +84,14 @@ impl ValutsManager {
         user_id: Uuid,
         asset_id: Uuid,
     ) -> Result<Valut> {
+        let mut transaction = self.database.begin().await?;
+        sqlx::query!(
+            r#"
+            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
+            "#
+        )
+        .execute(&mut transaction)
+        .await?;
         sqlx::query_as!(
             Valut,
             r#"
@@ -90,9 +102,9 @@ impl ValutsManager {
             user_id,
             asset_id
         )
-        .execute(&self.database)
+        .execute(&mut transaction)
         .await?;
-
+        transaction.commit().await?;
         self.get_for_user_asset(user_id, asset_id).await
     }
 }
@@ -137,7 +149,15 @@ impl TableManager<Valut> for ValutsManager {
 
     async fn insert(&self, element: Valut) -> Result<PgQueryResult> {
         let balance: BigDecimal = element.balance.into();
+        let mut transaction = self.database.begin().await?;
         sqlx::query!(
+            r#"
+            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
+            "#
+        )
+        .execute(&mut transaction)
+        .await?;
+        let result = sqlx::query!(
             r#"
             INSERT INTO
                 spot.valuts
@@ -150,13 +170,23 @@ impl TableManager<Valut> for ValutsManager {
             element.asset_id,
             balance
         )
-        .execute(&self.database)
-        .await
+        .execute(&mut transaction)
+        .await?;
+        transaction.commit().await?;
+        Ok(result)
     }
 
     async fn update(&self, element: Valut) -> Result<PgQueryResult> {
         let balance: BigDecimal = element.balance.into();
+        let mut transaction = self.database.begin().await?;
         sqlx::query!(
+            r#"
+            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
+            "#
+        )
+        .execute(&mut transaction)
+        .await?;
+        let result = sqlx::query!(
             r#"
             UPDATE 
                 spot.valuts 
@@ -172,12 +202,22 @@ impl TableManager<Valut> for ValutsManager {
             element.asset_id,
             balance
         )
-        .execute(&self.database)
-        .await
+        .execute(&mut transaction)
+        .await?;
+        transaction.commit().await?;
+        Ok(result)
     }
 
     async fn delete(&self, element: Valut) -> Result<PgQueryResult> {
+        let mut transaction = self.database.begin().await?;
         sqlx::query!(
+            r#"
+            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
+            "#
+        )
+        .execute(&mut transaction)
+        .await?;
+        let result = sqlx::query!(
             r#"
             DELETE FROM 
                 spot.valuts 
@@ -186,8 +226,10 @@ impl TableManager<Valut> for ValutsManager {
             "#,
             element.id,
         )
-        .execute(&self.database)
-        .await
+        .execute(&mut transaction)
+        .await?;
+        transaction.commit().await?;
+        Ok(result)
     }
 }
 
@@ -234,12 +276,18 @@ impl ValutsNotificationManager {
     ) -> Result<SubscribeStream<Vec<Valut>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
-                NotificationManagerPredicateInput::SpotValutsChanged(valut) => valut.user_id == user_id && valut.asset_id == asset_id,
+                NotificationManagerPredicateInput::SpotValutsChanged(valut) => {
+                    valut.user_id == user_id && valut.asset_id == asset_id
+                }
                 _ => false,
             }
         });
 
-        if let Ok(mut rx) = self.notification_manager_subscriber.subscribe_to(Box::new(p)).await {
+        if let Ok(mut rx) = self
+            .notification_manager_subscriber
+            .subscribe_to(Box::new(p))
+            .await
+        {
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
                     if let NotificationManagerOutput::SpotValutsChanged(valuts) = notification {

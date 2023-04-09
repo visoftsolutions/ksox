@@ -14,7 +14,7 @@ use base::{
     CancelRequest, CancelResponse, SubmitRequest, SubmitResponse,
 };
 use database::{
-    sqlx::{PgPool, Pool, Postgres},
+    sqlx::{PgPool, Pool, Postgres, postgres::PgAdvisoryLock},
     types::Volume,
 };
 use matching_engine::{models::MatchingEngineRequest, MatchingEngine};
@@ -26,9 +26,9 @@ pub struct EngineService {
 }
 
 impl EngineService {
-    pub fn new(database: Pool<Postgres>) -> Self {
+    pub fn new(database: Pool<Postgres>, lock: PgAdvisoryLock) -> Self {
         EngineService {
-            engine: MatchingEngine::new(database),
+            engine: MatchingEngine::new(database, lock),
         }
     }
 }
@@ -86,8 +86,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let database = PgPool::connect(std::env::var("DATABASE_URL").unwrap_or_default().as_str())
         .await
         .unwrap();
-
-    let engine = EngineService::new(database);
+    let lock = PgAdvisoryLock::new("main_lock");
+    let engine = EngineService::new(database, lock);
 
     let svc = EngineServer::new(engine);
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));

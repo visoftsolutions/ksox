@@ -11,7 +11,7 @@ use database::{
         },
         users::UsersManager,
     },
-    sqlx::PgPool,
+    sqlx::postgres::{PgPool, PgAdvisoryLock},
 };
 use tonic::transport::Channel;
 
