@@ -24,7 +24,7 @@ use database::{
         },
         users::UsersManager,
     },
-    sqlx::postgres::{PgAdvisoryLock, PgPoolOptions},
+    sqlx::postgres::PgPoolOptions,
 };
 use models::AppState;
 use regex::Regex;
@@ -46,10 +46,8 @@ async fn main() -> Result<()> {
         .connect(std::env::var("DATABASE_URL")?.as_str())
         .await?;
 
-    let lock = PgAdvisoryLock::new("main_lock");
-
     let notification_manager_controller =
-        NotificationManager::start(database.clone(), "notifications", lock.clone()).await?;
+        NotificationManager::start(database.clone(), "notifications").await?;
 
     let app_state = AppState {
         database: database.clone(),
@@ -59,7 +57,7 @@ async fn main() -> Result<()> {
         assets_notification_manager: AssetsNotificationManager::new(
             notification_manager_controller.get_subscriber(),
         ),
-        valuts_manager: ValutsManager::new(database.clone(), lock.clone()),
+        valuts_manager: ValutsManager::new(database.clone()),
         valuts_notification_manager: ValutsNotificationManager::new(
             notification_manager_controller.get_subscriber(),
         ),

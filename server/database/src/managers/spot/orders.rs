@@ -393,15 +393,7 @@ impl TableManager<Order> for OrdersManager {
         let quote_asset_volume: BigDecimal = element.quote_asset_volume.into();
         let base_asset_volume: BigDecimal = element.base_asset_volume.into();
         let quote_asset_volume_left: BigDecimal = element.quote_asset_volume_left.into();
-        let mut transaction = self.database.begin().await?;
         sqlx::query!(
-            r#"
-            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
-            "#
-        )
-        .execute(&mut transaction)
-        .await?;
-        let result = sqlx::query!(
             r#"
             INSERT INTO
                 spot.orders
@@ -431,25 +423,15 @@ impl TableManager<Order> for OrdersManager {
             quote_asset_volume_left,
             element.maker_fee.to_string() as _
         )
-        .execute(&mut transaction)
-        .await?;
-        transaction.commit().await?;
-        Ok(result)
+        .execute(&self.database)
+        .await
     }
 
     async fn update(&self, element: Order) -> Result<PgQueryResult> {
         let quote_asset_volume: BigDecimal = element.quote_asset_volume.into();
         let base_asset_volume: BigDecimal = element.base_asset_volume.into();
         let quote_asset_volume_left: BigDecimal = element.quote_asset_volume_left.into();
-        let mut transaction = self.database.begin().await?;
         sqlx::query!(
-            r#"
-            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
-            "#
-        )
-        .execute(&mut transaction)
-        .await?;
-        let result = sqlx::query!(
             r#"
             UPDATE 
                 spot.orders 
@@ -478,21 +460,11 @@ impl TableManager<Order> for OrdersManager {
             element.maker_fee.to_string() as _
         )
         .execute(&self.database)
-        .await?;
-        transaction.commit().await?;
-        Ok(result)
+        .await
     }
 
     async fn delete(&self, element: Order) -> Result<PgQueryResult> {
-        let mut transaction = self.database.begin().await?;
         sqlx::query!(
-            r#"
-            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
-            "#
-        )
-        .execute(&mut transaction)
-        .await?;
-        let result = sqlx::query!(
             r#"
             DELETE FROM 
                 spot.orders 
@@ -502,9 +474,7 @@ impl TableManager<Order> for OrdersManager {
             element.id,
         )
         .execute(&self.database)
-        .await?;
-        transaction.commit().await?;
-        Ok(result)
+        .await
     }
 }
 
@@ -621,7 +591,7 @@ impl OrdersNotificationManager {
             match input {
                 NotificationManagerPredicateInput::SpotOrdersChanged(order) => {
                     order.quote_asset_id == quote_asset_id && order.base_asset_id == base_asset_id
-                },
+                }
                 _ => false,
             }
         });

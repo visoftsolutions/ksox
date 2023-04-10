@@ -22,7 +22,9 @@ pub async fn root(
         let mut stream = state.valuts_notification_manager.subscribe_for_user_asset(*user_id, params.asset_id).await
             .map_err(|err| Error::new(ErrorKind::BrokenPipe, err))?;
         while let Some(element) = stream.next().await {
-            yield Event::default().json_data(element).map_err(Error::from);
+            if !element.is_empty() {
+                yield Event::default().json_data(element[0].clone()).map_err(Error::from);
+            }
         }
     };
 

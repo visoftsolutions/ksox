@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use database::{sqlx::{PgPool, postgres::PgAdvisoryLock}, types::Volume};
+use database::{sqlx::PgPool, types::Volume};
 use uuid::Uuid;
 
 use crate::matching_engine::{models::MatchingEngineRequest, MatchingEngine};
@@ -25,9 +25,8 @@ async fn simple_scenario() {
     let database = PgPool::connect(std::env::var("DATABASE_URL").unwrap_or_default().as_str())
         .await
         .unwrap();
-    let lock = PgAdvisoryLock::new("test_lock");
 
-    let me = MatchingEngine::new(database, lock);
+    let me = MatchingEngine::new(database);
 
     me.execute_request(MatchingEngineRequest {
         user_id: user_2_id,

@@ -3,7 +3,7 @@ use std::pin::Pin;
 use bigdecimal::BigDecimal;
 use futures::Stream;
 use sqlx::{
-    postgres::{PgAdvisoryLock, PgPool, PgQueryResult},
+    postgres::{PgPool, PgQueryResult},
     types::Uuid,
     Result,
 };
@@ -20,12 +20,11 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct ValutsManager {
     database: PgPool,
-    lock: PgAdvisoryLock,
 }
 
 impl ValutsManager {
-    pub fn new(database: PgPool, lock: PgAdvisoryLock) -> Self {
-        ValutsManager { database, lock }
+    pub fn new(database: PgPool) -> Self {
+        ValutsManager { database }
     }
 
     pub fn get_for_user(
@@ -84,14 +83,6 @@ impl ValutsManager {
         user_id: Uuid,
         asset_id: Uuid,
     ) -> Result<Valut> {
-        let mut transaction = self.database.begin().await?;
-        sqlx::query!(
-            r#"
-            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
-            "#
-        )
-        .execute(&mut transaction)
-        .await?;
         sqlx::query_as!(
             Valut,
             r#"
@@ -102,9 +93,8 @@ impl ValutsManager {
             user_id,
             asset_id
         )
-        .execute(&mut transaction)
+        .execute(&self.database)
         .await?;
-        transaction.commit().await?;
         self.get_for_user_asset(user_id, asset_id).await
     }
 }
@@ -149,15 +139,7 @@ impl TableManager<Valut> for ValutsManager {
 
     async fn insert(&self, element: Valut) -> Result<PgQueryResult> {
         let balance: BigDecimal = element.balance.into();
-        let mut transaction = self.database.begin().await?;
         sqlx::query!(
-            r#"
-            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
-            "#
-        )
-        .execute(&mut transaction)
-        .await?;
-        let result = sqlx::query!(
             r#"
             INSERT INTO
                 spot.valuts
@@ -170,23 +152,13 @@ impl TableManager<Valut> for ValutsManager {
             element.asset_id,
             balance
         )
-        .execute(&mut transaction)
-        .await?;
-        transaction.commit().await?;
-        Ok(result)
+        .execute(&self.database)
+        .await
     }
 
     async fn update(&self, element: Valut) -> Result<PgQueryResult> {
         let balance: BigDecimal = element.balance.into();
-        let mut transaction = self.database.begin().await?;
         sqlx::query!(
-            r#"
-            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
-            "#
-        )
-        .execute(&mut transaction)
-        .await?;
-        let result = sqlx::query!(
             r#"
             UPDATE 
                 spot.valuts 
@@ -202,22 +174,12 @@ impl TableManager<Valut> for ValutsManager {
             element.asset_id,
             balance
         )
-        .execute(&mut transaction)
-        .await?;
-        transaction.commit().await?;
-        Ok(result)
+        .execute(&self.database)
+        .await
     }
 
     async fn delete(&self, element: Valut) -> Result<PgQueryResult> {
-        let mut transaction = self.database.begin().await?;
         sqlx::query!(
-            r#"
-            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
-            "#
-        )
-        .execute(&mut transaction)
-        .await?;
-        let result = sqlx::query!(
             r#"
             DELETE FROM 
                 spot.valuts 
@@ -226,10 +188,8 @@ impl TableManager<Valut> for ValutsManager {
             "#,
             element.id,
         )
-        .execute(&mut transaction)
-        .await?;
-        transaction.commit().await?;
-        Ok(result)
+        .execute(&self.database)
+        .await
     }
 }
 
@@ -241,17 +201,17 @@ impl GetModified<Valut> for ValutsManager {
         sqlx::query_as!(
             Valut,
             r#"
-                SELECT
-                    id,
-                    created_at,
-                    last_modification_at,
-                    user_id,
-                    asset_id,
-                    balance as "balance: Volume"
-                FROM spot.valuts
-                WHERE last_modification_at > $1
-                "#,
-            last_modification_at
+            SELECT
+                id,
+                created_at,
+                last_modification_at,
+                user_id,
+                asset_id,
+                balance as "balance: Volume"
+            FROM spot.valuts
+            WHERE last_modification_at > $1
+            "#,
+            last_modification_at,
         )
         .fetch_all(&self.database)
         .await

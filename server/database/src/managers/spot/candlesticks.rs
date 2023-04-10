@@ -130,15 +130,7 @@ impl TableManager<Candlestick> for CandlesticksManager {
         let taker_base_volume: BigDecimal = element.taker_base_volume.into();
         let maker_quote_volume: BigDecimal = element.maker_quote_volume.into();
         let maker_base_volume: BigDecimal = element.maker_base_volume.into();
-        let mut transaction = self.database.begin().await?;
         sqlx::query!(
-            r#"
-            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
-            "#
-        )
-        .execute(&mut transaction)
-        .await?;
-        let result = sqlx::query!(
             r#"
             INSERT INTO 
                 spot.candlesticks 
@@ -194,10 +186,8 @@ impl TableManager<Candlestick> for CandlesticksManager {
             maker_quote_volume,
             maker_base_volume
         )
-        .execute(&mut transaction)
-        .await?;
-        transaction.commit().await?;
-        Ok(result)
+        .execute(&self.database)
+        .await
     }
 
     async fn update(&self, element: Candlestick) -> Result<PgQueryResult> {
@@ -205,15 +195,7 @@ impl TableManager<Candlestick> for CandlesticksManager {
         let taker_base_volume: BigDecimal = element.taker_base_volume.into();
         let maker_quote_volume: BigDecimal = element.maker_quote_volume.into();
         let maker_base_volume: BigDecimal = element.maker_base_volume.into();
-        let mut transaction = self.database.begin().await?;
         sqlx::query!(
-            r#"
-            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
-            "#
-        )
-        .execute(&mut transaction)
-        .await?;
-        let result = sqlx::query!(
             r#"
             UPDATE 
                 spot.candlesticks 
@@ -251,22 +233,12 @@ impl TableManager<Candlestick> for CandlesticksManager {
             maker_quote_volume,
             maker_base_volume
         )
-        .execute(&mut transaction)
-        .await?;
-        transaction.commit().await?;
-        Ok(result)
+        .execute(&self.database)
+        .await
     }
 
     async fn delete(&self, element: Candlestick) -> Result<PgQueryResult> {
-        let mut transaction = self.database.begin().await?;
         sqlx::query!(
-            r#"
-            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
-            "#
-        )
-        .execute(&mut transaction)
-        .await?;
-        let result = sqlx::query!(
             r#"
             DELETE FROM
                 spot.candlesticks 
@@ -275,10 +247,8 @@ impl TableManager<Candlestick> for CandlesticksManager {
             "#,
             element.id,
         )
-        .execute(&mut transaction)
-        .await?;
-        transaction.commit().await?;
-        Ok(result)
+        .execute(&self.database)
+        .await
     }
 }
 
@@ -306,7 +276,7 @@ impl GetModified<Candlestick> for CandlesticksManager {
                 maker_quote_volume as "maker_quote_volume: Volume",
                 maker_base_volume as "maker_base_volume: Volume"
             FROM spot.candlesticks
-            WHERE spot.candlesticks.last_modification_at > $1
+            WHERE last_modification_at > $1
             "#,
             last_modification_at
         )

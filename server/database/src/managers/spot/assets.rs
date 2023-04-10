@@ -68,15 +68,7 @@ impl TableManager<Asset> for AssetsManager {
     }
 
     async fn insert(&self, element: Asset) -> Result<PgQueryResult> {
-        let mut transaction = self.database.begin().await?;
         sqlx::query!(
-            r#"
-            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
-            "#
-        )
-        .execute(&mut transaction)
-        .await?;
-        let result = sqlx::query!(
             r#"
             INSERT INTO 
                 spot.assets 
@@ -91,22 +83,12 @@ impl TableManager<Asset> for AssetsManager {
             element.maker_fee.to_string() as _,
             element.taker_fee.to_string() as _
         )
-        .execute(&mut transaction)
-        .await?;
-        transaction.commit().await?;
-        Ok(result)
+        .execute(&self.database)
+        .await
     }
 
     async fn update(&self, element: Asset) -> Result<PgQueryResult> {
-        let mut transaction = self.database.begin().await?;
         sqlx::query!(
-            r#"
-            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
-            "#
-        )
-        .execute(&mut transaction)
-        .await?;
-        let result = sqlx::query!(
             r#"
             UPDATE 
                 spot.assets 
@@ -124,22 +106,12 @@ impl TableManager<Asset> for AssetsManager {
             element.maker_fee.to_string() as _,
             element.taker_fee.to_string() as _
         )
-        .execute(&mut transaction)
-        .await?;
-        transaction.commit().await?;
-        Ok(result)
+        .execute(&self.database)
+        .await
     }
 
     async fn delete(&self, element: Asset) -> Result<PgQueryResult> {
-        let mut transaction = self.database.begin().await?;
         sqlx::query!(
-            r#"
-            LOCK TABLE spot.valuts IN ACCESS EXCLUSIVE MODE;
-            "#
-        )
-        .execute(&mut transaction)
-        .await?;
-        let result = sqlx::query!(
             r#"
             DELETE FROM 
                 spot.assets 
@@ -148,10 +120,8 @@ impl TableManager<Asset> for AssetsManager {
             "#,
             element.id,
         )
-        .execute(&mut transaction)
-        .await?;
-        transaction.commit().await?;
-        Ok(result)
+        .execute(&self.database)
+        .await
     }
 }
 
@@ -172,7 +142,7 @@ impl GetModified<Asset> for AssetsManager {
                 maker_fee as "maker_fee: Fraction",
                 taker_fee as "taker_fee: Fraction"
             FROM spot.assets
-            WHERE spot.assets.last_modification_at > $1
+            WHERE last_modification_at > $1
             "#,
             last_modification_at
         )

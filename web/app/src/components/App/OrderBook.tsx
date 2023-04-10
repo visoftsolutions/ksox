@@ -148,7 +148,10 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
           });
 
       trades_events.onmessage = (ev) => {
-        setOrderBook("price", convertTrade(Trade.parse(JSON.parse(ev.data))));
+        const trades = Trade.array().parse(JSON.parse(ev.data));
+        if (trades.length > 0) {
+          setOrderBook("price", convertTrade(trades[0]));
+        }
       };
     }
   });

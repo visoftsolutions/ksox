@@ -44,7 +44,7 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
             column_1: format(volume, formatTemplate(precision)),
             column_2: trade.created_at.toLocaleTimeString(),
           };
-        } else if (trade.quote_asset_id == base_asset.id && trade.base_asset_id == quote_asset.id) {
+        } else {
           const price = taker_base_volume / taker_quote_volume;
           const volume = taker_quote_volume;
           return {
@@ -75,9 +75,9 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
           .then((r) => r.map<TriElementComponent | undefined>((e) => convertTrade(e)).filter((e): e is TriElementComponent => !!e))
           .then((r) => setTradesState("trades", (prev) => [...prev, ...r].slice(0, props.capacity)));
       events.onmessage = (ev) => {
-        const r = convertTrade(Trade.parse(JSON.parse(ev.data)));
-        if (r) {
-          setTradesState("trades", (prev) => [r, ...prev].slice(0, props.capacity));
+        const trades = Trade.array().parse(JSON.parse(ev.data)).map(convertTrade);
+        if (trades) {
+          setTradesState("trades", (prev) => [...trades, ...prev].slice(0, props.capacity));
         }
       };
     }
