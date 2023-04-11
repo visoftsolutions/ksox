@@ -9,6 +9,3 @@ pub mod types;
 pub mod utils;
 
 pub use sqlx;
-
-#[cfg(test)]
-pub mod tests;

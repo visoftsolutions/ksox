@@ -542,7 +542,6 @@ impl OrdersNotificationManager {
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
                     if let NotificationManagerOutput::SpotOrdersChanged(order) = notification {
-                        tracing::error!("order: {:?}", order);
                         yield order;
                     }
                 }
