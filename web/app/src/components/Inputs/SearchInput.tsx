@@ -34,8 +34,8 @@ export default function SearchInput(props: SearchInputComponent) {
           class={"w-full bg-transparent p-1 text-left placeholder-gray-4 outline-none"}
           type="text"
           spellcheck={true}
-          ref={inputDOM ?? ""}
-          value={props.value}
+          ref={inputDOM}
+          value={props.value ?? ""}
           placeholder="Search"
           disabled={props.disabled}
           onInput={(ev) => (props.onInput ? props.onInput(ev) : {})}
