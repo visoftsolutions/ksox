@@ -76,32 +76,36 @@ export default function Assets() {
           <Dynamic component={CreateAssetInfo(session(), selectedAsset(), precision())} />
           <div class="row-start-2 row-end-3">
             <div
-              class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${tab() == Tab.Mint ? "bg-ksox-1 bg-opacity-40 text-white" : ""
-                } `}
+              class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
+                tab() == Tab.Mint ? "bg-ksox-1 bg-opacity-40 text-white" : ""
+              } `}
               onClick={() => setTab(Tab.Mint)}
             >
               <img src={joinPaths(base, "/gfx/assets_arrow_down.svg")} alt="arrow_down" class="col-start-1 col-end-2" />
               <div class="col-start-2 col-end-3">Mint</div>
             </div>
             <div
-              class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${tab() == Tab.Burn ? "bg-ksox-1 bg-opacity-40 text-white" : ""
-                }`}
+              class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
+                tab() == Tab.Burn ? "bg-ksox-1 bg-opacity-40 text-white" : ""
+              }`}
               onClick={() => setTab(Tab.Burn)}
             >
               <img src={joinPaths(base, "/gfx/assets_arrow_up.svg")} alt="arrow_up" class="col-start-1 col-end-2" />
               <div class="col-start-2 col-end-3">Burn</div>
             </div>
             <div
-              class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${tab() == Tab.History ? "bg-ksox-1 bg-opacity-40 text-white" : ""
-                }`}
+              class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
+                tab() == Tab.History ? "bg-ksox-1 bg-opacity-40 text-white" : ""
+              }`}
               onClick={() => setTab(Tab.History)}
             >
               <img src={joinPaths(base, "/gfx/assets_clock.svg")} alt="clock" class="col-start-1 col-end-2" />
               <div class="col-start-2 col-end-3">History</div>
             </div>
             <div
-              class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${tab() == Tab.OwnTransfer ? "bg-ksox-1 bg-opacity-40 text-white" : ""
-                }`}
+              class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
+                tab() == Tab.OwnTransfer ? "bg-ksox-1 bg-opacity-40 text-white" : ""
+              }`}
               onClick={() => setTab(Tab.OwnTransfer)}
             >
               <img src={joinPaths(base, "/gfx/assets_transfer.svg")} alt="transfer" class="col-start-1 col-end-2" />

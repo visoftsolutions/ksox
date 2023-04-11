@@ -11,7 +11,8 @@ import { formatTemplate } from "~/utils/precision";
 import { api } from "~/root";
 import { Asset } from "~/types/asset";
 import { Market } from "~/utils/providers/MarketProvider";
-import { fromWei } from "~/utils/converters/wei";
+import { fFromWei } from "~/utils/converters/wei";
+import { ev } from "~/types/primitives/fraction";
 
 export default function CreateTrades(market: Market, precision?: number, capacity?: number) {
   return () => (
@@ -34,8 +35,8 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
       const capacity = props.capacity;
 
       const convertTrade = (trade: Trade) => {
-        const taker_quote_volume = fromWei(trade.taker_quote_volume);
-        const taker_base_volume = fromWei(trade.taker_base_volume);
+        const taker_quote_volume = ev(fFromWei(trade.taker_quote_volume));
+        const taker_base_volume = ev(fFromWei(trade.taker_base_volume));
         if (trade.quote_asset_id == quote_asset.id && trade.base_asset_id == base_asset.id) {
           const price = taker_quote_volume / taker_base_volume;
           const volume = taker_base_volume;
@@ -92,8 +93,8 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
       <div class="row-start-1 row-end-2 p-3 font-sanspro text-orderbook-label font-semibold">Trades</div>
       <TriElementHeader
         class="row-start-2 row-end-3 px-3"
-        column_0={`Price (${props.quote_asset ? props.quote_asset.symbol : "---"})`}
-        column_1={`Quantity (${props.base_asset ? props.base_asset.symbol : "---"})`}
+        column_0={`Price (${props.quote_asset?.symbol ?? "---"})`}
+        column_1={`Quantity (${props.base_asset?.symbol ?? "---"})`}
         column_2={"Time"}
       />
       <div class="relative row-start-3 row-end-4">
@@ -101,7 +102,7 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
           <Index each={tradesState.trades}>
             {(element, i) => (
               <TriElement
-                class={`px-3 py-1 font-sanspro text-trades-item ${i % 2 ? "bg-gray-3" : ""}`}
+                class={`px-3 py-1 font-sanspro text-trades-item ${i % 2 && "bg-gray-3"}`}
                 column_0={element().column_0}
                 column_1={element().column_1}
                 column_2={element().column_2}

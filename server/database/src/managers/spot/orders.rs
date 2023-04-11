@@ -289,7 +289,7 @@ impl OrdersManager {
             WHERE quote_asset_id = $1
             AND base_asset_id = $2
             AND spot.orders.is_active = true
-            AND $3 * CEIL(base_asset_volume*quote_asset_volume_left/quote_asset_volume) <= quote_asset_volume_left * $4
+            AND $3 * base_asset_volume <= quote_asset_volume * $4
             ORDER BY (base_asset_volume / quote_asset_volume) ASC
             "#,
             quote_asset_id,

@@ -90,7 +90,7 @@ export default function Markets() {
             {(element, i) => (
               <A href={`/${element().asset0.id}/${element().asset1.id}`}>
                 <TriElement
-                  class={`cursor-pointer select-none px-3 py-2 ${i % 2 ? "bg-gray-3" : ""}`}
+                  class={`cursor-pointer select-none px-3 py-2 ${i % 2 && "bg-gray-3"}`}
                   column_0={`${element().asset0.symbol}/${element().asset1.symbol}`}
                   column_1={0}
                   column_2={0}
