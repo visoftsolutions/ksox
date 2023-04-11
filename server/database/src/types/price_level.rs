@@ -14,6 +14,14 @@ pub struct PriceLevelOption {
     pub price: Option<f64>,
     pub volume: Option<Volume>,
 }
+impl Default for PriceLevelOption {
+    fn default() -> Self {
+        Self {
+            price: None,
+            volume: None,
+        }
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct PriceLevel {

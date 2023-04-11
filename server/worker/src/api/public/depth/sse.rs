@@ -45,12 +45,22 @@ pub async fn root(
         loop {
             select! {
                 Some(e) = sells_stream_subscribe.next() => {
-                    tracing::info!("{:#?}", e);
-                    resp_ref.sells = e;
+                    resp_ref.sells = e.into_iter().filter_map(|price_level| {
+                        if price_level.price.is_some() || price_level.volume.is_some() {
+                            Some(PriceLevel { price: price_level.price.unwrap(), volume: price_level.volume.unwrap() })
+                        } else {
+                            None
+                        }
+                    }).collect();
                 },
                 Some(e) = buys_stream_subscribe.next() => {
-                    tracing::info!("{:#?}", e);
-                    resp_ref.buys = e;
+                    resp_ref.buys = e.into_iter().filter_map(|price_level| {
+                        if price_level.price.is_some() || price_level.volume.is_some() {
+                            Some(PriceLevel { price: price_level.price.unwrap(), volume: price_level.volume.unwrap() })
+                        } else {
+                            None
+                        }
+                    }).collect();
                 },
                 else => break,
             }

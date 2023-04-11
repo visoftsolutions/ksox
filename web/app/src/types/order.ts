@@ -7,6 +7,7 @@ import { Volume } from "./primitives/volume";
 export const Order = z.object({
   id: Uuid,
   created_at: Datetime,
+  last_modification_at: Datetime,
   user_id: Uuid,
   is_active: z.boolean(),
   quote_asset_id: Uuid,

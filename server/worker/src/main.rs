@@ -42,7 +42,7 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
 
     let database = PgPoolOptions::new()
-        .max_connections(100)
+        .max_connections(2)
         .connect(std::env::var("DATABASE_URL")?.as_str())
         .await?;
 

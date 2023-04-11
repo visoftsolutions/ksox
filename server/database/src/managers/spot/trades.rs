@@ -341,12 +341,13 @@ impl TableManager<Trade> for TradesManager {
             r#"
             INSERT INTO
                 spot.trades
-                (id, created_at, quote_asset_id, base_asset_id, taker_id, order_id, taker_quote_volume, maker_quote_volume, taker_base_volume, maker_base_volume)
+                (id, created_at, last_modification_at, quote_asset_id, base_asset_id, taker_id, order_id, taker_quote_volume, maker_quote_volume, taker_base_volume, maker_base_volume)
             VALUES
-                ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             "#,
             element.id,
             element.created_at,
+            chrono::Utc::now(),
             element.quote_asset_id,
             element.base_asset_id,
             element.taker_id,
@@ -371,19 +372,21 @@ impl TableManager<Trade> for TradesManager {
                 spot.trades 
             SET
                 created_at = $2,
-                quote_asset_id = $3,
-                base_asset_id = $4,
-                taker_id = $5,
-                order_id = $6,
-                taker_quote_volume = $7,
-                maker_quote_volume = $8,
-                taker_base_volume = $9,
-                maker_base_volume = $10
+                last_modification_at = $3,
+                quote_asset_id = $4,
+                base_asset_id = $5,
+                taker_id = $6,
+                order_id = $7,
+                taker_quote_volume = $8,
+                maker_quote_volume = $9,
+                taker_base_volume = $10,
+                maker_base_volume = $11
             WHERE
                 id = $1
             "#,
             element.id,
             element.created_at,
+            chrono::Utc::now(),
             element.quote_asset_id,
             element.base_asset_id,
             element.taker_id,
@@ -398,15 +401,7 @@ impl TableManager<Trade> for TradesManager {
     }
 
     async fn delete(&self, element: Trade) -> sqlx::Result<PgQueryResult> {
-        let mut transaction = self.database.begin().await?;
         sqlx::query!(
-            r#"
-            LOCK TABLE spot.trades IN ACCESS EXCLUSIVE MODE
-            "#
-        )
-        .execute(&mut transaction)
-        .await?;
-        let result = sqlx::query!(
             r#"
             DELETE FROM 
                 spot.trades 
@@ -415,10 +410,8 @@ impl TableManager<Trade> for TradesManager {
             "#,
             element.id,
         )
-        .execute(&mut transaction)
-        .await?;
-        transaction.commit().await?;
-        Ok(result)
+        .execute(&self.database)
+        .await
     }
 }
 

@@ -72,12 +72,13 @@ impl TableManager<Asset> for AssetsManager {
             r#"
             INSERT INTO 
                 spot.assets 
-                (id, created_at, name, symbol, maker_fee, taker_fee)
+                (id, created_at, last_modification_at, name, symbol, maker_fee, taker_fee)
             VALUES
-                ($1, $2, $3, $4, $5::fraction, $6::fraction)
+                ($1, $2, $3, $4, $5, $6::fraction, $7::fraction)
             "#,
             element.id,
             element.created_at,
+            chrono::Utc::now(),
             element.name,
             element.symbol,
             element.maker_fee.to_string() as _,
@@ -93,14 +94,16 @@ impl TableManager<Asset> for AssetsManager {
             UPDATE 
                 spot.assets 
             SET
-                name = $2,
-                symbol = $3,
-                maker_fee = $4,
-                taker_fee = $5
+                last_modification_at = $2,
+                name = $3,
+                symbol = $4,
+                maker_fee = $5,
+                taker_fee = $6
             WHERE
                 id = $1
             "#,
             element.id,
+            chrono::Utc::now(),
             element.name,
             element.symbol,
             element.maker_fee.to_string() as _,

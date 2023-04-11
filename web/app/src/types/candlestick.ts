@@ -11,6 +11,8 @@ export enum CandlestickType {
 
 export const Candlestick = z.object({
   id: Uuid,
+  created_at: Datetime,
+  last_modification_at: Datetime,
   quote_asset_id: Uuid,
   base_asset_id: Uuid,
   kind: z.nativeEnum(CandlestickType),

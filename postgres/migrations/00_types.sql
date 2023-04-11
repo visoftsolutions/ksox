@@ -1,5 +1,5 @@
 -- Set max connections
-ALTER SYSTEM SET max_connections = 500;
+ALTER SYSTEM SET max_connections = 50;
 
 -- Add migration script here
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

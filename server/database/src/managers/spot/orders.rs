@@ -15,14 +15,13 @@ use crate::{
     },
     projections::spot::order::Order,
     traits::{get_modified::GetModified, table_manager::TableManager},
-    types::{price_level::PriceLevelOption, Fraction, PriceLevel, SubscribeStream, Volume},
+    types::{price_level::PriceLevelOption, Fraction, SubscribeStream, Volume},
 };
 
 #[derive(Debug, Clone)]
 pub struct OrdersManager {
     database: PgPool,
 }
-
 impl OrdersManager {
     pub fn new(database: PgPool) -> Self {
         OrdersManager { database }
@@ -400,6 +399,7 @@ impl TableManager<Order> for OrdersManager {
                 (
                     id, 
                     created_at,
+                    last_modification_at,
                     user_id, 
                     is_active, 
                     quote_asset_id, 
@@ -410,10 +410,11 @@ impl TableManager<Order> for OrdersManager {
                     maker_fee
                 )
             VALUES
-                ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::fraction)
+                ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::fraction)
             "#,
             element.id,
             element.created_at,
+            chrono::Utc::now(),
             element.user_id,
             element.is_active,
             element.quote_asset_id,
@@ -437,19 +438,21 @@ impl TableManager<Order> for OrdersManager {
                 spot.orders 
             SET
                 created_at = $2,
-                user_id = $3,
-                is_active = $4,
-                quote_asset_id = $5,
-                base_asset_id = $6,
-                quote_asset_volume = $7,
-                base_asset_volume = $8,
-                quote_asset_volume_left = $9,
-                maker_fee = $10::fraction
+                last_modification_at = $3,
+                user_id = $4,
+                is_active = $5,
+                quote_asset_id = $6,
+                base_asset_id = $7,
+                quote_asset_volume = $8,
+                base_asset_volume = $9,
+                quote_asset_volume_left = $10,
+                maker_fee = $11::fraction
             WHERE
                 id = $1
             "#,
             element.id,
             element.created_at,
+            chrono::Utc::now(),
             element.user_id,
             element.is_active,
             element.quote_asset_id,
@@ -521,37 +524,6 @@ impl OrdersNotificationManager {
         }
     }
 
-    pub async fn subscribe_active_to_user_id(
-        &self,
-        user_id: Uuid,
-    ) -> Result<SubscribeStream<Vec<Order>>> {
-        let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
-            match input {
-                NotificationManagerPredicateInput::SpotOrdersChanged(order) => {
-                    order.user_id == user_id && order.is_active
-                }
-                _ => false,
-            }
-        });
-
-        if let Ok(mut rx) = self
-            .notification_manager_subscriber
-            .subscribe_to(Box::new(p))
-            .await
-        {
-            let stream = async_stream::stream! {
-                while let Some(notification) = rx.recv().await {
-                    if let NotificationManagerOutput::SpotOrdersChanged(order) = notification {
-                        yield order;
-                    }
-                }
-            };
-            Ok(Box::pin(stream))
-        } else {
-            Err(sqlx::Error::RowNotFound)
-        }
-    }
-
     pub async fn subscribe_to_user_id(&self, user_id: Uuid) -> Result<SubscribeStream<Vec<Order>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
@@ -570,6 +542,7 @@ impl OrdersNotificationManager {
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
                     if let NotificationManagerOutput::SpotOrdersChanged(order) = notification {
+                        tracing::error!("order: {:?}", order);
                         yield order;
                     }
                 }
@@ -586,11 +559,18 @@ impl OrdersNotificationManager {
         base_asset_id: Uuid,
         precission: i32,
         limit: i64,
-    ) -> Result<SubscribeStream<Vec<PriceLevel>>> {
+    ) -> Result<SubscribeStream<Vec<PriceLevelOption>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
                 NotificationManagerPredicateInput::SpotOrdersChanged(order) => {
-                    order.quote_asset_id == quote_asset_id && order.base_asset_id == base_asset_id
+                    (order.quote_asset_id == quote_asset_id && order.base_asset_id == base_asset_id)
+                        || (order.quote_asset_id == base_asset_id
+                            && order.base_asset_id == quote_asset_id)
+                }
+                NotificationManagerPredicateInput::SpotTradesChanged(trade) => {
+                    (trade.quote_asset_id == quote_asset_id && trade.base_asset_id == base_asset_id)
+                        || (trade.quote_asset_id == base_asset_id
+                            && trade.base_asset_id == quote_asset_id)
                 }
                 _ => false,
             }
@@ -607,22 +587,14 @@ impl OrdersNotificationManager {
                     if let NotificationManagerOutput::SpotOrdersChanged(_) = notification {
                         let price_levels = orders_manager
                             .get_orderbook(quote_asset_id, base_asset_id, precission, limit)
-                            .filter_map(|x| async move {
-                                if let Ok(x) = x {
-                                    if x.price.is_some() && x.volume.is_some() {
-                                        Some(PriceLevel {
-                                            price: x.price.unwrap(),
-                                            volume: x.volume.unwrap(),
-                                        })
-                                    } else {
-                                        None
-                                    }
+                            .map(|x| {
+                                if let Ok(price_level) = x {
+                                    price_level
                                 } else {
-                                    None
+                                    PriceLevelOption::default()
                                 }
                             });
-
-                        yield price_levels.collect::<Vec<PriceLevel>>().await;
+                        yield price_levels.collect::<Vec<PriceLevelOption>>().await;
                     }
                 }
             };
@@ -638,11 +610,18 @@ impl OrdersNotificationManager {
         base_asset_id: Uuid,
         precission: i32,
         limit: i64,
-    ) -> Result<SubscribeStream<Vec<PriceLevel>>> {
+    ) -> Result<SubscribeStream<Vec<PriceLevelOption>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
                 NotificationManagerPredicateInput::SpotOrdersChanged(order) => {
-                    order.quote_asset_id == quote_asset_id && order.base_asset_id == base_asset_id
+                    (order.quote_asset_id == quote_asset_id && order.base_asset_id == base_asset_id)
+                        || (order.quote_asset_id == base_asset_id
+                            && order.base_asset_id == quote_asset_id)
+                }
+                NotificationManagerPredicateInput::SpotTradesChanged(trade) => {
+                    (trade.quote_asset_id == quote_asset_id && trade.base_asset_id == base_asset_id)
+                        || (trade.quote_asset_id == base_asset_id
+                            && trade.base_asset_id == quote_asset_id)
                 }
                 _ => false,
             }
@@ -659,22 +638,14 @@ impl OrdersNotificationManager {
                     if let NotificationManagerOutput::SpotOrdersChanged(_) = notification {
                         let price_levels = orders_manager
                             .get_orderbook_opposite(quote_asset_id, base_asset_id, precission, limit)
-                            .filter_map(|x| async move {
-                                if let Ok(x) = x {
-                                    if x.price.is_some() && x.volume.is_some() {
-                                        Some(PriceLevel {
-                                            price: x.price.unwrap(),
-                                            volume: x.volume.unwrap(),
-                                        })
-                                    } else {
-                                        None
-                                    }
+                            .map(|x| {
+                                if let Ok(price_level) = x {
+                                    price_level
                                 } else {
-                                    None
+                                    PriceLevelOption::default()
                                 }
                             });
-
-                        yield price_levels.collect::<Vec<PriceLevel>>().await;
+                        yield price_levels.collect::<Vec<PriceLevelOption>>().await;
                     }
                 }
             };

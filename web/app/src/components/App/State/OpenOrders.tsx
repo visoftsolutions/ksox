@@ -107,15 +107,18 @@ export function OpenOrders(props: { market?: Market; session?: ValidateSignature
           .then((r) => r.map<OpenOrder | undefined>((e) => convertOpenOrder(e)).filter((e): e is OpenOrder => !!e))
           .then((r) => batch(() => r.forEach((e) => setOpenOrders({ [e.id]: e }))));
       events.onmessage = (ev) => {
-        const r = Order.parse(JSON.parse(ev.data));
-        if (!r.is_active) {
-          setOpenOrders({ [r.id]: undefined });
-        } else {
-          const e = convertOpenOrder(r);
-          if (e) {
-            setOpenOrders({ [e.id]: e });
-          }
-        }
+        Order.array()
+          .parse(JSON.parse(ev.data))
+          .forEach((e) => {
+            if (!e.is_active) {
+              setOpenOrders({ [e.id]: undefined });
+            } else {
+              const r = convertOpenOrder(e);
+              if (r) {
+                setOpenOrders({ [r.id]: r });
+              }
+            }
+          });
       };
     }
   });

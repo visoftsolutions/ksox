@@ -86,10 +86,11 @@ impl ValutsManager {
         sqlx::query_as!(
             Valut,
             r#"
-            INSERT INTO spot.valuts (user_id, asset_id)
-            VALUES ($1, $2)
+            INSERT INTO spot.valuts (last_modification_at, user_id, asset_id)
+            VALUES ($1, $2, $3)
             ON CONFLICT (user_id, asset_id) DO NOTHING;
             "#,
+            chrono::Utc::now(),
             user_id,
             asset_id
         )
@@ -143,11 +144,12 @@ impl TableManager<Valut> for ValutsManager {
             r#"
             INSERT INTO
                 spot.valuts
-                (id, user_id, asset_id, balance)
+                (id, last_modification_at, user_id, asset_id, balance)
             VALUES
-                ($1, $2, $3, $4)
+                ($1, $2, $3, $4, $5)
             "#,
             element.id,
+            chrono::Utc::now(),
             element.user_id,
             element.asset_id,
             balance
@@ -163,13 +165,15 @@ impl TableManager<Valut> for ValutsManager {
             UPDATE 
                 spot.valuts 
             SET
-                user_id = $2,
-                asset_id = $3,
-                balance = $4
+                last_modification_at = $2,
+                user_id = $3,
+                asset_id = $4,
+                balance = $5
             WHERE
                 id = $1
             "#,
             element.id,
+            chrono::Utc::now(),
             element.user_id,
             element.asset_id,
             balance

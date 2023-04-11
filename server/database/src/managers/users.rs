@@ -3,7 +3,11 @@ use std::pin::Pin;
 use futures::Stream;
 use sqlx::{postgres::PgPool, types::Uuid, Result};
 
-use crate::{projections::user::User, traits::{table_manager::TableManager, get_modified::GetModified}, types::EvmAddress};
+use crate::{
+    projections::user::User,
+    traits::{get_modified::GetModified, table_manager::TableManager},
+    types::EvmAddress,
+};
 
 #[derive(Debug, Clone)]
 pub struct UsersManager {
@@ -40,10 +44,11 @@ impl UsersManager {
             User,
             r#"
             INSERT INTO 
-                users 
-                (address) VALUES ($1)
+                users
+                (last_modification_at, address) VALUES ($1, $2)
                 RETURNING id, created_at, last_modification_at, address as "address: EvmAddress"
             "#,
+            chrono::Utc::now(),
             evm_address_string.as_str()
         )
         .fetch_one(&self.database)
@@ -91,12 +96,13 @@ impl TableManager<User> for UsersManager {
             r#"
             INSERT INTO
                 users
-                (id, created_at, address)
+                (id, created_at, last_modification_at, address)
             VALUES
-                ($1, $2, $3)
+                ($1, $2, $3, $4)
             "#,
             element.id,
             element.created_at,
+            chrono::Utc::now(),
             address_string
         )
         .execute(&self.database)
@@ -111,12 +117,14 @@ impl TableManager<User> for UsersManager {
                 users
             SET
                 created_at = $2,
-                address = $3
+                last_modification_at = $3,
+                address = $4
             WHERE
                 id = $1
             "#,
             element.id,
             element.created_at,
+            chrono::Utc::now(),
             address_string
         )
         .execute(&self.database)
@@ -139,7 +147,10 @@ impl TableManager<User> for UsersManager {
 }
 
 impl GetModified<User> for UsersManager {
-    async fn get_modified(&self, last_modification_at: chrono::DateTime<chrono::Utc>) -> Result<Vec<User>> {
+    async fn get_modified(
+        &self,
+        last_modification_at: chrono::DateTime<chrono::Utc>,
+    ) -> Result<Vec<User>> {
         sqlx::query_as!(
             User,
             r#"

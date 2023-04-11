@@ -111,7 +111,7 @@ impl NotificationManager {
                         }
                     },
                     Some(element) = stream.next() => {
-                        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+                        tracing::error!("{:?}", element);
                         match element {
                             Ok(value) => {
                                 match serde_json::from_str::<NotificationManagerEvent>(&value.payload()) {
@@ -184,7 +184,6 @@ impl NotificationManager {
                                                 tracing::error!("Error: {}", err);
                                             }
                                         }
-
                                     },
                                     Ok(NotificationManagerEvent::SpotOrdersChanged) => {
                                         match orders_manager.get_modified(orders_last_modification_at).await {

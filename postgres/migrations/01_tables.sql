@@ -88,7 +88,6 @@ ALTER TABLE "spot"."candlesticks" ADD FOREIGN KEY ("base_asset_id") REFERENCES "
 CREATE OR REPLACE FUNCTION update_last_modification_at()
 RETURNS TRIGGER AS $$
 BEGIN
-   NEW.last_modification_at = now();
    PERFORM pg_notify('notifications', TG_ARGV[0]::text);
    RETURN NEW;
 END;

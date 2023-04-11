@@ -142,9 +142,9 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
           })}`
         )
           .then((r) => r.json())
-          .then((r) => z.array(Trade).parse(r)[0])
+          .then((r) => z.array(Trade).parse(r))
           .then((r) => {
-            if (r) setOrderBook("price", convertTrade(r));
+            if (r && r.length > 0) setOrderBook("price", convertTrade(r[0]));
           });
 
       trades_events.onmessage = (ev) => {

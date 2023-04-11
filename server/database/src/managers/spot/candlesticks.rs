@@ -10,9 +10,10 @@ use sqlx::{
 };
 
 use crate::{
+    managers::notifications::NotificationManagerSubscriber,
     projections::spot::candlestick::Candlestick,
-    traits::{table_manager::TableManager, get_modified::GetModified},
-    types::{CandlestickType, Fraction, Volume}, managers::notifications::NotificationManagerSubscriber,
+    traits::{get_modified::GetModified, table_manager::TableManager},
+    types::{CandlestickType, Fraction, Volume},
 };
 
 #[derive(Debug, Clone)]
@@ -136,6 +137,7 @@ impl TableManager<Candlestick> for CandlesticksManager {
                 spot.candlesticks 
                 (
                     id,
+                    last_modification_at,
                     quote_asset_id,
                     base_asset_id,
                     kind,
@@ -156,21 +158,23 @@ impl TableManager<Candlestick> for CandlesticksManager {
                     $1,
                     $2,
                     $3,
-                    $4::candlestick_type,
-                    $5,
+                    $4,
+                    $5::candlestick_type,
                     $6,
-                    $7::fraction,
+                    $7,
                     $8::fraction,
                     $9::fraction,
                     $10::fraction,
-                    $11,
+                    $11::fraction,
                     $12,
                     $13,
                     $14,
-                    $15
+                    $15,
+                    $16
                 )
             "#,
             element.id,
+            chrono::Utc::now(),
             element.quote_asset_id,
             element.base_asset_id,
             element.kind as _,
@@ -200,24 +204,26 @@ impl TableManager<Candlestick> for CandlesticksManager {
             UPDATE 
                 spot.candlesticks 
             SET
-                quote_asset_id = $2,
-                base_asset_id = $3,
-                kind = $4,
-                topen = $5,
-                tclose = $6,
-                open = $7,
-                high = $8,
-                low = $9,
-                close = $10,
-                span = $11,
-                taker_quote_volume = $12,
-                taker_base_volume = $13,
-                maker_quote_volume = $14,
-                maker_base_volume = $15
+                last_modification_at = $2,
+                quote_asset_id = $3,
+                base_asset_id = $4,
+                kind = $5,
+                topen = $6,
+                tclose = $7,
+                open = $8,
+                high = $9,
+                low = $10,
+                close = $11,
+                span = $12,
+                taker_quote_volume = $13,
+                taker_base_volume = $14,
+                maker_quote_volume = $15,
+                maker_base_volume = $16
             WHERE
                 id = $1
             "#,
             element.id,
+            chrono::Utc::now(),
             element.quote_asset_id,
             element.base_asset_id,
             element.kind as _,
@@ -287,12 +293,12 @@ impl GetModified<Candlestick> for CandlesticksManager {
 
 #[derive(Debug, Clone)]
 pub struct CandlesticksNotificationManager {
-    notification_manager_subscriber: NotificationManagerSubscriber
+    notification_manager_subscriber: NotificationManagerSubscriber,
 }
 impl CandlesticksNotificationManager {
     pub fn new(notification_manager_subscriber: NotificationManagerSubscriber) -> Self {
         Self {
-            notification_manager_subscriber
+            notification_manager_subscriber,
         }
     }
 }
