@@ -90,8 +90,6 @@ export default function BuyForm(props: { market?: Market; available_balance?: bi
       <SubmitRectangularButton
         class="my-[12px] bg-green"
         onClick={async () => {
-          console.log("BUY", storeComponent.base_asset_volume, storeComponent.quote_asset_volume)
-          console.log("BUY", fToWeiCeil(storeComponent.base_asset_volume), fToWeiFloor(storeComponent.quote_asset_volume))
           const response = await fetch(`${api}/private/submit`, {
             method: "POST",
             headers: {
