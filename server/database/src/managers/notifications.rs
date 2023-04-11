@@ -111,7 +111,6 @@ impl NotificationManager {
                         }
                     },
                     Some(element) = stream.next() => {
-                        tracing::error!("{:?}", element);
                         match element {
                             Ok(value) => {
                                 match serde_json::from_str::<NotificationManagerEvent>(&value.payload()) {
