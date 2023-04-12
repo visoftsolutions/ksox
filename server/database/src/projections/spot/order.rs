@@ -46,7 +46,6 @@ impl Order {
             .get_or_create_for_user_asset(self.user_id, self.quote_asset_id)
             .await?;
         valut.balance += self.quote_asset_volume_left.to_owned();
-        self.quote_asset_volume_left = Volume::from(0);
         self.is_active = false;
         valuts_manager.update(valut).await?;
         Ok(())

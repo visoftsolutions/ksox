@@ -49,7 +49,7 @@ export default function CreateOpenOrders(market?: Market, session?: ValidateSign
 
 export function OpenOrders(props: { market?: Market; session?: ValidateSignatureResponse; precision?: number; capacity?: number }) {
   const assets = useAssets();
-  const [openOrders, setOpenOrders] = createStore<{ [key: string]: OpenOrder }>({});
+  const [openOrders, setOpenOrders] = createStore<{ [key: Uuid]: OpenOrder }>({});
 
   let events: EventSource | null = null;
 
@@ -130,7 +130,7 @@ export function OpenOrders(props: { market?: Market; session?: ValidateSignature
 
   return (
     <div class="row-start-3 row-end-4 overflow-auto">
-      <Index each={Object.values(openOrders)}>
+      <Index each={Object.values(openOrders).sort((b,a) => a.order_time.getTime() - b.order_time.getTime())}>
         {(element, i) => (
           <div class={`grid grid-cols-8 items-center self-center px-[12px] py-[8px] text-state-item font-normal text-white ${i % 2 && "bg-gray-3"} `}>
             <div class="col-start-1 col-end-2 text-left">{element().order_time.toUTCString()}</div>
