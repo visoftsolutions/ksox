@@ -4,7 +4,9 @@ FROM rust:slim-bullseye AS chef
 RUN rustup toolchain install nightly
 RUN rustup default nightly
 RUN apt-get update
+RUN apt-get install -y libssl-dev pkg-config
 RUN apt-get install -y protobuf-compiler
+RUN apt-get autoremove
 RUN cargo install cargo-chef  
 WORKDIR /app
 

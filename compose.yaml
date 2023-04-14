@@ -8,6 +8,8 @@ services:
       - POSTGRES_USER=ksoxuser
       - POSTGRES_PASSWORD=ksoxuserp4ssword
       - POSTGRES_DB=ksox
+    networks:
+      - ksox-network
     ports:
       - 5432:5432
 
@@ -16,6 +18,8 @@ services:
     hostname: ksox-redis
     build:
       context: redis
+    networks:
+      - ksox-network
     ports:
       - 6379:6379
       - 8001:8001
@@ -29,52 +33,57 @@ services:
     environment:
       - DATABASE_URL=postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox
       - REDIS_URL=redis://ksox-redis/
+    networks:
+      - ksox-network
     depends_on:
       - postgres
       - redis
 
-  worker:
-    container_name: ksox-worker
-    hostname: ksox-worker
-    build:
-      context: server
-      dockerfile: ./worker.dockerfile
-    environment:
-      - DATABASE_URL=postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox
-      - ENGINE_URL=http://ksox-engine/
-      - REDIS_URL=redis://ksox-redis/
-    depends_on:
-      - postgres
-      - redis
-      - engine
-    ports:
-      - 7979:80
+  # worker:
+  #   container_name: ksox-worker
+  #   hostname: ksox-worker
+  #   build:
+  #     context: server
+  #     dockerfile: ./worker.dockerfile
+  #   environment:
+  #     - DATABASE_URL=postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox
+  #     - ENGINE_URL=http://ksox-engine/
+  #     - REDIS_URL=redis://ksox-redis/
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #     - engine
+  #   ports:
+  #     - 7979:80
 
-  ksox-app:
-    container_name: ksox-app
-    hostname: ksox-app
-    build:
-      context: web/app
-    depends_on:
-      - worker
+  # ksox-app:
+  #   container_name: ksox-app
+  #   hostname: ksox-app
+  #   build:
+  #     context: web/app
+  #   depends_on:
+  #     - worker
 
-  ksox-landing:
-    container_name: ksox-landing
-    hostname: ksox-landing
-    build:
-      context: web/landing
-    depends_on:
-      - worker
+  # ksox-landing:
+  #   container_name: ksox-landing
+  #   hostname: ksox-landing
+  #   build:
+  #     context: web/landing
+  #   depends_on:
+  #     - worker
 
-  proxy:
-    container_name: ksox-proxy
-    hostname: ksox-proxy
-    build:
-      context: proxy
-    depends_on:
-      - worker
-      - ksox-app
-      - ksox-landing
-    ports:
-      - 0.0.0.0:80:80
-      - 0.0.0.0:443:443
+  # proxy:
+  #   container_name: ksox-proxy
+  #   hostname: ksox-proxy
+  #   build:
+  #     context: proxy
+  #   depends_on:
+  #     - worker
+  #     - ksox-app
+  #     - ksox-landing
+  #   ports:
+  #     - 0.0.0.0:80:80
+  #     - 0.0.0.0:443:443
+
+networks:
+  ksox-network:
