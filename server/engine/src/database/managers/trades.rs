@@ -1,18 +1,15 @@
-use sqlx::{postgres::PgQueryResult, PgPool};
+use sqlx::{postgres::PgQueryResult, Postgres, Transaction};
 
 use crate::database::Trade;
 
-#[derive(Debug, Clone)]
-pub struct TradesManager {
-    database: PgPool,
-}
+#[derive(Debug)]
+pub struct TradesManager {}
 
 impl TradesManager {
-    pub fn new(database: PgPool) -> Self {
-        TradesManager { database }
-    }
-
-    pub async fn insert(&self, element: Trade) -> sqlx::Result<PgQueryResult> {
+    pub async fn insert<'t, 'p>(
+        pool: &'t mut Transaction<'p, Postgres>,
+        element: Trade,
+    ) -> sqlx::Result<PgQueryResult> {
         sqlx::query!(
             r#"
             INSERT INTO spot.trades
@@ -27,7 +24,7 @@ impl TradesManager {
             element.taker_base_volume.to_string() as _,
             element.maker_base_volume.to_string() as _
         )
-        .execute(&self.database)
+        .execute(pool)
         .await
     }
 }

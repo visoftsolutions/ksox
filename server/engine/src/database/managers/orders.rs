@@ -1,7 +1,7 @@
 use std::pin::Pin;
 
 use futures::Stream;
-use sqlx::{postgres::PgQueryResult, PgPool};
+use sqlx::{postgres::PgQueryResult, Postgres, Transaction};
 use uuid::Uuid;
 
 use crate::{
@@ -9,17 +9,14 @@ use crate::{
     types::Fraction,
 };
 
-#[derive(Debug, Clone)]
-pub struct OrdersManager<'p> {
-    pool: &'p PgPool,
-}
+#[derive(Debug)]
+pub struct OrdersManager {}
 
-impl<'p> OrdersManager<'p> {
-    pub fn new(pool: &'p PgPool) -> Self {
-        Self { pool }
-    }
-
-    pub async fn get_by_id(&self, id: Uuid) -> sqlx::Result<Option<Order>> {
+impl OrdersManager {
+    pub async fn get_by_id<'t, 'p>(
+        pool: &'t mut Transaction<'p, Postgres>,
+        id: Uuid,
+    ) -> sqlx::Result<Option<Order>> {
         sqlx::query_as!(
             Order,
             r#"
@@ -35,16 +32,16 @@ impl<'p> OrdersManager<'p> {
             "#,
             id
         )
-        .fetch_optional(self.pool)
+        .fetch_optional(pool)
         .await
     }
 
-    pub fn get_orders_with_smaller_price(
-        &self,
+    pub fn get_orders_with_smaller_price<'t, 'p>(
+        pool: &'t mut Transaction<'p, Postgres>,
         quote_asset_id: Uuid,
         base_asset_id: Uuid,
         price: Fraction,
-    ) -> Pin<Box<dyn Stream<Item = sqlx::Result<OrderGet>> + Send + '_>> {
+    ) -> Pin<Box<dyn Stream<Item = sqlx::Result<OrderGet>> + Send + 't>> {
         sqlx::query_as!(
             OrderGet,
             r#"
@@ -65,10 +62,13 @@ impl<'p> OrdersManager<'p> {
             base_asset_id,
             price as _
         )
-        .fetch(self.pool)
+        .fetch(pool)
     }
 
-    pub async fn insert(&self, element: OrderInsert) -> sqlx::Result<PgQueryResult> {
+    pub async fn insert<'t, 'p>(
+        pool: &'t mut Transaction<'p, Postgres>,
+        element: OrderInsert,
+    ) -> sqlx::Result<PgQueryResult> {
         sqlx::query!(
             r#"
             INSERT INTO spot.orders
@@ -84,11 +84,14 @@ impl<'p> OrdersManager<'p> {
             element.quote_asset_volume_left.to_string() as _,
             element.maker_fee.to_string() as _
         )
-        .execute(self.pool)
+        .execute(pool)
         .await
     }
 
-    pub async fn update(&self, order: OrderUpdate) -> sqlx::Result<PgQueryResult> {
+    pub async fn update<'t, 'p>(
+        pool: &'t mut Transaction<'p, Postgres>,
+        order: OrderUpdate,
+    ) -> sqlx::Result<PgQueryResult> {
         sqlx::query!(
             r#"
             UPDATE 
@@ -103,11 +106,14 @@ impl<'p> OrdersManager<'p> {
             order.is_active,
             order.quote_asset_volume_left.to_string() as _
         )
-        .execute(self.pool)
+        .execute(pool)
         .await
     }
 
-    pub async fn update_status(&self, order: OrderStatus) -> sqlx::Result<PgQueryResult> {
+    pub async fn update_status<'t, 'p>(
+        pool: &'t mut Transaction<'p, Postgres>,
+        order: OrderStatus,
+    ) -> sqlx::Result<PgQueryResult> {
         sqlx::query!(
             r#"
             UPDATE 
@@ -120,7 +126,7 @@ impl<'p> OrdersManager<'p> {
             order.id,
             order.is_active,
         )
-        .execute(self.pool)
+        .execute(pool)
         .await
     }
 }

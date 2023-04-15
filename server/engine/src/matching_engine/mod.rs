@@ -2,7 +2,7 @@ use std::pin::Pin;
 
 use base::engine_server::Engine;
 use num_traits::{Inv, Zero};
-use sqlx::{Pool, Postgres};
+use sqlx::{PgPool, Postgres, Transaction};
 use tokio_stream::{Stream, StreamExt};
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
@@ -22,21 +22,12 @@ use crate::{
 pub mod models;
 pub struct MatchingEngine {
     accuracy: Fraction,
-    orders_manager: OrdersManager,
-    assets_manager: AssetsManager,
-    trades_manager: TradesManager,
-    valuts_manager: ValutsManager,
+    database: PgPool,
 }
 
 impl MatchingEngine {
-    pub fn new(database: Pool<Postgres>, accuracy: Fraction) -> Self {
-        Self {
-            accuracy,
-            orders_manager: OrdersManager::new(database.clone()),
-            assets_manager: AssetsManager::new(database.clone()),
-            trades_manager: TradesManager::new(database.clone()),
-            valuts_manager: ValutsManager::new(database),
-        }
+    pub fn new(database: PgPool, accuracy: Fraction) -> Self {
+        Self { accuracy, database }
     }
 }
 
@@ -46,10 +37,27 @@ impl Engine for MatchingEngine {
         &self,
         request: Request<base::SubmitRequest>,
     ) -> Result<Response<base::SubmitResponse>, Status> {
+        let mut t = self
+            .database
+            .begin()
+            .await
+            .map_err(|e| Status::aborted(e.to_string()))?;
         Ok(Response::new(
-            self.submit(request.into_inner().try_into()?)
-                .await
-                .try_into()?,
+            match self.submit(request.into_inner().try_into()?, &mut t).await {
+                Ok(r) => {
+                    t.commit()
+                        .await
+                        .map_err(|e| Status::aborted(e.to_string()))?;
+                    Ok(r)
+                }
+                Err(e) => {
+                    t.rollback()
+                        .await
+                        .map_err(|e| Status::aborted(e.to_string()))?;
+                    Err(e)
+                }
+            }
+            .try_into()?,
         ))
     }
 
@@ -57,40 +65,54 @@ impl Engine for MatchingEngine {
         &self,
         request: Request<base::CancelRequest>,
     ) -> Result<Response<base::CancelResponse>, Status> {
+        let mut t = self
+            .database
+            .begin()
+            .await
+            .map_err(|e| Status::aborted(e.to_string()))?;
         Ok(Response::new(
-            self.cancel(request.into_inner().try_into()?)
-                .await
-                .try_into()?,
+            match self.cancel(request.into_inner().try_into()?, &mut t).await {
+                Ok(r) => {
+                    t.commit()
+                        .await
+                        .map_err(|e| Status::aborted(e.to_string()))?;
+                    Ok(r)
+                }
+                Err(e) => {
+                    t.rollback()
+                        .await
+                        .map_err(|e| Status::aborted(e.to_string()))?;
+                    Err(e)
+                }
+            }
+            .try_into()?,
         ))
     }
 }
 
 impl MatchingEngine {
-    pub async fn submit(
+    pub async fn submit<'t, 'p>(
         &self,
         request: SubmitRequest,
+        transaction: &'t mut Transaction<'p, Postgres>,
     ) -> Result<SubmitResponse, SubmitRequestError> {
-        let quote_asset = self
-            .assets_manager
-            .get_by_id(request.quote_asset_id)
+        let quote_asset = AssetsManager::get_by_id(transaction, request.quote_asset_id)
             .await?
             .ok_or(SubmitRequestError::AssetNotFound)?;
-        let base_asset = self
-            .assets_manager
-            .get_by_id(request.base_asset_id)
+        let base_asset = AssetsManager::get_by_id(transaction, request.base_asset_id)
             .await?
             .ok_or(SubmitRequestError::AssetNotFound)?;
 
-        let mut taker_quote_asset_valut = self
-            .valuts_manager
-            .get_or_create(request.user_id, request.quote_asset_id)
-            .await?;
+        let mut taker_quote_asset_valut =
+            ValutsManager::get_or_create(transaction, request.user_id, request.quote_asset_id)
+                .await?;
 
         if taker_quote_asset_valut.balance < request.quote_asset_volume {
             return Err(SubmitRequestError::InsufficientBalance);
         }
 
-        let matching_orders = self.orders_manager.get_orders_with_smaller_price(
+        let matching_orders = OrdersManager::get_orders_with_smaller_price(
+            transaction,
             // base switches with quote to give opposite orderbook
             request.base_asset_id,
             request.quote_asset_id,
@@ -112,29 +134,31 @@ impl MatchingEngine {
         // saving to db
 
         taker_quote_asset_valut.balance -= request.quote_asset_volume;
-        self.valuts_manager.update(taker_quote_asset_valut).await?;
+        ValutsManager::update(transaction, taker_quote_asset_valut).await?;
 
         // apply order
         if let Some(order) = matching.order {
-            self.orders_manager.insert(order).await?;
+            OrdersManager::insert(transaction, order).await?;
         }
 
         // apply trades
         for trade in matching.trades.into_iter() {
-            let mut maker_order = self
-                .orders_manager
-                .get_by_id(trade.order_id)
+            let mut maker_order = OrdersManager::get_by_id(transaction, trade.order_id)
                 .await?
                 .ok_or(SubmitRequestError::OrderNotFound)?;
 
-            let mut taker_base_asset_valut = self
-                .valuts_manager
-                .get_or_create(trade.taker_id, maker_order.quote_asset_id)
-                .await?;
-            let mut maker_base_asset_valut = self
-                .valuts_manager
-                .get_or_create(maker_order.user_id, maker_order.base_asset_id)
-                .await?;
+            let mut taker_base_asset_valut = ValutsManager::get_or_create(
+                transaction,
+                trade.taker_id,
+                maker_order.quote_asset_id,
+            )
+            .await?;
+            let mut maker_base_asset_valut = ValutsManager::get_or_create(
+                transaction,
+                maker_order.user_id,
+                maker_order.base_asset_id,
+            )
+            .await?;
 
             // apply changes
             taker_base_asset_valut.balance += trade.taker_base_volume.to_owned();
@@ -146,22 +170,21 @@ impl MatchingEngine {
             }
 
             // save changes
-            self.orders_manager.update(maker_order.into()).await?;
-            self.valuts_manager.update(taker_base_asset_valut).await?;
-            self.valuts_manager.update(maker_base_asset_valut).await?;
-            self.trades_manager.insert(trade).await?;
+            OrdersManager::update(transaction, maker_order.into()).await?;
+            ValutsManager::update(transaction, taker_base_asset_valut).await?;
+            ValutsManager::update(transaction, maker_base_asset_valut).await?;
+            TradesManager::insert(transaction, trade).await?;
         }
 
         Ok(SubmitResponse {})
     }
 
-    pub async fn cancel(
+    pub async fn cancel<'t, 'p>(
         &self,
         request: CancelRequest,
+        transaction: &'t mut Transaction<'p, Postgres>,
     ) -> Result<CancelResponse, CancelRequestError> {
-        let mut order = self
-            .orders_manager
-            .get_by_id(request.order_id)
+        let mut order = OrdersManager::get_by_id(transaction, request.order_id)
             .await?
             .ok_or(CancelRequestError::OrderNotFound)?;
 
@@ -169,16 +192,14 @@ impl MatchingEngine {
             return Err(CancelRequestError::OrderNotActive);
         }
 
-        let mut valut = self
-            .valuts_manager
-            .get_or_create(order.user_id, order.quote_asset_id)
-            .await?;
+        let mut valut =
+            ValutsManager::get_or_create(transaction, order.user_id, order.quote_asset_id).await?;
 
         valut.balance += order.quote_asset_volume_left.to_owned();
         order.is_active = false;
 
-        self.valuts_manager.update(valut).await?;
-        self.orders_manager.update_status(order.into()).await?;
+        ValutsManager::update(transaction, valut).await?;
+        OrdersManager::update_status(transaction, order.into()).await?;
 
         Ok(CancelResponse {})
     }

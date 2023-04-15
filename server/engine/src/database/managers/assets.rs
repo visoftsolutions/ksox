@@ -1,19 +1,16 @@
-use sqlx::PgPool;
+use sqlx::{Postgres, Transaction};
 use uuid::Uuid;
 
 use crate::{database::Asset, types::Fraction};
 
-#[derive(Debug, Clone)]
-pub struct AssetsManager {
-    database: PgPool,
-}
+#[derive(Debug)]
+pub struct AssetsManager {}
 
 impl AssetsManager {
-    pub fn new(database: PgPool) -> Self {
-        Self { database }
-    }
-
-    pub async fn get_by_id(&self, id: Uuid) -> sqlx::Result<Option<Asset>> {
+    pub async fn get_by_id<'t, 'p>(
+        pool: &'t mut Transaction<'p, Postgres>,
+        id: Uuid,
+    ) -> sqlx::Result<Option<Asset>> {
         sqlx::query_as!(
             Asset,
             r#"
@@ -26,7 +23,7 @@ impl AssetsManager {
             "#,
             id
         )
-        .fetch_optional(&self.database)
+        .fetch_optional(pool)
         .await
     }
 }
