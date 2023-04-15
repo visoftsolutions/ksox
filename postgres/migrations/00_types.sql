@@ -5,8 +5,8 @@ ALTER SYSTEM SET max_connections = 50;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TYPE fraction AS (
-    numerator NUMERIC(78),
-    denominator NUMERIC(78)
+    numer NUMERIC(78),
+    denom NUMERIC(78)
 );
 
 CREATE TYPE candlestick_type AS ENUM (
@@ -17,10 +17,30 @@ CREATE TYPE candlestick_type AS ENUM (
 CREATE OR REPLACE FUNCTION to_json(fraction)
 RETURNS json AS $$
   SELECT json_build_object(
-    'numerator', $1.numerator::text,
-    'denominator', $1.denominator::text
+    'numer', $1.numer::text,
+    'denom', $1.denom::text
   );
 $$ LANGUAGE sql IMMUTABLE;
+
+CREATE FUNCTION fraction_le(fraction, fraction) RETURNS boolean AS $$
+  SELECT ($1.numer * $2.denom) <= ($2.numer * $1.denom);
+$$ LANGUAGE SQL;
+
+CREATE FUNCTION fraction_ge(fraction, fraction) RETURNS boolean AS $$
+  SELECT ($1.numer * $2.denom) >= ($2.numer * $1.denom);
+$$ LANGUAGE SQL;
+
+CREATE OPERATOR <= (
+  PROCEDURE = fraction_le,
+  LEFTARG = fraction,
+  RIGHTARG = fraction
+);
+
+CREATE OPERATOR >= (
+  PROCEDURE = fraction_ge,
+  LEFTARG = fraction,
+  RIGHTARG = fraction
+);
 
 -- Define a JSON cast for the numeric type
 CREATE OR REPLACE FUNCTION to_json(numeric)

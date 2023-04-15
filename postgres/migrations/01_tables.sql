@@ -11,7 +11,7 @@ CREATE TABLE "spot"."valuts" (
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "user_id" uuid NOT NULL,
   "asset_id" uuid NOT NULL,
-  "balance" NUMERIC(78) NOT NULL CHECK ("balance" >= 0) DEFAULT 0,
+  "balance" fraction NOT NULL,
   UNIQUE ("user_id", "asset_id")
 );
 
@@ -33,9 +33,9 @@ CREATE TABLE "spot"."orders" (
   "is_active" BOOLEAN NOT NULL DEFAULT true,
   "quote_asset_id" uuid NOT NULL,
   "base_asset_id" uuid NOT NULL,
-  "quote_asset_volume" NUMERIC(78) NOT NULL CHECK ("quote_asset_volume" >= 0),
-  "base_asset_volume" NUMERIC(78) NOT NULL CHECK ("base_asset_volume" >= 0),
-  "quote_asset_volume_left" NUMERIC(78) NOT NULL CHECK ("quote_asset_volume_left" >= 0) CHECK ("quote_asset_volume_left" <= "quote_asset_volume"),
+  "price" fraction NOT NULL,
+  "quote_asset_volume" fraction NOT NULL,
+  "quote_asset_volume_left" fraction NOT NULL,
   "maker_fee" fraction NOT NULL
 );
 
@@ -47,10 +47,10 @@ CREATE TABLE "spot"."trades" (
   "base_asset_id" uuid NOT NULL,
   "taker_id" uuid NOT NULL,
   "order_id" uuid NOT NULL,
-  "taker_quote_volume" NUMERIC(78) NOT NULL CHECK ("taker_quote_volume" >= 0),
-  "taker_base_volume" NUMERIC(78) NOT NULL CHECK ("taker_base_volume" >= 0),
-  "maker_quote_volume" NUMERIC(78) NOT NULL CHECK ("maker_quote_volume" >= 0),
-  "maker_base_volume" NUMERIC(78) NOT NULL CHECK ("maker_base_volume" >= 0)
+  "taker_quote_volume" fraction NOT NULL,
+  "taker_base_volume" fraction NOT NULL,
+  "maker_quote_volume" fraction NOT NULL,
+  "maker_base_volume" fraction NOT NULL
 );
 
 CREATE TABLE "spot"."candlesticks" (
@@ -67,10 +67,10 @@ CREATE TABLE "spot"."candlesticks" (
   "low" fraction NOT NULL,
   "close" fraction NOT NULL,
   "span" BIGINT NOT NULL CHECK ("span" >= 0),
-  "taker_quote_volume" NUMERIC(78) NOT NULL CHECK ("taker_quote_volume" >= 0),
-  "taker_base_volume" NUMERIC(78) NOT NULL CHECK ("taker_base_volume" >= 0),
-  "maker_quote_volume" NUMERIC(78) NOT NULL CHECK ("maker_quote_volume" >= 0),
-  "maker_base_volume" NUMERIC(78) NOT NULL CHECK ("maker_base_volume" >= 0)
+  "taker_quote_volume" fraction NOT NULL,
+  "taker_base_volume" fraction NOT NULL,
+  "maker_quote_volume" fraction NOT NULL,
+  "maker_base_volume" fraction NOT NULL
 );
 
 ALTER TABLE "spot"."valuts" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");

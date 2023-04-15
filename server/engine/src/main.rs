@@ -4,20 +4,23 @@ pub mod base {
     tonic::include_proto!("server.engine.base");
 }
 
+mod database;
 mod health;
 mod matching_engine;
 mod shutdown_signal;
 mod types;
 
-use std::net::SocketAddr;
+use std::{net::SocketAddr, str::FromStr};
 
 use base::engine_server::EngineServer;
+use num_bigint::BigInt;
+use num_rational::BigRational;
 use sqlx::PgPool;
 use tonic::transport::Server;
 
 use crate::{
     base::health_check_response::ServingStatus, health::health_reporter,
-    matching_engine::MatchingEngine,
+    matching_engine::MatchingEngine, types::Fraction,
 };
 
 #[tokio::main]
@@ -29,7 +32,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await
         .unwrap();
 
-    let matching_engine = MatchingEngine::new(database);
+    let matching_engine = MatchingEngine::new(
+        database,
+        Fraction(BigRational::from((
+            BigInt::from_str("1")?,
+            BigInt::from_str("10000")?,
+        ))),
+    );
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));
     tracing::info!("listening on {}", addr);

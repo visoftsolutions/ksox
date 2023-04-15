@@ -1,4 +1,8 @@
-use std::{fmt, ops::Neg, str::FromStr};
+use std::{
+    fmt,
+    ops::{AddAssign, Neg, SubAssign},
+    str::FromStr,
+};
 
 use num_bigint::BigInt;
 use num_derive::{Num, NumOps, One, Zero};
@@ -11,23 +15,47 @@ impl Fraction {
     pub fn floor_with_accuracy(self, accuracy: Fraction) -> Fraction {
         Fraction((self.0 / accuracy.0.clone()).floor() * accuracy.0)
     }
-    pub fn ceil_with_accuracy(self, accuracy: Fraction) -> Fraction {
-        Fraction((self.0 / accuracy.0.clone()).ceil() * accuracy.0)
-    }
+    // pub fn ceil_with_accuracy(self, accuracy: Fraction) -> Fraction {
+    //     Fraction((self.0 / accuracy.0.clone()).ceil() * accuracy.0)
+    // }
 }
 
 impl Neg for Fraction {
-    type Output = Fraction;
+    type Output = Self;
     fn neg(self) -> Self {
         Fraction(self.0.neg())
     }
 }
 
+impl Inv for Fraction {
+    type Output = Self;
+    fn inv(self) -> Self::Output {
+        Fraction(self.0.inv())
+    }
+}
+
+impl AddAssign for Fraction {
+    fn add_assign(&mut self, rhs: Self) {
+        self.0 += rhs.0;
+    }
+}
+
+impl SubAssign for Fraction {
+    fn sub_assign(&mut self, rhs: Fraction) {
+        self.0 -= rhs.0;
+    }
+}
+
 // serialization
 
+use num_traits::Inv;
 use serde::{
     de::{self, Deserialize, Deserializer, MapAccess, Visitor},
     ser::{Serialize, SerializeStruct, Serializer},
+};
+use sqlx::{
+    database::HasValueRef, postgres::PgArgumentBuffer, types::BigDecimal, Database, Decode, Encode,
+    Postgres, Type, TypeInfo,
 };
 
 const STRUCT: &str = "Fraction";
@@ -104,6 +132,59 @@ impl<'de> Deserialize<'de> for Fraction {
         }
 
         deserializer.deserialize_struct(STRUCT, FIELDS, FractionVisitor)
+    }
+}
+
+impl<'r, DB: Database> Decode<'r, DB> for Fraction
+where
+    (BigDecimal, BigDecimal): Decode<'r, DB>,
+{
+    fn decode(
+        value: <DB as HasValueRef<'r>>::ValueRef,
+    ) -> Result<Fraction, Box<dyn std::error::Error + 'static + Send + Sync>> {
+        let (numer, denom) = <(BigDecimal, BigDecimal) as Decode<DB>>::decode(value)?;
+
+        let (numer_bigint, numer_exp) = numer.into_bigint_and_exponent();
+        let (denom_bigint, denom_exp) = denom.into_bigint_and_exponent();
+        let numer = numer_bigint * BigInt::from(10).pow(TryInto::try_into(-numer_exp)?);
+        let denom = denom_bigint * BigInt::from(10).pow(TryInto::try_into(-denom_exp)?);
+        Ok(Fraction(BigRational::try_from((numer, denom))?))
+    }
+}
+
+impl std::fmt::Display for Fraction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let (numer, denom) = self.0.clone().into();
+        write!(f, "({},{})", numer, denom)
+    }
+}
+
+impl Encode<'_, Postgres> for Fraction {
+    fn produces(&self) -> Option<<Postgres as sqlx::Database>::TypeInfo> {
+        Some(sqlx::postgres::PgTypeInfo::with_name("fraction"))
+    }
+
+    fn encode_by_ref(&self, buf: &mut PgArgumentBuffer) -> sqlx::encode::IsNull {
+        <&str as Encode<Postgres>>::encode_by_ref(&self.to_string().as_str(), buf)
+    }
+
+    fn encode(
+        self,
+        buf: &mut <Postgres as sqlx::database::HasArguments<'_>>::ArgumentBuffer,
+    ) -> sqlx::encode::IsNull
+    where
+        Self: Sized,
+    {
+        self.encode_by_ref(buf)
+    }
+}
+
+impl Type<Postgres> for Fraction {
+    fn type_info() -> <Postgres as sqlx::Database>::TypeInfo {
+        sqlx::postgres::PgTypeInfo::with_name("fraction")
+    }
+    fn compatible(ty: &<Postgres as sqlx::Database>::TypeInfo) -> bool {
+        ty.name() == "fraction"
     }
 }
 

@@ -5,8 +5,8 @@ message SubmitRequest {
     string user_id = 1;
     string quote_asset_id = 2;
     string base_asset_id = 3;
-    string quote_asset_volume = 4;
-    string base_asset_volume = 5;
+    string price = 4;
+    string quote_asset_volume = 5;
 }
 message SubmitResponse {}
 
