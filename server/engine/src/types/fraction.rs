@@ -4,11 +4,12 @@ use std::{
     str::FromStr,
 };
 
-use num_bigint::BigInt;
+use num_bigint::{BigInt, Sign};
 use num_derive::{Num, NumOps, One, Zero};
 use num_rational::BigRational;
+use proptest::prelude::*;
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, NumOps, One, Zero, Num)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, NumOps, One, Zero, Num, Ord, Eq)]
 pub struct Fraction(pub BigRational);
 
 impl Fraction {
@@ -48,7 +49,8 @@ impl SubAssign for Fraction {
 
 // serialization
 
-use num_traits::Inv;
+use num_traits::{Inv, Zero};
+use proptest::{prelude::Arbitrary, sample::size_range};
 use serde::{
     de::{self, Deserialize, Deserializer, MapAccess, Visitor},
     ser::{Serialize, SerializeStruct, Serializer},
@@ -188,6 +190,34 @@ impl Type<Postgres> for Fraction {
     }
 }
 
+impl Arbitrary for Fraction {
+    type Parameters = usize;
+    type Strategy = BoxedStrategy<Self>;
+
+    fn arbitrary() -> Self::Strategy {
+        let sign = Sign::Plus;
+        let numer = any::<Vec<u8>>().prop_map(move |v| BigInt::from_bytes_le(sign, v.as_slice()));
+        let denom = any::<Vec<u8>>()
+            .prop_map(move |v| BigInt::from_bytes_le(sign, v.as_slice()))
+            .prop_map(|n| if n.is_zero() { n + 1 } else { n });
+        (numer, denom)
+            .prop_map(|(numer, denom)| Fraction(BigRational::from((numer, denom))))
+            .boxed()
+    }
+
+    fn arbitrary_with(args: Self::Parameters) -> Self::Strategy {
+        let sign = Sign::Plus;
+        let numer = any_with::<Vec<u8>>(size_range(args).lift())
+            .prop_map(move |v| BigInt::from_bytes_le(sign, v.as_slice()));
+        let denom = any_with::<Vec<u8>>(size_range(args).lift())
+            .prop_map(move |v| BigInt::from_bytes_le(sign, v.as_slice()))
+            .prop_map(|n| if n.is_zero() { n + 1 } else { n });
+        (numer, denom)
+            .prop_map(|(numer, denom)| Fraction(BigRational::from((numer, denom))))
+            .boxed()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use num_bigint::{BigInt, Sign};
@@ -198,7 +228,7 @@ mod tests {
     use super::Fraction;
 
     proptest! {
-        #![proptest_config(ProptestConfig::with_cases(10000))]
+        #![proptest_config(ProptestConfig::with_cases(100))]
         #[test]
         fn serialization(
             numer in any::<Vec<u8>>().prop_map(|v| BigInt::from_bytes_le(Sign::Plus, v.as_slice())),

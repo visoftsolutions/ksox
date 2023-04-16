@@ -20,6 +20,10 @@ use crate::{
     types::Fraction,
 };
 pub mod models;
+
+#[cfg(test)]
+mod tests;
+
 pub struct MatchingEngine {
     accuracy: Fraction,
     database: PgPool,
@@ -120,16 +124,16 @@ impl MatchingEngine {
             request.price.clone().inv(),
         );
 
-        let matching = self
-            .matching_loop(
-                request.user_id,
-                request.price,
-                request.quote_asset_volume.to_owned(),
-                quote_asset,
-                base_asset,
-                matching_orders,
-            )
-            .await?;
+        let matching = Self::matching_loop(
+            request.user_id,
+            request.price,
+            request.quote_asset_volume.to_owned(),
+            quote_asset,
+            base_asset,
+            matching_orders,
+            self.accuracy.to_owned(),
+        )
+        .await?;
 
         // saving to db
 
@@ -210,13 +214,13 @@ impl MatchingEngine {
      *  price is defined as quote_asset_volume / base_asset_volume
      */
     async fn matching_loop(
-        &self,
         user_id: Uuid,
         price: Fraction,
         quote_asset_volume: Fraction,
         quote_asset: Asset,
         base_asset: Asset,
         mut matching_orders: Pin<Box<dyn Stream<Item = sqlx::Result<OrderGet>> + Send + '_>>,
+        accuracy: Fraction,
     ) -> Result<MatchingLoopResponse, MatchingLoopError> {
         let mut response = MatchingLoopResponse::new();
 
@@ -235,7 +239,7 @@ impl MatchingEngine {
             if !(maker_order.price <= price_inv
                 && maker_order.quote_asset_volume_left > Fraction::zero())
             {
-                return Err(MatchingLoopError::InvalidData);
+                continue;
             }
 
             let (taker_base_asset_volume_given, taker_quote_asset_volume_taken) =
@@ -268,11 +272,11 @@ impl MatchingEngine {
                 taker_quote_volume: taker_quote_asset_volume_taken,
                 taker_base_volume: (taker_base_asset_volume_given.to_owned()
                     - taker_base_asset_volume_given * base_asset.taker_fee.to_owned())
-                .floor_with_accuracy(self.accuracy.to_owned()),
+                .floor_with_accuracy(accuracy.to_owned()),
                 maker_quote_volume: maker_quote_asset_volume_taken,
                 maker_base_volume: (maker_base_asset_volume_given.to_owned()
                     - maker_base_asset_volume_given * maker_order.maker_fee)
-                    .floor_with_accuracy(self.accuracy.to_owned()),
+                    .floor_with_accuracy(accuracy.to_owned()),
             });
         }
 
