@@ -13,8 +13,17 @@ use proptest::prelude::*;
 pub struct Fraction(pub BigRational);
 
 impl Fraction {
-    pub fn floor_with_accuracy(self, accuracy: Fraction) -> Fraction {
-        Fraction((self.0 / accuracy.0.clone()).floor() * accuracy.0)
+    pub fn floor_with_accuracy(self, accuracy: &Fraction) -> Fraction {
+        Fraction((self.0 / accuracy.0.clone()).floor() * accuracy.0.clone())
+    }
+
+    pub fn checked_floor_with_accuracy(self, accuracy: &Fraction) -> Option<Fraction> {
+        Some(Fraction(
+            self.0
+                .checked_div(&accuracy.0)?
+                .floor()
+                .checked_mul(&accuracy.0)?,
+        ))
     }
     // pub fn ceil_with_accuracy(self, accuracy: Fraction) -> Fraction {
     //     Fraction((self.0 / accuracy.0.clone()).ceil() * accuracy.0)
@@ -47,9 +56,33 @@ impl SubAssign for Fraction {
     }
 }
 
+impl CheckedAdd for Fraction {
+    fn checked_add(&self, v: &Self) -> Option<Self> {
+        Some(Fraction(self.0.checked_add(&v.0)?))
+    }
+}
+
+impl CheckedSub for Fraction {
+    fn checked_sub(&self, v: &Self) -> Option<Self> {
+        Some(Fraction(self.0.checked_sub(&v.0)?))
+    }
+}
+
+impl CheckedMul for Fraction {
+    fn checked_mul(&self, v: &Self) -> Option<Self> {
+        Some(Fraction(self.0.checked_mul(&v.0)?))
+    }
+}
+
+impl CheckedDiv for Fraction {
+    fn checked_div(&self, v: &Self) -> Option<Self> {
+        Some(Fraction(self.0.checked_div(&v.0)?))
+    }
+}
+
 // serialization
 
-use num_traits::{Inv, Zero};
+use num_traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, Inv, Zero};
 use proptest::{prelude::Arbitrary, sample::size_range};
 use serde::{
     de::{self, Deserialize, Deserializer, MapAccess, Visitor},

@@ -92,7 +92,22 @@ pub enum MatchingLoopError {
     VolumeIsZero,
 
     #[error("matching orders invalid")]
-    InvalidData,
+    InvalidMatchingOrderData,
+
+    #[error("add fractions failed")]
+    CheckedAddFailed,
+
+    #[error("sub fractions failed")]
+    CheckedSubFailed,
+
+    #[error("mul fractions failed")]
+    CheckedMulFailed,
+
+    #[error("div fractions failed")]
+    CheckedDivFailed,
+
+    #[error("floor fractions failed")]
+    CheckedFloorFailed,
 
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),
@@ -108,6 +123,18 @@ pub enum SubmitRequestError {
 
     #[error("not enough balance in valut")]
     InsufficientBalance,
+
+    #[error("add fractions failed")]
+    CheckedAddFailed,
+
+    #[error("sub fractions failed")]
+    CheckedSubFailed,
+
+    #[error("mul fractions failed")]
+    CheckedMulFailed,
+
+    #[error("div fractions failed")]
+    CheckedDivFailed,
 
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),

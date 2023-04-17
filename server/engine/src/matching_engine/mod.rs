@@ -1,7 +1,7 @@
 use std::pin::Pin;
 
 use base::engine_server::Engine;
-use num_traits::{Inv, Zero};
+use num_traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, One, Zero};
 use sqlx::{PgPool, Postgres, Transaction};
 use tokio_stream::{Stream, StreamExt};
 use tonic::{Request, Response, Status};
@@ -121,7 +121,9 @@ impl MatchingEngine {
             request.base_asset_id,
             request.quote_asset_id,
             // inverse of price
-            request.price.clone().inv(),
+            Fraction::one()
+                .checked_div(&request.price)
+                .ok_or(SubmitRequestError::CheckedDivFailed)?,
         );
 
         let matching = Self::matching_loop(
@@ -137,7 +139,10 @@ impl MatchingEngine {
 
         // saving to db
 
-        taker_quote_asset_valut.balance -= request.quote_asset_volume;
+        taker_quote_asset_valut.balance = taker_quote_asset_valut
+            .balance
+            .checked_sub(&request.quote_asset_volume)
+            .ok_or(SubmitRequestError::CheckedSubFailed)?;
         ValutsManager::update(transaction, taker_quote_asset_valut).await?;
 
         // apply order
@@ -165,9 +170,18 @@ impl MatchingEngine {
             .await?;
 
             // apply changes
-            taker_base_asset_valut.balance += trade.taker_base_volume.to_owned();
-            maker_base_asset_valut.balance += trade.maker_base_volume.to_owned();
-            maker_order.quote_asset_volume_left -= trade.maker_quote_volume.to_owned();
+            taker_base_asset_valut.balance = taker_base_asset_valut
+                .balance
+                .checked_add(&trade.taker_base_volume)
+                .ok_or(SubmitRequestError::CheckedAddFailed)?;
+            maker_base_asset_valut.balance = maker_base_asset_valut
+                .balance
+                .checked_add(&trade.maker_base_volume)
+                .ok_or(SubmitRequestError::CheckedAddFailed)?;
+            maker_order.quote_asset_volume_left = maker_order
+                .quote_asset_volume_left
+                .checked_sub(&trade.maker_quote_volume)
+                .ok_or(SubmitRequestError::CheckedSubFailed)?;
 
             if maker_order.quote_asset_volume_left <= Fraction::zero() {
                 maker_order.is_active = false;
@@ -229,18 +243,24 @@ impl MatchingEngine {
         }
 
         let mut quote_asset_volume_left = quote_asset_volume.to_owned();
-        let price_inv = price.clone().inv();
+
+        let price_inv = Fraction::one()
+            .checked_div(&price)
+            .ok_or(MatchingLoopError::CheckedDivFailed)?;
 
         while let Some(matching_order) = matching_orders.next().await {
             let maker_order = matching_order?;
-            let maker_order_base_asset_volume_left =
-                maker_order.quote_asset_volume_left.to_owned() * maker_order.price.to_owned().inv();
 
-            if !(maker_order.price <= price_inv
+            if !(maker_order.price >= price_inv
                 && maker_order.quote_asset_volume_left > Fraction::zero())
             {
-                continue;
+                return Err(MatchingLoopError::InvalidMatchingOrderData);
             }
+
+            let maker_order_base_asset_volume_left = maker_order
+                .quote_asset_volume_left
+                .checked_div(&maker_order.price)
+                .ok_or(MatchingLoopError::CheckedDivFailed)?;
 
             let (taker_base_asset_volume_given, taker_quote_asset_volume_taken) =
                 if quote_asset_volume_left >= maker_order_base_asset_volume_left {
@@ -252,14 +272,18 @@ impl MatchingEngine {
                 } else {
                     // eat maker_order partially
                     (
-                        (quote_asset_volume_left.to_owned()
-                            * maker_order.quote_asset_volume_left
-                            * maker_order_base_asset_volume_left.inv()),
+                        quote_asset_volume_left
+                            .checked_mul(&maker_order.quote_asset_volume_left)
+                            .ok_or(MatchingLoopError::CheckedMulFailed)?
+                            .checked_div(&maker_order_base_asset_volume_left)
+                            .ok_or(MatchingLoopError::CheckedDivFailed)?,
                         quote_asset_volume_left.to_owned(),
                     )
                 };
 
-            quote_asset_volume_left -= taker_quote_asset_volume_taken.to_owned();
+            quote_asset_volume_left = quote_asset_volume_left
+                .checked_sub(&taker_quote_asset_volume_taken)
+                .ok_or(MatchingLoopError::CheckedSubFailed)?;
 
             let (maker_base_asset_volume_given, maker_quote_asset_volume_taken) = (
                 taker_quote_asset_volume_taken.to_owned(),
@@ -270,13 +294,23 @@ impl MatchingEngine {
                 taker_id: user_id,
                 order_id: maker_order.id,
                 taker_quote_volume: taker_quote_asset_volume_taken,
-                taker_base_volume: (taker_base_asset_volume_given.to_owned()
-                    - taker_base_asset_volume_given * base_asset.taker_fee.to_owned())
-                .floor_with_accuracy(accuracy.to_owned()),
+                taker_base_volume: taker_base_asset_volume_given
+                    .checked_sub(
+                        &taker_base_asset_volume_given
+                            .checked_mul(&base_asset.taker_fee)
+                            .ok_or(MatchingLoopError::CheckedMulFailed)?,
+                    )
+                    .ok_or(MatchingLoopError::CheckedSubFailed)?
+                    .checked_floor_with_accuracy(&accuracy).ok_or(MatchingLoopError::CheckedFloorFailed)?,
                 maker_quote_volume: maker_quote_asset_volume_taken,
-                maker_base_volume: (maker_base_asset_volume_given.to_owned()
-                    - maker_base_asset_volume_given * maker_order.maker_fee)
-                    .floor_with_accuracy(accuracy.to_owned()),
+                maker_base_volume: maker_base_asset_volume_given
+                    .checked_sub(
+                        &maker_base_asset_volume_given
+                            .checked_mul(&maker_order.maker_fee)
+                            .ok_or(MatchingLoopError::CheckedMulFailed)?,
+                    )
+                    .ok_or(MatchingLoopError::CheckedSubFailed)?
+                    .checked_floor_with_accuracy(&accuracy).ok_or(MatchingLoopError::CheckedFloorFailed)?,
             });
         }
 
