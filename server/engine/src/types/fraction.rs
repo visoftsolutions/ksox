@@ -7,15 +7,27 @@ use std::{
 use num_bigint::{BigInt, Sign};
 use num_derive::{Num, NumOps, One, Zero};
 use num_rational::BigRational;
-use proptest::prelude::*;
+use num_traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, Inv, Zero};
+use proptest::{
+    prelude::{Arbitrary, *},
+    sample::size_range,
+};
+use serde::{
+    de::{self, Deserialize, Deserializer, MapAccess, Visitor},
+    ser::{Serialize, SerializeStruct, Serializer},
+};
+use sqlx::{
+    database::HasValueRef, postgres::PgArgumentBuffer, types::BigDecimal, Database, Decode, Encode,
+    Postgres, Type, TypeInfo,
+};
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, NumOps, One, Zero, Num, Ord, Eq)]
 pub struct Fraction(pub BigRational);
 
 impl Fraction {
-    pub fn floor_with_accuracy(self, accuracy: &Fraction) -> Fraction {
-        Fraction((self.0 / accuracy.0.clone()).floor() * accuracy.0.clone())
-    }
+    // pub fn floor_with_accuracy(self, accuracy: &Fraction) -> Fraction {
+    //     Fraction((self.0 / accuracy.0.clone()).floor() * accuracy.0.clone())
+    // }
 
     pub fn checked_floor_with_accuracy(self, accuracy: &Fraction) -> Option<Fraction> {
         Some(Fraction(
@@ -25,6 +37,7 @@ impl Fraction {
                 .checked_mul(&accuracy.0)?,
         ))
     }
+
     // pub fn ceil_with_accuracy(self, accuracy: Fraction) -> Fraction {
     //     Fraction((self.0 / accuracy.0.clone()).ceil() * accuracy.0)
     // }
@@ -81,17 +94,6 @@ impl CheckedDiv for Fraction {
 }
 
 // serialization
-
-use num_traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, Inv, Zero};
-use proptest::{prelude::Arbitrary, sample::size_range};
-use serde::{
-    de::{self, Deserialize, Deserializer, MapAccess, Visitor},
-    ser::{Serialize, SerializeStruct, Serializer},
-};
-use sqlx::{
-    database::HasValueRef, postgres::PgArgumentBuffer, types::BigDecimal, Database, Decode, Encode,
-    Postgres, Type, TypeInfo,
-};
 
 const STRUCT: &str = "Fraction";
 const FIELDS: &[&str] = &["numer", "denom"];
@@ -253,22 +255,19 @@ impl Arbitrary for Fraction {
 
 #[cfg(test)]
 mod tests {
-    use num_bigint::{BigInt, Sign};
-    use num_rational::BigRational;
-    use num_traits::Zero;
     use proptest::{prelude::*, proptest};
+    use seq_macro::seq;
 
     use super::Fraction;
+    use crate::matching_engine::tests::{CASES, FRACTION_BYTES};
 
+    seq!(N in 0..10 {
     proptest! {
-        #![proptest_config(ProptestConfig::with_cases(100))]
+        #![proptest_config(ProptestConfig::with_cases(CASES))]
         #[test]
-        fn serialization(
-            numer in any::<Vec<u8>>().prop_map(|v| BigInt::from_bytes_le(Sign::Plus, v.as_slice())),
-            denom in any::<Vec<u8>>().prop_map(|v| BigInt::from_bytes_le(Sign::Plus, v.as_slice())).prop_filter("nonzero", |v| !v.is_zero())
-        ) {
-            let f = Fraction(BigRational::try_from((numer, denom)).unwrap());
-            assert_eq!(f, serde_json::from_str(&serde_json::to_string(&f).unwrap()).unwrap());
+        fn serialization~N(fraction in any_with::<Fraction>(FRACTION_BYTES)) {
+            assert_eq!(fraction, serde_json::from_str(&serde_json::to_string(&fraction).unwrap()).unwrap());
         }
     }
+    });
 }

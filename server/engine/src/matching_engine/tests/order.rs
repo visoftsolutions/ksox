@@ -25,7 +25,6 @@ prop_compose! {
     pub fn arb_not_bigger_matching_order(i_p: Fraction, i_v: Fraction)(
         (price, quote_asset_volume_left, maker_fee) in (
             arb_not_smaller_fraction(i_p.inv()),
-            // volume in arb_smaller_fraction(i_v),
             arb_fraction_not_bigger_than_one()
         ).prop_flat_map(move |(price, maker_fee)| (
             Just(price.to_owned()),
@@ -41,7 +40,6 @@ prop_compose! {
     pub fn arb_not_smaller_matching_order(i_p: Fraction, i_v: Fraction)(
         (price, quote_asset_volume_left, maker_fee) in (
             arb_not_smaller_fraction(i_p.inv()),
-            // volume in arb_smaller_fraction(i_v),
             arb_fraction_not_bigger_than_one()
         ).prop_flat_map(move |(price, maker_fee)| (
             Just(price.to_owned()),
@@ -57,7 +55,6 @@ prop_compose! {
     pub fn arb_smaller_matching_order(i_p: Fraction, i_v: Fraction)(
         (price, quote_asset_volume_left, maker_fee) in (
             arb_not_smaller_fraction(i_p.inv()),
-            // volume in arb_smaller_fraction(i_v),
             arb_fraction_not_bigger_than_one()
         ).prop_flat_map(move |(price, maker_fee)| (
             Just(price.to_owned()),
@@ -73,7 +70,6 @@ prop_compose! {
     pub fn arb_bigger_matching_order(i_p: Fraction, i_v: Fraction)(
         (price, quote_asset_volume_left, maker_fee) in (
             arb_not_smaller_fraction(i_p.inv()),
-            // volume in arb_smaller_fraction(i_v),
             arb_fraction_not_bigger_than_one()
         ).prop_flat_map(move |(price, maker_fee)| (
             Just(price.to_owned()),

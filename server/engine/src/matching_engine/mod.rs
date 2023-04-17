@@ -22,7 +22,7 @@ use crate::{
 pub mod models;
 
 #[cfg(test)]
-mod tests;
+pub mod tests;
 
 pub struct MatchingEngine {
     accuracy: Fraction,
@@ -301,7 +301,8 @@ impl MatchingEngine {
                             .ok_or(MatchingLoopError::CheckedMulFailed)?,
                     )
                     .ok_or(MatchingLoopError::CheckedSubFailed)?
-                    .checked_floor_with_accuracy(&accuracy).ok_or(MatchingLoopError::CheckedFloorFailed)?,
+                    .checked_floor_with_accuracy(&accuracy)
+                    .ok_or(MatchingLoopError::CheckedFloorFailed)?,
                 maker_quote_volume: maker_quote_asset_volume_taken,
                 maker_base_volume: maker_base_asset_volume_given
                     .checked_sub(
@@ -310,7 +311,8 @@ impl MatchingEngine {
                             .ok_or(MatchingLoopError::CheckedMulFailed)?,
                     )
                     .ok_or(MatchingLoopError::CheckedSubFailed)?
-                    .checked_floor_with_accuracy(&accuracy).ok_or(MatchingLoopError::CheckedFloorFailed)?,
+                    .checked_floor_with_accuracy(&accuracy)
+                    .ok_or(MatchingLoopError::CheckedFloorFailed)?,
             });
         }
 

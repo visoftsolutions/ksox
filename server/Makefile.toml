@@ -25,6 +25,10 @@ args = ["sort", "-w"]
 command = "cargo"
 args = ["udeps"]
 
+[tasks.test]
+command = "cargo"
+args = ["test", "--release"]
+
 [tasks.run_db]
 script = '''
 sudo docker compose up --wait postgres
@@ -36,7 +40,7 @@ sudo docker compose stop postgres
 '''
 
 [tasks.total]
-dependencies = ["run_db","check" ,"build", "fmt", "clippy", "sort", "udeps", "stop_db"]
+dependencies = ["run_db","check" ,"build", "fmt", "clippy", "sort", "udeps", "test", "stop_db"]
 
 [tasks.partial]
 dependencies = ["run_db","build", "fmt", "clippy", "stop_db"]

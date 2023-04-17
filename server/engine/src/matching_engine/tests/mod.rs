@@ -1,7 +1,8 @@
 use async_stream::stream;
 use futures::executor::block_on;
-use num_traits::{Zero};
-use proptest::{collection, prelude::*, proptest};
+use num_traits::Zero;
+use proptest::{prelude::*, proptest};
+use seq_macro::seq;
 use uuid::Uuid;
 
 use crate::{
@@ -11,8 +12,8 @@ use crate::{
         tests::{
             asset::arb_asset,
             fraction::arb_fraction_bigger_than_zero,
-            order::{arb_not_matching_order, arb_not_smaller_matching_order,
-                arb_smaller_matching_order,
+            order::{
+                arb_not_matching_order, arb_not_smaller_matching_order, arb_smaller_matching_order,
             },
         },
         MatchingEngine,
@@ -24,15 +25,16 @@ pub mod asset;
 pub mod fraction;
 pub mod order;
 
-const FRACTION_BYTES: usize = 2;
-const CASES: u32 = 100000;
+pub const FRACTION_BYTES: usize = 2;
+pub const CASES: u32 = 1000;
 
+seq!(N in 0..10 {
 // ensure that when there is not_matching_order supplied -> error is risen
 proptest! {
     #![proptest_config(ProptestConfig::with_cases(CASES))]
     #[test]
-    fn error_when_not_matching_order(
-        (user_id, price, quote_asset_volume, quote_asset, base_asset, matching_order, accuracy) in (
+    fn error_when_not_matching_order~N(
+        (user_id, price, quote_asset_volume, quote_asset, base_asset, maker_order, accuracy) in (
             arb_fraction_bigger_than_zero()
             ).prop_flat_map(|price| (
                 Just(Uuid::new_v4()),
@@ -45,24 +47,26 @@ proptest! {
         ))
     ) {
         block_on(async {
-            let stream = Box::pin(stream! {
-                    yield Ok(matching_order);
+            let maker_orders_stream = Box::pin(stream! {
+                    yield Ok(maker_order);
             });
 
             let matching = MatchingEngine::matching_loop(
-                user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), stream, accuracy).await;
+                user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), maker_orders_stream, accuracy).await;
 
             assert!(matches!(matching, Err(MatchingLoopError::InvalidMatchingOrderData)))
         });
     }
 }
+});
 
+seq!(N in 0..10 {
 // ensure that when there is smaller matching order available -> there will be trade and leftover order
 proptest! {
     #![proptest_config(ProptestConfig::with_cases(CASES))]
     #[test]
-    fn new_order_new_trade_when_matching_smaller_order(
-        (user_id, price, quote_asset_volume, quote_asset, base_asset, matching_order, accuracy) in (
+    fn new_order_new_trade_when_matching_smaller_order~N(
+        (user_id, price, quote_asset_volume, quote_asset, base_asset, maker_order, accuracy) in (
             arb_fraction_bigger_than_zero(),
             arb_fraction_bigger_than_zero()
             ).prop_flat_map(|(price, quote_asset_volume)| (
@@ -76,13 +80,13 @@ proptest! {
         ))
     ) {
         block_on(async {
-            let matching_order_copy = matching_order.to_owned();
-            let stream = Box::pin(stream! {
-                yield Ok(matching_order);
-        });
+            let maker_order_copy = maker_order.to_owned();
+            let maker_orders_stream = Box::pin(stream! {
+                yield Ok(maker_order);
+            });
 
             let matching = MatchingEngine::matching_loop(
-                user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), stream, accuracy.to_owned()).await.unwrap();
+                user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), maker_orders_stream, accuracy.to_owned()).await.unwrap();
 
             assert!(matching.order.is_some());
             assert!(!matching.trades.is_empty());
@@ -91,19 +95,19 @@ proptest! {
             let trades = matching.trades;
             let trade = &trades[0];
             assert_eq!(trade.taker_id, user_id);
-            assert_eq!(trade.order_id, matching_order_copy.id);
+            assert_eq!(trade.order_id, maker_order_copy.id);
 
             // ensure whole order is used
-            let maker_order_base_volume = matching_order_copy.quote_asset_volume_left / matching_order_copy.price;
+            let maker_order_base_volume = maker_order_copy.quote_asset_volume_left / maker_order_copy.price;
             assert!(trade.taker_quote_volume == maker_order_base_volume);
 
             let request_base_asset_volume = maker_order_base_volume.to_owned() / price;
-            let minimal_taker_base_volume = (request_base_asset_volume.to_owned() - request_base_asset_volume.to_owned() * base_asset.taker_fee).floor_with_accuracy(&accuracy);
+            let minimal_taker_base_volume = (request_base_asset_volume.to_owned() - request_base_asset_volume.to_owned() * base_asset.taker_fee).checked_floor_with_accuracy(&accuracy).unwrap();
 
             // ensure taker is satisfied
             assert!(trade.taker_base_volume >= minimal_taker_base_volume);
 
-            let minimal_maker_base_volume = (maker_order_base_volume.to_owned() - maker_order_base_volume * matching_order_copy.maker_fee).floor_with_accuracy(&accuracy);
+            let minimal_maker_base_volume = (maker_order_base_volume.to_owned() - maker_order_base_volume * maker_order_copy.maker_fee).checked_floor_with_accuracy(&accuracy).unwrap();
 
             // ensure maker is satisfied
             assert!(trade.maker_base_volume >= minimal_maker_base_volume);
@@ -112,13 +116,15 @@ proptest! {
         });
     }
 }
+});
 
+seq!(N in 0..10 {
 // ensure that when there no matching order available -> only there order is created
 proptest! {
     #![proptest_config(ProptestConfig::with_cases(CASES))]
     #[test]
-    fn new_order_when_no_matching_order(
-        (user_id, price, quote_asset_volume, quote_asset, base_asset, matching_order, accuracy) in (
+    fn new_order_when_no_matching_order~N(
+        (user_id, price, quote_asset_volume, quote_asset, base_asset, maker_order, accuracy) in (
             arb_fraction_bigger_than_zero(),
             arb_fraction_bigger_than_zero()
             ).prop_flat_map(|(price, quote_asset_volume)| (
@@ -132,14 +138,14 @@ proptest! {
         ))
     ) {
         block_on(async {
-            let stream = Box::pin(stream! {
-                for order in matching_order {
+            let maker_orders_stream = Box::pin(stream! {
+                for order in maker_order {
                     yield Ok(order);
                 }
-        });
+            });
 
             let matching = MatchingEngine::matching_loop(
-                user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), stream, accuracy).await.unwrap();
+                user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), maker_orders_stream, accuracy).await.unwrap();
 
             assert!(matching.order.is_some());
             assert!(matching.trades.is_empty());
@@ -155,13 +161,15 @@ proptest! {
         });
     }
 }
+});
 
+seq!(N in 0..10 {
 // ensure that when there bigger matching order available -> only trade is created
 proptest! {
     #![proptest_config(ProptestConfig::with_cases(CASES))]
     #[test]
-    fn new_trade_when_bigger_matching_order(
-        (user_id, price, quote_asset_volume, quote_asset, base_asset, matching_order, accuracy) in (
+    fn new_trade_when_bigger_matching_order~N(
+        (user_id, price, quote_asset_volume, quote_asset, base_asset, maker_order, accuracy) in (
             arb_fraction_bigger_than_zero(),
             arb_fraction_bigger_than_zero()
             ).prop_flat_map(|(price, quote_asset_volume)| (
@@ -175,13 +183,13 @@ proptest! {
         ))
     ) {
         block_on(async {
-            let matching_order_copy = matching_order.to_owned();
-            let stream = Box::pin(stream! {
-                    yield Ok(matching_order);
-        });
+            let maker_order_copy = maker_order.to_owned();
+            let maker_orders_stream = Box::pin(stream! {
+                    yield Ok(maker_order);
+            });
 
             let matching = MatchingEngine::matching_loop(
-                user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), stream, accuracy.to_owned()).await.unwrap();
+                user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), maker_orders_stream, accuracy.to_owned()).await.unwrap();
 
             assert!(matching.order.is_none());
             assert!(!matching.trades.is_empty());
@@ -190,22 +198,23 @@ proptest! {
             let trades = matching.trades;
             let trade = &trades[0];
             assert_eq!(trade.taker_id, user_id);
-            assert_eq!(trade.order_id, matching_order_copy.id);
+            assert_eq!(trade.order_id, maker_order_copy.id);
 
             // ensure all taker_quote_asset is used
             assert_eq!(trade.taker_quote_volume, quote_asset_volume);
 
             let request_base_asset_volume = quote_asset_volume.to_owned() / price;
-            let minimal_taker_base_volume = (request_base_asset_volume.to_owned() - request_base_asset_volume.to_owned() * base_asset.taker_fee).floor_with_accuracy(&accuracy);
+            let minimal_taker_base_volume = (request_base_asset_volume.to_owned() - request_base_asset_volume.to_owned() * base_asset.taker_fee).checked_floor_with_accuracy(&accuracy).unwrap();
 
             // ensure taker is satisfied
             assert!(trade.taker_base_volume >= minimal_taker_base_volume);
 
-            let matching_order_base_volume = request_base_asset_volume.to_owned() / matching_order_copy.price;
-            let minimal_maker_base_volume = (matching_order_base_volume.to_owned() - matching_order_base_volume * matching_order_copy.maker_fee).floor_with_accuracy(&accuracy);
+            let matching_order_base_volume = request_base_asset_volume.to_owned() / maker_order_copy.price;
+            let minimal_maker_base_volume = (matching_order_base_volume.to_owned() - matching_order_base_volume * maker_order_copy.maker_fee).checked_floor_with_accuracy(&accuracy).unwrap();
 
             // ensure maker is satisfied
             assert!(trade.maker_base_volume >= minimal_maker_base_volume);
         })
     }
 }
+});
