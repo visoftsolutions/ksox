@@ -2,7 +2,7 @@ use fraction::Fraction;
 use sqlx::{Postgres, Transaction};
 use uuid::Uuid;
 
-use crate::database::Asset;
+use crate::database::projections::asset::Asset;
 
 #[derive(Debug)]
 pub struct AssetsManager {}

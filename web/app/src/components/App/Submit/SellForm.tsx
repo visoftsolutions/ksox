@@ -17,7 +17,7 @@ interface FormValues {
   quote_asset_volume: Fraction;
 }
 
-export default function SellForm(props: { market?: Market; available_balance?: bigint; precision?: number }) {
+export default function SellForm(props: { market?: Market; available_balance?: Fraction; precision?: number }) {
   const [storeComponent, setStoreComponent] = createStore<FormValues>({
     price: fFromBigint(0n),
     slider: fFromBigint(0n),
@@ -30,7 +30,7 @@ export default function SellForm(props: { market?: Market; available_balance?: b
       <div class="grid justify-between pb-[4px] text-submit-sublabel font-semibold text-gray-4">
         <div class="col-start-1 col-end-2">Available Balance:</div>
         <div class="col-start-2 col-end-3">
-          {props.available_balance != undefined ? format(ev(fFromWei(props.available_balance)), formatTemplate(props.precision ?? 2)) : "---"}
+          {props.available_balance != undefined ? format(ev(props.available_balance), formatTemplate(props.precision ?? 2)) : "---"}
           {props.market?.base_asset?.symbol ?? "---"}
         </div>
       </div>
@@ -49,7 +49,7 @@ export default function SellForm(props: { market?: Market; available_balance?: b
         class="my-[4px] bg-gray-1 p-1 text-submit-label"
         value={storeComponent.base_asset_volume}
         onChange={(base_val) => {
-          const max_base_asset_volume = fFromWei(props.available_balance ?? 0n);
+          const max_base_asset_volume = props.available_balance ?? { numer: 0n, denom: 1n };
           const max_quote_asset_volume = fmul(max_base_asset_volume, storeComponent.price);
           const base_asset_volume = fmin(max_base_asset_volume, base_val);
           setStoreComponent("base_asset_volume", base_asset_volume);
@@ -65,7 +65,7 @@ export default function SellForm(props: { market?: Market; available_balance?: b
         value={storeComponent.slider}
         inputClass="slider-red"
         onInput={(slider_val) => {
-          const max_base_asset_volume = fFromWei(props.available_balance ?? 0n);
+          const max_base_asset_volume = props.available_balance ?? { numer: 0n, denom: 1n };
           const base_asset_volume = fmul(max_base_asset_volume, slider_val);
           setStoreComponent("base_asset_volume", base_asset_volume);
           const quote_asset_volume = fmul(base_asset_volume, storeComponent.price);
@@ -76,7 +76,7 @@ export default function SellForm(props: { market?: Market; available_balance?: b
         class="my-[4px] bg-gray-1 p-1 text-submit-label"
         value={storeComponent.quote_asset_volume}
         onChange={(quote_val) => {
-          const max_base_asset_volume = fFromWei(props.available_balance ?? 0n);
+          const max_base_asset_volume = props.available_balance ?? { numer: 0n, denom: 1n };
           const max_quote_asset_volume = fmul(max_base_asset_volume, storeComponent.price);
           const quote_asset_volume = fmin(max_quote_asset_volume, quote_val);
           setStoreComponent("quote_asset_volume", quote_asset_volume);
@@ -102,15 +102,15 @@ export default function SellForm(props: { market?: Market; available_balance?: b
               SubmitRequest.parse({
                 quote_asset_id: props.market?.base_asset?.id,
                 base_asset_id: props.market?.quote_asset?.id,
-                quote_asset_volume: fToWeiCeil(storeComponent.base_asset_volume),
-                base_asset_volume: fToWeiFloor(storeComponent.quote_asset_volume),
+                price: finv(storeComponent.price),
+                quote_asset_volume: storeComponent.base_asset_volume,
               }),
               (_, v) => (typeof v === "bigint" ? v.toString() : v)
             ),
           }).then((r) => r.text());
-          setStoreComponent("slider", { numerator: 0n, denominator: 1n });
-          setStoreComponent("base_asset_volume", { numerator: 0n, denominator: 1n });
-          setStoreComponent("quote_asset_volume", { numerator: 0n, denominator: 1n });
+          setStoreComponent("slider", { numer: 0n, denom: 1n });
+          setStoreComponent("base_asset_volume", { numer: 0n, denom: 1n });
+          setStoreComponent("quote_asset_volume", { numer: 0n, denom: 1n });
         }}
       >
         Sell

@@ -14,7 +14,7 @@ import { Market } from "~/utils/providers/MarketProvider";
 import { format } from "numerable";
 import { formatTemplate } from "~/utils/precision";
 import { joinPaths } from "solid-start/islands/server-router";
-import { ev } from "~/types/primitives/fraction";
+import { ev, finv, fmul } from "~/types/primitives/fraction";
 
 interface OpenOrder {
   id: Uuid;
@@ -60,9 +60,9 @@ export function OpenOrders(props: { market?: Market; session?: ValidateSignature
       const capacity = props.capacity;
 
       const convertOpenOrder = (order: Order) => {
-        const quote_asset_volume = ev(fFromWei(order.quote_asset_volume));
-        const base_asset_volume = ev(fFromWei(order.base_asset_volume));
-        const quote_asset_volume_left = ev(fFromWei(order.quote_asset_volume_left));
+        const quote_asset_volume = ev(order.quote_asset_volume);
+        const base_asset_volume = ev(fmul(order.quote_asset_volume, finv(order.price)));
+        const quote_asset_volume_left = ev(order.quote_asset_volume_left);
         if (order.quote_asset_id == quote_asset.id && order.base_asset_id == base_asset.id && order.is_active) {
           const asset_pair: [Asset | undefined, Asset | undefined] = [assets().get(order.base_asset_id), assets().get(order.quote_asset_id)];
           const price = quote_asset_volume / base_asset_volume;

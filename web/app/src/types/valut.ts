@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Uuid } from "./primitives/uuid";
-import { Volume } from "./primitives/volume";
 import { Datetime } from "./primitives/datetime";
+import { Fraction } from "./primitives/fraction";
 
 export const Valut = z.object({
   id: Uuid,
@@ -9,6 +9,6 @@ export const Valut = z.object({
   last_modification_at: Datetime,
   user_id: Uuid,
   asset_id: Uuid,
-  balance: Volume,
+  balance: Fraction,
 });
 export type Valut = z.infer<typeof Valut>;

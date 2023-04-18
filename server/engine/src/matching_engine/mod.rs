@@ -15,11 +15,7 @@ use self::models::{
     SubmitRequest, SubmitRequestError, SubmitResponse,
 };
 use crate::{
-    base,
-    database::{
-        Asset, AssetsManager, OrderGet, OrderInsert, OrdersManager, Trade, TradesManager,
-        ValutsManager,
-    },
+    base, database::{managers::{OrdersManager, ValutsManager, AssetsManager, TradesManager}, projections::{asset::Asset, order::{OrderGet, OrderInsert}, trade::Trade}}
 };
 pub mod models;
 
@@ -117,7 +113,7 @@ impl MatchingEngine {
             return Err(SubmitRequestError::InsufficientBalance);
         }
 
-        let matching_orders = OrdersManager::get_orders_with_smaller_price(
+        let matching_orders = OrdersManager::get_orders_with_not_smaller_price(
             transaction,
             // base switches with quote to give opposite orderbook
             request.base_asset_id,
@@ -250,7 +246,7 @@ impl MatchingEngine {
             .checked_div(&price)
             .ok_or(MatchingLoopError::CheckedDivFailed)?;
 
-        while let Some(matching_order) = matching_orders.next().await {
+        while let Some(matching_order) = matching_orders.next().await && quote_asset_volume_left > Fraction::zero() {
             let maker_order = matching_order?;
 
             if !(maker_order.price >= price_inv
@@ -293,8 +289,11 @@ impl MatchingEngine {
             );
 
             response.trades.push(Trade {
+                quote_asset_id: quote_asset.id,
+                base_asset_id: base_asset.id,
                 taker_id: user_id,
                 order_id: maker_order.id,
+                taker_price: Fraction::one().checked_div(&maker_order.price).ok_or(MatchingLoopError::CheckedDivFailed)?,
                 taker_quote_volume: taker_quote_asset_volume_taken,
                 taker_base_volume: taker_base_asset_volume_given
                     .checked_sub(

@@ -1,8 +1,8 @@
 use fraction::Fraction;
-use sqlx::{postgres::PgQueryResult, Postgres, Transaction};
+use sqlx::{postgres::PgQueryResult, types::chrono::Utc, Postgres, Transaction};
 use uuid::Uuid;
 
-use crate::database::Valut;
+use crate::database::projections::valut::Valut;
 
 #[derive(Debug)]
 pub struct ValutsManager {}
@@ -39,12 +39,13 @@ impl ValutsManager {
             Valut,
             r#"
             INSERT INTO spot.valuts
-                (user_id, asset_id, balance)
-            VALUES ($1, $2, (0,1))
+                (user_id, asset_id, balance, last_modification_at)
+            VALUES ($1, $2, (0,1)::fraction, $3)
             RETURNING id, balance as "balance: Fraction"
             "#,
             user_id,
-            asset_id
+            asset_id,
+            Utc::now(),
         )
         .fetch_one(pool)
         .await
@@ -60,12 +61,14 @@ impl ValutsManager {
             UPDATE 
                 spot.valuts 
             SET
-                balance = $2
+                balance = $2::fraction,
+                last_modification_at = $3
             WHERE
                 id = $1
             "#,
             valut.id,
-            valut.balance.to_string() as _
+            valut.balance.to_string() as _,
+            Utc::now()
         )
         .execute(pool)
         .await

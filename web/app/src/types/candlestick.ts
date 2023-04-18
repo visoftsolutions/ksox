@@ -23,9 +23,9 @@ export const Candlestick = z.object({
   low: Fraction,
   close: Fraction,
   span: z.number(),
-  taker_quote_volume: Volume,
-  taker_base_volume: Volume,
-  maker_quote_volume: Volume,
-  maker_base_volume: Volume,
+  taker_quote_volume: Fraction,
+  taker_base_volume: Fraction,
+  maker_quote_volume: Fraction,
+  maker_base_volume: Fraction,
 });
 export type Candlestick = z.infer<typeof Candlestick>;

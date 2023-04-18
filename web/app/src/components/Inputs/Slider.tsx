@@ -71,7 +71,7 @@ export default function Slider(props: SliderComponent) {
           }}
           onInput={(e) => {
             if (props.onInput != undefined) {
-              props.onInput({ numerator: BigInt((e.target as HTMLInputElement).valueAsNumber), denominator: 1000n });
+              props.onInput({ numer: BigInt((e.target as HTMLInputElement).valueAsNumber), denom: 1000n });
             }
           }}
         />

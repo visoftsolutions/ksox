@@ -47,6 +47,7 @@ CREATE TABLE "spot"."trades" (
   "base_asset_id" uuid NOT NULL,
   "taker_id" uuid NOT NULL,
   "order_id" uuid NOT NULL,
+  "price" fraction NOT NULL,
   "taker_quote_volume" fraction NOT NULL,
   "taker_base_volume" fraction NOT NULL,
   "maker_quote_volume" fraction NOT NULL,

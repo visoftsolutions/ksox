@@ -49,7 +49,7 @@ export function Mint(props: { asset: Asset; precision: number }) {
                 body: JSON.stringify(
                   MintBurnRequest.parse({
                     asset_id: props.asset.id,
-                    amount: fToWeiCeil(amount()),
+                    amount: amount(),
                   }),
                   (_, v) => (typeof v === "bigint" ? v.toString() : v)
                 ),

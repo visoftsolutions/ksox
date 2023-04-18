@@ -5,7 +5,7 @@ import { Asset } from "~/types/asset";
 import { Direction } from "../State";
 import { Market } from "~/utils/providers/MarketProvider";
 import { fFromWei } from "~/utils/converters/wei";
-import { ev } from "~/types/primitives/fraction";
+import { ev, finv, fmul } from "~/types/primitives/fraction";
 import { Uuid } from "~/types/primitives/uuid";
 import { useAssets } from "~/utils/providers/AssetsProvider";
 import { Order } from "~/types/order";
@@ -60,9 +60,9 @@ export function OrderHistory(props: { market?: Market; session?: ValidateSignatu
       const capacity = props.capacity;
 
       const convertOrderHistory = (order: Order) => {
-        const quote_asset_volume = ev(fFromWei(order.quote_asset_volume));
-        const base_asset_volume = ev(fFromWei(order.base_asset_volume));
-        const quote_asset_volume_left = ev(fFromWei(order.quote_asset_volume_left));
+        const quote_asset_volume = ev(order.quote_asset_volume);
+        const base_asset_volume = ev(fmul(order.quote_asset_volume, finv(order.price)));
+        const quote_asset_volume_left = ev(order.quote_asset_volume_left);
         if (order.quote_asset_id == quote_asset.id && order.base_asset_id == base_asset.id) {
           const asset_pair: [Asset | undefined, Asset | undefined] = [assets().get(order.base_asset_id), assets().get(order.quote_asset_id)];
           const price = quote_asset_volume / base_asset_volume;

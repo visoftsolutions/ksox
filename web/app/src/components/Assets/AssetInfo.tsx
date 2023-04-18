@@ -4,9 +4,8 @@ import { joinPaths } from "solid-start/islands/server-router";
 import { ValidateSignatureResponse } from "~/auth/mod";
 import { api, base } from "~/root";
 import { Asset } from "~/types/asset";
-import { ev } from "~/types/primitives/fraction";
+import { Fraction, ev } from "~/types/primitives/fraction";
 import { Valut } from "~/types/valut";
-import { fFromWei } from "~/utils/converters/wei";
 import params from "~/utils/params";
 import { formatTemplate } from "~/utils/precision";
 
@@ -19,7 +18,7 @@ export default function CreateAssetInfo(session?: ValidateSignatureResponse, ass
 }
 
 export function AssetInfo(props: { session?: ValidateSignatureResponse; asset?: Asset; precision?: number }) {
-  const [balance, setBalance] = createSignal<bigint | undefined>(undefined);
+  const [balance, setBalance] = createSignal<Fraction | undefined>(undefined);
 
   let events: EventSource | null = null;
 
@@ -65,7 +64,7 @@ export function AssetInfo(props: { session?: ValidateSignatureResponse; asset?: 
       <div class="col-start-2 col-end-3 grid">
         <div class="row-start-1 row-end-2 text-ellipsis text-white">{`${props.asset?.name} (${props.asset?.symbol})`}</div>
         <div class="row-start-2 row-end-3 text-ellipsis text-orderbook-item">
-          {balance() != undefined ? format(ev(fFromWei(balance()!)), formatTemplate(props.precision ?? 3)) : "---"}
+          {balance() != undefined ? format(ev(balance()!), formatTemplate(props.precision ?? 3)) : "---"}
         </div>
       </div>
     </div>

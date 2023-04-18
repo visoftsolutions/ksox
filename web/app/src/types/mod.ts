@@ -3,6 +3,7 @@ import { Uuid } from "~/types/primitives/uuid";
 import { Volume } from "~/types/primitives/volume";
 import { CandlestickType } from "./candlestick";
 import { Pagination } from "./primitives/pagination";
+import { Fraction } from "./primitives/fraction";
 
 export const DepthRequest = z.object({
   quote_asset_id: Uuid,
@@ -48,14 +49,14 @@ export type TradesRequest = z.infer<typeof TradesRequest>;
 export const SubmitRequest = z.object({
   quote_asset_id: Uuid,
   base_asset_id: Uuid,
-  quote_asset_volume: Volume,
-  base_asset_volume: Volume,
+  price: Fraction,
+  quote_asset_volume: Fraction,
 });
 export type SubmitRequest = z.infer<typeof SubmitRequest>;
 
 export const MintBurnRequest = z.object({
   asset_id: Uuid,
-  amount: Volume,
+  amount: Fraction,
 });
 
 export type MintBurnRequest = z.infer<typeof MintBurnRequest>;

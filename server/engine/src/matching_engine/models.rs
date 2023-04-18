@@ -5,8 +5,7 @@ use sqlx::types::Uuid;
 use tonic::Status;
 
 use crate::{
-    base,
-    database::projections::{OrderInsert, Trade},
+    base, database::projections::{order::OrderInsert, trade::Trade},
 };
 
 pub struct SubmitRequest {

@@ -12,7 +12,7 @@ import { api } from "~/root";
 import { Asset } from "~/types/asset";
 import { Market } from "~/utils/providers/MarketProvider";
 import { fFromWei } from "~/utils/converters/wei";
-import { ev } from "~/types/primitives/fraction";
+import { ev, finv } from "~/types/primitives/fraction";
 
 export default function CreateTrades(market: Market, precision?: number, capacity?: number) {
   return () => (
@@ -35,19 +35,15 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
       const capacity = props.capacity;
 
       const convertTrade = (trade: Trade) => {
-        const taker_quote_volume = ev(fFromWei(trade.taker_quote_volume));
-        const taker_base_volume = ev(fFromWei(trade.taker_base_volume));
+        const price = ev(trade.price);
+        const volume = ev(trade.maker_quote_volume);
         if (trade.quote_asset_id == quote_asset.id && trade.base_asset_id == base_asset.id) {
-          const price = taker_quote_volume / taker_base_volume;
-          const volume = taker_base_volume;
           return {
             column_0: <span class="text-green">{format(price, formatTemplate(precision))}</span>,
             column_1: format(volume, formatTemplate(precision)),
             column_2: trade.created_at.toLocaleTimeString(),
           };
         } else {
-          const price = taker_base_volume / taker_quote_volume;
-          const volume = taker_quote_volume;
           return {
             column_0: <span class="text-red">{format(price, formatTemplate(precision))}</span>,
             column_1: format(volume, formatTemplate(precision)),

@@ -12,7 +12,7 @@ import TriElementFill, { TriElementFillComponent } from "./TriElement/TriElement
 import TriElementHeader from "./TriElement/TriElementHeader";
 import { PriceLevel } from "~/types/primitives/pricelevel";
 import { fFromWei } from "~/utils/converters/wei";
-import { ev } from "~/types/primitives/fraction";
+import { ev, finv } from "~/types/primitives/fraction";
 
 export const DepthResponse = z.object({
   sells: z.array(PriceLevel),
@@ -51,21 +51,19 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
       const capacity = props.capacity;
 
       const convertTrade = (trade: Trade) => {
-        const taker_quote_volume = ev(fFromWei(trade.taker_quote_volume));
-        const taker_base_volume = ev(fFromWei(trade.taker_base_volume));
         if (trade.quote_asset_id == quote_asset.id && trade.base_asset_id == base_asset.id) {
-          return <span class="text-green">{format(taker_quote_volume / taker_base_volume, formatTemplate(precision))}</span>;
+          return <span class="text-green">{format(ev(trade.price), formatTemplate(precision))}</span>;
         } else if (trade.quote_asset_id == base_asset.id && trade.base_asset_id == quote_asset.id) {
-          return <span class="text-red">{format(taker_base_volume / taker_quote_volume, formatTemplate(precision))}</span>;
+          return <span class="text-red">{format(ev(trade.price), formatTemplate(precision))}</span>;
         }
       };
 
       const convertBuys = (levels: PriceLevel[]) => {
         let total = 0,
           sum = 0;
-        levels.forEach((value) => (total += ev(fFromWei(value.volume))));
+        levels.forEach((value) => (total += value.volume));
         return levels.map<TriElementFillComponent>((el) => {
-          const volume = ev(fFromWei(el.volume));
+          const volume = el.volume;
           sum += volume;
           return {
             column_0: <span class="text-green">{format(el.price, formatTemplate(precision))}</span>,
@@ -80,9 +78,9 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
       const convertSells = (levels: PriceLevel[]) => {
         let total = 0,
           sum = 0;
-        levels.forEach((value) => (total += ev(fFromWei(value.volume)) * value.price));
+        levels.forEach((value) => (total += value.volume * value.price));
         return levels.map<TriElementFillComponent>((el) => {
-          const volume = ev(fFromWei(el.volume));
+          const volume = el.volume;
           sum += volume * el.price;
           return {
             column_0: <span class="text-red">{format(el.price, formatTemplate(precision))}</span>,

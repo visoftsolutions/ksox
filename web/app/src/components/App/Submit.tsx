@@ -8,6 +8,7 @@ import { Market } from "~/utils/providers/MarketProvider";
 import RectangularButton from "./Buttons/NavButton";
 import BuyForm from "./Submit/BuyForm";
 import SellForm from "./Submit/SellForm";
+import { Fraction } from "~/types/primitives/fraction";
 
 export default function CreateSubmit(market: Market, session?: ValidateSignatureResponse, precision?: number) {
   return () => (
@@ -19,8 +20,8 @@ export default function CreateSubmit(market: Market, session?: ValidateSignature
 
 export function Submit(props: { market?: Market; session?: ValidateSignatureResponse; precision?: number }) {
   const [storeSubmit, setStoreSubmit] = createStore<{
-    buy_available_balance?: bigint;
-    sell_available_balance?: bigint;
+    buy_available_balance?: Fraction;
+    sell_available_balance?: Fraction;
   }>({
     buy_available_balance: undefined,
     sell_available_balance: undefined,

@@ -10,8 +10,7 @@ import {
 } from "lightweight-charts";
 import { TOHLC, TV } from "./models";
 import { Candlestick } from "~/types/candlestick";
-import { ev, finv } from "~/types/primitives/fraction";
-import { fFromWei } from "~/utils/converters/wei";
+import { ev } from "~/types/primitives/fraction";
 
 export class CandlestickChart {
   private tohlc_data: TOHLC[];
@@ -44,17 +43,17 @@ export class CandlestickChart {
   extractTOHLC(candlestick: Candlestick): TOHLC {
     return {
       time: Math.floor(candlestick.topen.getTime() / 1000) as UTCTimestamp,
-      open: ev(finv(candlestick.open)),
-      high: ev(finv(candlestick.high)),
-      low: ev(finv(candlestick.low)),
-      close: ev(finv(candlestick.close)),
+      open: ev(candlestick.open),
+      high: ev(candlestick.high),
+      low: ev(candlestick.low),
+      close: ev(candlestick.close),
     };
   }
 
   extractTV(candlestick: Candlestick): TV {
     return {
       time: Math.floor(candlestick.topen.getTime() / 1000) as UTCTimestamp,
-      value: ev(fFromWei(candlestick.taker_quote_volume)),
+      value: ev(candlestick.taker_quote_volume),
     };
   }
 

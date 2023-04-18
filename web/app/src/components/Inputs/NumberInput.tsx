@@ -44,15 +44,15 @@ function humanReadableToBigint(input: string) {
   const index = decimalNumber.indexOf(".");
   const decimalPlaces = index >= 0 ? BigInt(decimalNumber.length - index - 1) : 0n;
   return Fraction.parse({
-    numerator: BigInt(decimalNumber.replace(".", "")),
-    denominator: 10n ** decimalPlaces,
+    numer: BigInt(decimalNumber.replace(".", "")),
+    denom: 10n ** decimalPlaces,
   });
 }
 
 export default function NumberInput(props: NumberInputComponent) {
   let inputDOM!: HTMLInputElement;
   const valueDOM = createMemo(() => {
-    return props.value == undefined ? { numerator: 0n, denominator: 1n } : props.value;
+    return props.value == undefined ? { numer: 0n, denom: 1n } : props.value;
   });
 
   const id = createUniqueId();
@@ -74,7 +74,7 @@ export default function NumberInput(props: NumberInputComponent) {
           type="text"
           spellcheck={true}
           ref={inputDOM}
-          value={format(Number(valueDOM().numerator) / Number(valueDOM().denominator), formatTemplate(props.precision ?? 3))}
+          value={format(Number(valueDOM().numer) / Number(valueDOM().denom), formatTemplate(props.precision ?? 3))}
           disabled={props.disabled}
           onInput={(e) => {
             (e.target as HTMLInputElement).value = formatHumanReadable((e.target as HTMLInputElement).value, props.precision ?? 3);

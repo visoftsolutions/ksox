@@ -2,10 +2,10 @@ use std::pin::Pin;
 
 use fraction::Fraction;
 use futures::Stream;
-use sqlx::{postgres::PgQueryResult, Postgres, Transaction};
+use sqlx::{postgres::PgQueryResult, types::chrono::Utc, Postgres, Transaction};
 use uuid::Uuid;
 
-use crate::database::{Order, OrderGet, OrderInsert, OrderStatus, OrderUpdate};
+use crate::database::projections::order::{Order, OrderGet, OrderInsert, OrderUpdate, OrderStatus};
 
 #[derive(Debug)]
 pub struct OrdersManager {}
@@ -34,7 +34,7 @@ impl OrdersManager {
         .await
     }
 
-    pub fn get_orders_with_smaller_price<'t, 'p>(
+    pub fn get_orders_with_not_smaller_price<'t, 'p>(
         pool: &'t mut Transaction<'p, Postgres>,
         quote_asset_id: Uuid,
         base_asset_id: Uuid,
@@ -53,12 +53,12 @@ impl OrdersManager {
             AND base_asset_id = $2
             AND is_active = true
             AND quote_asset_volume_left > (0,1)::fraction
-            AND $3::fraction >= price
-            ORDER BY price ASC
+            AND $3::fraction <= price
+            ORDER BY price DESC
             "#,
             quote_asset_id,
             base_asset_id,
-            price as _
+            price.to_string() as _
         )
         .fetch(pool)
     }
@@ -70,9 +70,9 @@ impl OrdersManager {
         sqlx::query!(
             r#"
             INSERT INTO spot.orders
-                (user_id, is_active, quote_asset_id, base_asset_id, price, quote_asset_volume, quote_asset_volume_left, maker_fee)
+                (user_id, is_active, quote_asset_id, base_asset_id, price, quote_asset_volume, quote_asset_volume_left, maker_fee, last_modification_at)
             VALUES
-                ($1, true, $2, $3, $4::fraction, $5::fraction, $6::fraction, $7::fraction)
+                ($1, true, $2, $3, $4::fraction, $5::fraction, $6::fraction, $7::fraction, $8)
             "#,
             element.user_id,
             element.quote_asset_id,
@@ -80,7 +80,8 @@ impl OrdersManager {
             element.price.to_string() as _,
             element.quote_asset_volume.to_string() as _,
             element.quote_asset_volume_left.to_string() as _,
-            element.maker_fee.to_string() as _
+            element.maker_fee.to_string() as _,
+            Utc::now()
         )
         .execute(pool)
         .await
@@ -96,13 +97,15 @@ impl OrdersManager {
                 spot.orders 
             SET
                 is_active = $2,
-                quote_asset_volume_left = $3::fraction
+                quote_asset_volume_left = $3::fraction,
+                last_modification_at = $4
             WHERE
                 id = $1
             "#,
             order.id,
             order.is_active,
-            order.quote_asset_volume_left.to_string() as _
+            order.quote_asset_volume_left.to_string() as _,
+            Utc::now()
         )
         .execute(pool)
         .await
@@ -117,12 +120,14 @@ impl OrdersManager {
             UPDATE 
                 spot.orders 
             SET
-                is_active = $2
+                is_active = $2,
+                last_modification_at = $3
             WHERE
                 id = $1
             "#,
             order.id,
             order.is_active,
+            Utc::now()
         )
         .execute(pool)
         .await

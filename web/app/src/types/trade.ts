@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Datetime } from "./primitives/datetime";
 import { Uuid } from "./primitives/uuid";
-import { Volume } from "./primitives/volume";
+import { Fraction } from "./primitives/fraction";
 
 export const Trade = z.object({
   id: Uuid,
@@ -11,9 +11,10 @@ export const Trade = z.object({
   base_asset_id: Uuid,
   taker_id: Uuid,
   order_id: Uuid,
-  taker_quote_volume: Volume,
-  taker_base_volume: Volume,
-  maker_quote_volume: Volume,
-  maker_base_volume: Volume,
+  price: Fraction,
+  taker_quote_volume: Fraction,
+  taker_base_volume: Fraction,
+  maker_quote_volume: Fraction,
+  maker_base_volume: Fraction,
 });
 export type Trade = z.infer<typeof Trade>;

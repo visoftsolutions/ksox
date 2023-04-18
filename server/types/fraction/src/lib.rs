@@ -22,7 +22,7 @@ use sqlx::{
     Postgres, Type, TypeInfo,
 };
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, NumOps, One, Zero, Num, Ord, Eq)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, NumOps, One, Zero, Num, Ord, Eq, Default)]
 pub struct Fraction(pub BigRational);
 
 impl Fraction {

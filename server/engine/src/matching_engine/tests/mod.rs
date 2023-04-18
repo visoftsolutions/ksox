@@ -6,7 +6,6 @@ use seq_macro::seq;
 use uuid::Uuid;
 
 use crate::{
-    database::OrderGet,
     matching_engine::{
         models::MatchingLoopError,
         tests::{
@@ -17,7 +16,7 @@ use crate::{
             },
         },
         MatchingEngine,
-    },
+    }, database::projections::order::OrderGet,
 };
 
 pub mod arb_asset;
