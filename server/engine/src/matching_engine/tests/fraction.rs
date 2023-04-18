@@ -1,12 +1,11 @@
 use num_rational::BigRational;
 use proptest::{prelude::*, prop_compose};
 
-use super::FRACTION_BYTES;
 use crate::types::Fraction;
 
 prop_compose! {
     pub fn arb_fraction_bigger_than_zero()(
-        f in any_with::<Fraction>(FRACTION_BYTES)
+        f in any_with::<Fraction>(std::env::var("TESTS_FRACTION_BYTES").unwrap().parse().unwrap())
     ) -> Fraction {
         let (numer, denom) = f.0.into();
         Fraction(BigRational::from((1 + numer, denom)))
@@ -15,7 +14,7 @@ prop_compose! {
 
 prop_compose! {
     pub fn arb_fraction_not_bigger_than_one()(
-        f in any_with::<Fraction>(FRACTION_BYTES)
+        f in any_with::<Fraction>(std::env::var("TESTS_FRACTION_BYTES").unwrap().parse().unwrap())
     ) -> Fraction {
         let (numer, denom) = f.0.into();
         Fraction(BigRational::from((1 + numer % denom.to_owned(), denom)))
@@ -24,7 +23,7 @@ prop_compose! {
 
 prop_compose! {
     pub fn arb_fraction_not_smaller_than_one()(
-        f in any_with::<Fraction>(FRACTION_BYTES)
+        f in any_with::<Fraction>(std::env::var("TESTS_FRACTION_BYTES").unwrap().parse().unwrap())
     ) -> Fraction {
         let (numer, denom) = f.0.into();
         Fraction(BigRational::from((numer + denom.to_owned(), denom)))
@@ -32,7 +31,7 @@ prop_compose! {
 }
 prop_compose! {
     pub fn arb_fraction_smaller_than_one_or_zero()(
-        f in any_with::<Fraction>(FRACTION_BYTES)
+        f in any_with::<Fraction>(std::env::var("TESTS_FRACTION_BYTES").unwrap().parse().unwrap())
     ) -> Fraction {
         let (numer, denom) = f.0.into();
         Fraction(BigRational::from((numer % denom.to_owned(), denom)))
@@ -41,7 +40,7 @@ prop_compose! {
 
 prop_compose! {
     pub fn arb_fraction_bigger_than_one()(
-        f in any_with::<Fraction>(FRACTION_BYTES)
+        f in any_with::<Fraction>(std::env::var("TESTS_FRACTION_BYTES").unwrap().parse().unwrap())
     ) -> Fraction {
         let (numer, denom) = f.0.into();
         Fraction(BigRational::from((1 + numer + denom.to_owned(), denom)))

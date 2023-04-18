@@ -259,13 +259,12 @@ mod tests {
     use seq_macro::seq;
 
     use super::Fraction;
-    use crate::matching_engine::tests::{CASES, FRACTION_BYTES};
 
     seq!(N in 0..10 {
     proptest! {
-        #![proptest_config(ProptestConfig::with_cases(CASES))]
+        #![proptest_config(ProptestConfig::with_cases(std::env::var("TESTS_CASES").unwrap().parse().unwrap()))]
         #[test]
-        fn serialization~N(fraction in any_with::<Fraction>(FRACTION_BYTES)) {
+        fn serialization~N(fraction in any_with::<Fraction>(std::env::var("TESTS_FRACTION_BYTES").unwrap().parse().unwrap())) {
             assert_eq!(fraction, serde_json::from_str(&serde_json::to_string(&fraction).unwrap()).unwrap());
         }
     }

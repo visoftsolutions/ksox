@@ -25,13 +25,10 @@ pub mod asset;
 pub mod fraction;
 pub mod order;
 
-pub const FRACTION_BYTES: usize = 2;
-pub const CASES: u32 = 1000;
-
 seq!(N in 0..10 {
 // ensure that when there is not_matching_order supplied -> error is risen
 proptest! {
-    #![proptest_config(ProptestConfig::with_cases(CASES))]
+    #![proptest_config(ProptestConfig::with_cases(std::env::var("TESTS_CASES").unwrap().parse().unwrap()))]
     #[test]
     fn error_when_not_matching_order~N(
         (user_id, price, quote_asset_volume, quote_asset, base_asset, maker_order, accuracy) in (
@@ -63,7 +60,7 @@ proptest! {
 seq!(N in 0..10 {
 // ensure that when there is smaller matching order available -> there will be trade and leftover order
 proptest! {
-    #![proptest_config(ProptestConfig::with_cases(CASES))]
+    #![proptest_config(ProptestConfig::with_cases(std::env::var("TESTS_CASES").unwrap().parse().unwrap()))]
     #[test]
     fn new_order_new_trade_when_matching_smaller_order~N(
         (user_id, price, quote_asset_volume, quote_asset, base_asset, maker_order, accuracy) in (
@@ -121,7 +118,7 @@ proptest! {
 seq!(N in 0..10 {
 // ensure that when there no matching order available -> only there order is created
 proptest! {
-    #![proptest_config(ProptestConfig::with_cases(CASES))]
+    #![proptest_config(ProptestConfig::with_cases(std::env::var("TESTS_CASES").unwrap().parse().unwrap()))]
     #[test]
     fn new_order_when_no_matching_order~N(
         (user_id, price, quote_asset_volume, quote_asset, base_asset, maker_order, accuracy) in (
@@ -166,7 +163,7 @@ proptest! {
 seq!(N in 0..10 {
 // ensure that when there bigger matching order available -> only trade is created
 proptest! {
-    #![proptest_config(ProptestConfig::with_cases(CASES))]
+    #![proptest_config(ProptestConfig::with_cases(std::env::var("TESTS_CASES").unwrap().parse().unwrap()))]
     #[test]
     fn new_trade_when_bigger_matching_order~N(
         (user_id, price, quote_asset_volume, quote_asset, base_asset, maker_order, accuracy) in (
