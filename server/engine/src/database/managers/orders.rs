@@ -1,13 +1,11 @@
 use std::pin::Pin;
 
+use fraction::Fraction;
 use futures::Stream;
 use sqlx::{postgres::PgQueryResult, Postgres, Transaction};
 use uuid::Uuid;
 
-use crate::{
-    database::{Order, OrderGet, OrderInsert, OrderStatus, OrderUpdate},
-    types::Fraction,
-};
+use crate::database::{Order, OrderGet, OrderInsert, OrderStatus, OrderUpdate};
 
 #[derive(Debug)]
 pub struct OrdersManager {}

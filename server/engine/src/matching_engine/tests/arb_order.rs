@@ -1,14 +1,12 @@
-use num_traits::Inv;
+use fraction::{num_traits::Inv, Fraction};
 use proptest::{prelude::*, prop_compose};
 use uuid::Uuid;
 
-use super::{
-    fraction::{
-        arb_bigger_fraction, arb_fraction_not_bigger_than_one, arb_not_bigger_fraction,
-        arb_not_smaller_fraction, arb_smaller_fraction_or_zero,
-    }
+use super::arb_fraction::{
+    arb_bigger_fraction, arb_fraction_not_bigger_than_one, arb_not_bigger_fraction,
+    arb_not_smaller_fraction, arb_smaller_fraction_or_zero,
 };
-use crate::{database::OrderGet, types::Fraction};
+use crate::database::OrderGet;
 
 prop_compose! {
     pub fn arb_order()(

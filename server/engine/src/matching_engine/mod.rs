@@ -1,7 +1,10 @@
 use std::pin::Pin;
 
 use base::engine_server::Engine;
-use num_traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, One, Zero};
+use fraction::{
+    num_traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, One, Zero},
+    Fraction,
+};
 use sqlx::{PgPool, Postgres, Transaction};
 use tokio_stream::{Stream, StreamExt};
 use tonic::{Request, Response, Status};
@@ -17,7 +20,6 @@ use crate::{
         Asset, AssetsManager, OrderGet, OrderInsert, OrdersManager, Trade, TradesManager,
         ValutsManager,
     },
-    types::Fraction,
 };
 pub mod models;
 

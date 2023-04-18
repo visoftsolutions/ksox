@@ -7,6 +7,7 @@ use std::{
 use num_bigint::{BigInt, Sign};
 use num_derive::{Num, NumOps, One, Zero};
 use num_rational::BigRational;
+pub use num_traits;
 use num_traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, Inv, Zero};
 use proptest::{
     prelude::{Arbitrary, *},
@@ -90,6 +91,12 @@ impl CheckedMul for Fraction {
 impl CheckedDiv for Fraction {
     fn checked_div(&self, v: &Self) -> Option<Self> {
         Some(Fraction(self.0.checked_div(&v.0)?))
+    }
+}
+
+impl From<(BigInt, BigInt)> for Fraction {
+    fn from(value: (BigInt, BigInt)) -> Self {
+        Fraction(BigRational::from(value))
     }
 }
 

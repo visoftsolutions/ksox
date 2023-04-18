@@ -1,7 +1,8 @@
+use fraction::Fraction;
 use sqlx::{Postgres, Transaction};
 use uuid::Uuid;
 
-use crate::{database::Asset, types::Fraction};
+use crate::database::Asset;
 
 #[derive(Debug)]
 pub struct AssetsManager {}

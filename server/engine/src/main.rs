@@ -8,19 +8,18 @@ mod database;
 mod health;
 mod matching_engine;
 mod shutdown_signal;
-mod types;
 
 use std::{net::SocketAddr, str::FromStr};
 
 use base::engine_server::EngineServer;
+use fraction::Fraction;
 use num_bigint::BigInt;
-use num_rational::BigRational;
 use sqlx::PgPool;
 use tonic::transport::Server;
 
 use crate::{
     base::health_check_response::ServingStatus, health::health_reporter,
-    matching_engine::MatchingEngine, types::Fraction,
+    matching_engine::MatchingEngine,
 };
 
 #[tokio::main]
@@ -34,10 +33,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let matching_engine = MatchingEngine::new(
         database,
-        Fraction(BigRational::from((
-            BigInt::from_str("1")?,
-            BigInt::from_str("10000")?,
-        ))),
+        Fraction::from((BigInt::from_str("1")?, BigInt::from_str("10000")?)),
     );
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));

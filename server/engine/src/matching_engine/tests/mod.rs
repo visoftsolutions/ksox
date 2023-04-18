@@ -1,6 +1,6 @@
 use async_stream::stream;
+use fraction::{num_traits::Zero, Fraction};
 use futures::executor::block_on;
-use num_traits::Zero;
 use proptest::{prelude::*, proptest};
 use seq_macro::seq;
 use uuid::Uuid;
@@ -10,20 +10,19 @@ use crate::{
     matching_engine::{
         models::MatchingLoopError,
         tests::{
-            asset::arb_asset,
-            fraction::arb_fraction_bigger_than_zero,
-            order::{
+            arb_asset::arb_asset,
+            arb_fraction::arb_fraction_bigger_than_zero,
+            arb_order::{
                 arb_not_matching_order, arb_not_smaller_matching_order, arb_smaller_matching_order,
             },
         },
         MatchingEngine,
     },
-    types::Fraction,
 };
 
-pub mod asset;
-pub mod fraction;
-pub mod order;
+pub mod arb_asset;
+pub mod arb_fraction;
+pub mod arb_order;
 
 seq!(N in 0..10 {
 // ensure that when there is not_matching_order supplied -> error is risen

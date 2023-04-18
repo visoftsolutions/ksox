@@ -1,12 +1,12 @@
 use std::str::FromStr;
 
+use fraction::Fraction;
 use sqlx::types::Uuid;
 use tonic::Status;
 
 use crate::{
     base,
     database::projections::{OrderInsert, Trade},
-    types::Fraction,
 };
 
 pub struct SubmitRequest {

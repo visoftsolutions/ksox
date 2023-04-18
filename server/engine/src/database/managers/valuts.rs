@@ -1,7 +1,8 @@
+use fraction::Fraction;
 use sqlx::{postgres::PgQueryResult, Postgres, Transaction};
 use uuid::Uuid;
 
-use crate::{database::Valut, types::Fraction};
+use crate::database::Valut;
 
 #[derive(Debug)]
 pub struct ValutsManager {}

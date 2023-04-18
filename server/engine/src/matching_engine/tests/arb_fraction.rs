@@ -1,14 +1,12 @@
-use num_rational::BigRational;
+use fraction::Fraction;
 use proptest::{prelude::*, prop_compose};
-
-use crate::types::Fraction;
 
 prop_compose! {
     pub fn arb_fraction_bigger_than_zero()(
         f in any_with::<Fraction>(std::env::var("TESTS_FRACTION_BYTES").unwrap().parse().unwrap())
     ) -> Fraction {
         let (numer, denom) = f.0.into();
-        Fraction(BigRational::from((1 + numer, denom)))
+        Fraction::from((1 + numer, denom))
     }
 }
 
@@ -17,7 +15,7 @@ prop_compose! {
         f in any_with::<Fraction>(std::env::var("TESTS_FRACTION_BYTES").unwrap().parse().unwrap())
     ) -> Fraction {
         let (numer, denom) = f.0.into();
-        Fraction(BigRational::from((1 + numer % denom.to_owned(), denom)))
+        Fraction::from((1 + numer % denom.to_owned(), denom))
     }
 }
 
@@ -26,7 +24,7 @@ prop_compose! {
         f in any_with::<Fraction>(std::env::var("TESTS_FRACTION_BYTES").unwrap().parse().unwrap())
     ) -> Fraction {
         let (numer, denom) = f.0.into();
-        Fraction(BigRational::from((numer + denom.to_owned(), denom)))
+        Fraction::from((numer + denom.to_owned(), denom))
     }
 }
 prop_compose! {
@@ -34,7 +32,7 @@ prop_compose! {
         f in any_with::<Fraction>(std::env::var("TESTS_FRACTION_BYTES").unwrap().parse().unwrap())
     ) -> Fraction {
         let (numer, denom) = f.0.into();
-        Fraction(BigRational::from((numer % denom.to_owned(), denom)))
+        Fraction::from((numer % denom.to_owned(), denom))
     }
 }
 
@@ -43,7 +41,7 @@ prop_compose! {
         f in any_with::<Fraction>(std::env::var("TESTS_FRACTION_BYTES").unwrap().parse().unwrap())
     ) -> Fraction {
         let (numer, denom) = f.0.into();
-        Fraction(BigRational::from((1 + numer + denom.to_owned(), denom)))
+        Fraction::from((1 + numer + denom.to_owned(), denom))
     }
 }
 
