@@ -41,6 +41,7 @@ export interface TOHLCV extends OHLCV, Time {}
 export interface TV extends Time, Volume {}
 
 export interface Trade {
+  direction: string;
   datetime: Date;
   price: number;
   quantity: number;

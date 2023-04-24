@@ -94,9 +94,9 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE OR REPLACE TRIGGER users_update_last_modification_at
-AFTER INSERT OR UPDATE ON "users"
-FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"UsersChanged"');
+-- CREATE OR REPLACE TRIGGER users_update_last_modification_at
+-- AFTER INSERT OR UPDATE ON "users"
+-- FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"UsersChanged"');
 
 CREATE OR REPLACE TRIGGER spot_valuts_update_last_modification_at
 AFTER INSERT OR UPDATE ON "spot"."valuts"

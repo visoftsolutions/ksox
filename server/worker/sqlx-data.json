@@ -38,6 +38,65 @@
     },
     "query": "\n            SELECT\n                users.id,\n                users.created_at,\n                users.last_modification_at,\n                users.address as \"address: EvmAddress\"\n            FROM users\n            WHERE users.id = $1\n            "
   },
+  "23f2082a9f359e13aa9bb513a2e0fd1fec8c1c6f91f788f3153deb377a7790fc": {
+    "describe": {
+      "columns": [
+        {
+          "name": "price: Fraction",
+          "ordinal": 0,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "volume: Fraction",
+          "ordinal": 1,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n            price as \"price: Fraction\",\n            quote_asset_volume_left as \"volume: Fraction\"\n            FROM spot.orders\n            WHERE quote_asset_id = $1\n            AND base_asset_id = $2\n            AND is_active = true\n            ORDER BY price DESC\n            "
+  },
   "2942204954eb71feed4ed1488b6ffae4dc9b221fdb3eb72e303a139ec899a890": {
     "describe": {
       "columns": [
@@ -964,35 +1023,6 @@
     },
     "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                quote_asset_id,\n                base_asset_id,\n                taker_id,\n                order_id,\n                price as \"price: Fraction\",\n                taker_quote_volume as \"taker_quote_volume: Fraction\",\n                taker_base_volume as \"taker_base_volume: Fraction\",\n                maker_quote_volume as \"maker_quote_volume: Fraction\",\n                maker_base_volume as \"maker_base_volume: Fraction\"\n            FROM spot.trades\n            WHERE (quote_asset_id = $1 AND base_asset_id = $2) OR (quote_asset_id = $2 AND base_asset_id = $1)\n            ORDER BY created_at DESC\n            LIMIT $3\n            OFFSET $4\n            "
   },
-  "4652f7f63b512e9948185d4ed85bb3dee06b017c37bf0ea7fda2ffb8b69282c3": {
-    "describe": {
-      "columns": [
-        {
-          "name": "price",
-          "ordinal": 0,
-          "type_info": "Float8"
-        },
-        {
-          "name": "volume",
-          "ordinal": 1,
-          "type_info": "Float8"
-        }
-      ],
-      "nullable": [
-        null,
-        null
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Uuid",
-          "Int4",
-          "Int8"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                ROUND(CAST(price AS NUMERIC), CAST($3 AS INTEGER))::float as price,\n                SUM(CAST(quote_asset_volume_left AS NUMERIC))::float as volume\n            FROM spot.orders\n            WHERE quote_asset_id = $1\n            AND base_asset_id = $2\n            AND is_active = true\n            GROUP BY price \n            ORDER BY price DESC\n            LIMIT $4\n            "
-  },
   "512a65ede1f41e799cf266756c5434136a9c31a8d6f072e68b9424c52b8816cc": {
     "describe": {
       "columns": [
@@ -1158,35 +1188,6 @@
       }
     },
     "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                quote_asset_id,\n                base_asset_id,\n                taker_id,\n                order_id,\n                price as \"price: Fraction\",\n                taker_quote_volume as \"taker_quote_volume: Fraction\",\n                taker_base_volume as \"taker_base_volume: Fraction\",\n                maker_quote_volume as \"maker_quote_volume: Fraction\",\n                maker_base_volume as \"maker_base_volume: Fraction\"\n            FROM spot.trades\n            WHERE last_modification_at > $1\n            "
-  },
-  "53c504d008627f290bbf722a7f19a0804e074c7071ec2afef5807235c7c0b525": {
-    "describe": {
-      "columns": [
-        {
-          "name": "price",
-          "ordinal": 0,
-          "type_info": "Float8"
-        },
-        {
-          "name": "volume",
-          "ordinal": 1,
-          "type_info": "Float8"
-        }
-      ],
-      "nullable": [
-        null,
-        null
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Uuid",
-          "Int4",
-          "Int8"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                ROUND(CAST(1 AS NUMERIC) / CAST(price AS NUMERIC), CAST($3 AS INTEGER))::float as price,\n                SUM(CAST(quote_asset_volume_left AS NUMERIC))::float as volume\n            FROM spot.orders\n            WHERE quote_asset_id = $1\n            AND base_asset_id = $2\n            AND is_active = true\n            GROUP BY price\n            ORDER BY price ASC\n            LIMIT $4\n            "
   },
   "58660af01e3e95e0bc80ec1b4823f62754d78c0f7e64ccaefc587bb2ffee5c4e": {
     "describe": {
@@ -1979,6 +1980,65 @@
       }
     },
     "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                quote_asset_id,\n                base_asset_id,\n                kind as \"kind: CandlestickType\",\n                topen,\n                tclose,\n                open as \"open: Fraction\",\n                high as \"high: Fraction\",\n                low as \"low: Fraction\",\n                close as \"close: Fraction\",\n                span,\n                taker_quote_volume as \"taker_quote_volume: Fraction\",\n                taker_base_volume as \"taker_base_volume: Fraction\",\n                maker_quote_volume as \"maker_quote_volume: Fraction\",\n                maker_base_volume as \"maker_base_volume: Fraction\"\n            FROM spot.candlesticks\n            WHERE spot.candlesticks.quote_asset_id = $1 AND spot.candlesticks.base_asset_id = $2\n            AND spot.candlesticks.topen = $3 AND spot.candlesticks.tclose = $4\n            "
+  },
+  "a90a094c23efa5b6c004ea0198bddcf519711d8810c9898e5bff3aa24717f3b7": {
+    "describe": {
+      "columns": [
+        {
+          "name": "price: Fraction",
+          "ordinal": 0,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "volume: Fraction",
+          "ordinal": 1,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n            price as \"price: Fraction\",\n            quote_asset_volume_left as \"volume: Fraction\"\n            FROM spot.orders\n            WHERE base_asset_id = $1\n            AND quote_asset_id = $2\n            AND is_active = true\n            ORDER BY price ASC\n            "
   },
   "aed2623ec743c61f7001377d1457559a8423cccd5ab71029f82ab1bffdd03250": {
     "describe": {

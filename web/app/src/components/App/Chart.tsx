@@ -1,4 +1,4 @@
-import { Show, onMount } from "solid-js";
+import { Show, onCleanup, onMount } from "solid-js";
 import { Market } from "~/utils/providers/MarketProvider";
 import { CandlestickChart } from "./Chart/candlestickChart";
 import { chartOptions, histogramOptions, candlestickOptions } from "./Chart/config";
@@ -44,7 +44,7 @@ export function Chart(props: { market?: Market }) {
         })}`
       );
       events.onopen = async () => {
-        for (let i = 0; i < 30; i++) {
+        for (let i = 0; i < 5; i++) {
           reference_point -= interval;
           await fetch(
             `${api}/public/ohlcv?${params({
@@ -66,6 +66,10 @@ export function Chart(props: { market?: Market }) {
         chart.push(Candlestick.parse(JSON.parse(ev.data)));
       };
     }
+  });
+
+  onCleanup(() => {
+    events?.close();
   });
 
   return <div ref={ChartDOM} class="absolute bottom-0 left-0 right-0 top-0 bg-gray-2" />;

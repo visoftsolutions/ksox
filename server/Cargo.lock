@@ -1829,6 +1829,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "pricelevel"
+version = "0.1.0"
+dependencies = [
+ "async-stream",
+ "fraction",
+ "num-bigint",
+ "num-derive",
+ "num-rational",
+ "num-traits",
+ "proptest",
+ "seq-macro",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-stream",
+]
+
+[[package]]
 name = "primitive-types"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3421,6 +3439,7 @@ dependencies = [
  "ordered-float",
  "predicates",
  "prefix-hex",
+ "pricelevel",
  "prost",
  "rand",
  "redis",

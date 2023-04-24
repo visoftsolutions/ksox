@@ -1,9 +1,8 @@
 import { z } from "zod";
-import { Volume } from "./volume";
 
 export const Fraction = z.object({
-  numer: Volume,
-  denom: Volume,
+  numer: z.coerce.bigint(),
+  denom: z.coerce.bigint(),
 });
 export type Fraction = z.infer<typeof Fraction>;
 

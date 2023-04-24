@@ -2,10 +2,8 @@ import { Index, onCleanup, onMount, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import { ValidateSignatureResponse } from "~/auth/mod";
 import { Asset } from "~/types/asset";
-import { fFromWei } from "~/utils/converters/wei";
 import { Direction } from "../State";
 import { Market } from "~/utils/providers/MarketProvider";
-import { ev } from "~/types/primitives/fraction";
 import { useAssets } from "~/utils/providers/AssetsProvider";
 import { Uuid } from "~/types/primitives/uuid";
 import { format } from "numerable";
@@ -61,7 +59,7 @@ export function TradeHistory(props: { market?: Market; session?: ValidateSignatu
 
   return (
     <div class="row-start-3 row-end-4 overflow-auto">
-      <Index each={Object.values(tradeHistory).sort((b,a) => a.order_time.getTime() - b.order_time.getTime())}>
+      <Index each={Object.values(tradeHistory).sort((b, a) => a.order_time.getTime() - b.order_time.getTime())}>
         {(element, i) => (
           <div class={`grid grid-cols-7 items-center self-center px-[12px] py-[8px] text-state-item font-normal text-white ${i % 2 && "bg-gray-3"} `}>
             <div class="col-start-1 col-end-2 text-left">{element().order_time.toUTCString()}</div>

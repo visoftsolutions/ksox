@@ -4,7 +4,6 @@ import { ValidateSignatureResponse } from "~/auth/mod";
 import { Asset } from "~/types/asset";
 import { Direction } from "../State";
 import { Market } from "~/utils/providers/MarketProvider";
-import { fFromWei } from "~/utils/converters/wei";
 import { ev, finv, fmul } from "~/types/primitives/fraction";
 import { Uuid } from "~/types/primitives/uuid";
 import { useAssets } from "~/utils/providers/AssetsProvider";
@@ -16,7 +15,7 @@ import { format } from "numerable";
 import { formatTemplate } from "~/utils/precision";
 
 interface OrderHistory {
-  id: Uuid,
+  id: Uuid;
   order_time: Date;
   asset_pair: [Asset | undefined, Asset | undefined];
   direction: Direction;
@@ -132,7 +131,7 @@ export function OrderHistory(props: { market?: Market; session?: ValidateSignatu
 
   return (
     <div class="row-start-3 row-end-4 overflow-auto">
-      <Index each={Object.values(orderHistory).sort((b,a) => a.order_time.getTime() - b.order_time.getTime())}>
+      <Index each={Object.values(orderHistory).sort((b, a) => a.order_time.getTime() - b.order_time.getTime())}>
         {(element, i) => (
           <div class={`grid grid-cols-8 items-center self-center px-[12px] py-[8px] text-state-item font-normal text-white ${i % 2 && "bg-gray-3"} `}>
             <div class="col-start-1 col-end-2 text-left">{element().order_time.toUTCString()}</div>
@@ -142,7 +141,9 @@ export function OrderHistory(props: { market?: Market; session?: ValidateSignatu
             <div class="col-start-5 col-end-6 text-center">{format(element().order_value, formatTemplate(props.precision ?? 2))}</div>
             <div class="col-start-6 col-end-7 text-center">{format(element().order_qty, formatTemplate(props.precision ?? 2))}</div>
             <div class="col-start-7 col-end-8 text-center">{format(element().filled_qty, formatTemplate(props.precision ?? 2))}</div>
-            <div class="col-start-8 col-end-9 flex justify-end">{element().is_active ? "active" : element().filled_qty == element().order_qty ? "filled" : "cancelled"}</div>
+            <div class="col-start-8 col-end-9 flex justify-end">
+              {element().is_active ? "active" : element().filled_qty == element().order_qty ? "filled" : "cancelled"}
+            </div>
           </div>
         )}
       </Index>

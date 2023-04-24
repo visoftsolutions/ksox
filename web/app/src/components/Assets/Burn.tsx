@@ -1,6 +1,5 @@
 import NumberInput from "../Inputs/NumberInput";
 import { Show, createSignal } from "solid-js";
-import { fToWeiCeil } from "~/utils/converters/wei";
 import { api } from "~/root";
 import { MintBurnRequest } from "~/types/mod";
 import { useSession } from "~/utils/providers/SessionProvider";

@@ -8,7 +8,7 @@ use num_bigint::{BigInt, Sign};
 use num_derive::{Num, NumOps, One, Zero};
 use num_rational::BigRational;
 pub use num_traits;
-use num_traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, Inv, Zero};
+use num_traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, Inv, One, Signed, Zero};
 use proptest::{
     prelude::{Arbitrary, *},
     sample::size_range,
@@ -26,12 +26,8 @@ use sqlx::{
 pub struct Fraction(pub BigRational);
 
 impl Fraction {
-    // pub fn floor_with_accuracy(self, accuracy: &Fraction) -> Fraction {
-    //     Fraction((self.0 / accuracy.0.clone()).floor() * accuracy.0.clone())
-    // }
-
-    pub fn checked_floor_with_accuracy(self, accuracy: &Fraction) -> Option<Fraction> {
-        Some(Fraction(
+    pub fn checked_floor_with_accuracy(self, accuracy: &Self) -> Option<Self> {
+        Some(Self(
             self.0
                 .checked_div(&accuracy.0)?
                 .floor()
@@ -39,9 +35,14 @@ impl Fraction {
         ))
     }
 
-    // pub fn ceil_with_accuracy(self, accuracy: Fraction) -> Fraction {
-    //     Fraction((self.0 / accuracy.0.clone()).ceil() * accuracy.0)
-    // }
+    pub fn checked_round_with_accuracy(self, accuracy: &Self) -> Option<Self> {
+        Some(Self(
+            self.0
+                .checked_div(&accuracy.0)?
+                .round()
+                .checked_mul(&accuracy.0)?,
+        ))
+    }
 }
 
 impl Neg for Fraction {
@@ -97,6 +98,36 @@ impl CheckedDiv for Fraction {
 impl From<(BigInt, BigInt)> for Fraction {
     fn from(value: (BigInt, BigInt)) -> Self {
         Fraction(BigRational::from(value))
+    }
+}
+
+impl From<usize> for Fraction {
+    fn from(value: usize) -> Self {
+        Self(BigRational::from_integer(value.into()))
+    }
+}
+
+impl Signed for Fraction {
+    fn abs(&self) -> Self {
+        Fraction(self.0.abs())
+    }
+    fn abs_sub(&self, other: &Self) -> Self {
+        Fraction(self.0.abs_sub(&other.0))
+    }
+    fn signum(&self) -> Self {
+        if self.is_positive() {
+            Self::one()
+        } else if self.is_zero() {
+            Self::zero()
+        } else {
+            -Self::one()
+        }
+    }
+    fn is_negative(&self) -> bool {
+        self.0.is_negative()
+    }
+    fn is_positive(&self) -> bool {
+        self.0.is_positive()
     }
 }
 

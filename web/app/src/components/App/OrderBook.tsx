@@ -4,15 +4,14 @@ import { createStore } from "solid-js/store";
 import { z } from "zod";
 import { api } from "~/root";
 import { Asset } from "~/types/asset";
-import { Trade } from "~/types/trade";
 import params from "~/utils/params";
 import { formatTemplate } from "~/utils/precision";
 import { Market } from "~/utils/providers/MarketProvider";
 import TriElementFill, { TriElementFillComponent } from "./TriElement/TriElementFill";
 import TriElementHeader from "./TriElement/TriElementHeader";
-import { PriceLevel } from "~/types/primitives/pricelevel";
-import { fFromWei } from "~/utils/converters/wei";
-import { ev, finv } from "~/types/primitives/fraction";
+import { ev } from "~/types/primitives/fraction";
+import { PriceLevel } from "~/types/pricelevel";
+import { PublicTrade } from "~/types/trade";
 
 export const DepthResponse = z.object({
   sells: z.array(PriceLevel),
@@ -50,24 +49,21 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
       const precision = props.precision;
       const capacity = props.capacity;
 
-      const convertTrade = (trade: Trade) => {
-        if (trade.quote_asset_id == quote_asset.id && trade.base_asset_id == base_asset.id) {
-          return <span class="text-green">{format(ev(trade.price), formatTemplate(precision))}</span>;
-        } else if (trade.quote_asset_id == base_asset.id && trade.base_asset_id == quote_asset.id) {
-          return <span class="text-red">{format(ev(trade.price), formatTemplate(precision))}</span>;
-        }
+      const convertTrade = (trade: PublicTrade) => {
+        return <span class={trade.direction == "buy" ? "text-green" : "text-red"}>{format(ev(trade.price), formatTemplate(precision))}</span>;
       };
 
       const convertBuys = (levels: PriceLevel[]) => {
         let total = 0,
           sum = 0;
-        levels.forEach((value) => (total += value.volume));
+        levels.forEach((value) => (total += ev(value.volume)));
         return levels.map<TriElementFillComponent>((el) => {
-          const volume = el.volume;
+          const price = ev(el.price);
+          const volume = ev(el.volume);
           sum += volume;
           return {
-            column_0: <span class="text-green">{format(el.price, formatTemplate(precision))}</span>,
-            column_1: format(volume / el.price, formatTemplate(precision)),
+            column_0: <span class="text-green">{format(price, formatTemplate(precision))}</span>,
+            column_1: format(volume / price, formatTemplate(precision)),
             column_2: format(sum, formatTemplate(precision)),
             fill: sum / total,
             fill_class: "bg-green",
@@ -78,13 +74,14 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
       const convertSells = (levels: PriceLevel[]) => {
         let total = 0,
           sum = 0;
-        levels.forEach((value) => (total += value.volume * value.price));
+        levels.forEach((value) => (total += ev(value.volume)));
         return levels.map<TriElementFillComponent>((el) => {
-          const volume = el.volume;
-          sum += volume * el.price;
+          const price = ev(el.price);
+          const volume = ev(el.volume);
+          sum += volume;
           return {
-            column_0: <span class="text-red">{format(el.price, formatTemplate(precision))}</span>,
-            column_1: format(volume, formatTemplate(precision)),
+            column_0: <span class="text-red">{format(price, formatTemplate(precision))}</span>,
+            column_1: format(volume / price, formatTemplate(precision)),
             column_2: format(sum, formatTemplate(precision)),
             fill: sum / total,
             fill_class: "bg-red",
@@ -97,7 +94,7 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
           quote_asset_id: quote_asset.id,
           base_asset_id: base_asset.id,
           limit: capacity,
-          precision: precision,
+          precision: 100,
         })}`
       );
       depth_events.onopen = async () =>
@@ -106,7 +103,7 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
             quote_asset_id: quote_asset.id,
             base_asset_id: base_asset.id,
             limit: capacity,
-            precision: precision,
+            precision: 100,
           })}`
         )
           .then((r) => r.json())
@@ -141,13 +138,13 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
           })}`
         )
           .then((r) => r.json())
-          .then((r) => z.array(Trade).parse(r))
+          .then((r) => z.array(PublicTrade).parse(r))
           .then((r) => {
             if (r && r.length > 0) setOrderBook("price", convertTrade(r[0]));
           });
 
       trades_events.onmessage = (ev) => {
-        const trades = Trade.array().parse(JSON.parse(ev.data));
+        const trades = PublicTrade.array().parse(JSON.parse(ev.data));
         if (trades.length > 0) {
           setOrderBook("price", convertTrade(trades[0]));
         }

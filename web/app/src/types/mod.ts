@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { Uuid } from "~/types/primitives/uuid";
-import { Volume } from "~/types/primitives/volume";
 import { CandlestickType } from "./candlestick";
 import { Pagination } from "./primitives/pagination";
 import { Fraction } from "./primitives/fraction";

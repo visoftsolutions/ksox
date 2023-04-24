@@ -2,7 +2,6 @@ import { z } from "zod";
 import { Datetime } from "./primitives/datetime";
 import { Fraction } from "./primitives/fraction";
 import { Uuid } from "./primitives/uuid";
-import { Volume } from "./primitives/volume";
 
 export enum CandlestickType {
   Interval = "Interval",

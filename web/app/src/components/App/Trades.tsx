@@ -3,7 +3,7 @@ import { createStore } from "solid-js/store";
 import { TriElementComponent } from "~/components/App/TriElement/TriElement";
 import TriElement from "~/components/App/TriElement/TriElement";
 import TriElementHeader from "~/components/App/TriElement/TriElementHeader";
-import { Trade } from "~/types/trade";
+import { PublicTrade } from "~/types/trade";
 import params from "~/utils/params";
 import { z } from "zod";
 import { format } from "numerable";
@@ -11,8 +11,7 @@ import { formatTemplate } from "~/utils/precision";
 import { api } from "~/root";
 import { Asset } from "~/types/asset";
 import { Market } from "~/utils/providers/MarketProvider";
-import { fFromWei } from "~/utils/converters/wei";
-import { ev, finv } from "~/types/primitives/fraction";
+import { ev } from "~/types/primitives/fraction";
 
 export default function CreateTrades(market: Market, precision?: number, capacity?: number) {
   return () => (
@@ -34,22 +33,12 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
       const precision = props.precision;
       const capacity = props.capacity;
 
-      const convertTrade = (trade: Trade) => {
-        const price = ev(trade.price);
-        const volume = ev(trade.maker_quote_volume);
-        if (trade.quote_asset_id == quote_asset.id && trade.base_asset_id == base_asset.id) {
-          return {
-            column_0: <span class="text-green">{format(price, formatTemplate(precision))}</span>,
-            column_1: format(volume, formatTemplate(precision)),
-            column_2: trade.created_at.toLocaleTimeString(),
-          };
-        } else {
-          return {
-            column_0: <span class="text-red">{format(price, formatTemplate(precision))}</span>,
-            column_1: format(volume, formatTemplate(precision)),
-            column_2: trade.created_at.toLocaleTimeString(),
-          };
-        }
+      const convertTrade = (trade: PublicTrade) => {
+        return {
+          column_0: <span class={trade.direction == "buy" ? "text-green" : "text-red"}>{format(ev(trade.price), formatTemplate(precision))}</span>,
+          column_1: format(ev(trade.volume), formatTemplate(precision)),
+          column_2: trade.time.toLocaleTimeString(),
+        };
       };
 
       events = new EventSource(
@@ -68,11 +57,11 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
           })}`
         )
           .then((r) => r.json())
-          .then((r) => z.array(Trade).parse(r))
+          .then((r) => z.array(PublicTrade).parse(r))
           .then((r) => r.map<TriElementComponent | undefined>((e) => convertTrade(e)).filter((e): e is TriElementComponent => !!e))
           .then((r) => setTradesState("trades", (prev) => [...prev, ...r].slice(0, props.capacity)));
       events.onmessage = (ev) => {
-        const trades = Trade.array().parse(JSON.parse(ev.data)).map(convertTrade);
+        const trades = PublicTrade.array().parse(JSON.parse(ev.data)).map(convertTrade);
         if (trades) {
           setTradesState("trades", (prev) => [...trades, ...prev].slice(0, props.capacity));
         }

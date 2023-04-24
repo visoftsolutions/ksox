@@ -1,16 +1,16 @@
-use std::pin::Pin;
+use std::{io, pin::Pin};
 
 use chrono::{DateTime, Utc};
-use fraction::Fraction;
-use futures::Stream;
+use fraction::{num_traits::Inv, Fraction};
+use futures::{Stream, StreamExt, TryStreamExt};
+use pricelevel::PriceLevel;
 use sqlx::PgPool;
-use tokio_stream::StreamExt;
 use uuid::Uuid;
 
 use super::notifications::{
     NotificationManagerOutput, NotificationManagerPredicateInput, NotificationManagerSubscriber,
 };
-use crate::database::projections::order::{Order, PriceLevelOption};
+use crate::database::projections::order::Order;
 
 #[derive(Debug, Clone)]
 pub struct OrdersManager {
@@ -83,60 +83,48 @@ impl OrdersManager {
         .await
     }
 
-    pub fn get_orderbook(
+    pub fn get_active_orders(
         &self,
         quote_asset_id: Uuid,
         base_asset_id: Uuid,
-        round: i32,
-        limit: i64,
-    ) -> Pin<Box<dyn Stream<Item = sqlx::Result<PriceLevelOption>> + Send + '_>> {
+    ) -> Pin<Box<dyn Stream<Item = sqlx::Result<PriceLevel>> + Send + '_>> {
         sqlx::query_as!(
-            PriceLevelOption,
+            PriceLevel,
             r#"
             SELECT
-                ROUND(CAST(price AS NUMERIC), CAST($3 AS INTEGER))::float as price,
-                SUM(CAST(quote_asset_volume_left AS NUMERIC))::float as volume
+            price as "price: Fraction",
+            quote_asset_volume_left as "volume: Fraction"
             FROM spot.orders
             WHERE quote_asset_id = $1
             AND base_asset_id = $2
             AND is_active = true
-            GROUP BY price 
             ORDER BY price DESC
-            LIMIT $4
             "#,
             quote_asset_id,
-            base_asset_id,
-            round,
-            limit
+            base_asset_id
         )
         .fetch(&self.database)
     }
 
-    pub fn get_orderbook_opposite(
+    pub fn get_active_orders_opposite(
         &self,
         quote_asset_id: Uuid,
         base_asset_id: Uuid,
-        round: i32,
-        limit: i64,
-    ) -> Pin<Box<dyn Stream<Item = sqlx::Result<PriceLevelOption>> + Send + '_>> {
+    ) -> Pin<Box<dyn Stream<Item = sqlx::Result<PriceLevel>> + Send + '_>> {
         sqlx::query_as!(
-            PriceLevelOption,
+            PriceLevel,
             r#"
             SELECT
-                ROUND(CAST(1 AS NUMERIC) / CAST(price AS NUMERIC), CAST($3 AS INTEGER))::float as price,
-                SUM(CAST(quote_asset_volume_left AS NUMERIC))::float as volume
+            price as "price: Fraction",
+            quote_asset_volume_left as "volume: Fraction"
             FROM spot.orders
-            WHERE quote_asset_id = $1
-            AND base_asset_id = $2
+            WHERE base_asset_id = $1
+            AND quote_asset_id = $2
             AND is_active = true
-            GROUP BY price
             ORDER BY price ASC
-            LIMIT $4
             "#,
-            base_asset_id,
             quote_asset_id,
-            round,
-            limit
+            base_asset_id
         )
         .fetch(&self.database)
     }
@@ -173,6 +161,35 @@ impl OrdersManager {
             offset
         )
         .fetch(&self.database)
+    }
+
+    pub fn get_orderbook(
+        &self,
+        quote_asset_id: Uuid,
+        base_asset_id: Uuid,
+        precision: Fraction,
+    ) -> Pin<Box<dyn Stream<Item = io::Result<PriceLevel>> + Send + '_>> {
+        PriceLevel::aggregate_with_accuracy(
+            self.get_active_orders(quote_asset_id, base_asset_id)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e.to_string()))
+                .boxed(),
+            precision,
+        )
+    }
+
+    pub fn get_orderbook_opposite(
+        &self,
+        quote_asset_id: Uuid,
+        base_asset_id: Uuid,
+        precision: Fraction,
+    ) -> Pin<Box<dyn Stream<Item = io::Result<PriceLevel>> + Send + '_>> {
+        PriceLevel::aggregate_with_accuracy(
+            self.get_active_orders_opposite(quote_asset_id, base_asset_id)
+                .map_ok(|e| e.inv())
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e.to_string()))
+                .boxed(),
+            precision,
+        )
     }
 }
 
@@ -227,9 +244,9 @@ impl OrdersNotificationManager {
         &self,
         quote_asset_id: Uuid,
         base_asset_id: Uuid,
-        precission: i32,
-        limit: i64,
-    ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Vec<PriceLevelOption>> + Send>>> {
+        precision: Fraction,
+        limit: usize,
+    ) -> io::Result<Pin<Box<dyn Stream<Item = io::Result<Vec<PriceLevel>>> + Send + '_>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
                 NotificationManagerPredicateInput::SpotOrdersChanged(order) => {
@@ -255,22 +272,16 @@ impl OrdersNotificationManager {
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
                     if let NotificationManagerOutput::SpotOrdersChanged(_) = notification {
-                        let price_levels = orders_manager
-                            .get_orderbook(quote_asset_id, base_asset_id, precission, limit)
-                            .map(|x| {
-                                if let Ok(price_level) = x {
-                                    price_level
-                                } else {
-                                    PriceLevelOption::default()
-                                }
-                            });
-                        yield price_levels.collect::<Vec<PriceLevelOption>>().await;
+                        yield orders_manager.get_orderbook(quote_asset_id, base_asset_id, precision.clone()).take(limit).try_collect::<Vec<PriceLevel>>().await;
                     }
                 }
             };
             Ok(Box::pin(stream))
         } else {
-            Err(sqlx::Error::RowNotFound)
+            Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                sqlx::Error::RowNotFound.to_string(),
+            ))
         }
     }
 
@@ -278,9 +289,9 @@ impl OrdersNotificationManager {
         &self,
         quote_asset_id: Uuid,
         base_asset_id: Uuid,
-        precission: i32,
-        limit: i64,
-    ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Vec<PriceLevelOption>> + Send>>> {
+        precision: Fraction,
+        limit: usize,
+    ) -> io::Result<Pin<Box<dyn Stream<Item = io::Result<Vec<PriceLevel>>> + Send + '_>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
                 NotificationManagerPredicateInput::SpotOrdersChanged(order) => {
@@ -306,22 +317,16 @@ impl OrdersNotificationManager {
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
                     if let NotificationManagerOutput::SpotOrdersChanged(_) = notification {
-                        let price_levels = orders_manager
-                            .get_orderbook_opposite(quote_asset_id, base_asset_id, precission, limit)
-                            .map(|x| {
-                                if let Ok(price_level) = x {
-                                    price_level
-                                } else {
-                                    PriceLevelOption::default()
-                                }
-                            });
-                        yield price_levels.collect::<Vec<PriceLevelOption>>().await;
+                        yield orders_manager.get_orderbook_opposite(quote_asset_id, base_asset_id, precision.clone()).take(limit).try_collect::<Vec<PriceLevel>>().await;
                     }
                 }
             };
             Ok(Box::pin(stream))
         } else {
-            Err(sqlx::Error::RowNotFound)
+            Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                sqlx::Error::RowNotFound.to_string(),
+            ))
         }
     }
 }

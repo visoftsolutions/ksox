@@ -1,6 +1,5 @@
 import { format } from "numerable";
 import { createStore } from "solid-js/store";
-import { fFromWei, fToWeiCeil, fToWeiFloor } from "~/utils/converters/wei";
 import { api } from "~/root";
 import { SubmitRequest } from "~/types/mod";
 import { formatTemplate } from "~/utils/precision";

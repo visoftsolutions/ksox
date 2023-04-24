@@ -7,11 +7,13 @@ use axum::{
     extract::{Query, State},
     response::sse::{Event, Sse},
 };
+use fraction::num_traits::Inv;
 use futures::{stream::Stream, StreamExt};
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::{database::projections::trade::Trade, models::AppState};
+use super::{Direction, Response};
+use crate::models::AppState;
 
 #[derive(Deserialize)]
 pub struct Request {
@@ -30,11 +32,11 @@ pub async fn root(
         while let Some(element) = stream.next().await {
             let trades = element.into_iter().map(|t| {
                 if t.is_opposite(params.quote_asset_id, params.base_asset_id) {
-                    t.inverse()
+                    Response { price: t.price.inv(), volume: t.maker_quote_volume , time: t.created_at, direction: Direction::Sell }
                 } else {
-                    t
+                    Response { price: t.price, volume: t.taker_quote_volume , time: t.created_at, direction: Direction::Buy }
                 }
-            }).collect::<Vec<Trade>>();
+            }).collect::<Vec<Response>>();
             yield Event::default().json_data(trades).map_err(Error::from);
         }
     };

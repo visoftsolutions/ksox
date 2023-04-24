@@ -5,12 +5,14 @@ use axum::{
     routing::get,
     Json, Router,
 };
+use fraction::{num_traits::Inv, Fraction};
 use futures::StreamExt;
+use pricelevel::PriceLevel;
 use serde::{Deserialize, Serialize};
 use tokio::select;
 use uuid::Uuid;
 
-use crate::{api::AppError, database::projections::order::PriceLevel, models::AppState};
+use crate::{api::AppError, models::AppState};
 
 pub fn router(app_state: &AppState) -> Router {
     Router::new()
@@ -23,17 +25,17 @@ pub fn router(app_state: &AppState) -> Router {
 pub struct Request {
     pub quote_asset_id: Uuid,
     pub base_asset_id: Uuid,
-    pub precision: i32,
-    pub limit: i64,
+    pub precision: usize,
+    pub limit: usize,
 }
 
-#[derive(Deserialize, Serialize, Clone)]
-pub struct DepthResponse {
+#[derive(Serialize, Clone)]
+pub struct Response {
     pub sells: Vec<PriceLevel>,
     pub buys: Vec<PriceLevel>,
 }
 
-impl DepthResponse {
+impl Response {
     fn new() -> Self {
         Self {
             sells: Vec::new(),
@@ -45,36 +47,35 @@ impl DepthResponse {
 pub async fn root(
     State(state): State<AppState>,
     Query(params): Query<Request>,
-) -> Result<Json<DepthResponse>, AppError> {
-    let mut resp = DepthResponse::new();
+) -> Result<Json<Response>, AppError> {
+    let mut resp = Response::new();
+    let resp_ref = &mut resp;
 
+    let precision = Fraction::from(params.precision).inv();
     let mut buys_stream = state
         .orders_manager
         .get_orderbook(
             params.quote_asset_id,
             params.base_asset_id,
-            params.precision,
-            params.limit,
+            precision.to_owned(),
         )
-        .map(|f| f.and_then(TryInto::<PriceLevel>::try_into));
-
+        .take(params.limit);
     let mut sells_stream = state
         .orders_manager
         .get_orderbook_opposite(
             params.quote_asset_id,
             params.base_asset_id,
-            params.precision,
-            params.limit,
+            precision.to_owned(),
         )
-        .map(|f| f.and_then(TryInto::<PriceLevel>::try_into));
+        .take(params.limit);
 
     loop {
         select! {
             Some(e) = sells_stream.next() => {
-                resp.sells.push(e?);
+                resp_ref.sells.push(e.unwrap_or_default());
             },
             Some(e) = buys_stream.next() => {
-                resp.buys.push(e?);
+                resp_ref.buys.push(e.unwrap_or_default());
             },
             else => break,
         }
