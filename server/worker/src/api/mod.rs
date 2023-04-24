@@ -41,7 +41,7 @@ pub struct Pagination {
 #[derive(Serialize)]
 pub enum Direction {
     Buy,
-    Sell
+    Sell,
 }
 
 pub async fn root() -> &'static str {

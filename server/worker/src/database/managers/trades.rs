@@ -2,7 +2,7 @@ use std::pin::Pin;
 
 use chrono::{DateTime, Utc};
 use fraction::Fraction;
-use futures::{Stream};
+use futures::Stream;
 use sqlx::PgPool;
 use thiserror::Error;
 use uuid::Uuid;
@@ -121,7 +121,6 @@ impl TradesManager {
             offset
         )
         .fetch(&self.database)
-        
     }
 
     pub async fn get_last_for_asset_pair(

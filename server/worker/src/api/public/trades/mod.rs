@@ -5,7 +5,7 @@ use axum::{
     routing::get,
     Json, Router,
 };
-use serde::{Deserialize};
+use serde::Deserialize;
 use tokio_stream::StreamExt;
 use uuid::Uuid;
 

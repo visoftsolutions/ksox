@@ -11,7 +11,7 @@ use futures::{stream::Stream, StreamExt};
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::{models::AppState, database::projections::trade::Trade};
+use crate::{database::projections::trade::Trade, models::AppState};
 
 #[derive(Deserialize)]
 pub struct Request {

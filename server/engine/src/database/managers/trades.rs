@@ -1,6 +1,4 @@
-use sqlx::{postgres::PgQueryResult, Postgres, Transaction};
-
-use sqlx::types::chrono::Utc;
+use sqlx::{postgres::PgQueryResult, types::chrono::Utc, Postgres, Transaction};
 
 use crate::database::projections::trade::Trade;
 

@@ -96,6 +96,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             shutdown_signal::listen().await;
         })
         .await?;
+    
     notification_manager_controller.shutdown().await?;
 
     Ok(())

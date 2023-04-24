@@ -5,7 +5,7 @@ use futures::Stream;
 use sqlx::{postgres::PgQueryResult, types::chrono::Utc, Postgres, Transaction};
 use uuid::Uuid;
 
-use crate::database::projections::order::{Order, OrderGet, OrderInsert, OrderUpdate, OrderStatus};
+use crate::database::projections::order::{Order, OrderGet, OrderInsert, OrderStatus, OrderUpdate};
 
 #[derive(Debug)]
 pub struct OrdersManager {}

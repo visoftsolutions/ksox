@@ -15,7 +15,15 @@ use self::models::{
     SubmitRequest, SubmitRequestError, SubmitResponse,
 };
 use crate::{
-    base, database::{managers::{OrdersManager, ValutsManager, AssetsManager, TradesManager}, projections::{asset::Asset, order::{OrderGet, OrderInsert}, trade::Trade}}
+    base,
+    database::{
+        managers::{AssetsManager, OrdersManager, TradesManager, ValutsManager},
+        projections::{
+            asset::Asset,
+            order::{OrderGet, OrderInsert},
+            trade::Trade,
+        },
+    },
 };
 pub mod models;
 
