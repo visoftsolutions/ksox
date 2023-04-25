@@ -264,93 +264,7 @@
     },
     "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                quote_asset_id,\n                base_asset_id,\n                taker_id,\n                order_id,\n                price as \"price: Fraction\",\n                taker_quote_volume as \"taker_quote_volume: Fraction\",\n                taker_base_volume as \"taker_base_volume: Fraction\",\n                maker_quote_volume as \"maker_quote_volume: Fraction\",\n                maker_base_volume as \"maker_base_volume: Fraction\"\n            FROM spot.trades\n            WHERE (quote_asset_id = $1 AND base_asset_id = $2) OR (quote_asset_id = $2 AND base_asset_id = $1)\n            ORDER BY created_at DESC\n            LIMIT 1\n            "
   },
-  "35c7eb2b5a667a0e0e85d69d5361c58db478369a1f9f610da6da479f9f0bc289": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "created_at",
-          "ordinal": 1,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "last_modification_at",
-          "ordinal": 2,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "name",
-          "ordinal": 3,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "symbol",
-          "ordinal": 4,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "maker_fee: Fraction",
-          "ordinal": 5,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        },
-        {
-          "name": "taker_fee: Fraction",
-          "ordinal": 6,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": []
-      }
-    },
-    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                name,\n                symbol,\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\"\n            FROM spot.assets\n            "
-  },
-  "3818f8c2af736ad196dd4ce46aa8586e0f1f5f6b308faabe6b73f53665fc5530": {
+  "2bbb354d9bbd1e5ffde31b4e036cc649936c549938fef14446319a7262f90a6e": {
     "describe": {
       "columns": [
         {
@@ -602,7 +516,93 @@
         ]
       }
     },
-    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                quote_asset_id,\n                base_asset_id,\n                kind as \"kind: CandlestickType\",\n                topen,\n                tclose,\n                open as \"open: Fraction\",\n                high as \"high: Fraction\",\n                low as \"low: Fraction\",\n                close as \"close: Fraction\",\n                span,\n                taker_quote_volume as \"taker_quote_volume: Fraction\",\n                taker_base_volume as \"taker_base_volume: Fraction\",\n                maker_quote_volume as \"maker_quote_volume: Fraction\",\n                maker_base_volume as \"maker_base_volume: Fraction\"\n            FROM spot.candlesticks\n            WHERE last_modification_at > $1\n            "
+    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                quote_asset_id,\n                base_asset_id,\n                kind as \"kind: CandlestickType\",\n                topen,\n                tclose,\n                open as \"open: Fraction\",\n                high as \"high: Fraction\",\n                low as \"low: Fraction\",\n                close as \"close: Fraction\",\n                span,\n                taker_quote_volume as \"taker_quote_volume: Fraction\",\n                taker_base_volume as \"taker_base_volume: Fraction\",\n                maker_quote_volume as \"maker_quote_volume: Fraction\",\n                maker_base_volume as \"maker_base_volume: Fraction\"\n            FROM spot.candlesticks\n            WHERE last_modification_at > $1\n            ORDER BY last_modification_at ASC\n            "
+  },
+  "35c7eb2b5a667a0e0e85d69d5361c58db478369a1f9f610da6da479f9f0bc289": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "last_modification_at",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "name",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "symbol",
+          "ordinal": 4,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "maker_fee: Fraction",
+          "ordinal": 5,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "taker_fee: Fraction",
+          "ordinal": 6,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                name,\n                symbol,\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\"\n            FROM spot.assets\n            "
   },
   "38c407be63bec54f157fbc806633580895ecd717900dc35ad1e9495d6d500bd0": {
     "describe": {
@@ -1023,7 +1023,7 @@
     },
     "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                quote_asset_id,\n                base_asset_id,\n                taker_id,\n                order_id,\n                price as \"price: Fraction\",\n                taker_quote_volume as \"taker_quote_volume: Fraction\",\n                taker_base_volume as \"taker_base_volume: Fraction\",\n                maker_quote_volume as \"maker_quote_volume: Fraction\",\n                maker_base_volume as \"maker_base_volume: Fraction\"\n            FROM spot.trades\n            WHERE (quote_asset_id = $1 AND base_asset_id = $2) OR (quote_asset_id = $2 AND base_asset_id = $1)\n            ORDER BY created_at DESC\n            LIMIT $3\n            OFFSET $4\n            "
   },
-  "512a65ede1f41e799cf266756c5434136a9c31a8d6f072e68b9424c52b8816cc": {
+  "48dc87e351f9e62e1a8afe95e741e7778536f37db7c710a10c242b9acf50d1c8": {
     "describe": {
       "columns": [
         {
@@ -1187,9 +1187,47 @@
         ]
       }
     },
-    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                quote_asset_id,\n                base_asset_id,\n                taker_id,\n                order_id,\n                price as \"price: Fraction\",\n                taker_quote_volume as \"taker_quote_volume: Fraction\",\n                taker_base_volume as \"taker_base_volume: Fraction\",\n                maker_quote_volume as \"maker_quote_volume: Fraction\",\n                maker_base_volume as \"maker_base_volume: Fraction\"\n            FROM spot.trades\n            WHERE last_modification_at > $1\n            "
+    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                quote_asset_id,\n                base_asset_id,\n                taker_id,\n                order_id,\n                price as \"price: Fraction\",\n                taker_quote_volume as \"taker_quote_volume: Fraction\",\n                taker_base_volume as \"taker_base_volume: Fraction\",\n                maker_quote_volume as \"maker_quote_volume: Fraction\",\n                maker_base_volume as \"maker_base_volume: Fraction\"\n            FROM spot.trades\n            WHERE last_modification_at > $1\n            ORDER BY last_modification_at ASC\n            "
   },
-  "58660af01e3e95e0bc80ec1b4823f62754d78c0f7e64ccaefc587bb2ffee5c4e": {
+  "64ae136dd25cd4e0d9bffb5bd23aa3cb99df0896624a04edbf4e94b0f7dbfaf3": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "last_modification_at",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "address: EvmAddress",
+          "ordinal": 3,
+          "type_info": "Bpchar"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Timestamptz"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                users.id,\n                users.created_at,\n                users.last_modification_at,\n                users.address as \"address: EvmAddress\"\n            FROM users\n            WHERE users.last_modification_at > $1\n            ORDER BY last_modification_at ASC\n            "
+  },
+  "64f3932b4d68ea93b35268c7ff141914ba979cb38f986db8e334db8a17fb608d": {
     "describe": {
       "columns": [
         {
@@ -1253,172 +1291,7 @@
         ]
       }
     },
-    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                user_id,\n                asset_id,\n                balance as \"balance: Fraction\"\n            FROM spot.valuts\n            WHERE last_modification_at > $1\n            "
-  },
-  "692644361ee82a411442d33b761701a526bdc0b9a091efaeecc5ef0ca8d9ec39": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Timestamptz",
-          "Uuid",
-          "Uuid",
-          {
-            "Custom": {
-              "kind": {
-                "Enum": [
-                  "interval",
-                  "tick"
-                ]
-              },
-              "name": "candlestick_type"
-            }
-          },
-          "Timestamptz",
-          "Timestamptz",
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          },
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          },
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          },
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          },
-          "Int8",
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          },
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          },
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          },
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        ]
-      }
-    },
-    "query": "\n            INSERT INTO \n                spot.candlesticks \n                (\n                    id,\n                    last_modification_at,\n                    quote_asset_id,\n                    base_asset_id,\n                    kind,\n                    topen,\n                    tclose,\n                    open,\n                    high,\n                    low,\n                    close,\n                    span,\n                    taker_quote_volume,\n                    taker_base_volume,\n                    maker_quote_volume,\n                    maker_base_volume    \n                )\n            VALUES\n                (\n                    $1,\n                    $2,\n                    $3,\n                    $4,\n                    $5::candlestick_type,\n                    $6,\n                    $7,\n                    $8::fraction,\n                    $9::fraction,\n                    $10::fraction,\n                    $11::fraction,\n                    $12,\n                    $13::fraction,\n                    $14::fraction,\n                    $15::fraction,\n                    $16::fraction\n                )\n            "
+    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                user_id,\n                asset_id,\n                balance as \"balance: Fraction\"\n            FROM spot.valuts\n            WHERE last_modification_at > $1\n            ORDER BY last_modification_at ASC\n            "
   },
   "7372315f28f74021071e44b44299e91cd9ffe95039554a19af790a5d9215614c": {
     "describe": {
@@ -1452,45 +1325,7 @@
     },
     "query": "\n            UPDATE \n                spot.valuts \n            SET\n                last_modification_at = $2,\n                user_id = $3,\n                asset_id = $4,\n                balance = $5::fraction\n            WHERE\n                id = $1\n            "
   },
-  "73d596284d92f207846ff51a52b18444f3311ff9a3355cc427935c9da1819e7b": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "created_at",
-          "ordinal": 1,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "last_modification_at",
-          "ordinal": 2,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "address: EvmAddress",
-          "ordinal": 3,
-          "type_info": "Bpchar"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Timestamptz"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                users.id,\n                users.created_at,\n                users.last_modification_at,\n                users.address as \"address: EvmAddress\"\n            FROM users\n            WHERE users.last_modification_at > $1\n            "
-  },
-  "749c5f7d4349c56d082d081a97e3b9cb1eff54447292516d4318221850ac7d2f": {
+  "73940e52ad6d7b416c4b5cf26e8f7ebb5cac6fcc14eef520831433d738db367a": {
     "describe": {
       "columns": [
         {
@@ -1576,7 +1411,7 @@
         ]
       }
     },
-    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                name,\n                symbol,\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\"\n            FROM spot.assets\n            WHERE last_modification_at > $1\n            "
+    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                name,\n                symbol,\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\"\n            FROM spot.assets\n            WHERE last_modification_at > $1\n            ORDER BY last_modification_at ASC\n            "
   },
   "8760636bb09bbd892438b76ddda781a2c07080887c148a5c98d8ef4ed876cc51": {
     "describe": {
@@ -1723,6 +1558,150 @@
       }
     },
     "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                user_id,\n                is_active,\n                quote_asset_id,\n                base_asset_id,\n                price as \"price: Fraction\",\n                quote_asset_volume as \"quote_asset_volume: Fraction\",\n                quote_asset_volume_left as \"quote_asset_volume_left: Fraction\",\n                maker_fee as \"maker_fee: Fraction\"\n            FROM spot.orders\n            WHERE user_id = $1 AND is_active = true\n            ORDER BY last_modification_at DESC, created_at DESC\n            LIMIT $2\n            OFFSET $3\n            "
+  },
+  "87da9fd624e921b7e0c2068422aaf565d5cb51d02cd27fa8d11bfc6925727d61": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "last_modification_at",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 3,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "is_active",
+          "ordinal": 4,
+          "type_info": "Bool"
+        },
+        {
+          "name": "quote_asset_id",
+          "ordinal": 5,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "base_asset_id",
+          "ordinal": 6,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "price: Fraction",
+          "ordinal": 7,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "quote_asset_volume: Fraction",
+          "ordinal": 8,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "quote_asset_volume_left: Fraction",
+          "ordinal": 9,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "maker_fee: Fraction",
+          "ordinal": 10,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Timestamptz"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                user_id,\n                is_active,\n                quote_asset_id,\n                base_asset_id,\n                price as \"price: Fraction\",\n                quote_asset_volume as \"quote_asset_volume: Fraction\",\n                quote_asset_volume_left as \"quote_asset_volume_left: Fraction\",\n                maker_fee as \"maker_fee: Fraction\"\n            FROM spot.orders\n            WHERE last_modification_at > $1\n            ORDER BY last_modification_at ASC\n            "
   },
   "8ef52941c1cc25a4ea25ae2ad1671c09821ea409752d5b90eeca501e6fb06626": {
     "describe": {
@@ -2186,6 +2165,172 @@
     },
     "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                user_id,\n                is_active,\n                quote_asset_id,\n                base_asset_id,\n                price as \"price: Fraction\",\n                quote_asset_volume as \"quote_asset_volume: Fraction\",\n                quote_asset_volume_left as \"quote_asset_volume_left: Fraction\",\n                maker_fee as \"maker_fee: Fraction\"\n            FROM spot.orders\n            WHERE user_id = $1\n            ORDER BY last_modification_at DESC, created_at DESC\n            LIMIT $2\n            OFFSET $3\n            "
   },
+  "b5f6e065e842b3a4297044ef768518eb9623ff72f99413ecdd2e7d027f4c5d4a": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Timestamptz",
+          "Timestamptz",
+          "Uuid",
+          "Uuid",
+          {
+            "Custom": {
+              "kind": {
+                "Enum": [
+                  "interval",
+                  "tick"
+                ]
+              },
+              "name": "candlestick_type"
+            }
+          },
+          "Timestamptz",
+          "Timestamptz",
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          "Int8",
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO \n                spot.candlesticks \n                (\n                    id,\n                    created_at,\n                    last_modification_at,\n                    quote_asset_id,\n                    base_asset_id,\n                    kind,\n                    topen,\n                    tclose,\n                    open,\n                    high,\n                    low,\n                    close,\n                    span,\n                    taker_quote_volume,\n                    taker_base_volume,\n                    maker_quote_volume,\n                    maker_base_volume    \n                )\n            VALUES\n                (\n                    $1,\n                    $2,\n                    $3,\n                    $4,\n                    $5,\n                    $6::candlestick_type,\n                    $7,\n                    $8,\n                    $9::fraction,\n                    $10::fraction,\n                    $11::fraction,\n                    $12::fraction,\n                    $13,\n                    $14::fraction,\n                    $15::fraction,\n                    $16::fraction,\n                    $17::fraction\n                )\n            "
+  },
   "bf33329ddf9df49f7e314f240336f7b2d6a879a31e282da0fbf35f6639d5dec1": {
     "describe": {
       "columns": [
@@ -2353,150 +2498,6 @@
       }
     },
     "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                quote_asset_id,\n                base_asset_id,\n                taker_id,\n                order_id,\n                price as \"price: Fraction\",\n                taker_quote_volume as \"taker_quote_volume: Fraction\",\n                taker_base_volume as \"taker_base_volume: Fraction\",\n                maker_quote_volume as \"maker_quote_volume: Fraction\",\n                maker_base_volume as \"maker_base_volume: Fraction\"\n            FROM spot.trades\n            WHERE ((quote_asset_id = $1 AND base_asset_id = $2) OR (quote_asset_id = $2 AND base_asset_id = $1)) AND created_at >= $3\n            ORDER BY created_at\n            "
-  },
-  "c408fe025d3e6ef7ada549cb204449c1da19f3748e145d96f5986d220f607c16": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "created_at",
-          "ordinal": 1,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "last_modification_at",
-          "ordinal": 2,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "user_id",
-          "ordinal": 3,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "is_active",
-          "ordinal": 4,
-          "type_info": "Bool"
-        },
-        {
-          "name": "quote_asset_id",
-          "ordinal": 5,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "base_asset_id",
-          "ordinal": 6,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "price: Fraction",
-          "ordinal": 7,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        },
-        {
-          "name": "quote_asset_volume: Fraction",
-          "ordinal": 8,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        },
-        {
-          "name": "quote_asset_volume_left: Fraction",
-          "ordinal": 9,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        },
-        {
-          "name": "maker_fee: Fraction",
-          "ordinal": 10,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Timestamptz"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                user_id,\n                is_active,\n                quote_asset_id,\n                base_asset_id,\n                price as \"price: Fraction\",\n                quote_asset_volume as \"quote_asset_volume: Fraction\",\n                quote_asset_volume_left as \"quote_asset_volume_left: Fraction\",\n                maker_fee as \"maker_fee: Fraction\"\n            FROM spot.orders\n            WHERE last_modification_at > $1\n            "
   },
   "c729ae904a747c9a0354d7ffbf559265e8cf450c9812847d1816eaa06c457894": {
     "describe": {

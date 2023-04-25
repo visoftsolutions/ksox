@@ -44,6 +44,7 @@ impl TradesManager {
                 maker_base_volume as "maker_base_volume: Fraction"
             FROM spot.trades
             WHERE last_modification_at > $1
+            ORDER BY last_modification_at ASC
             "#,
             last_modification_at
         )

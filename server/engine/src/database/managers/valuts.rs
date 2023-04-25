@@ -35,17 +35,19 @@ impl ValutsManager {
         user_id: Uuid,
         asset_id: Uuid,
     ) -> sqlx::Result<Valut> {
+        let now = Utc::now();
         sqlx::query_as!(
             Valut,
             r#"
             INSERT INTO spot.valuts
-                (user_id, asset_id, balance, last_modification_at)
-            VALUES ($1, $2, (0,1)::fraction, $3)
+                (user_id, asset_id, balance, last_modification_at, created_at)
+            VALUES ($1, $2, (0,1)::fraction, $3, $4)
             RETURNING id, balance as "balance: Fraction"
             "#,
             user_id,
             asset_id,
-            Utc::now(),
+            now,
+            now
         )
         .fetch_one(pool)
         .await
@@ -67,7 +69,7 @@ impl ValutsManager {
                 id = $1
             "#,
             valut.id,
-            valut.balance.to_string() as _,
+            valut.balance.to_tuple_string() as _,
             Utc::now()
         )
         .execute(pool)

@@ -39,7 +39,6 @@ use crate::{
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
-
     let database = PgPoolOptions::new()
         .max_connections(10)
         .connect(std::env::var("DATABASE_URL")?.as_str())
@@ -49,6 +48,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         NotificationManager::start(database.clone(), "notifications").await?;
 
     let app_state = AppState {
+        accuracy: std::env::var("WORKER_FRACTION_ACCURACY")?.parse()?,
         database: database.clone(),
         session_store: get_client()?,
         users_manager: UsersManager::new(database.clone()),
@@ -74,10 +74,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             notification_manager_controller.get_subscriber(),
         ),
         assets_pair_recognition: AssetPairRecognition::new(database, Regex::new(r"[^a-zA-Z]+")?),
-        engine_client: EngineClient::connect(
-            std::env::var("ENGINE_URL").unwrap().as_str().to_owned(),
-        )
-        .await?,
+        engine_client: EngineClient::connect(std::env::var("ENGINE_URL")?).await?,
     };
 
     let app = Router::new()

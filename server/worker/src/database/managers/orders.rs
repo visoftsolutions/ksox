@@ -76,6 +76,7 @@ impl OrdersManager {
                 maker_fee as "maker_fee: Fraction"
             FROM spot.orders
             WHERE last_modification_at > $1
+            ORDER BY last_modification_at ASC
             "#,
             last_modification_at
         )

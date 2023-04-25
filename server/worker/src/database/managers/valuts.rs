@@ -37,6 +37,7 @@ impl ValutsManager {
                 balance as "balance: Fraction"
             FROM spot.valuts
             WHERE last_modification_at > $1
+            ORDER BY last_modification_at ASC
             "#,
             last_modification_at,
         )
@@ -104,7 +105,7 @@ impl ValutsManager {
             chrono::Utc::now(),
             element.user_id,
             element.asset_id,
-            element.balance.to_string() as _
+            element.balance.to_tuple_string() as _
         )
         .execute(&self.database)
         .await

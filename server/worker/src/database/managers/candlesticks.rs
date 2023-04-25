@@ -86,6 +86,7 @@ impl CandlesticksManager {
                 maker_base_volume as "maker_base_volume: Fraction"
             FROM spot.candlesticks
             WHERE last_modification_at > $1
+            ORDER BY last_modification_at ASC
             "#,
             last_modification_at
         )
@@ -94,12 +95,14 @@ impl CandlesticksManager {
     }
 
     pub async fn insert(&self, element: Candlestick) -> Result<PgQueryResult> {
+        let now = Utc::now();
         sqlx::query!(
             r#"
             INSERT INTO 
                 spot.candlesticks 
                 (
                     id,
+                    created_at,
                     last_modification_at,
                     quote_asset_id,
                     base_asset_id,
@@ -122,36 +125,38 @@ impl CandlesticksManager {
                     $2,
                     $3,
                     $4,
-                    $5::candlestick_type,
-                    $6,
+                    $5,
+                    $6::candlestick_type,
                     $7,
-                    $8::fraction,
+                    $8,
                     $9::fraction,
                     $10::fraction,
                     $11::fraction,
-                    $12,
-                    $13::fraction,
+                    $12::fraction,
+                    $13,
                     $14::fraction,
                     $15::fraction,
-                    $16::fraction
+                    $16::fraction,
+                    $17::fraction
                 )
             "#,
             element.id,
-            chrono::Utc::now(),
+            now,
+            now,
             element.quote_asset_id,
             element.base_asset_id,
             element.kind as _,
             element.topen,
             element.tclose,
-            element.open.to_string() as _,
-            element.high.to_string() as _,
-            element.low.to_string() as _,
-            element.close.to_string() as _,
+            element.open.to_tuple_string() as _,
+            element.high.to_tuple_string() as _,
+            element.low.to_tuple_string() as _,
+            element.close.to_tuple_string() as _,
             element.span,
-            element.taker_quote_volume.to_string() as _,
-            element.taker_base_volume.to_string() as _,
-            element.maker_quote_volume.to_string() as _,
-            element.maker_base_volume.to_string() as _
+            element.taker_quote_volume.to_tuple_string() as _,
+            element.taker_base_volume.to_tuple_string() as _,
+            element.maker_quote_volume.to_tuple_string() as _,
+            element.maker_base_volume.to_tuple_string() as _
         )
         .execute(&self.database)
         .await

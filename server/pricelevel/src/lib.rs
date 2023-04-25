@@ -81,7 +81,7 @@ impl PriceLevel {
                 let price_level = price_level?.checked_round_with_accuracy(&accuracy).ok_or(io::Error::new(io::ErrorKind::InvalidData, "checked_round_with_accuracy failed"))?;
                 match agg {
                     Some(agg_price_level) => {
-                        if agg_price_level < price_level {
+                        if agg_price_level > price_level {
                             yield agg_price_level.clone();
                             agg = Some(price_level);
                         } else {

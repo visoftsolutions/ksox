@@ -1,12 +1,12 @@
 use std::{
-    fmt,
+    fmt::{self, Display},
     ops::{AddAssign, Neg, SubAssign},
     str::FromStr,
 };
 
 use num_bigint::{BigInt, Sign};
-use num_derive::{Num, NumOps, One, Zero};
-use num_rational::BigRational;
+use num_derive::{Num, NumOps, One, ToPrimitive, Zero};
+use num_rational::{BigRational, ParseRatioError};
 pub use num_traits;
 use num_traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, Inv, One, Signed, Zero};
 use proptest::{
@@ -22,7 +22,9 @@ use sqlx::{
     Postgres, Type, TypeInfo,
 };
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, NumOps, One, Zero, Num, Ord, Eq, Default)]
+#[derive(
+    Debug, Clone, PartialEq, PartialOrd, NumOps, One, Zero, Num, Ord, Eq, Default, ToPrimitive,
+)]
 pub struct Fraction(pub BigRational);
 
 impl Fraction {
@@ -42,6 +44,20 @@ impl Fraction {
                 .round()
                 .checked_mul(&accuracy.0)?,
         ))
+    }
+
+    pub fn checked_ceil_with_accuracy(self, accuracy: &Self) -> Option<Self> {
+        Some(Self(
+            self.0
+                .checked_div(&accuracy.0)?
+                .ceil()
+                .checked_mul(&accuracy.0)?,
+        ))
+    }
+
+    pub fn to_tuple_string(&self) -> String {
+        let (numer, denom) = self.0.clone().into();
+        format!("({},{})", numer, denom)
     }
 }
 
@@ -104,6 +120,19 @@ impl From<(BigInt, BigInt)> for Fraction {
 impl From<usize> for Fraction {
     fn from(value: usize) -> Self {
         Self(BigRational::from_integer(value.into()))
+    }
+}
+
+impl FromStr for Fraction {
+    type Err = ParseRatioError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self(BigRational::from_str(s)?))
+    }
+}
+
+impl Display for Fraction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0.to_string())
     }
 }
 
@@ -227,20 +256,13 @@ where
     }
 }
 
-impl std::fmt::Display for Fraction {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let (numer, denom) = self.0.clone().into();
-        write!(f, "({},{})", numer, denom)
-    }
-}
-
 impl Encode<'_, Postgres> for Fraction {
     fn produces(&self) -> Option<<Postgres as sqlx::Database>::TypeInfo> {
         Some(sqlx::postgres::PgTypeInfo::with_name("fraction"))
     }
 
     fn encode_by_ref(&self, buf: &mut PgArgumentBuffer) -> sqlx::encode::IsNull {
-        <&str as Encode<Postgres>>::encode_by_ref(&self.to_string().as_str(), buf)
+        <String as Encode<Postgres>>::encode_by_ref(&self.to_tuple_string(), buf)
     }
 
     fn encode(

@@ -29,6 +29,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox
       - REDIS_URL=redis://ksox-redis/
+      - ENGINE_FRACTION_ACCURACY=1/10000
     depends_on:
       - postgres
       - redis
@@ -43,6 +44,7 @@ services:
       - DATABASE_URL=postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox
       - ENGINE_URL=http://ksox-engine/
       - REDIS_URL=redis://ksox-redis/
+      - WORKER_FRACTION_ACCURACY=1/10000
     depends_on:
       - postgres
       - redis

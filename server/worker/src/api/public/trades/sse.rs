@@ -36,7 +36,7 @@ pub async fn root(
                 } else {
                     Response { price: t.price, volume: t.taker_quote_volume , time: t.created_at, direction: Direction::Buy }
                 }
-            }).collect::<Vec<Response>>();
+            }).rev().collect::<Vec<Response>>();
             yield Event::default().json_data(trades).map_err(Error::from);
         }
     };

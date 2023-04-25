@@ -58,7 +58,7 @@ impl OrdersManager {
             "#,
             quote_asset_id,
             base_asset_id,
-            price.to_string() as _
+            price.to_tuple_string() as _
         )
         .fetch(pool)
     }
@@ -67,21 +67,23 @@ impl OrdersManager {
         pool: &'t mut Transaction<'p, Postgres>,
         element: OrderInsert,
     ) -> sqlx::Result<PgQueryResult> {
+        let now = Utc::now();
         sqlx::query!(
             r#"
             INSERT INTO spot.orders
-                (user_id, is_active, quote_asset_id, base_asset_id, price, quote_asset_volume, quote_asset_volume_left, maker_fee, last_modification_at)
+                (user_id, is_active, quote_asset_id, base_asset_id, price, quote_asset_volume, quote_asset_volume_left, maker_fee, last_modification_at, created_at)
             VALUES
-                ($1, true, $2, $3, $4::fraction, $5::fraction, $6::fraction, $7::fraction, $8)
+                ($1, true, $2, $3, $4::fraction, $5::fraction, $6::fraction, $7::fraction, $8, $9)
             "#,
             element.user_id,
             element.quote_asset_id,
             element.base_asset_id,
-            element.price.to_string() as _,
-            element.quote_asset_volume.to_string() as _,
-            element.quote_asset_volume_left.to_string() as _,
-            element.maker_fee.to_string() as _,
-            Utc::now()
+            element.price.to_tuple_string() as _,
+            element.quote_asset_volume.to_tuple_string() as _,
+            element.quote_asset_volume_left.to_tuple_string() as _,
+            element.maker_fee.to_tuple_string() as _,
+            now,
+            now
         )
         .execute(pool)
         .await
@@ -104,7 +106,7 @@ impl OrdersManager {
             "#,
             order.id,
             order.is_active,
-            order.quote_asset_volume_left.to_string() as _,
+            order.quote_asset_volume_left.to_tuple_string() as _,
             Utc::now()
         )
         .execute(pool)

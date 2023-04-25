@@ -37,6 +37,7 @@ impl AssetsManager {
                 taker_fee as "taker_fee: Fraction"
             FROM spot.assets
             WHERE last_modification_at > $1
+            ORDER BY last_modification_at ASC
             "#,
             last_modification_at
         )

@@ -11,7 +11,7 @@ import { formatTemplate } from "~/utils/precision";
 import { api } from "~/root";
 import { Asset } from "~/types/asset";
 import { Market } from "~/utils/providers/MarketProvider";
-import { ev } from "~/types/primitives/fraction";
+import { ev, finv, fmul } from "~/types/primitives/fraction";
 
 export default function CreateTrades(market: Market, precision?: number, capacity?: number) {
   return () => (
@@ -36,7 +36,7 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
       const convertTrade = (trade: PublicTrade) => {
         return {
           column_0: <span class={trade.direction == "buy" ? "text-green" : "text-red"}>{format(ev(trade.price), formatTemplate(precision))}</span>,
-          column_1: format(ev(trade.volume), formatTemplate(precision)),
+          column_1: format(ev(fmul(trade.volume, finv(trade.price))), formatTemplate(precision)),
           column_2: trade.time.toLocaleTimeString(),
         };
       };

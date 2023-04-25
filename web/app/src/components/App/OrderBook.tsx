@@ -94,7 +94,7 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
           quote_asset_id: quote_asset.id,
           base_asset_id: base_asset.id,
           limit: capacity,
-          precision: 100,
+          precision: 1000,
         })}`
       );
       depth_events.onopen = async () =>
@@ -103,21 +103,21 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
             quote_asset_id: quote_asset.id,
             base_asset_id: base_asset.id,
             limit: capacity,
-            precision: 100,
+            precision: 1000,
           })}`
         )
           .then((r) => r.json())
           .then((r) => DepthResponse.parse(r))
           .then((r) => {
             const b = convertBuys(r.buys);
-            const s = convertSells(r.sells);
+            const s = convertSells(r.sells.reverse());
             setOrderBook("buys", b);
             setOrderBook("sells", s);
           });
       depth_events.onmessage = (ev) => {
         const r = DepthResponse.parse(JSON.parse(ev.data));
         const b = convertBuys(r.buys);
-        const s = convertSells(r.sells);
+        const s = convertSells(r.sells.reverse());
         setOrderBook("buys", b);
         setOrderBook("sells", s);
       };

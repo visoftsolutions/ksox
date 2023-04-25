@@ -8,6 +8,7 @@ use database::managers::{
     valuts::{ValutsManager, ValutsNotificationManager},
 };
 use engine_base::engine_client::EngineClient;
+use fraction::Fraction;
 use sqlx::PgPool;
 use tonic::transport::Channel;
 
@@ -15,6 +16,7 @@ use crate::{database, engine_base, recognition::AssetPairRecognition};
 
 #[derive(Clone)]
 pub struct AppState {
+    pub accuracy: Fraction,
     pub database: PgPool,
     pub session_store: redis::Client,
     pub users_manager: UsersManager,

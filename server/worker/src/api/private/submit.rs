@@ -1,6 +1,6 @@
 use axum::{extract::State, Json};
 use fraction::Fraction;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
@@ -9,7 +9,7 @@ use crate::{
     models::AppState,
 };
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct Request {
     pub quote_asset_id: Uuid,
     pub base_asset_id: Uuid,
@@ -17,11 +17,16 @@ pub struct Request {
     pub quote_asset_volume: Fraction,
 }
 
+#[derive(Serialize)]
+pub struct Response {
+    pub response: String,
+}
+
 pub async fn root(
     State(mut state): State<AppState>,
     user_id: UserId,
     Json(payload): Json<Request>,
-) -> Result<String, AppError> {
+) -> Result<Json<Response>, AppError> {
     let response = state
         .engine_client
         .submit(SubmitRequest {
@@ -33,5 +38,8 @@ pub async fn root(
         })
         .await?
         .into_inner();
-    Ok(format!("submitted {response:?}"))
+
+    Ok(Json(Response {
+        response: format!("submitted {response:?}"),
+    }))
 }

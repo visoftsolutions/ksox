@@ -1,4 +1,4 @@
-use std::collections;
+use std::{cmp::max, collections};
 
 use chrono::Utc;
 use futures::StreamExt;
@@ -11,7 +11,12 @@ use tokio::{
 };
 use uuid::Uuid;
 
-use crate::database::{managers, projections};
+use crate::database::{
+    managers,
+    projections::{
+        self, asset::Asset, candlestick::Candlestick, order::Order, trade::Trade, valut::Valut,
+    },
+};
 
 #[derive(Debug, Clone, Deserialize)]
 pub enum NotificationManagerEvent {
@@ -116,33 +121,25 @@ impl NotificationManager {
                                 match serde_json::from_str::<NotificationManagerEvent>(value.payload()) {
                                     Ok(NotificationManagerEvent::SpotValutsChanged) => {
                                         match valuts_manager.get_modified(valuts_last_modification_at).await {
-                                            Ok(valuts) => {
+                                            Ok(elements) => {
                                                 let mut set_entry_to_remove_ids = Vec::new();
                                                 for set_entry in set.values() {
-                                                    let mut result = Vec::new();
-                                                    for valut in valuts.iter() {
-                                                        if set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotValutsChanged(valut.clone())) {
-                                                            result.push(valut.clone());
-                                                        }
-                                                    }
+                                                    let result: Vec<Valut> = elements.iter().cloned()
+                                                        .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotValutsChanged(e.clone()))).collect();
+
                                                     if !result.is_empty() {
-                                                        match set_entry.sender.send(NotificationManagerOutput::SpotValutsChanged(result)).await {
-                                                            Ok(_) => {},
-                                                            Err(err) => {
-                                                                set_entry_to_remove_ids.push(set_entry.id);
-                                                                tracing::info!("{}", err);
-                                                            }
+                                                        if let Err(err) = set_entry.sender.send(NotificationManagerOutput::SpotValutsChanged(result)).await {
+                                                            set_entry_to_remove_ids.push(set_entry.id);
+                                                            tracing::info!("{}", err);
                                                         }
                                                     }
                                                 }
-                                                for set_entry_to_remove_id in set_entry_to_remove_ids {
-                                                    set.remove(&set_entry_to_remove_id);
-                                                }
-                                                for valut in valuts.iter() {
-                                                    if valut.last_modification_at > valuts_last_modification_at {
-                                                        valuts_last_modification_at = valut.last_modification_at;
-                                                    }
-                                                }
+                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+
+                                                valuts_last_modification_at = max(
+                                                    valuts_last_modification_at,
+                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(valuts_last_modification_at)
+                                                );
                                             },
                                             Err(err) => {
                                                 tracing::error!("Error: {}", err);
@@ -151,33 +148,25 @@ impl NotificationManager {
                                     },
                                     Ok(NotificationManagerEvent::SpotAssetsChanged) => {
                                         match assets_manager.get_modified(assets_last_modification_at).await {
-                                            Ok(assets) => {
+                                            Ok(elements) => {
                                                 let mut set_entry_to_remove_ids = Vec::new();
                                                 for set_entry in set.values() {
-                                                    let mut result = Vec::new();
-                                                    for asset in assets.iter() {
-                                                        if set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotAssetsChanged(asset.clone())) {
-                                                            result.push(asset.clone());
-                                                        }
-                                                    }
+                                                    let result: Vec<Asset> = elements.iter().cloned()
+                                                        .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotAssetsChanged(e.clone()))).collect();
+
                                                     if !result.is_empty() {
-                                                        match set_entry.sender.send(NotificationManagerOutput::SpotAssetsChanged(result)).await {
-                                                            Ok(_) => {},
-                                                            Err(err) => {
-                                                                set_entry_to_remove_ids.push(set_entry.id);
-                                                                tracing::info!("{}", err);
-                                                            }
+                                                        if let Err(err) = set_entry.sender.send(NotificationManagerOutput::SpotAssetsChanged(result)).await {
+                                                            set_entry_to_remove_ids.push(set_entry.id);
+                                                            tracing::info!("{}", err);
                                                         }
                                                     }
                                                 }
-                                                for set_entry_to_remove_id in set_entry_to_remove_ids {
-                                                    set.remove(&set_entry_to_remove_id);
-                                                }
-                                                for asset in assets.iter() {
-                                                    if asset.last_modification_at > assets_last_modification_at {
-                                                        assets_last_modification_at = asset.last_modification_at;
-                                                    }
-                                                }
+                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+
+                                                assets_last_modification_at = max(
+                                                    assets_last_modification_at,
+                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(assets_last_modification_at)
+                                                );
                                             },
                                             Err(err) => {
                                                 tracing::error!("Error: {}", err);
@@ -186,33 +175,25 @@ impl NotificationManager {
                                     },
                                     Ok(NotificationManagerEvent::SpotOrdersChanged) => {
                                         match orders_manager.get_modified(orders_last_modification_at).await {
-                                            Ok(orders) => {
+                                            Ok(elements) => {
                                                 let mut set_entry_to_remove_ids = Vec::new();
                                                 for set_entry in set.values() {
-                                                    let mut result = Vec::new();
-                                                    for order in orders.iter() {
-                                                        if set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotOrdersChanged(order.clone())) {
-                                                            result.push(order.clone());
-                                                        }
-                                                    }
+                                                    let result: Vec<Order> = elements.iter().cloned()
+                                                        .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotOrdersChanged(e.clone()))).collect();
+
                                                     if !result.is_empty() {
-                                                        match set_entry.sender.send(NotificationManagerOutput::SpotOrdersChanged(result)).await {
-                                                            Ok(_) => {},
-                                                            Err(err) => {
-                                                                set_entry_to_remove_ids.push(set_entry.id);
-                                                                tracing::info!("{}", err);
-                                                            }
+                                                        if let Err(err) = set_entry.sender.send(NotificationManagerOutput::SpotOrdersChanged(result)).await {
+                                                            set_entry_to_remove_ids.push(set_entry.id);
+                                                            tracing::info!("{}", err);
                                                         }
                                                     }
                                                 }
-                                                for set_entry_to_remove_id in set_entry_to_remove_ids {
-                                                    set.remove(&set_entry_to_remove_id);
-                                                }
-                                                for order in orders.iter() {
-                                                    if order.last_modification_at > orders_last_modification_at {
-                                                        orders_last_modification_at = order.last_modification_at;
-                                                    }
-                                                }
+                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+
+                                                orders_last_modification_at = max(
+                                                    orders_last_modification_at,
+                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(orders_last_modification_at)
+                                                );
                                             },
                                             Err(err) => {
                                                 tracing::error!("Error: {}", err);
@@ -221,33 +202,25 @@ impl NotificationManager {
                                     },
                                     Ok(NotificationManagerEvent::SpotTradesChanged) => {
                                         match trades_manager.get_modified(trades_last_modification_at).await {
-                                            Ok(trades) => {
+                                            Ok(elements) => {
                                                 let mut set_entry_to_remove_ids = Vec::new();
                                                 for set_entry in set.values() {
-                                                    let mut result = Vec::new();
-                                                    for trade in trades.iter() {
-                                                        if set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotTradesChanged(trade.clone())) {
-                                                            result.push(trade.clone());
-                                                        }
-                                                    }
+                                                    let result: Vec<Trade> = elements.iter().cloned()
+                                                        .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotTradesChanged(e.clone()))).collect();
+
                                                     if !result.is_empty() {
-                                                        match set_entry.sender.send(NotificationManagerOutput::SpotTradesChanged(result)).await {
-                                                            Ok(_) => {},
-                                                            Err(err) => {
-                                                                set_entry_to_remove_ids.push(set_entry.id);
-                                                                tracing::info!("{}", err);
-                                                            }
+                                                        if let Err(err) = set_entry.sender.send(NotificationManagerOutput::SpotTradesChanged(result)).await {
+                                                            set_entry_to_remove_ids.push(set_entry.id);
+                                                            tracing::info!("{}", err);
                                                         }
                                                     }
                                                 }
-                                                for set_entry_to_remove_id in set_entry_to_remove_ids {
-                                                    set.remove(&set_entry_to_remove_id);
-                                                }
-                                                for trade in trades.iter() {
-                                                    if trade.last_modification_at > trades_last_modification_at {
-                                                        trades_last_modification_at = trade.last_modification_at;
-                                                    }
-                                                }
+                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+
+                                                trades_last_modification_at = max(
+                                                    trades_last_modification_at,
+                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(trades_last_modification_at)
+                                                );
                                             },
                                             Err(err) => {
                                                 tracing::error!("Error: {}", err);
@@ -256,33 +229,26 @@ impl NotificationManager {
                                     },
                                     Ok(NotificationManagerEvent::SpotCandlesticksChanged) => {
                                         match candlesticks_manager.get_modified(candlesticks_last_modification_at).await {
-                                            Ok(candlesticks) => {
+                                            Ok(elements) => {
                                                 let mut set_entry_to_remove_ids = Vec::new();
                                                 for set_entry in set.values() {
-                                                    let mut result = Vec::new();
-                                                    for candlestick in candlesticks.iter() {
-                                                        if set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotCandlesticksChanged(candlestick.clone())) {
-                                                            result.push(candlestick.clone());
-                                                        }
-                                                    }
+                                                    let result: Vec<Candlestick> = elements.iter().cloned()
+                                                        .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotCandlesticksChanged(e.clone()))).collect();
+
                                                     if !result.is_empty() {
-                                                        match set_entry.sender.send(NotificationManagerOutput::SpotCandlesticksChanged(result)).await {
-                                                            Ok(_) => {},
-                                                            Err(err) => {
-                                                                set_entry_to_remove_ids.push(set_entry.id);
-                                                                tracing::info!("{}", err);
-                                                            }
+                                                        if let Err(err) = set_entry.sender.send(NotificationManagerOutput::SpotCandlesticksChanged(result)).await {
+                                                            set_entry_to_remove_ids.push(set_entry.id);
+                                                            tracing::info!("{}", err);
                                                         }
                                                     }
                                                 }
-                                                for set_entry_to_remove_id in set_entry_to_remove_ids {
-                                                    set.remove(&set_entry_to_remove_id);
-                                                }
-                                                for candlestick in candlesticks.iter() {
-                                                    if candlestick.last_modification_at > candlesticks_last_modification_at {
-                                                        candlesticks_last_modification_at = candlestick.last_modification_at;
-                                                    }
-                                                }
+                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+
+                                                candlesticks_last_modification_at = max(
+                                                    candlesticks_last_modification_at,
+                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(candlesticks_last_modification_at)
+                                                );
+
                                             },
                                             Err(err) => {
                                                 tracing::error!("Error: {}", err);
