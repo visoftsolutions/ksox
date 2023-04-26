@@ -34,16 +34,17 @@ impl OrdersManager {
                 id,
                 created_at,
                 last_modification_at,
-                user_id,
+                maker_id,
                 is_active,
                 quote_asset_id,
                 base_asset_id,
                 price as "price: Fraction",
                 quote_asset_volume as "quote_asset_volume: Fraction",
                 quote_asset_volume_left as "quote_asset_volume_left: Fraction",
-                maker_fee as "maker_fee: Fraction"
+                maker_fee as "maker_fee: Fraction",
+                maker_presentation
             FROM spot.orders
-            WHERE user_id = $1
+            WHERE maker_id = $1
             ORDER BY last_modification_at DESC, created_at DESC
             LIMIT $2
             OFFSET $3
@@ -66,14 +67,15 @@ impl OrdersManager {
                 id,
                 created_at,
                 last_modification_at,
-                user_id,
+                maker_id,
                 is_active,
                 quote_asset_id,
                 base_asset_id,
                 price as "price: Fraction",
                 quote_asset_volume as "quote_asset_volume: Fraction",
                 quote_asset_volume_left as "quote_asset_volume_left: Fraction",
-                maker_fee as "maker_fee: Fraction"
+                maker_fee as "maker_fee: Fraction",
+                maker_presentation
             FROM spot.orders
             WHERE last_modification_at > $1
             ORDER BY last_modification_at ASC
@@ -143,16 +145,17 @@ impl OrdersManager {
                 id,
                 created_at,
                 last_modification_at,
-                user_id,
+                maker_id,
                 is_active,
                 quote_asset_id,
                 base_asset_id,
                 price as "price: Fraction",
                 quote_asset_volume as "quote_asset_volume: Fraction",
                 quote_asset_volume_left as "quote_asset_volume_left: Fraction",
-                maker_fee as "maker_fee: Fraction"
+                maker_fee as "maker_fee: Fraction",
+                maker_presentation
             FROM spot.orders
-            WHERE user_id = $1 AND is_active = true
+            WHERE maker_id = $1 AND is_active = true
             ORDER BY last_modification_at DESC, created_at DESC
             LIMIT $2
             OFFSET $3
@@ -217,7 +220,7 @@ impl OrdersNotificationManager {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
                 NotificationManagerPredicateInput::SpotOrdersChanged(order) => {
-                    order.user_id == user_id
+                    order.maker_id == user_id
                 }
                 _ => false,
             }

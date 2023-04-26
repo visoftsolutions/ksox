@@ -30,21 +30,24 @@ impl TradesManager {
             Trade,
             r#"
             SELECT
-                id,
-                created_at,
-                last_modification_at,
-                quote_asset_id,
-                base_asset_id,
-                taker_id,
-                order_id,
-                price as "price: Fraction",
-                taker_quote_volume as "taker_quote_volume: Fraction",
-                taker_base_volume as "taker_base_volume: Fraction",
-                maker_quote_volume as "maker_quote_volume: Fraction",
-                maker_base_volume as "maker_base_volume: Fraction"
+                spot.trades.id,
+                spot.trades.created_at,
+                spot.trades.last_modification_at,
+                spot.trades.quote_asset_id,
+                spot.trades.base_asset_id,
+                spot.trades.taker_id,
+                spot.trades.taker_presentation,
+                spot.orders.maker_id,
+                spot.orders.maker_presentation,
+                spot.trades.price as "price: Fraction",
+                spot.trades.taker_quote_volume as "taker_quote_volume: Fraction",
+                spot.trades.taker_base_volume as "taker_base_volume: Fraction",
+                spot.trades.maker_quote_volume as "maker_quote_volume: Fraction",
+                spot.trades.maker_base_volume as "maker_base_volume: Fraction"
             FROM spot.trades
-            WHERE last_modification_at > $1
-            ORDER BY last_modification_at ASC
+            JOIN spot.orders ON spot.orders.id = spot.trades.order_id
+            WHERE spot.trades.last_modification_at > $1
+            ORDER BY spot.trades.last_modification_at ASC
             "#,
             last_modification_at
         )
@@ -52,7 +55,7 @@ impl TradesManager {
         .await
     }
 
-    pub fn get_for_taker(
+    pub fn get_for_user_id(
         &self,
         taker_id: Uuid,
         limit: i64,
@@ -62,21 +65,24 @@ impl TradesManager {
             Trade,
             r#"
             SELECT
-                id,
-                created_at,
-                last_modification_at,
-                quote_asset_id,
-                base_asset_id,
-                taker_id,
-                order_id,
-                price as "price: Fraction",
-                taker_quote_volume as "taker_quote_volume: Fraction",
-                taker_base_volume as "taker_base_volume: Fraction",
-                maker_quote_volume as "maker_quote_volume: Fraction",
-                maker_base_volume as "maker_base_volume: Fraction"
+                spot.trades.id,
+                spot.trades.created_at,
+                spot.trades.last_modification_at,
+                spot.trades.quote_asset_id,
+                spot.trades.base_asset_id,
+                spot.trades.taker_id,
+                spot.trades.taker_presentation,
+                spot.orders.maker_id,
+                spot.orders.maker_presentation,
+                spot.trades.price as "price: Fraction",
+                spot.trades.taker_quote_volume as "taker_quote_volume: Fraction",
+                spot.trades.taker_base_volume as "taker_base_volume: Fraction",
+                spot.trades.maker_quote_volume as "maker_quote_volume: Fraction",
+                spot.trades.maker_base_volume as "maker_base_volume: Fraction"
             FROM spot.trades
-            WHERE taker_id = $1
-            ORDER BY created_at DESC
+            JOIN spot.orders ON spot.orders.id = spot.trades.order_id
+            WHERE spot.trades.taker_id = $1 OR spot.orders.maker_id = $1
+            ORDER BY spot.trades.created_at DESC
             LIMIT $2
             OFFSET $3
             "#,
@@ -98,21 +104,24 @@ impl TradesManager {
             Trade,
             r#"
             SELECT
-                id,
-                created_at,
-                last_modification_at,
-                quote_asset_id,
-                base_asset_id,
-                taker_id,
-                order_id,
-                price as "price: Fraction",
-                taker_quote_volume as "taker_quote_volume: Fraction",
-                taker_base_volume as "taker_base_volume: Fraction",
-                maker_quote_volume as "maker_quote_volume: Fraction",
-                maker_base_volume as "maker_base_volume: Fraction"
+                spot.trades.id,
+                spot.trades.created_at,
+                spot.trades.last_modification_at,
+                spot.trades.quote_asset_id,
+                spot.trades.base_asset_id,
+                spot.trades.taker_id,
+                spot.trades.taker_presentation,
+                spot.orders.maker_id,
+                spot.orders.maker_presentation,
+                spot.trades.price as "price: Fraction",
+                spot.trades.taker_quote_volume as "taker_quote_volume: Fraction",
+                spot.trades.taker_base_volume as "taker_base_volume: Fraction",
+                spot.trades.maker_quote_volume as "maker_quote_volume: Fraction",
+                spot.trades.maker_base_volume as "maker_base_volume: Fraction"
             FROM spot.trades
-            WHERE (quote_asset_id = $1 AND base_asset_id = $2) OR (quote_asset_id = $2 AND base_asset_id = $1)
-            ORDER BY created_at DESC
+            JOIN spot.orders ON spot.orders.id = spot.trades.order_id
+            WHERE (spot.trades.quote_asset_id = $1 AND spot.trades.base_asset_id = $2) OR (spot.trades.quote_asset_id = $2 AND spot.trades.base_asset_id = $1)
+            ORDER BY spot.trades.created_at DESC
             LIMIT $3
             OFFSET $4
             "#,
@@ -133,21 +142,24 @@ impl TradesManager {
             Trade,
             r#"
             SELECT
-                id,
-                created_at,
-                last_modification_at,
-                quote_asset_id,
-                base_asset_id,
-                taker_id,
-                order_id,
-                price as "price: Fraction",
-                taker_quote_volume as "taker_quote_volume: Fraction",
-                taker_base_volume as "taker_base_volume: Fraction",
-                maker_quote_volume as "maker_quote_volume: Fraction",
-                maker_base_volume as "maker_base_volume: Fraction"
+                spot.trades.id,
+                spot.trades.created_at,
+                spot.trades.last_modification_at,
+                spot.trades.quote_asset_id,
+                spot.trades.base_asset_id,
+                spot.trades.taker_id,
+                spot.trades.taker_presentation,
+                spot.orders.maker_id,
+                spot.orders.maker_presentation,
+                spot.trades.price as "price: Fraction",
+                spot.trades.taker_quote_volume as "taker_quote_volume: Fraction",
+                spot.trades.taker_base_volume as "taker_base_volume: Fraction",
+                spot.trades.maker_quote_volume as "maker_quote_volume: Fraction",
+                spot.trades.maker_base_volume as "maker_base_volume: Fraction"
             FROM spot.trades
-            WHERE (quote_asset_id = $1 AND base_asset_id = $2) OR (quote_asset_id = $2 AND base_asset_id = $1)
-            ORDER BY created_at DESC
+            JOIN spot.orders ON spot.orders.id = spot.trades.order_id
+            WHERE (spot.trades.quote_asset_id = $1 AND spot.trades.base_asset_id = $2) OR (spot.trades.quote_asset_id = $2 AND spot.trades.base_asset_id = $1)
+            ORDER BY spot.trades.created_at DESC
             LIMIT 1
             "#,
             quote_asset_id,
@@ -167,21 +179,24 @@ impl TradesManager {
             Trade,
             r#"
             SELECT
-                id,
-                created_at,
-                last_modification_at,
-                quote_asset_id,
-                base_asset_id,
-                taker_id,
-                order_id,
-                price as "price: Fraction",
-                taker_quote_volume as "taker_quote_volume: Fraction",
-                taker_base_volume as "taker_base_volume: Fraction",
-                maker_quote_volume as "maker_quote_volume: Fraction",
-                maker_base_volume as "maker_base_volume: Fraction"
+                spot.trades.id,
+                spot.trades.created_at,
+                spot.trades.last_modification_at,
+                spot.trades.quote_asset_id,
+                spot.trades.base_asset_id,
+                spot.trades.taker_id,
+                spot.trades.taker_presentation,
+                spot.orders.maker_id,
+                spot.orders.maker_presentation,
+                spot.trades.price as "price: Fraction",
+                spot.trades.taker_quote_volume as "taker_quote_volume: Fraction",
+                spot.trades.taker_base_volume as "taker_base_volume: Fraction",
+                spot.trades.maker_quote_volume as "maker_quote_volume: Fraction",
+                spot.trades.maker_base_volume as "maker_base_volume: Fraction"
             FROM spot.trades
-            WHERE ((quote_asset_id = $1 AND base_asset_id = $2) OR (quote_asset_id = $2 AND base_asset_id = $1)) AND created_at >= $3
-            ORDER BY created_at
+            JOIN spot.orders ON spot.orders.id = spot.trades.order_id
+            WHERE ((spot.trades.quote_asset_id = $1 AND spot.trades.base_asset_id = $2) OR (spot.trades.quote_asset_id = $2 AND spot.trades.base_asset_id = $1)) AND spot.trades.created_at >= $3
+            ORDER BY spot.trades.created_at
             "#,
             quote_asset_id,
             base_asset_id,
@@ -201,20 +216,23 @@ impl TradesManager {
             Trade,
             r#"
             SELECT
-                id,
-                created_at,
-                last_modification_at,
-                quote_asset_id,
-                base_asset_id,
-                taker_id,
-                order_id,
-                price as "price: Fraction",
-                taker_quote_volume as "taker_quote_volume: Fraction",
-                taker_base_volume as "taker_base_volume: Fraction",
-                maker_quote_volume as "maker_quote_volume: Fraction",
-                maker_base_volume as "maker_base_volume: Fraction"
+                spot.trades.id,
+                spot.trades.created_at,
+                spot.trades.last_modification_at,
+                spot.trades.quote_asset_id,
+                spot.trades.base_asset_id,
+                spot.trades.taker_id,
+                spot.trades.taker_presentation,
+                spot.orders.maker_id,
+                spot.orders.maker_presentation,
+                spot.trades.price as "price: Fraction",
+                spot.trades.taker_quote_volume as "taker_quote_volume: Fraction",
+                spot.trades.taker_base_volume as "taker_base_volume: Fraction",
+                spot.trades.maker_quote_volume as "maker_quote_volume: Fraction",
+                spot.trades.maker_base_volume as "maker_base_volume: Fraction"
             FROM spot.trades
-            WHERE ((quote_asset_id = $1 AND base_asset_id = $2) OR (quote_asset_id = $2 AND base_asset_id = $1)) AND created_at >= $3 AND created_at < $4
+            JOIN spot.orders ON spot.orders.id = spot.trades.order_id
+            WHERE ((spot.trades.quote_asset_id = $1 AND spot.trades.base_asset_id = $2) OR (spot.trades.quote_asset_id = $2 AND spot.trades.base_asset_id = $1)) AND spot.trades.created_at >= $3 AND spot.trades.created_at < $4
             "#,
             quote_asset_id,
             base_asset_id,
@@ -273,14 +291,14 @@ impl TradesNotificationManager {
         }
     }
 
-    pub async fn subscribe_to_taker(
+    pub async fn subscribe_to_user(
         &self,
-        taker_id: Uuid,
+        user_id: Uuid,
     ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Vec<Trade>> + Send>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
                 NotificationManagerPredicateInput::SpotTradesChanged(trade) => {
-                    trade.taker_id == taker_id
+                    trade.taker_id == user_id || trade.maker_id == user_id
                 }
                 _ => false,
             }

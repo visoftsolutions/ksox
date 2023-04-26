@@ -10,17 +10,20 @@ use axum::{
 use futures::stream::Stream;
 use tokio_stream::StreamExt;
 
-use crate::{api::auth::models::UserId, models::AppState};
+use crate::{
+    api::{auth::models::UserId, private::ResponseTrade},
+    models::AppState,
+};
 
 pub async fn root(
     State(state): State<AppState>,
     user_id: UserId,
 ) -> Sse<impl Stream<Item = Result<Event, std::io::Error>>> {
     let stream = async_stream::stream! {
-        let mut stream = state.trades_notification_manager.subscribe_to_taker(*user_id).await
+        let mut stream = state.trades_notification_manager.subscribe_to_user(*user_id).await
             .map_err(|err| Error::new(ErrorKind::BrokenPipe, err))?;
         while let Some(element) = stream.next().await {
-            yield Event::default().json_data(element).map_err(Error::from);
+            yield Event::default().json_data(element.into_iter().map(|f| ResponseTrade::from(f, *user_id)).collect::<Vec<ResponseTrade>>()).map_err(Error::from);
         }
     };
 

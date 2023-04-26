@@ -30,7 +30,7 @@ proptest! {
     #![proptest_config(ProptestConfig::with_cases(std::env::var("TESTS_CASES").unwrap().parse().unwrap()))]
     #[test]
     fn error_when_not_matching_order~N(
-        (user_id, price, quote_asset_volume, quote_asset, base_asset, maker_order, accuracy) in (
+        (user_id, price, quote_asset_volume, quote_asset, base_asset, maker_order, accuracy, presentation) in (
             arb_fraction_bigger_than_zero()
             ).prop_flat_map(|price| (
                 Just(Uuid::new_v4()),
@@ -39,7 +39,8 @@ proptest! {
                 arb_asset(),
                 arb_asset(),
                 arb_not_matching_order(price),
-                arb_fraction_bigger_than_zero()
+                arb_fraction_bigger_than_zero(),
+                any::<bool>(),
         ))
     ) {
         block_on(async {
@@ -48,7 +49,7 @@ proptest! {
             });
 
             let matching = MatchingEngine::matching_loop(
-                user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), maker_orders_stream, accuracy).await;
+                user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), maker_orders_stream, accuracy, presentation).await;
 
             assert!(matches!(matching, Err(MatchingLoopError::InvalidMatchingOrderData)))
         });
@@ -62,7 +63,7 @@ proptest! {
     #![proptest_config(ProptestConfig::with_cases(std::env::var("TESTS_CASES").unwrap().parse().unwrap()))]
     #[test]
     fn new_order_new_trade_when_matching_smaller_order~N(
-        (user_id, price, quote_asset_volume, quote_asset, base_asset, maker_order, accuracy) in (
+        (user_id, price, quote_asset_volume, quote_asset, base_asset, maker_order, accuracy, presentation) in (
             arb_fraction_bigger_than_zero(),
             arb_fraction_bigger_than_zero()
             ).prop_flat_map(|(price, quote_asset_volume)| (
@@ -72,7 +73,8 @@ proptest! {
                 arb_asset(),
                 arb_asset(),
                 arb_smaller_matching_order(price, quote_asset_volume).prop_filter("order volume not zero", |o| o.quote_asset_volume_left > Fraction::zero()),
-                arb_fraction_bigger_than_zero()
+                arb_fraction_bigger_than_zero(),
+                any::<bool>(),
         ))
     ) {
         block_on(async {
@@ -82,7 +84,7 @@ proptest! {
             });
 
             let matching = MatchingEngine::matching_loop(
-                user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), maker_orders_stream, accuracy.to_owned()).await.unwrap();
+                user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), maker_orders_stream, accuracy.to_owned(), presentation).await.unwrap();
 
             assert!(matching.order.is_some());
             assert!(!matching.trades.is_empty());
@@ -100,6 +102,9 @@ proptest! {
             let request_base_asset_volume = maker_order_base_volume.to_owned() / price;
             let minimal_taker_base_volume = (request_base_asset_volume.to_owned() - request_base_asset_volume.to_owned() * base_asset.taker_fee).checked_floor_with_accuracy(&accuracy).unwrap();
 
+            // ensure correct presentation
+            assert_eq!(matching.order.unwrap().maker_presentation, presentation);
+
             // ensure taker is satisfied
             assert!(trade.taker_base_volume >= minimal_taker_base_volume);
 
@@ -108,7 +113,8 @@ proptest! {
             // ensure maker is satisfied
             assert!(trade.maker_base_volume >= minimal_maker_base_volume);
 
-
+            // ensure correct presentation
+            assert_eq!(trade.taker_presentation, presentation);
         });
     }
 }
@@ -120,7 +126,7 @@ proptest! {
     #![proptest_config(ProptestConfig::with_cases(std::env::var("TESTS_CASES").unwrap().parse().unwrap()))]
     #[test]
     fn new_order_when_no_matching_order~N(
-        (user_id, price, quote_asset_volume, quote_asset, base_asset, maker_order, accuracy) in (
+        (user_id, price, quote_asset_volume, quote_asset, base_asset, maker_order, accuracy, presentation) in (
             arb_fraction_bigger_than_zero(),
             arb_fraction_bigger_than_zero()
             ).prop_flat_map(|(price, quote_asset_volume)| (
@@ -130,7 +136,8 @@ proptest! {
                 arb_asset(),
                 arb_asset(),
                 Just(Vec::<OrderGet>::new()),
-                arb_fraction_bigger_than_zero()
+                arb_fraction_bigger_than_zero(),
+                any::<bool>(),
         ))
     ) {
         block_on(async {
@@ -141,19 +148,20 @@ proptest! {
             });
 
             let matching = MatchingEngine::matching_loop(
-                user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), maker_orders_stream, accuracy).await.unwrap();
+                user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), maker_orders_stream, accuracy, presentation).await.unwrap();
 
             assert!(matching.order.is_some());
             assert!(matching.trades.is_empty());
 
             let order = matching.order.unwrap();
-            assert_eq!(order.user_id, user_id);
+            assert_eq!(order.maker_id, user_id);
             assert_eq!(order.quote_asset_id, quote_asset.id);
             assert_eq!(order.base_asset_id, base_asset.id);
             assert_eq!(order.price, price);
             assert_eq!(order.quote_asset_volume, quote_asset_volume);
             assert_eq!(order.quote_asset_volume_left, quote_asset_volume);
             assert_eq!(order.maker_fee, base_asset.maker_fee);
+            assert_eq!(order.maker_presentation, presentation);
         });
     }
 }
@@ -165,7 +173,7 @@ proptest! {
     #![proptest_config(ProptestConfig::with_cases(std::env::var("TESTS_CASES").unwrap().parse().unwrap()))]
     #[test]
     fn new_trade_when_bigger_matching_order~N(
-        (user_id, price, quote_asset_volume, quote_asset, base_asset, maker_order, accuracy) in (
+        (user_id, price, quote_asset_volume, quote_asset, base_asset, maker_order, accuracy, presentation) in (
             arb_fraction_bigger_than_zero(),
             arb_fraction_bigger_than_zero()
             ).prop_flat_map(|(price, quote_asset_volume)| (
@@ -175,7 +183,8 @@ proptest! {
                 arb_asset(),
                 arb_asset(),
                 arb_not_smaller_matching_order(price, quote_asset_volume).prop_filter("order volume not zero", |o| o.quote_asset_volume_left > Fraction::zero()),
-                arb_fraction_bigger_than_zero()
+                arb_fraction_bigger_than_zero(),
+                any::<bool>(),
         ))
     ) {
         block_on(async {
@@ -185,7 +194,7 @@ proptest! {
             });
 
             let matching = MatchingEngine::matching_loop(
-                user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), maker_orders_stream, accuracy.to_owned()).await.unwrap();
+                user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), maker_orders_stream, accuracy.to_owned(), presentation).await.unwrap();
 
             assert!(matching.order.is_none());
             assert!(!matching.trades.is_empty());
@@ -210,6 +219,9 @@ proptest! {
 
             // ensure maker is satisfied
             assert!(trade.maker_base_volume >= minimal_maker_base_volume);
+
+            // ensure correct presentation
+            assert_eq!(trade.taker_presentation, presentation);
         })
     }
 }

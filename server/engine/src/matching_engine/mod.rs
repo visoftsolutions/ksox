@@ -140,6 +140,7 @@ impl MatchingEngine {
             base_asset,
             matching_orders,
             self.accuracy.to_owned(),
+            request.presentation,
         )
         .await?;
 
@@ -170,7 +171,7 @@ impl MatchingEngine {
             .await?;
             let mut maker_base_asset_valut = ValutsManager::get_or_create(
                 transaction,
-                maker_order.user_id,
+                maker_order.maker_id,
                 maker_order.base_asset_id,
             )
             .await?;
@@ -217,7 +218,7 @@ impl MatchingEngine {
         }
 
         let mut valut =
-            ValutsManager::get_or_create(transaction, order.user_id, order.quote_asset_id).await?;
+            ValutsManager::get_or_create(transaction, order.maker_id, order.quote_asset_id).await?;
 
         valut.balance += order.quote_asset_volume_left.to_owned();
         order.is_active = false;
@@ -241,6 +242,7 @@ impl MatchingEngine {
         base_asset: Asset,
         mut matching_orders: Pin<Box<dyn Stream<Item = sqlx::Result<OrderGet>> + Send + '_>>,
         accuracy: Fraction,
+        presentation: bool,
     ) -> Result<MatchingLoopResponse, MatchingLoopError> {
         let mut response = MatchingLoopResponse::new();
 
@@ -300,6 +302,7 @@ impl MatchingEngine {
                 quote_asset_id: quote_asset.id,
                 base_asset_id: base_asset.id,
                 taker_id: user_id,
+                taker_presentation: presentation,
                 order_id: maker_order.id,
                 taker_price: Fraction::one().checked_div(&maker_order.price).ok_or(MatchingLoopError::CheckedDivFailed)?,
                 taker_quote_volume: taker_quote_asset_volume_taken,
@@ -327,7 +330,8 @@ impl MatchingEngine {
 
         response.order = if quote_asset_volume_left > Fraction::zero() {
             Some(OrderInsert {
-                user_id,
+                maker_id: user_id,
+                maker_presentation: presentation,
                 quote_asset_id: quote_asset.id,
                 base_asset_id: base_asset.id,
                 price,

@@ -50,6 +50,7 @@ export const SubmitRequest = z.object({
   base_asset_id: Uuid,
   price: Fraction,
   quote_asset_volume: Fraction,
+  presentation: z.boolean(),
 });
 export type SubmitRequest = z.infer<typeof SubmitRequest>;
 

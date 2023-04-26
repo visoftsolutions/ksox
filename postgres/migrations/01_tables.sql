@@ -29,7 +29,8 @@ CREATE TABLE "spot"."orders" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "user_id" uuid NOT NULL,
+  "maker_id" uuid NOT NULL,
+  "maker_presentation" BOOLEAN NOT NULL DEFAULT false,
   "is_active" BOOLEAN NOT NULL DEFAULT true,
   "quote_asset_id" uuid NOT NULL,
   "base_asset_id" uuid NOT NULL,
@@ -45,8 +46,9 @@ CREATE TABLE "spot"."trades" (
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "quote_asset_id" uuid NOT NULL,
   "base_asset_id" uuid NOT NULL,
-  "taker_id" uuid NOT NULL,
   "order_id" uuid NOT NULL,
+  "taker_id" uuid NOT NULL,
+  "taker_presentation" BOOLEAN NOT NULL DEFAULT false,
   "price" fraction NOT NULL,
   "taker_quote_volume" fraction NOT NULL,
   "taker_base_volume" fraction NOT NULL,
@@ -76,7 +78,7 @@ CREATE TABLE "spot"."candlesticks" (
 
 ALTER TABLE "spot"."valuts" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 ALTER TABLE "spot"."valuts" ADD FOREIGN KEY ("asset_id") REFERENCES "spot"."assets" ("id");
-ALTER TABLE "spot"."orders" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
+ALTER TABLE "spot"."orders" ADD FOREIGN KEY ("maker_id") REFERENCES "users" ("id");
 ALTER TABLE "spot"."orders" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "spot"."assets" ("id");
 ALTER TABLE "spot"."orders" ADD FOREIGN KEY ("base_asset_id") REFERENCES "spot"."assets" ("id");
 ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("taker_id") REFERENCES "users" ("id");

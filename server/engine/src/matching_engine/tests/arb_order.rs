@@ -12,9 +12,9 @@ prop_compose! {
     pub fn arb_order()(
         price in any_with::<Fraction>(std::env::var("TESTS_FRACTION_BYTES").unwrap().parse().unwrap()),
         volume in any_with::<Fraction>(std::env::var("TESTS_FRACTION_BYTES").unwrap().parse().unwrap()),
-        fee in any_with::<Fraction>(std::env::var("TESTS_FRACTION_BYTES").unwrap().parse().unwrap())
+        maker_fee in any_with::<Fraction>(std::env::var("TESTS_FRACTION_BYTES").unwrap().parse().unwrap())
     ) -> OrderGet {
-        OrderGet {id: Uuid::new_v4(), price, quote_asset_volume_left: volume, maker_fee: fee}
+        OrderGet {id: Uuid::new_v4(), price, quote_asset_volume_left: volume, maker_fee}
     }
 }
 
@@ -82,8 +82,8 @@ prop_compose! {
     pub fn arb_not_matching_order(i_p: Fraction)(
         price in arb_smaller_fraction_or_zero(i_p.inv()),
         volume in any_with::<Fraction>(std::env::var("TESTS_FRACTION_BYTES").unwrap().parse().unwrap()),
-        fee in arb_fraction_not_bigger_than_one()
+        maker_fee in arb_fraction_not_bigger_than_one()
     ) -> OrderGet {
-        OrderGet {id: Uuid::new_v4(), price, quote_asset_volume_left: volume, maker_fee: fee}
+        OrderGet {id: Uuid::new_v4(), price, quote_asset_volume_left: volume, maker_fee}
     }
 }

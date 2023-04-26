@@ -2,17 +2,17 @@ import { batch, Index, onCleanup, onMount, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import { ValidateSignatureResponse } from "~/auth/mod";
 import { Asset } from "~/types/asset";
-import { Direction } from "../State";
 import { Market } from "~/utils/providers/MarketProvider";
 import { ev, finv, fmul } from "~/types/primitives/fraction";
 import { Uuid } from "~/types/primitives/uuid";
 import { useAssets } from "~/utils/providers/AssetsProvider";
-import { Order } from "~/types/order";
+import { PrivateOrder } from "~/types/order";
 import { api } from "~/root";
 import params from "~/utils/params";
 import { z } from "zod";
 import { format } from "numerable";
 import { formatTemplate } from "~/utils/precision";
+import { Direction } from "~/types/primitives/direction";
 
 interface OrderHistory {
   id: Uuid;
@@ -54,45 +54,26 @@ export function OrderHistory(props: { market?: Market; session?: ValidateSignatu
 
   onMount(() => {
     if (props.market?.quote_asset && props.market?.base_asset && props.capacity && assets()) {
-      const quote_asset = props.market?.quote_asset;
-      const base_asset = props.market?.base_asset;
       const capacity = props.capacity;
 
-      const convertOrderHistory = (order: Order) => {
+      const convertOrderHistory = (order: PrivateOrder): OrderHistory => {
+        const price = ev(order.price);
         const quote_asset_volume = ev(order.quote_asset_volume);
-        const base_asset_volume = ev(fmul(order.quote_asset_volume, finv(order.price)));
         const quote_asset_volume_left = ev(order.quote_asset_volume_left);
-        if (order.quote_asset_id == quote_asset.id && order.base_asset_id == base_asset.id) {
-          const asset_pair: [Asset | undefined, Asset | undefined] = [assets().get(order.base_asset_id), assets().get(order.quote_asset_id)];
-          const price = quote_asset_volume / base_asset_volume;
-          const filled_qty = (quote_asset_volume - quote_asset_volume_left) / price;
-          return {
-            id: order.id,
-            order_time: order.created_at,
-            asset_pair: asset_pair,
-            direction: Direction.Buy,
-            order_price: price,
-            order_value: quote_asset_volume,
-            order_qty: base_asset_volume,
-            filled_qty: filled_qty,
-            is_active: order.is_active,
-          };
-        } else if (order.quote_asset_id == base_asset.id && order.base_asset_id == quote_asset.id) {
-          const asset_pair: [Asset | undefined, Asset | undefined] = [assets().get(order.quote_asset_id), assets().get(order.base_asset_id)];
-          const price = base_asset_volume / quote_asset_volume;
-          const filled_qty = quote_asset_volume - quote_asset_volume_left;
-          return {
-            id: order.id,
-            order_time: order.created_at,
-            asset_pair: asset_pair,
-            direction: Direction.Sell,
-            order_price: price,
-            order_value: base_asset_volume,
-            order_qty: quote_asset_volume,
-            filled_qty: filled_qty,
-            is_active: order.is_active,
-          };
-        }
+        const filled_qty = (quote_asset_volume - quote_asset_volume_left) / price;
+        const base_asset_volume = ev(fmul(order.quote_asset_volume, finv(order.price)));
+        const asset_pair: [Asset | undefined, Asset | undefined] = [assets().get(order.base_asset_id), assets().get(order.quote_asset_id)];
+        return {
+          id: order.id,
+          order_time: order.created_at,
+          asset_pair: asset_pair,
+          direction: order.direction,
+          order_price: price,
+          order_value: quote_asset_volume,
+          order_qty: base_asset_volume,
+          filled_qty: filled_qty,
+          is_active: order.is_active,
+        };
       };
 
       events = new EventSource(`${api}/private/orders/sse`, { withCredentials: true });
@@ -105,11 +86,11 @@ export function OrderHistory(props: { market?: Market; session?: ValidateSignatu
           { credentials: "same-origin" }
         )
           .then((r) => r.json())
-          .then((r) => z.array(Order).parse(r))
+          .then((r) => z.array(PrivateOrder).parse(r))
           .then((r) => r.map<OrderHistory | undefined>((e) => convertOrderHistory(e)).filter((e): e is OrderHistory => !!e))
           .then((r) => batch(() => r.forEach((e) => setOrderHistory({ [e.id]: e }))));
       events.onmessage = (ev) => {
-        Order.array()
+        PrivateOrder.array()
           .parse(JSON.parse(ev.data))
           .forEach((e) => {
             if (!e.is_active) {
@@ -136,7 +117,9 @@ export function OrderHistory(props: { market?: Market; session?: ValidateSignatu
           <div class={`grid grid-cols-8 items-center self-center px-[12px] py-[8px] text-state-item font-normal text-white ${i % 2 && "bg-gray-3"} `}>
             <div class="col-start-1 col-end-2 text-left">{element().order_time.toUTCString()}</div>
             <div class="col-start-2 col-end-3 text-center">{element().asset_pair[0]?.symbol + " / " + element().asset_pair[1]?.symbol}</div>
-            <div class={`col-start-3 col-end-4 text-center ${element().direction == Direction.Buy ? "text-green" : "text-red"}`}>{element().direction}</div>
+            <div class={`col-start-3 col-end-4 text-center ${element().direction == Direction.Enum.buy ? "text-green" : "text-red"}`}>
+              {element().direction}
+            </div>
             <div class="col-start-4 col-end-5 text-center">{format(element().order_price, formatTemplate(props.precision ?? 2))}</div>
             <div class="col-start-5 col-end-6 text-center">{format(element().order_value, formatTemplate(props.precision ?? 2))}</div>
             <div class="col-start-6 col-end-7 text-center">{format(element().order_qty, formatTemplate(props.precision ?? 2))}</div>

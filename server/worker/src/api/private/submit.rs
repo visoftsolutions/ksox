@@ -15,6 +15,7 @@ pub struct Request {
     pub base_asset_id: Uuid,
     pub price: Fraction,
     pub quote_asset_volume: Fraction,
+    pub presentation: bool,
 }
 
 #[derive(Serialize)]
@@ -35,6 +36,7 @@ pub async fn root(
             base_asset_id: payload.base_asset_id.to_string(),
             price: serde_json::to_string(&payload.price)?,
             quote_asset_volume: serde_json::to_string(&payload.quote_asset_volume)?,
+            presentation: serde_json::to_string(&payload.presentation)?,
         })
         .await?
         .into_inner();

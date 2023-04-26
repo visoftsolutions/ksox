@@ -15,6 +15,7 @@ pub struct SubmitRequest {
     pub base_asset_id: Uuid,
     pub price: Fraction,
     pub quote_asset_volume: Fraction,
+    pub presentation: bool,
 }
 
 impl TryFrom<base::SubmitRequest> for SubmitRequest {
@@ -30,6 +31,8 @@ impl TryFrom<base::SubmitRequest> for SubmitRequest {
             price: serde_json::from_str(&value.price)
                 .map_err(|e| Status::invalid_argument(e.to_string()))?,
             quote_asset_volume: serde_json::from_str(&value.quote_asset_volume)
+                .map_err(|e| Status::invalid_argument(e.to_string()))?,
+            presentation: serde_json::from_str(&value.presentation)
                 .map_err(|e| Status::invalid_argument(e.to_string()))?,
         })
     }

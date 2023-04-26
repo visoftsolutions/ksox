@@ -6,7 +6,7 @@ use sqlx::types::Uuid;
 pub struct Order {
     pub id: Uuid,
     pub is_active: bool,
-    pub user_id: Uuid,
+    pub maker_id: Uuid,
     pub quote_asset_id: Uuid,
     pub base_asset_id: Uuid,
     pub quote_asset_volume_left: Fraction,
@@ -22,7 +22,8 @@ pub struct OrderGet {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct OrderInsert {
-    pub user_id: Uuid,
+    pub maker_id: Uuid,
+    pub maker_presentation: bool,
     pub quote_asset_id: Uuid,
     pub base_asset_id: Uuid,
     pub price: Fraction,

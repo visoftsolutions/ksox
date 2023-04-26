@@ -103,6 +103,7 @@ export default function SellForm(props: { market?: Market; available_balance?: F
                 base_asset_id: props.market?.quote_asset?.id,
                 price: finv(storeComponent.price),
                 quote_asset_volume: storeComponent.base_asset_volume,
+                presentation: true,
               }),
               (_, v) => (typeof v === "bigint" ? v.toString() : v)
             ),

@@ -21,7 +21,7 @@ impl OrdersManager {
             SELECT
                 id,
                 is_active,
-                user_id,
+                maker_id,
                 quote_asset_id,
                 base_asset_id,
                 quote_asset_volume_left as "quote_asset_volume_left: Fraction"
@@ -71,17 +71,18 @@ impl OrdersManager {
         sqlx::query!(
             r#"
             INSERT INTO spot.orders
-                (user_id, is_active, quote_asset_id, base_asset_id, price, quote_asset_volume, quote_asset_volume_left, maker_fee, last_modification_at, created_at)
+                (maker_id, is_active, quote_asset_id, base_asset_id, price, quote_asset_volume, quote_asset_volume_left, maker_fee, maker_presentation, last_modification_at, created_at)
             VALUES
-                ($1, true, $2, $3, $4::fraction, $5::fraction, $6::fraction, $7::fraction, $8, $9)
+                ($1, true, $2, $3, $4::fraction, $5::fraction, $6::fraction, $7::fraction, $8, $9, $10)
             "#,
-            element.user_id,
+            element.maker_id,
             element.quote_asset_id,
             element.base_asset_id,
             element.price.to_tuple_string() as _,
             element.quote_asset_volume.to_tuple_string() as _,
             element.quote_asset_volume_left.to_tuple_string() as _,
             element.maker_fee.to_tuple_string() as _,
+            element.maker_presentation,
             now,
             now
         )

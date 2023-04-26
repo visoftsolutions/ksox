@@ -12,11 +12,6 @@ enum StateTabs {
   TradeHistory,
 }
 
-export enum Direction {
-  Buy = "buy",
-  Sell = "sell",
-}
-
 export default function CreateState(market?: Market, session?: ValidateSignatureResponse, precision?: number, capacity?: number) {
   return () => (
     <Show when={session && precision} fallback={<State />}>

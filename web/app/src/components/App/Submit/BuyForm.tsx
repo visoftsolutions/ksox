@@ -102,6 +102,7 @@ export default function BuyForm(props: { market?: Market; available_balance?: Fr
                 base_asset_id: props.market?.base_asset?.id,
                 price: storeComponent.price,
                 quote_asset_volume: storeComponent.quote_asset_volume,
+                presentation: false,
               }),
               (_, v) => (typeof v === "bigint" ? v.toString() : v)
             ),

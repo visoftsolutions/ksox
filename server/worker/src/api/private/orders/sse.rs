@@ -10,7 +10,10 @@ use axum::{
 use futures::stream::Stream;
 use tokio_stream::StreamExt;
 
-use crate::{api::auth::models::UserId, models::AppState};
+use crate::{
+    api::{auth::models::UserId, private::ResponseOrder},
+    models::AppState,
+};
 
 pub async fn root(
     State(state): State<AppState>,
@@ -20,7 +23,7 @@ pub async fn root(
         let mut stream = state.orders_notification_manager.subscribe_to_user_id(*user_id).await
             .map_err(|err| Error::new(ErrorKind::BrokenPipe, err))?;
         while let Some(element) = stream.next().await {
-            yield Event::default().json_data(element).map_err(Error::from);
+            yield Event::default().json_data(element.into_iter().map(|f| ResponseOrder::from(f)).collect::<Vec<ResponseOrder>>()).map_err(Error::from);
         }
     };
 

@@ -12,8 +12,8 @@ use futures::{stream::Stream, StreamExt};
 use serde::Deserialize;
 use uuid::Uuid;
 
-use super::{Direction, Response};
-use crate::models::AppState;
+use super::Direction;
+use crate::{api::public::ResponseTrade, models::AppState};
 
 #[derive(Deserialize)]
 pub struct Request {
@@ -32,11 +32,11 @@ pub async fn root(
         while let Some(element) = stream.next().await {
             let trades = element.into_iter().map(|t| {
                 if t.is_opposite(params.quote_asset_id, params.base_asset_id) {
-                    Response { price: t.price.inv(), volume: t.maker_quote_volume , time: t.created_at, direction: Direction::Sell }
+                    ResponseTrade { price: t.price.inv(), volume: t.maker_quote_volume , time: t.created_at, direction: Direction::Sell }
                 } else {
-                    Response { price: t.price, volume: t.taker_quote_volume , time: t.created_at, direction: Direction::Buy }
+                    ResponseTrade { price: t.price, volume: t.taker_quote_volume , time: t.created_at, direction: Direction::Buy }
                 }
-            }).rev().collect::<Vec<Response>>();
+            }).rev().collect::<Vec<ResponseTrade>>();
             yield Event::default().json_data(trades).map_err(Error::from);
         }
     };
