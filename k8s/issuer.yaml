@@ -1,0 +1,24 @@
+# apiVersion: cert-manager.io/v1
+# kind: Issuer
+# metadata:
+#   name: ksox-exchange-issuer
+# spec:
+#   selfSigned: {}
+# ---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: ksox-exchange-issuer
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: pavlnowak@gmail.com
+    privateKeySecretRef:
+      name: ksox-exchange-issuer-account-key
+    solvers:
+    - http01:
+        ingress:
+          class: ingress-nginx
+      selector:
+        dnsZones:
+        - ksox.exchange

@@ -3,23 +3,27 @@ use std::{
     io::{Error, ErrorKind},
 };
 
-use database::{
-    managers::spot::assets::AssetsManager,
-    projections::spot::asset::Asset,
-    sqlx::{Pool, Postgres},
-    traits::TableManager,
-};
+use database::{managers::assets::AssetsManager, projections::asset::Asset};
 use futures::TryStreamExt;
 use ordered_float::OrderedFloat;
 use regex::Regex;
+use serde::Serialize;
+use sqlx::{Pool, Postgres};
 use strsim::jaro_winkler;
 
-use crate::api::public::search::AssetResponse;
+use crate::{api::public::search::AssetResponse, database};
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct AssetPairRecognition {
     regex_fillter: Regex,
     assets_manager: AssetsManager,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AssetPairRecognitionResult {
+    score: OrderedFloat<f64>,
+    asset0: AssetResponse,
+    asset1: AssetResponse,
 }
 
 impl AssetPairRecognition {
@@ -63,32 +67,30 @@ impl AssetPairRecognition {
             .collect()
     }
 
-    pub async fn recognize(
-        self,
-        input: &str,
-    ) -> Result<Vec<(OrderedFloat<f64>, (AssetResponse, AssetResponse))>, Error> {
+    pub async fn recognize(self, input: &str) -> Result<Vec<AssetPairRecognitionResult>, Error> {
         let assets = self.get_assets().await?;
         let phrase = self.regex_fillter.replace_all(input, "").to_lowercase();
-        let mut result = Vec::<(OrderedFloat<f64>, (AssetResponse, AssetResponse))>::with_capacity(
-            assets.len().pow(2),
-        );
+        let mut result = Vec::<AssetPairRecognitionResult>::new();
 
-        for (score1, (asset1, phr1)) in self.recognize_first(phrase.as_str(), &assets).into_iter() {
+        for (score0, (asset0, phr1)) in self.recognize_first(phrase.as_str(), &assets).into_iter() {
             let rem_phr = phrase[std::cmp::min(phrase.len(), phr1.len())..].to_string();
-            for (score2, (asset2, _phr2)) in
-                self.recognize_first(rem_phr.as_str(), &assets).into_iter()
+            for (score1, (asset1, _phr2)) in self
+                .recognize_first(rem_phr.as_str(), &assets)
+                .into_iter()
+                .map(|e| (e.0 * 0.9, e.1))
             {
-                let score_sum = score1 * score2;
-                if asset1 == asset2 || score_sum == OrderedFloat(0_f64) {
+                let score_sum = score0 + score1;
+                if asset0 == asset1 {
                     continue;
                 }
-                result.push((
-                    score_sum,
-                    (asset1.to_owned().into(), asset2.to_owned().into()),
-                ));
+                result.push(AssetPairRecognitionResult {
+                    score: score_sum,
+                    asset0: asset0.to_owned().into(),
+                    asset1: asset1.to_owned().into(),
+                });
             }
         }
-        result.sort_by(|lhs, rhs| lhs.0.cmp(&rhs.0));
+        result.sort_by(|lhs, rhs| rhs.score.cmp(&lhs.score));
         Ok(result)
     }
 }

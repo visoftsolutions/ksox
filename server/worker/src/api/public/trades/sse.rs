@@ -4,15 +4,16 @@ use std::{
 };
 
 use axum::{
-    extract::State,
+    extract::{Query, State},
     response::sse::{Event, Sse},
-    Json,
 };
-use database::sqlx::types::Uuid;
-use futures::{stream::Stream, StreamExt, TryStreamExt};
+use fraction::num_traits::Inv;
+use futures::{stream::Stream, StreamExt};
 use serde::Deserialize;
+use uuid::Uuid;
 
-use crate::models::AppState;
+use super::Direction;
+use crate::{api::public::ResponseTrade, models::AppState};
 
 #[derive(Deserialize)]
 pub struct Request {
@@ -23,19 +24,22 @@ pub struct Request {
 // Return stream of trades from db
 pub async fn root(
     State(state): State<AppState>,
-    Json(payload): Json<Request>,
+    Query(params): Query<Request>,
 ) -> Sse<impl Stream<Item = Result<Event, std::io::Error>>> {
-    let stream = async_stream::try_stream! {
-        let mut stream = state.trades_manager.subscribe_for_asset_pair(payload.quote_asset_id, payload.base_asset_id).await
+    let stream = async_stream::stream! {
+        let mut stream = state.trades_notification_manager.subscribe_to_asset_pair(params.quote_asset_id, params.base_asset_id).await
             .map_err(|err| Error::new(ErrorKind::BrokenPipe, err))?;
         while let Some(element) = stream.next().await {
-            yield Event::default().json_data(
-                element.map_err(|err| Error::new(ErrorKind::BrokenPipe, err))?
-            ).map_err(Error::from);
+            let trades = element.into_iter().map(|t| {
+                if t.is_opposite(params.quote_asset_id, params.base_asset_id) {
+                    ResponseTrade { price: t.price.inv(), volume: t.maker_quote_volume , time: t.created_at, direction: Direction::Sell }
+                } else {
+                    ResponseTrade { price: t.price, volume: t.taker_quote_volume , time: t.created_at, direction: Direction::Buy }
+                }
+            }).rev().collect::<Vec<ResponseTrade>>();
+            yield Event::default().json_data(trades).map_err(Error::from);
         }
-    }
-    .map(|a| a.and_then(|b| b))
-    .inspect_err(|err| tracing::error!("{err}"));
+    };
 
     Sse::new(stream).keep_alive(
         axum::response::sse::KeepAlive::new()

@@ -1,16 +1,21 @@
-use axum::{extract::State, Json};
-use database::{projections::spot::asset::Asset, sqlx::types::Uuid};
-use ordered_float::OrderedFloat;
+use axum::{
+    extract::{Query, State},
+    Json,
+};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
-use crate::{api::AppError, models::AppState};
+use crate::{
+    api::AppError, database::projections::asset::Asset, models::AppState,
+    recognition::AssetPairRecognitionResult,
+};
 
 #[derive(Deserialize)]
 pub struct Request {
     pub input: String,
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub struct AssetResponse {
     pub id: Uuid,
     pub name: String,
@@ -30,12 +35,12 @@ impl From<Asset> for AssetResponse {
 // Send string phrase and return vector of suggestions sorted by most "relevant"
 pub async fn root(
     State(state): State<AppState>,
-    Json(payload): Json<Request>,
-) -> Result<Json<Vec<(OrderedFloat<f64>, (AssetResponse, AssetResponse))>>, AppError> {
+    Query(params): Query<Request>,
+) -> Result<Json<Vec<AssetPairRecognitionResult>>, AppError> {
     Ok(Json(
         state
             .assets_pair_recognition
-            .recognize(&payload.input)
+            .recognize(&params.input)
             .await?,
     ))
 }

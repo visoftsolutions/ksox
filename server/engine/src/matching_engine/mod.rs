@@ -1,195 +1,297 @@
-use database::{
-    managers::spot::{
-        assets::AssetsManager, orders::OrdersManager, trades::TradesManager, valuts::ValutsManager,
-    },
-    projections::spot::{order::Order, trade::Trade},
-    sqlx::{
-        types::{chrono::Utc, Uuid},
-        Pool, Postgres,
-    },
-    traits::table_manager::TableManager,
-    types::Volume,
+use std::pin::Pin;
+
+use base::engine_server::Engine;
+use fraction::{
+    num_traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, One, Zero},
+    Fraction,
 };
-use futures::StreamExt;
+use sqlx::{PgPool, Postgres, Transaction};
+use tokio_stream::{Stream, StreamExt};
+use tonic::{Request, Response, Status};
+use uuid::Uuid;
 
 use self::models::{
-    MatchingEngineData, MatchingEngineError, MatchingEngineRequest, MatchingEngineResponse,
+    CancelRequest, CancelRequestError, CancelResponse, MatchingLoopError, MatchingLoopResponse,
+    SubmitRequest, SubmitRequestError, SubmitResponse,
 };
-
+use crate::{
+    base,
+    database::{
+        managers::{AssetsManager, OrdersManager, TradesManager, ValutsManager},
+        projections::{
+            asset::Asset,
+            order::{OrderGet, OrderInsert},
+            trade::Trade,
+        },
+    },
+};
 pub mod models;
+
 #[cfg(test)]
-mod tests;
+pub mod tests;
 
 pub struct MatchingEngine {
-    orders_manager: OrdersManager,
-    assets_manager: AssetsManager,
-    trades_manager: TradesManager,
-    valuts_manager: ValutsManager,
+    accuracy: Fraction,
+    database: PgPool,
 }
 
 impl MatchingEngine {
-    pub fn new(database: Pool<Postgres>) -> MatchingEngine {
-        MatchingEngine {
-            orders_manager: OrdersManager::new(database.clone()),
-            assets_manager: AssetsManager::new(database.clone()),
-            trades_manager: TradesManager::new(database.clone()),
-            valuts_manager: ValutsManager::new(database),
-        }
+    pub fn new(database: PgPool, accuracy: Fraction) -> Self {
+        Self { accuracy, database }
+    }
+}
+
+#[tonic::async_trait]
+impl Engine for MatchingEngine {
+    async fn submit(
+        &self,
+        request: Request<base::SubmitRequest>,
+    ) -> Result<Response<base::SubmitResponse>, Status> {
+        let mut t = self
+            .database
+            .begin()
+            .await
+            .map_err(|e| Status::aborted(e.to_string()))?;
+        Ok(Response::new(
+            match self.submit(request.into_inner().try_into()?, &mut t).await {
+                Ok(r) => {
+                    t.commit()
+                        .await
+                        .map_err(|e| Status::aborted(e.to_string()))?;
+                    Ok(r)
+                }
+                Err(e) => {
+                    t.rollback()
+                        .await
+                        .map_err(|e| Status::aborted(e.to_string()))?;
+                    Err(e)
+                }
+            }
+            .try_into()?,
+        ))
     }
 
-    pub async fn execute_request(
+    async fn cancel(
         &self,
-        request: MatchingEngineRequest,
-    ) -> Result<(), MatchingEngineError> {
-        // TODO implement transaction to revert changes in db when error occurs
-        if request.quote_asset_volume <= Volume::from(0)
-            || request.base_asset_volume <= Volume::from(0)
-        {
-            return Err(MatchingEngineError::VolumeIsZero);
+        request: Request<base::CancelRequest>,
+    ) -> Result<Response<base::CancelResponse>, Status> {
+        let mut t = self
+            .database
+            .begin()
+            .await
+            .map_err(|e| Status::aborted(e.to_string()))?;
+        Ok(Response::new(
+            match self.cancel(request.into_inner().try_into()?, &mut t).await {
+                Ok(r) => {
+                    t.commit()
+                        .await
+                        .map_err(|e| Status::aborted(e.to_string()))?;
+                    Ok(r)
+                }
+                Err(e) => {
+                    t.rollback()
+                        .await
+                        .map_err(|e| Status::aborted(e.to_string()))?;
+                    Err(e)
+                }
+            }
+            .try_into()?,
+        ))
+    }
+}
+
+impl MatchingEngine {
+    pub async fn submit<'t, 'p>(
+        &self,
+        request: SubmitRequest,
+        transaction: &'t mut Transaction<'p, Postgres>,
+    ) -> Result<SubmitResponse, SubmitRequestError> {
+        let quote_asset = AssetsManager::get_by_id(transaction, request.quote_asset_id)
+            .await?
+            .ok_or(SubmitRequestError::AssetNotFound)?;
+        let base_asset = AssetsManager::get_by_id(transaction, request.base_asset_id)
+            .await?
+            .ok_or(SubmitRequestError::AssetNotFound)?;
+
+        let mut taker_quote_asset_valut =
+            ValutsManager::get_or_create(transaction, request.user_id, request.quote_asset_id)
+                .await?;
+
+        if taker_quote_asset_valut.balance < request.quote_asset_volume {
+            return Err(SubmitRequestError::InsufficientBalance);
         }
 
-        let taker_base_asset = self.assets_manager.get_by_id(request.base_asset_id).await?;
-        let maker_base_asset = self
-            .assets_manager
-            .get_by_id(request.quote_asset_id)
-            .await?;
-
-        // subtract from request user valut
-        let mut taker_quote_asset_valut = self
-            .valuts_manager
-            .get_for_user_and_asset(request.user_id, request.quote_asset_id)
-            .await?;
-        taker_quote_asset_valut.balance -= request.quote_asset_volume.to_owned();
-        if taker_quote_asset_valut.balance >= Volume::from(0) {
-            self.valuts_manager.update(taker_quote_asset_valut).await?;
-        } else {
-            return Err(MatchingEngineError::InsufficientBalance);
-        }
-
-        let maker_orders = self.orders_manager.get_ordered_asc_less(
+        let matching_orders = OrdersManager::get_orders_with_not_smaller_price(
+            transaction,
             // base switches with quote to give opposite orderbook
-            request.quote_asset_id,
             request.base_asset_id,
-            // base switches with quote to give inverse of price
-            request.quote_asset_volume.to_owned(),
-            request.base_asset_volume.to_owned(),
+            request.quote_asset_id,
+            // inverse of price
+            Fraction::one()
+                .checked_div(&request.price)
+                .ok_or(SubmitRequestError::CheckedDivFailed)?,
         );
 
-        let matching_loop_input = MatchingEngineData::new(
+        let matching = Self::matching_loop(
             request.user_id,
-            request.quote_asset_id,
-            request.base_asset_id,
-            request.quote_asset_volume,
-            request.base_asset_volume,
-            maker_orders,
-            taker_base_asset.taker_fee,
-            maker_base_asset.maker_fee,
-        );
+            request.price,
+            request.quote_asset_volume.to_owned(),
+            quote_asset,
+            base_asset,
+            matching_orders,
+            self.accuracy.to_owned(),
+            request.presentation,
+        )
+        .await?;
 
-        let matching = Self::matching_loop(matching_loop_input).await?;
+        // saving to db
+
+        taker_quote_asset_valut.balance = taker_quote_asset_valut
+            .balance
+            .checked_sub(&request.quote_asset_volume)
+            .ok_or(SubmitRequestError::CheckedSubFailed)?;
+        ValutsManager::update(transaction, taker_quote_asset_valut).await?;
 
         // apply order
-        if let Some(mut order) = matching.order {
-            if !(order.fillable()) {
-                order.cancel(&self.valuts_manager).await?;
-            }
-            self.orders_manager.insert(order).await?;
+        if let Some(order) = matching.order {
+            OrdersManager::insert(transaction, order).await?;
         }
 
         // apply trades
         for trade in matching.trades.into_iter() {
-            let mut maker_order = self.orders_manager.get_by_id(trade.order_id).await?;
+            let mut maker_order = OrdersManager::get_by_id(transaction, trade.order_id)
+                .await?
+                .ok_or(SubmitRequestError::OrderNotFound)?;
 
-            let mut taker_base_asset_valut = self
-                .valuts_manager
-                .get_or_create_for_user_and_asset(trade.taker_id, maker_order.quote_asset_id)
-                .await?;
-            let mut maker_base_asset_valut = self
-                .valuts_manager
-                .get_or_create_for_user_and_asset(maker_order.user_id, maker_order.base_asset_id)
-                .await?;
+            let mut taker_base_asset_valut = ValutsManager::get_or_create(
+                transaction,
+                trade.taker_id,
+                maker_order.quote_asset_id,
+            )
+            .await?;
+            let mut maker_base_asset_valut = ValutsManager::get_or_create(
+                transaction,
+                maker_order.maker_id,
+                maker_order.base_asset_id,
+            )
+            .await?;
 
             // apply changes
-            taker_base_asset_valut.balance += trade.taker_base_volume.to_owned();
-            maker_base_asset_valut.balance += trade.maker_base_volume.to_owned();
-            maker_order.quote_asset_volume_left -= trade.maker_quote_volume.to_owned();
+            taker_base_asset_valut.balance = taker_base_asset_valut
+                .balance
+                .checked_add(&trade.taker_base_volume)
+                .ok_or(SubmitRequestError::CheckedAddFailed)?;
+            maker_base_asset_valut.balance = maker_base_asset_valut
+                .balance
+                .checked_add(&trade.maker_base_volume)
+                .ok_or(SubmitRequestError::CheckedAddFailed)?;
+            maker_order.quote_asset_volume_left = maker_order
+                .quote_asset_volume_left
+                .checked_sub(&trade.maker_quote_volume)
+                .ok_or(SubmitRequestError::CheckedSubFailed)?;
 
-            if !(maker_order.fillable()) {
-                maker_order.cancel(&self.valuts_manager).await?;
+            if maker_order.quote_asset_volume_left <= Fraction::zero() {
+                maker_order.is_active = false;
             }
 
             // save changes
-            self.orders_manager.update(maker_order).await?;
-            self.valuts_manager.update(taker_base_asset_valut).await?;
-            self.valuts_manager.update(maker_base_asset_valut).await?;
-            self.trades_manager.insert(trade).await?;
+            OrdersManager::update(transaction, maker_order.into()).await?;
+            ValutsManager::update(transaction, taker_base_asset_valut).await?;
+            ValutsManager::update(transaction, maker_base_asset_valut).await?;
+            TradesManager::insert(transaction, trade).await?;
         }
-        Ok(())
+
+        Ok(SubmitResponse {})
     }
 
-    pub async fn cancel_order(&self, order_id: Uuid) -> Result<(), MatchingEngineError> {
-        let mut order = self.orders_manager.get_by_id(order_id).await?;
+    pub async fn cancel<'t, 'p>(
+        &self,
+        request: CancelRequest,
+        transaction: &'t mut Transaction<'p, Postgres>,
+    ) -> Result<CancelResponse, CancelRequestError> {
+        let mut order = OrdersManager::get_by_id(transaction, request.order_id)
+            .await?
+            .ok_or(CancelRequestError::OrderNotFound)?;
+
         if !order.is_active {
-            return Err(MatchingEngineError::NotActive);
+            return Err(CancelRequestError::OrderNotActive);
         }
-        order.cancel(&self.valuts_manager).await?;
-        self.orders_manager.update(order).await?;
-        Ok(())
+
+        let mut valut =
+            ValutsManager::get_or_create(transaction, order.maker_id, order.quote_asset_id).await?;
+
+        valut.balance += order.quote_asset_volume_left.to_owned();
+        order.is_active = false;
+
+        ValutsManager::update(transaction, valut).await?;
+        OrdersManager::update_status(transaction, order.into()).await?;
+
+        Ok(CancelResponse {})
     }
 
-    pub async fn matching_loop(
-        mut input: MatchingEngineData<'_>,
-    ) -> Result<MatchingEngineResponse, MatchingEngineError> {
-        /*  matching engine axioms:
-         *  maker strategy: buy required base asset volume for minimal amount of quote asset
-         *  taker strategy: buy as much base asset volume as passible with given quote asset volume
-         *  if any asset_volume is zero it is considered unfillable
-         */
-        if input.quote_asset_volume <= Volume::from(0) || input.base_asset_volume <= Volume::from(0)
-        {
-            return Err(MatchingEngineError::VolumeIsZero);
+    /*  matching engine axioms:
+     *  maker strategy: buy required base asset volume for minimal amount of quote asset
+     *  taker strategy: buy as much base asset volume as passible with given quote asset volume
+     *  price is defined as quote_asset_volume / base_asset_volume
+     */
+    async fn matching_loop(
+        user_id: Uuid,
+        price: Fraction,
+        quote_asset_volume: Fraction,
+        quote_asset: Asset,
+        base_asset: Asset,
+        mut matching_orders: Pin<Box<dyn Stream<Item = sqlx::Result<OrderGet>> + Send + '_>>,
+        accuracy: Fraction,
+        presentation: bool,
+    ) -> Result<MatchingLoopResponse, MatchingLoopError> {
+        let mut response = MatchingLoopResponse::new();
+
+        if quote_asset_volume <= Fraction::zero() {
+            return Err(MatchingLoopError::VolumeIsZero);
         }
 
-        let mut response = MatchingEngineResponse::new();
-        let mut taker_quote_asset_volume_left = input.quote_asset_volume.to_owned();
+        let mut quote_asset_volume_left = quote_asset_volume.to_owned();
 
-        // && taker_quote_asset_volume_left > Volume::from(0)
-        while let Some(maker_order) = input.maker_orders.next().await && taker_quote_asset_volume_left > Volume::from(0) {
-            let maker_order = maker_order?;
-            let maker_order_base_asset_volume_left = maker_order.base_asset_volume_left_ceil();
+        let price_inv = Fraction::one()
+            .checked_div(&price)
+            .ok_or(MatchingLoopError::CheckedDivFailed)?;
 
-            if maker_order.quote_asset_volume_left.to_owned() * input.quote_asset_volume.to_owned()
-                < maker_order_base_asset_volume_left.to_owned() * input.base_asset_volume.to_owned()
-                || input.quote_asset_id != maker_order.base_asset_id
-                || input.base_asset_id != maker_order.quote_asset_id
-                || input.quote_asset_volume <= Volume::from(0)
-                || input.base_asset_volume <= Volume::from(0)
-                || !maker_order.is_active
+        while let Some(matching_order) = matching_orders.next().await && quote_asset_volume_left > Fraction::zero() {
+            let maker_order = matching_order?;
+
+            if !(maker_order.price >= price_inv
+                && maker_order.quote_asset_volume_left > Fraction::zero())
             {
-                // reject maker_order price too high or ids invalid or volume less or equal then zero
-                continue;
+                return Err(MatchingLoopError::InvalidMatchingOrderData);
             }
 
+            let maker_order_base_asset_volume_left = maker_order
+                .quote_asset_volume_left
+                .checked_div(&maker_order.price)
+                .ok_or(MatchingLoopError::CheckedDivFailed)?;
+
             let (taker_base_asset_volume_given, taker_quote_asset_volume_taken) =
-                if taker_quote_asset_volume_left >= maker_order_base_asset_volume_left {
+                if quote_asset_volume_left >= maker_order_base_asset_volume_left {
                     // eat whole maker_order
                     (
-                        maker_order.quote_asset_volume_left.to_owned(),
+                        maker_order.quote_asset_volume_left,
                         maker_order_base_asset_volume_left,
                     )
                 } else {
                     // eat maker_order partially
                     (
-                        (taker_quote_asset_volume_left.to_owned()
-                            * maker_order.quote_asset_volume.to_owned())
-                        .checked_div(&maker_order.base_asset_volume)
-                        .ok_or(MatchingEngineError::DivisionByZero)?
-                        .into(),
-                        taker_quote_asset_volume_left.to_owned(),
+                        quote_asset_volume_left
+                            .checked_mul(&maker_order.quote_asset_volume_left)
+                            .ok_or(MatchingLoopError::CheckedMulFailed)?
+                            .checked_div(&maker_order_base_asset_volume_left)
+                            .ok_or(MatchingLoopError::CheckedDivFailed)?,
+                        quote_asset_volume_left.to_owned(),
                     )
                 };
 
-            taker_quote_asset_volume_left -= taker_quote_asset_volume_taken.to_owned();
+            quote_asset_volume_left = quote_asset_volume_left
+                .checked_sub(&taker_quote_asset_volume_taken)
+                .ok_or(MatchingLoopError::CheckedSubFailed)?;
 
             let (maker_base_asset_volume_given, maker_quote_asset_volume_taken) = (
                 taker_quote_asset_volume_taken.to_owned(),
@@ -197,33 +299,50 @@ impl MatchingEngine {
             );
 
             response.trades.push(Trade {
-                id: Uuid::new_v4(),
-                created_at: Utc::now(),
-                taker_id: input.user_id,
+                quote_asset_id: quote_asset.id,
+                base_asset_id: base_asset.id,
+                taker_id: user_id,
+                taker_presentation: presentation,
                 order_id: maker_order.id,
+                taker_price: Fraction::one().checked_div(&maker_order.price).ok_or(MatchingLoopError::CheckedDivFailed)?,
                 taker_quote_volume: taker_quote_asset_volume_taken,
-                taker_base_volume: taker_base_asset_volume_given.to_owned()
-                    - (taker_base_asset_volume_given * input.taker_fee.to_owned()),
+                taker_base_volume: taker_base_asset_volume_given
+                    .checked_sub(
+                        &taker_base_asset_volume_given
+                            .checked_mul(&base_asset.taker_fee)
+                            .ok_or(MatchingLoopError::CheckedMulFailed)?,
+                    )
+                    .ok_or(MatchingLoopError::CheckedSubFailed)?
+                    .checked_floor_with_accuracy(&accuracy)
+                    .ok_or(MatchingLoopError::CheckedFloorFailed)?,
                 maker_quote_volume: maker_quote_asset_volume_taken,
-                maker_base_volume: maker_base_asset_volume_given.to_owned()
-                    - (maker_base_asset_volume_given * maker_order.maker_fee),
+                maker_base_volume: maker_base_asset_volume_given
+                    .checked_sub(
+                        &maker_base_asset_volume_given
+                            .checked_mul(&maker_order.maker_fee)
+                            .ok_or(MatchingLoopError::CheckedMulFailed)?,
+                    )
+                    .ok_or(MatchingLoopError::CheckedSubFailed)?
+                    .checked_floor_with_accuracy(&accuracy)
+                    .ok_or(MatchingLoopError::CheckedFloorFailed)?,
             });
         }
 
-        if taker_quote_asset_volume_left > Volume::from(0) {
-            response.order = Some(Order {
-                id: Uuid::new_v4(),
-                created_at: Utc::now(),
-                user_id: input.user_id,
-                is_active: true,
-                quote_asset_id: input.quote_asset_id,
-                base_asset_id: input.base_asset_id,
-                quote_asset_volume: input.quote_asset_volume,
-                base_asset_volume: input.base_asset_volume,
-                quote_asset_volume_left: taker_quote_asset_volume_left,
-                maker_fee: input.maker_fee,
-            });
-        }
+        response.order = if quote_asset_volume_left > Fraction::zero() {
+            Some(OrderInsert {
+                maker_id: user_id,
+                maker_presentation: presentation,
+                quote_asset_id: quote_asset.id,
+                base_asset_id: base_asset.id,
+                price,
+                quote_asset_volume,
+                quote_asset_volume_left,
+                maker_fee: base_asset.maker_fee,
+            })
+        } else {
+            None
+        };
+
         Ok(response)
     }
 }

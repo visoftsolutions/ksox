@@ -1,9 +1,13 @@
 mod sse;
 
-use axum::{extract::State, routing::get, Json, Router};
-use database::projections::spot::trade::Trade;
+use axum::{
+    extract::{Query, State},
+    routing::get,
+    Json, Router,
+};
 use tokio_stream::StreamExt;
 
+use super::ResponseTrade;
 use crate::{
     api::{auth::models::UserId, AppError, Pagination},
     models::AppState,
@@ -19,16 +23,14 @@ pub fn router(app_state: &AppState) -> Router {
 pub async fn root(
     State(state): State<AppState>,
     user_id: UserId,
-    mut payload: Option<Json<Pagination>>,
-) -> Result<Json<Vec<Trade>>, AppError> {
-    let pagination = payload.get_or_insert_default();
-    let mut stream =
-        state
-            .trades_manager
-            .get_for_taker(*user_id, pagination.limit, pagination.offset);
-    let mut vec = Vec::<Trade>::new();
+    Query(params): Query<Pagination>,
+) -> Result<Json<Vec<ResponseTrade>>, AppError> {
+    let mut stream = state
+        .trades_manager
+        .get_for_user_id(*user_id, params.limit, params.offset);
+    let mut vec = Vec::<ResponseTrade>::new();
     while let Some(res) = stream.next().await {
-        vec.push(res?);
+        vec.push(ResponseTrade::from(res?, *user_id));
     }
     Ok(Json(vec))
 }

@@ -1,28 +1,60 @@
-use std::{
-    io::{Error, ErrorKind},
-    ops::Deref,
-    str::FromStr,
-};
+use std::{io, ops::Deref, str::FromStr};
 
 use axum::{
     async_trait,
-    extract::{FromRef, FromRequestParts, TypedHeader},
+    extract::{FromRef, FromRequestParts},
+    http::request::Parts,
     response::Response,
-    RequestPartsExt,
+    RequestPartsExt, TypedHeader,
 };
 use bytes::{Bytes, BytesMut};
-use cache::redis::{
+use ethers_core::types::Signature;
+use hyper::StatusCode;
+use rand::RngCore;
+use redis::{
     AsyncCommands, Client, Expiry, FromRedisValue, RedisError, RedisResult, RedisWrite,
     ToRedisArgs, Value,
 };
-use database::{sqlx::types::Uuid, types::EvmAddress};
-use ethers_core::types::Signature;
-use http::{request::Parts, StatusCode};
-use rand::RngCore;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, DisplayFromStr};
+use uuid::Uuid;
 
 use super::{COOKIE_NAME, SESSION_EXPIRATION_TIME};
+use crate::database::projections::user::EvmAddress;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Message(String);
+
+impl From<Nonce> for Message {
+    fn from(value: Nonce) -> Self {
+        Self(format!(
+            "Confirm identity by signing random data:\n{}",
+            value,
+        ))
+    }
+}
+
+impl Deref for Message {
+    type Target = String;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl FromStr for Message {
+    type Err = io::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self(s.to_owned()))
+    }
+}
+
+impl std::fmt::Display for Message {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Nonce(Bytes);
@@ -36,12 +68,12 @@ impl Nonce {
 }
 
 impl FromStr for Nonce {
-    type Err = anyhow::Error;
+    type Err = io::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Self(
             prefix_hex::decode::<Vec<u8>>(s)
-                .map_err(anyhow::Error::msg)?
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e.to_string()))?
                 .into(),
         ))
     }
@@ -66,10 +98,13 @@ impl FromRedisValue for Nonce {
         match *v {
             Value::Data(ref bytes) => match String::from_utf8(bytes.clone()) {
                 Ok(string) => Self::from_str(string.as_str())
-                    .map_err(|e| RedisError::from(Error::new(ErrorKind::InvalidData, e))),
-                Err(e) => Err(RedisError::from(Error::new(ErrorKind::InvalidData, e))),
+                    .map_err(|e| RedisError::from(io::Error::new(io::ErrorKind::InvalidData, e))),
+                Err(e) => Err(RedisError::from(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    e,
+                ))),
             },
-            _ => Err(RedisError::from(Error::from(ErrorKind::NotFound))),
+            _ => Err(RedisError::from(io::Error::from(io::ErrorKind::NotFound))),
         }
     }
 }
@@ -94,12 +129,12 @@ impl SessionId {
 }
 
 impl FromStr for SessionId {
-    type Err = anyhow::Error;
+    type Err = io::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Self(
             prefix_hex::decode::<Vec<u8>>(s)
-                .map_err(anyhow::Error::msg)?
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e.to_string()))?
                 .into(),
         ))
     }
@@ -124,10 +159,13 @@ impl FromRedisValue for SessionId {
         match *v {
             Value::Data(ref bytes) => match String::from_utf8(bytes.clone()) {
                 Ok(string) => Self::from_str(string.as_str())
-                    .map_err(|e| RedisError::from(Error::new(ErrorKind::InvalidData, e))),
-                Err(e) => Err(RedisError::from(Error::new(ErrorKind::InvalidData, e))),
+                    .map_err(|e| RedisError::from(io::Error::new(io::ErrorKind::InvalidData, e))),
+                Err(e) => Err(RedisError::from(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    e,
+                ))),
             },
-            _ => Err(RedisError::from(Error::from(ErrorKind::NotFound))),
+            _ => Err(RedisError::from(io::Error::from(io::ErrorKind::NotFound))),
         }
     }
 }
@@ -151,10 +189,12 @@ impl UserId {
 }
 
 impl FromStr for UserId {
-    type Err = anyhow::Error;
+    type Err = io::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self(Uuid::from_str(s)?))
+        Ok(Self(Uuid::from_str(s).map_err(|e| {
+            io::Error::new(io::ErrorKind::InvalidData, e.to_string())
+        })?))
     }
 }
 
@@ -177,10 +217,13 @@ impl FromRedisValue for UserId {
         match *v {
             Value::Data(ref bytes) => match String::from_utf8(bytes.clone()) {
                 Ok(string) => Self::from_str(string.as_str())
-                    .map_err(|e| RedisError::from(Error::new(ErrorKind::InvalidData, e))),
-                Err(e) => Err(RedisError::from(Error::new(ErrorKind::InvalidData, e))),
+                    .map_err(|e| RedisError::from(io::Error::new(io::ErrorKind::InvalidData, e))),
+                Err(e) => Err(RedisError::from(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    e,
+                ))),
             },
-            _ => Err(RedisError::from(Error::from(ErrorKind::NotFound))),
+            _ => Err(RedisError::from(io::Error::from(io::ErrorKind::NotFound))),
         }
     }
 }
@@ -261,7 +304,7 @@ pub struct GenerateNonceRequest {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GenerateNonceResponse {
     #[serde_as(as = "DisplayFromStr")]
-    pub nonce: Nonce,
+    pub message: Message,
     pub expiration: usize,
 }
 

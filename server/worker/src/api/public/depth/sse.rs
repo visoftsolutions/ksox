@@ -1,63 +1,61 @@
 use std::{
-    io::{Error, ErrorKind},
+    io::{self},
     time::Duration,
 };
 
 use axum::{
-    extract::State,
+    extract::{Query, State},
     response::sse::{Event, Sse},
-    Json,
 };
-use database::sqlx::types::Uuid;
-use futures::{stream::Stream, StreamExt, TryStreamExt};
-use serde::Deserialize;
+use fraction::{num_traits::Inv, Fraction};
+use futures::{stream::Stream, StreamExt};
+use tokio::select;
 
+use super::{Request, Response};
 use crate::models::AppState;
 
-// TODO define macro for this
-#[derive(Deserialize)]
-pub struct RequestPartial {
-    pub quote_asset_id: Uuid,
-    pub base_asset_id: Uuid,
-    pub precision: Option<i32>,
-    pub limit: Option<i64>,
-}
-
-pub struct Request {
-    pub quote_asset_id: Uuid,
-    pub base_asset_id: Uuid,
-    pub precision: i32,
-    pub limit: i64,
-}
-
-impl RequestPartial {
-    fn insert_defaults(self) -> Request {
-        Request {
-            quote_asset_id: self.quote_asset_id,
-            base_asset_id: self.base_asset_id,
-            precision: self.precision.unwrap_or(2),
-            limit: self.limit.unwrap_or(10),
-        }
-    }
-}
-
-// Return stream of trades from db
 pub async fn root(
     State(state): State<AppState>,
-    Json(payload): Json<RequestPartial>,
+    Query(params): Query<Request>,
 ) -> Sse<impl Stream<Item = Result<Event, std::io::Error>>> {
-    let payload = payload.insert_defaults();
     let stream = async_stream::try_stream! {
-        let mut stream = state.orders_manager.subscribe_for_orderbook(payload.quote_asset_id, payload.base_asset_id, payload.precision, payload.limit).await
-            .map_err(|err| Error::new(ErrorKind::BrokenPipe, err))?;
-        while let Some(element) = stream.next().await {
-            yield Event::default().json_data(
-                element.map_err(|err| Error::new(ErrorKind::BrokenPipe, err))?
-            ).map_err(Error::from);
+        let precision = Fraction::from(params.precision).inv();
+
+        let mut resp = Response::new();
+        let resp_ref = &mut resp;
+
+        let mut buys_stream_subscribe = state.orders_notification_manager.subscribe_to_orderbook(params.quote_asset_id, params.base_asset_id, precision.to_owned(), params.limit).await?;
+        let mut sells_stream_subscribe = state.orders_notification_manager.subscribe_to_orderbook_opposite(params.quote_asset_id, params.base_asset_id, precision.to_owned(), params.limit).await?;
+
+        let mut buys_stream = state.orders_manager.get_orderbook(params.quote_asset_id, params.base_asset_id, precision.to_owned()).take(params.limit);
+        let mut sells_stream = state.orders_manager.get_orderbook_opposite(params.quote_asset_id, params.base_asset_id, precision.to_owned()).take(params.limit);
+
+        loop {
+            select! {
+                Some(e) = sells_stream.next() => {
+                    resp_ref.sells.push(e.unwrap_or_default());
+                },
+                Some(e) = buys_stream.next() => {
+                    resp_ref.buys.push(e.unwrap_or_default());
+                },
+                else => break,
+            }
+        }
+
+        loop {
+            select! {
+                Some(e) = sells_stream_subscribe.next() => {
+                    resp_ref.sells = e.unwrap_or_default();
+                },
+                Some(e) = buys_stream_subscribe.next() => {
+                    resp_ref.buys = e.unwrap_or_default();
+                },
+                else => break,
+            }
+            yield Event::default().json_data(resp_ref.to_owned()).map_err(io::Error::from);
         }
     }
-    .map(|a| a.and_then(|b| b))
-    .inspect_err(|err| tracing::error!("{err}"));
+    .map(|a| a.and_then(|b| b));
 
     Sse::new(stream).keep_alive(
         axum::response::sse::KeepAlive::new()

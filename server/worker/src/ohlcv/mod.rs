@@ -5,23 +5,26 @@ use std::{
 
 use chrono::{DateTime, Duration, Utc};
 use database::{
-    managers::spot::{
-        candlesticks::CandlestickManager, orders::OrdersManager, trades::TradesManager,
+    managers::{
+        candlesticks::CandlesticksManager,
+        orders::OrdersManager,
+        trades::{TradesManager, TradesNotificationManager},
     },
-    projections::spot::candlestick::{Candlestick, CandlestickData},
-    sqlx::{self, types::Uuid, PgPool},
-    traits::TableManager,
-    types::{fraction::FractionError, CandlestickType},
+    projections::candlestick::{Candlestick, CandlestickData},
 };
 use futures::{FutureExt, Stream, StreamExt};
 use thiserror::Error;
-pub struct OhlcvEngine {
-    pub trades_manager: TradesManager,
-    pub orders_manager: OrdersManager,
-    pub candlesticks_manager: CandlestickManager,
-}
-pub struct Ohlcv {}
+use uuid::Uuid;
 
+use crate::database::{self, projections::candlestick::CandlestickType};
+pub struct OhlcvEngine {
+    trades_manager: TradesManager,
+    trades_notification_manager: TradesNotificationManager,
+    orders_manager: OrdersManager,
+    candlesticks_manager: CandlesticksManager,
+}
+
+pub struct Ohlcv {}
 impl Ohlcv {
     pub fn merge(
         candlestick: Candlestick,
@@ -77,11 +80,17 @@ impl Ohlcv {
 }
 
 impl OhlcvEngine {
-    pub fn new(database: PgPool) -> Self {
+    pub fn new(
+        trades_manager: TradesManager,
+        trades_notification_manager: TradesNotificationManager,
+        orders_manager: OrdersManager,
+        candlesticks_manager: CandlesticksManager,
+    ) -> Self {
         Self {
-            trades_manager: TradesManager::new(database.clone()),
-            orders_manager: OrdersManager::new(database.clone()),
-            candlesticks_manager: CandlestickManager::new(database),
+            trades_manager,
+            trades_notification_manager,
+            orders_manager,
+            candlesticks_manager,
         }
     }
 
@@ -127,14 +136,25 @@ impl OhlcvEngine {
     ) -> Pin<Box<dyn Stream<Item = Result<Candlestick, OhlcvEngineError>> + Send + '_>> {
         let stream = async_stream::try_stream! {
             let mut candlestick: Option<Candlestick> = None;
-            let mut trades = self.trades_manager.subscribe_for_asset_pair(quote_asset_id, base_asset_id).await?;
+            let mut trades = self.trades_notification_manager.subscribe_to_asset_pair(quote_asset_id, base_asset_id).await?
+            .map(|trades| {
+                let mut result = Vec::new();
+                for trade in trades {
+                    if trade.is_opposite(quote_asset_id, base_asset_id) {
+                        result.push(trade.inverse());
+                    } else {
+                        result.push(trade);
+                    }
+                }
+                result
+            });
 
             let last_trade = self
                 .trades_manager
                 .get_last_for_asset_pair(quote_asset_id, base_asset_id)
                 .await?;
 
-            if let Some(last_trade) = last_trade {
+            if let Some(last_trade) = last_trade && reference_point <= last_trade.created_at {
                 let last_topen = match kind {
                     CandlestickType::Interval => {
                         last_trade.created_at - Duration::microseconds((last_trade.created_at.timestamp_micros() - reference_point.timestamp_micros()).saturating_abs() % span)
@@ -145,28 +165,36 @@ impl OhlcvEngine {
                     }
                 };
 
-                let mut last_candle_trades = self.trades_manager.get_after_for_asset_pair(quote_asset_id, base_asset_id, last_topen);
+                let mut last_candle_trades = self.trades_manager.get_after_for_asset_pair(quote_asset_id, base_asset_id, last_topen)
+                .map(|trade| {
+                    match trade {
+                        Ok(trade) => {
+                            if trade.is_opposite(quote_asset_id, base_asset_id) {
+                                Ok(trade.inverse())
+                            } else {
+                                Ok(trade)
+                            }
+                        },
+                        Err(err) => Err(err)
+                    }
+                });
 
                 while let Some(trade) = last_candle_trades.next().await {
-                    let trade = trade?;
-                    let order = self.orders_manager.get_by_id(trade.order_id).await?;
-                    let data: CandlestickData = (trade, order).try_into()?;
-                    self.update(&mut candlestick, data, kind.to_owned(),reference_point.to_owned(), span)?;
+                    self.update(&mut candlestick, trade?.into(), kind.to_owned(),reference_point.to_owned(), span)?;
                 }
-
             };
 
             if let Some(candlestick) = candlestick.to_owned() {
                 yield candlestick;
             }
 
-            while let Some(trade) = trades.next().await {
-                let trade = trade?;
-                let order = self.orders_manager.get_by_id(trade.order_id).await?;
-                let data: CandlestickData = (trade, order).try_into()?;
-                yield self.update(&mut candlestick, data, kind.to_owned(), reference_point.to_owned(), span)?;
+            while let Some(trades) = trades.next().await {
+                for trade in trades {
+                    yield self.update(&mut candlestick, trade.into(), kind.to_owned(),reference_point.to_owned(), span)?;
+                }
             }
         };
+
         Box::pin(stream)
     }
 
@@ -187,19 +215,28 @@ impl OhlcvEngine {
                     .then(|result| async move {
                         let mut candlestick = result?;
                         if candlestick.is_none() {
-                            let mut trades = self.trades_manager.get_between_for_asset_pair(
-                                quote_asset_id,
-                                base_asset_id,
-                                topen,
-                                tclose,
-                            );
+                            let mut trades = self
+                                .trades_manager
+                                .get_between_for_asset_pair(
+                                    quote_asset_id,
+                                    base_asset_id,
+                                    topen,
+                                    tclose,
+                                )
+                                .map(|trade| match trade {
+                                    Ok(trade) => {
+                                        if trade.is_opposite(quote_asset_id, base_asset_id) {
+                                            Ok(trade.inverse())
+                                        } else {
+                                            Ok(trade)
+                                        }
+                                    }
+                                    Err(err) => Err(err),
+                                });
                             while let Some(trade) = trades.next().await {
-                                let trade = trade?;
-                                let order = self.orders_manager.get_by_id(trade.order_id).await?;
-                                let data: CandlestickData = (trade, order).try_into()?;
                                 self.update(
                                     &mut candlestick,
-                                    data,
+                                    trade?.into(),
                                     kind.to_owned(),
                                     reference_point.to_owned(),
                                     span,
@@ -225,9 +262,6 @@ impl OhlcvEngine {
 
 #[derive(Error, Debug)]
 pub enum OhlcvError {
-    #[error(transparent)]
-    FractionError(#[from] FractionError),
-
     #[error("CandlestickData invalid")]
     InvalidData,
 }
@@ -239,9 +273,6 @@ pub enum OhlcvEngineError {
 
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),
-
-    #[error(transparent)]
-    FractionError(#[from] FractionError),
 
     #[error("Custom error {0}")]
     CustomError(String),

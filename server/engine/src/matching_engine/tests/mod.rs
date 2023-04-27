@@ -1,864 +1,228 @@
-pub mod simple_scenario;
+use async_stream::stream;
+use fraction::{num_traits::Zero, Fraction};
+use futures::executor::block_on;
+use proptest::{prelude::*, proptest};
+use seq_macro::seq;
+use uuid::Uuid;
 
-// use database::{
-//     projections::spot::order::Order,
-//     sqlx::{
-//         types::{chrono::Utc, Uuid},
-//         Error,
-//     },
-//     types::{Fraction, Volume},
-// };
-// use futures::{executor::block_on, stream};
-// use num_bigint::BigInt;
-// use proptest::{
-//     prelude::*,
-//     strategy::Strategy,
-//     test_runner::{Config, TestRunner},
-// };
-// use seq_macro::seq;
-// use tokio_stream::StreamExt;
+use crate::{
+    database::projections::order::OrderGet,
+    matching_engine::{
+        models::MatchingLoopError,
+        tests::{
+            arb_asset::arb_asset,
+            arb_fraction::arb_fraction_bigger_than_zero,
+            arb_order::{
+                arb_not_matching_order, arb_not_smaller_matching_order, arb_smaller_matching_order,
+            },
+        },
+        MatchingEngine,
+    },
+};
 
-// use super::MatchingEngine;
-// use crate::matching_engine::models::MatchingEngineData;
+pub mod arb_asset;
+pub mod arb_fraction;
+pub mod arb_order;
 
-// // maximum 1000000000
-// const CASES: u32 = 100000;
-// const MAX_LOCAL_REJECTS: u32 = CASES * 10;
+seq!(N in 0..10 {
+// ensure that when there is not_matching_order supplied -> error is risen
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(std::env::var("TESTS_CASES").unwrap().parse().unwrap()))]
+    #[test]
+    fn error_when_not_matching_order~N(
+        (user_id, price, quote_asset_volume, quote_asset, base_asset, maker_order, accuracy, presentation) in (
+            arb_fraction_bigger_than_zero()
+            ).prop_flat_map(|price| (
+                Just(Uuid::new_v4()),
+                Just(price.to_owned()),
+                arb_fraction_bigger_than_zero(),
+                arb_asset(),
+                arb_asset(),
+                arb_not_matching_order(price),
+                arb_fraction_bigger_than_zero(),
+                any::<bool>(),
+        ))
+    ) {
+        block_on(async {
+            let maker_orders_stream = Box::pin(stream! {
+                    yield Ok(maker_order);
+            });
 
-// fn arb_fee(denum: u16) -> BoxedStrategy<Fraction> {
-//     (0..=denum)
-//         .prop_flat_map(move |num| {
-//             Just(TryInto::<Fraction>::try_into((BigInt::from(num), BigInt::from(denum))).unwrap())
-//         })
-//         .boxed()
-// }
+            let matching = MatchingEngine::matching_loop(
+                user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), maker_orders_stream, accuracy, presentation).await;
 
-// fn arb_smaller_matching_order(
-//     request_quote_asset_id: Uuid,
-//     request_base_asset_id: Uuid,
-//     request_quote_asset_volume: u16,
-//     request_base_asset_volume: u16,
-// ) -> BoxedStrategy<Order> {
-//     (
-//         Just(request_quote_asset_volume),
-//         Just(request_base_asset_volume),
-//         1..=request_base_asset_volume,
-//         1..=request_quote_asset_volume,
-//         1..=u16::MAX,
-//     )
-//         .prop_flat_map(
-//             move |(
-//                 request_quote_asset_volume,
-//                 request_base_asset_volume,
-//                 maker_quote_asset_volume_left,
-//                 maker_base_asset_volume,
-//                 maker_fee_denum,
-//             )| {
-//                 (
-//                     Just(request_quote_asset_volume),
-//                     Just(request_base_asset_volume),
-//                     maker_quote_asset_volume_left..=u16::MAX,
-//                     Just(maker_base_asset_volume),
-//                     Just(maker_quote_asset_volume_left),
-//                     arb_fee(maker_fee_denum),
-//                 )
-//             },
-//         )
-//         .prop_filter(
-//             "maker_order price beneficial",
-//             |(
-//                 request_quote_asset_volume,
-//                 request_base_asset_volume,
-//                 maker_quote_asset_volume,
-//                 maker_base_asset_volume,
-//                 maker_quote_asset_volume_left,
-//                 _,
-//             )| {
-//                 let request_quote_asset_volume = BigInt::from(*request_quote_asset_volume);
-//                 let request_base_asset_volume = BigInt::from(*request_base_asset_volume);
-//                 let maker_quote_asset_volume = BigInt::from(*maker_quote_asset_volume);
-//                 let maker_base_asset_volume = BigInt::from(*maker_base_asset_volume);
-//                 let maker_quote_asset_volume_left = BigInt::from(*maker_quote_asset_volume_left);
-//                 let maker_base_asset_volume_left = (maker_base_asset_volume
-//                     * maker_quote_asset_volume_left.clone()
-//                     + maker_quote_asset_volume.clone()
-//                     - BigInt::from(1))
-//                     / maker_quote_asset_volume;
+            assert!(matches!(matching, Err(MatchingLoopError::InvalidMatchingOrderData)))
+        });
+    }
+}
+});
 
-//                 request_quote_asset_volume * maker_quote_asset_volume_left
-//                     >= maker_base_asset_volume_left * request_base_asset_volume
-//             },
-//         )
-//         .prop_flat_map(
-//             move |(
-//                 _,
-//                 _,
-//                 maker_quote_asset_volume,
-//                 maker_base_asset_volume,
-//                 maker_quote_asset_volume_left,
-//                 maker_fee,
-//             )| {
-//                 Just(Order {
-//                     id: Uuid::new_v4(),
-//                     created_at: Utc::now(),
-//                     user_id: Uuid::new_v4(),
-//                     is_active: true,
-//                     quote_asset_id: request_base_asset_id,
-//                     base_asset_id: request_quote_asset_id,
-//                     quote_asset_volume: Volume::from(maker_quote_asset_volume),
-//                     base_asset_volume: Volume::from(maker_base_asset_volume),
-//                     quote_asset_volume_left: Volume::from(maker_quote_asset_volume_left),
-//                     maker_fee_num: maker_fee.numerator.into(),
-//                     maker_fee_denum: maker_fee.denominator.into(),
-//                 })
-//             },
-//         )
-//         .boxed()
-// }
+seq!(N in 0..10 {
+// ensure that when there is smaller matching order available -> there will be trade and leftover order
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(std::env::var("TESTS_CASES").unwrap().parse().unwrap()))]
+    #[test]
+    fn new_order_new_trade_when_matching_smaller_order~N(
+        (user_id, price, quote_asset_volume, quote_asset, base_asset, maker_order, accuracy, presentation) in (
+            arb_fraction_bigger_than_zero(),
+            arb_fraction_bigger_than_zero()
+            ).prop_flat_map(|(price, quote_asset_volume)| (
+                Just(Uuid::new_v4()),
+                Just(price.to_owned()),
+                Just(quote_asset_volume.to_owned()),
+                arb_asset(),
+                arb_asset(),
+                arb_smaller_matching_order(price, quote_asset_volume).prop_filter("order volume not zero", |o| o.quote_asset_volume_left > Fraction::zero()),
+                arb_fraction_bigger_than_zero(),
+                any::<bool>(),
+        ))
+    ) {
+        block_on(async {
+            let maker_order_copy = maker_order.to_owned();
+            let maker_orders_stream = Box::pin(stream! {
+                yield Ok(maker_order);
+            });
 
-// #[tokio::test]
-// async fn test_two_matching_orders() {
-//     let request_user_id = Uuid::new_v4();
-//     let request_quote_asset_id = Uuid::new_v4();
-//     let request_base_asset_id = Uuid::new_v4();
-//     let request_quote_asset_volume = Volume::from(100);
-//     let request_base_asset_volume = Volume::from(100);
+            let matching = MatchingEngine::matching_loop(
+                user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), maker_orders_stream, accuracy.to_owned(), presentation).await.unwrap();
 
-//     let orders: Vec<Result<Order, Error>> = vec![
-//         Ok(Order {
-//             id: Uuid::new_v4(),
-//             created_at: Utc::now(),
-//             user_id: Uuid::new_v4(),
-//             is_active: true,
-//             quote_asset_id: request_base_asset_id,
-//             base_asset_id: request_quote_asset_id,
-//             quote_asset_volume: Volume::from(100),
-//             base_asset_volume: Volume::from(10),
-//             quote_asset_volume_left: Volume::from(100),
-//             maker_fee_num: Volume::from(1),
-//             maker_fee_denum: Volume::from(10),
-//         }),
-//         Ok(Order {
-//             id: Uuid::new_v4(),
-//             created_at: Utc::now(),
-//             user_id: Uuid::new_v4(),
-//             is_active: true,
-//             quote_asset_id: request_base_asset_id,
-//             base_asset_id: request_quote_asset_id,
-//             quote_asset_volume: Volume::from(100),
-//             base_asset_volume: Volume::from(100),
-//             quote_asset_volume_left: Volume::from(100),
-//             maker_fee_num: Volume::from(1),
-//             maker_fee_denum: Volume::from(10),
-//         }),
-//     ];
+            assert!(matching.order.is_some());
+            assert!(!matching.trades.is_empty());
+            assert!(matching.trades.len() == 1);
 
-//     let matching_loop_input = MatchingEngineData::new(
-//         request_user_id,
-//         request_quote_asset_id,
-//         request_base_asset_id,
-//         request_quote_asset_volume,
-//         request_base_asset_volume,
-//         Box::pin(stream::iter(orders)),
-//         (BigInt::from(2), BigInt::from(10)).try_into().unwrap(),
-//         (BigInt::from(1), BigInt::from(10)).try_into().unwrap(),
-//     );
+            let trades = matching.trades;
+            let trade = &trades[0];
+            assert_eq!(trade.taker_id, user_id);
+            assert_eq!(trade.order_id, maker_order_copy.id);
 
-//     let result = MatchingEngine::matching_loop(matching_loop_input)
-//         .await
-//         .unwrap();
+            // ensure whole order is used
+            let maker_order_base_volume = maker_order_copy.quote_asset_volume_left / maker_order_copy.price;
+            assert!(trade.taker_quote_volume == maker_order_base_volume);
 
-//     assert!(result.order.is_none());
-//     assert!(result.trades.len() == 2);
+            let request_base_asset_volume = maker_order_base_volume.to_owned() / price;
+            let minimal_taker_base_volume = (request_base_asset_volume.to_owned() - request_base_asset_volume.to_owned() * base_asset.taker_fee).checked_floor_with_accuracy(&accuracy).unwrap();
 
-//     assert_eq!(result.trades[0].taker_quote_volume, BigInt::from(10).into());
-//     assert_eq!(
-//         result.trades[0].maker_quote_volume,
-//         BigInt::from(100).into()
-//     );
-//     assert_eq!(result.trades[0].taker_base_volume, BigInt::from(80).into());
-//     assert_eq!(result.trades[0].maker_base_volume, BigInt::from(9).into());
+            // ensure correct presentation
+            assert_eq!(matching.order.unwrap().maker_presentation, presentation);
 
-//     assert_eq!(result.trades[1].taker_quote_volume, BigInt::from(90).into());
-//     assert_eq!(result.trades[1].maker_quote_volume, BigInt::from(90).into());
-//     assert_eq!(result.trades[1].taker_base_volume, BigInt::from(72).into());
-//     assert_eq!(result.trades[1].maker_base_volume, BigInt::from(81).into());
-// }
+            // ensure taker is satisfied
+            assert!(trade.taker_base_volume >= minimal_taker_base_volume);
 
-// #[tokio::test]
-// async fn test_ignore_not_active_order() {
-//     let request_user_id = Uuid::new_v4();
-//     let request_quote_asset_id = Uuid::new_v4();
-//     let request_base_asset_id = Uuid::new_v4();
-//     let request_quote_asset_volume = Volume::from(100);
-//     let request_base_asset_volume = Volume::from(100);
+            let minimal_maker_base_volume = (maker_order_base_volume.to_owned() - maker_order_base_volume * maker_order_copy.maker_fee).checked_floor_with_accuracy(&accuracy).unwrap();
 
-//     let orders: Vec<Result<Order, Error>> = vec![Ok(Order {
-//         id: Uuid::new_v4(),
-//         created_at: Utc::now(),
-//         user_id: Uuid::new_v4(),
-//         is_active: false,
-//         quote_asset_id: request_base_asset_id,
-//         base_asset_id: request_quote_asset_id,
-//         quote_asset_volume: Volume::from(100),
-//         base_asset_volume: Volume::from(10),
-//         quote_asset_volume_left: Volume::from(100),
-//         maker_fee_num: Volume::from(1),
-//         maker_fee_denum: Volume::from(10),
-//     })];
+            // ensure maker is satisfied
+            assert!(trade.maker_base_volume >= minimal_maker_base_volume);
 
-//     let matching_loop_input = MatchingEngineData::new(
-//         request_user_id,
-//         request_quote_asset_id,
-//         request_base_asset_id,
-//         request_quote_asset_volume.to_owned(),
-//         request_base_asset_volume.to_owned(),
-//         Box::pin(stream::iter(orders)),
-//         (BigInt::from(1), BigInt::from(10)).try_into().unwrap(),
-//         (BigInt::from(1), BigInt::from(10)).try_into().unwrap(),
-//     );
+            // ensure correct presentation
+            assert_eq!(trade.taker_presentation, presentation);
+        });
+    }
+}
+});
 
-//     let result = MatchingEngine::matching_loop(matching_loop_input)
-//         .await
-//         .unwrap();
+seq!(N in 0..10 {
+// ensure that when there no matching order available -> only there order is created
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(std::env::var("TESTS_CASES").unwrap().parse().unwrap()))]
+    #[test]
+    fn new_order_when_no_matching_order~N(
+        (user_id, price, quote_asset_volume, quote_asset, base_asset, maker_order, accuracy, presentation) in (
+            arb_fraction_bigger_than_zero(),
+            arb_fraction_bigger_than_zero()
+            ).prop_flat_map(|(price, quote_asset_volume)| (
+                Just(Uuid::new_v4()),
+                Just(price.to_owned()),
+                Just(quote_asset_volume.to_owned()),
+                arb_asset(),
+                arb_asset(),
+                Just(Vec::<OrderGet>::new()),
+                arb_fraction_bigger_than_zero(),
+                any::<bool>(),
+        ))
+    ) {
+        block_on(async {
+            let maker_orders_stream = Box::pin(stream! {
+                for order in maker_order {
+                    yield Ok(order);
+                }
+            });
 
-//     assert!(result.order.is_some());
-//     assert!(result.trades.is_empty());
+            let matching = MatchingEngine::matching_loop(
+                user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), maker_orders_stream, accuracy, presentation).await.unwrap();
 
-//     let order = result.order.unwrap();
+            assert!(matching.order.is_some());
+            assert!(matching.trades.is_empty());
 
-//     assert!(order.user_id == request_user_id);
-//     assert!(order.is_active == true);
-//     assert!(order.quote_asset_id == request_quote_asset_id);
-//     assert!(order.base_asset_id == request_base_asset_id);
-//     assert!(order.quote_asset_volume == request_quote_asset_volume);
-//     assert!(order.base_asset_volume == request_base_asset_volume);
-//     assert!(order.quote_asset_volume_left == request_quote_asset_volume);
-// }
+            let order = matching.order.unwrap();
+            assert_eq!(order.maker_id, user_id);
+            assert_eq!(order.quote_asset_id, quote_asset.id);
+            assert_eq!(order.base_asset_id, base_asset.id);
+            assert_eq!(order.price, price);
+            assert_eq!(order.quote_asset_volume, quote_asset_volume);
+            assert_eq!(order.quote_asset_volume_left, quote_asset_volume);
+            assert_eq!(order.maker_fee, base_asset.maker_fee);
+            assert_eq!(order.maker_presentation, presentation);
+        });
+    }
+}
+});
 
-// seq!(N in 0x000..0x010 {
-//     #[test]
-//     fn proctest_req_fully_filled_by_matching_order~N() {
-//         let request_user_id = Uuid::new_v4();
-//         let request_quote_asset_id = Uuid::new_v4();
-//         let request_base_asset_id = Uuid::new_v4();
+seq!(N in 0..10 {
+// ensure that when there bigger matching order available -> only trade is created
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(std::env::var("TESTS_CASES").unwrap().parse().unwrap()))]
+    #[test]
+    fn new_trade_when_bigger_matching_order~N(
+        (user_id, price, quote_asset_volume, quote_asset, base_asset, maker_order, accuracy, presentation) in (
+            arb_fraction_bigger_than_zero(),
+            arb_fraction_bigger_than_zero()
+            ).prop_flat_map(|(price, quote_asset_volume)| (
+                Just(Uuid::new_v4()),
+                Just(price.to_owned()),
+                Just(quote_asset_volume.to_owned()),
+                arb_asset(),
+                arb_asset(),
+                arb_not_smaller_matching_order(price, quote_asset_volume).prop_filter("order volume not zero", |o| o.quote_asset_volume_left > Fraction::zero()),
+                arb_fraction_bigger_than_zero(),
+                any::<bool>(),
+        ))
+    ) {
+        block_on(async {
+            let maker_order_copy = maker_order.to_owned();
+            let maker_orders_stream = Box::pin(stream! {
+                    yield Ok(maker_order);
+            });
 
-//         TestRunner::new(Config {
-//             cases: CASES,
-//             max_local_rejects: MAX_LOCAL_REJECTS,
-//             ..Config::default()
-//         })
-//         .run(
-//             &(1..u16::MAX, 1..u16::MAX, 1..u16::MAX, 1..u16::MAX, 1..u16::MAX)
-//                 .prop_flat_map(
-//                     |(
-//                         maker_quote_asset_volume,
-//                         maker_base_asset_volume,
-//                         maker_order_fee_denum,
-//                         taker_fee_denum,
-//                         maker_fee_denum,
-//                     )| {
-//                         (
-//                             Just(maker_quote_asset_volume),
-//                             Just(maker_base_asset_volume),
-//                             (1..=maker_quote_asset_volume),
-//                             (0..=maker_order_fee_denum),
-//                             Just(maker_order_fee_denum),
-//                             Just(taker_fee_denum),
-//                             Just(maker_fee_denum),
-//                         )
-//                     },
-//                 )
-//                 .prop_flat_map(
-//                     |(
-//                         maker_quote_asset_volume,
-//                         maker_base_asset_volume,
-//                         maker_quote_asset_volume_left,
-//                         maker_order_fee_num,
-//                         maker_order_fee_denum,
-//                         taker_fee_denum,
-//                         maker_fee_denum,
-//                     )| {
-//                         (
-//                             (1..=((maker_base_asset_volume as u128 * maker_quote_asset_volume_left as u128 + maker_quote_asset_volume as u128 - 1)/maker_quote_asset_volume as u128) as u16),
-//                             (1..=maker_quote_asset_volume_left),
-//                             Just(maker_quote_asset_volume),
-//                             Just(maker_base_asset_volume),
-//                             Just(maker_quote_asset_volume_left),
-//                             Just(maker_order_fee_num),
-//                             Just(maker_order_fee_denum),
-//                             Just(taker_fee_denum),
-//                             Just(maker_fee_denum),
-//                         )
-//                     },
-//                 )
-//                 .prop_filter(
-//                     "maker_order price beneficial",
-//                     |(
-//                         request_quote_asset_volume,
-//                         request_base_asset_volume,
-//                         maker_quote_asset_volume,
-//                         maker_base_asset_volume,
-//                         maker_quote_asset_volume_left,
-//                         _,_,_,_
-//                     )| {
-//                         let request_quote_asset_volume = BigInt::from(*request_quote_asset_volume);
-//                         let request_base_asset_volume = BigInt::from(*request_base_asset_volume);
-//                         let maker_quote_asset_volume = BigInt::from(*maker_quote_asset_volume);
-//                         let maker_base_asset_volume = BigInt::from(*maker_base_asset_volume);
-//                         let maker_quote_asset_volume_left = BigInt::from(*maker_quote_asset_volume_left);
-//                         let maker_base_asset_volume_left = (maker_base_asset_volume
-//                             * maker_quote_asset_volume_left.clone()
-//                             + maker_quote_asset_volume.clone()
-//                             - BigInt::from(1))
-//                             / maker_quote_asset_volume;
+            let matching = MatchingEngine::matching_loop(
+                user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), maker_orders_stream, accuracy.to_owned(), presentation).await.unwrap();
 
-//                         request_quote_asset_volume * maker_quote_asset_volume_left
-//                             >= maker_base_asset_volume_left * request_base_asset_volume
-//                     },
-//                 )
-//                 .prop_flat_map(
-//                     |(
-//                         request_quote_asset_volume,
-//                         request_base_asset_volume,
-//                         maker_quote_asset_volume,
-//                         maker_base_asset_volume,
-//                         maker_quote_asset_volume_left,
-//                         maker_order_fee_num,
-//                         maker_order_fee_denum,
-//                         taker_fee_denum,
-//                         maker_fee_denum,
-//                     )| {
-//                         (
-//                             Just(Volume::from(request_quote_asset_volume)),
-//                             Just(Volume::from(request_base_asset_volume)),
-//                             Just(Order {
-//                                 id: Uuid::new_v4(),
-//                                 created_at: Utc::now(),
-//                                 user_id: Uuid::new_v4(),
-//                                 is_active: true,
-//                                 quote_asset_id: request_base_asset_id,
-//                                 base_asset_id: request_quote_asset_id,
-//                                 quote_asset_volume: Volume::from(maker_quote_asset_volume),
-//                                 base_asset_volume: Volume::from(maker_base_asset_volume),
-//                                 quote_asset_volume_left: Volume::from(maker_quote_asset_volume_left),
-//                                 maker_fee_num: Volume::from(maker_order_fee_num),
-//                                 maker_fee_denum: Volume::from(maker_order_fee_denum),
-//                             }),
-//                             arb_fee(taker_fee_denum),
-//                             arb_fee(maker_fee_denum),
-//                         )
-//                     },
-//                 ),
-//             |(
-//                 request_quote_asset_volume,
-//                 request_base_asset_volume,
-//                 maker_order,
-//                 taker_fee,
-//                 maker_fee,
-//             )| {
-//                 block_on(async {
-//                     let maker_base_asset_volume_left = maker_order.base_asset_volume_left_ceil();
-//                     assert!(
-//                         request_quote_asset_volume.to_owned()
-//                             <= maker_base_asset_volume_left.to_owned()
-//                     );
-//                     assert!(
-//                         request_base_asset_volume.to_owned()
-//                             <= maker_order.quote_asset_volume_left.to_owned()
-//                     );
-//                     assert!(
-//                         request_quote_asset_volume.to_owned()
-//                             * maker_order.quote_asset_volume_left.to_owned()
-//                             >= maker_base_asset_volume_left.to_owned()
-//                                 * request_base_asset_volume.to_owned()
-//                     );
+            assert!(matching.order.is_none());
+            assert!(!matching.trades.is_empty());
+            assert!(matching.trades.len() == 1);
 
-//                     let matching_loop_input = MatchingEngineData::new(
-//                         request_user_id,
-//                         request_quote_asset_id,
-//                         request_base_asset_id,
-//                         request_quote_asset_volume.to_owned(),
-//                         request_base_asset_volume.to_owned(),
-//                         Box::pin(stream::iter(vec![Ok(maker_order.clone())])),
-//                         taker_fee.to_owned(),
-//                         maker_fee.to_owned(),
-//                     );
+            let trades = matching.trades;
+            let trade = &trades[0];
+            assert_eq!(trade.taker_id, user_id);
+            assert_eq!(trade.order_id, maker_order_copy.id);
 
-//                     let result = MatchingEngine::matching_loop(matching_loop_input)
-//                         .await
-//                         .unwrap();
+            // ensure all taker_quote_asset is used
+            assert_eq!(trade.taker_quote_volume, quote_asset_volume);
 
-//                     // assert correct response
-//                     assert!(result.order.is_none());
-//                     assert!(result.trades.len() == 1);
+            let request_base_asset_volume = quote_asset_volume.to_owned() / price;
+            let minimal_taker_base_volume = (request_base_asset_volume.to_owned() - request_base_asset_volume.to_owned() * base_asset.taker_fee).checked_floor_with_accuracy(&accuracy).unwrap();
 
-//                     let trade = result.trades.first().unwrap();
+            // ensure taker is satisfied
+            assert!(trade.taker_base_volume >= minimal_taker_base_volume);
 
-//                     // checks
-//                     assert!(trade.taker_id == request_user_id);
-//                     assert!(trade.order_id == maker_order.id);
+            let matching_order_base_volume = request_base_asset_volume.to_owned() / maker_order_copy.price;
+            let minimal_maker_base_volume = (matching_order_base_volume.to_owned() - matching_order_base_volume * maker_order_copy.maker_fee).checked_floor_with_accuracy(&accuracy).unwrap();
 
-//                     // request totally taken
-//                     assert!(trade.taker_quote_volume == request_quote_asset_volume);
+            // ensure maker is satisfied
+            assert!(trade.maker_base_volume >= minimal_maker_base_volume);
 
-//                     // got req_base - fee or better
-//                     assert!(
-//                         trade.taker_base_volume.to_owned()
-//                             >= request_base_asset_volume.to_owned()
-//                                 - request_base_asset_volume.to_owned() * taker_fee.to_owned()
-//                     );
-
-//                     // ensure taker fee taken
-//                     assert!(
-//                         trade.maker_quote_volume.to_owned()
-//                             - trade.maker_quote_volume.to_owned() * taker_fee.to_owned()
-//                             == trade.taker_base_volume.to_owned()
-//                     );
-
-//                     // ensure maker fee taken
-//                     assert!(
-//                         trade.maker_base_volume
-//                             == trade.taker_quote_volume.to_owned()
-//                                 - trade.taker_quote_volume.to_owned() * maker_order.maker_fee().unwrap()
-//                     );
-//                 });
-
-//                 Ok(())
-//             },
-//         )
-//         .unwrap();
-//     }
-// });
-
-// seq!(N in 0x000..0x010 {
-//     #[test]
-//     fn proctest_no_trade_with_not_matching_order~N() {
-//         let request_user_id = Uuid::new_v4();
-//         let request_quote_asset_id = Uuid::new_v4();
-//         let request_base_asset_id = Uuid::new_v4();
-
-//         TestRunner::new(Config {
-//             cases: CASES,
-//             max_local_rejects: MAX_LOCAL_REJECTS,
-//             ..Config::default()
-//         })
-//         .run(
-//             &(
-//                 1..u16::MAX,
-//                 1..u16::MAX,
-//                 1..u16::MAX,
-//                 1..u16::MAX,
-//                 1..u16::MAX,
-//                 1..u16::MAX,
-//                 1..u16::MAX,
-//             )
-//                 .prop_flat_map(
-//                     |(
-//                         request_quote_asset_volume,
-//                         request_base_asset_volume,
-//                         maker_quote_asset_volume,
-//                         maker_base_asset_volume,
-//                         maker_order_fee_denum,
-//                         taker_fee_denum,
-//                         maker_fee_denum,
-//                     )| {
-//                         (
-//                             Just(request_quote_asset_volume),
-//                             Just(request_base_asset_volume),
-//                             Just(maker_quote_asset_volume),
-//                             Just(maker_base_asset_volume),
-//                             (1..=maker_quote_asset_volume),
-//                             (0..=maker_order_fee_denum),
-//                             Just(maker_order_fee_denum),
-//                             Just(taker_fee_denum),
-//                             Just(maker_fee_denum),
-//                         )
-//                     },
-//                 )
-//                 .prop_filter(
-//                     "maker_order price not beneficial",
-//                     |(
-//                         request_quote_asset_volume,
-//                         request_base_asset_volume,
-//                         maker_quote_asset_volume,
-//                         maker_base_asset_volume,
-//                         _,_,_,_,_
-//                     )| {
-//                         let request_quote_asset_volume = BigInt::from(*request_quote_asset_volume);
-//                         let request_base_asset_volume = BigInt::from(*request_base_asset_volume);
-//                         let maker_quote_asset_volume = BigInt::from(*maker_quote_asset_volume);
-//                         let maker_base_asset_volume = BigInt::from(*maker_base_asset_volume);
-
-//                         request_quote_asset_volume * maker_quote_asset_volume
-//                             < maker_base_asset_volume * request_base_asset_volume
-//                     },
-//                 )
-//                 .prop_flat_map(
-//                     |(
-//                         request_quote_asset_volume,
-//                         request_base_asset_volume,
-//                         maker_quote_asset_volume,
-//                         maker_base_asset_volume,
-//                         maker_quote_asset_volume_left,
-//                         maker_order_fee_num,
-//                         maker_order_fee_denum,
-//                         taker_fee_denum,
-//                         maker_fee_denum,
-//                     )| {
-//                         (
-//                             Just(Volume::from(request_quote_asset_volume)),
-//                             Just(Volume::from(request_base_asset_volume)),
-//                             Just(Order {
-//                                 id: Uuid::new_v4(),
-//                                 created_at: Utc::now(),
-//                                 user_id: Uuid::new_v4(),
-//                                 is_active: true,
-//                                 quote_asset_id: request_base_asset_id,
-//                                 base_asset_id: request_quote_asset_id,
-//                                 quote_asset_volume: Volume::from(maker_quote_asset_volume),
-//                                 base_asset_volume: Volume::from(maker_base_asset_volume),
-//                                 quote_asset_volume_left: Volume::from(maker_quote_asset_volume_left),
-//                                 maker_fee_num: Volume::from(maker_order_fee_num),
-//                                 maker_fee_denum: Volume::from(maker_order_fee_denum),
-//                             }),
-//                             arb_fee(taker_fee_denum),
-//                             arb_fee(maker_fee_denum),
-//                         )
-//                     },
-//                 ),
-//             |(
-//                 request_quote_asset_volume,
-//                 request_base_asset_volume,
-//                 maker_order,
-//                 taker_fee,
-//                 maker_fee,
-//             )| {
-//                 block_on(async {
-//                     assert!(
-//                         request_quote_asset_volume.to_owned()
-//                             * maker_order.quote_asset_volume.to_owned()
-//                             < maker_order.base_asset_volume.to_owned()
-//                                 * request_base_asset_volume.to_owned()
-//                     );
-
-//                     let matching_loop_input = MatchingEngineData::new(
-//                         request_user_id,
-//                         request_quote_asset_id,
-//                         request_base_asset_id,
-//                         request_quote_asset_volume.to_owned(),
-//                         request_base_asset_volume.to_owned(),
-//                         Box::pin(stream::iter(vec![Ok(maker_order.clone())])),
-//                         taker_fee.to_owned(),
-//                         maker_fee.to_owned(),
-//                     );
-
-//                     let result = MatchingEngine::matching_loop(matching_loop_input)
-//                         .await
-//                         .unwrap();
-
-//                     // assert correct response
-//                     assert!(result.trades.is_empty());
-//                     assert!(result.order.is_some());
-
-//                     let order = result.order.unwrap();
-
-//                     // checks
-//                     assert!(order.user_id == request_user_id);
-//                     assert!(order.is_active == true);
-//                     assert!(order.quote_asset_id == request_quote_asset_id);
-//                     assert!(order.base_asset_id == request_base_asset_id);
-//                     assert!(order.quote_asset_volume == request_quote_asset_volume);
-//                     assert!(order.base_asset_volume == request_base_asset_volume);
-//                 });
-
-//                 Ok(())
-//             },
-//         )
-//         .unwrap();
-//     }
-// });
-
-// seq!(N in 0x000..0x010 {
-//     #[test]
-//     fn proctest_req_partially_filled_by_matching_order~N() {
-//     let request_user_id = Uuid::new_v4();
-//     let request_quote_asset_id = Uuid::new_v4();
-//     let request_base_asset_id = Uuid::new_v4();
-
-//     TestRunner::new(Config {
-//         cases: CASES,
-//         max_local_rejects: MAX_LOCAL_REJECTS,
-//         ..Config::default()
-//     })
-//     .run(
-//         &(1..u16::MAX-1, 1..u16::MAX-1, 1..u16::MAX, 1..u16::MAX, 1..u16::MAX)
-//             .prop_flat_map(
-//                 |(
-//                     maker_quote_asset_volume,
-//                     maker_base_asset_volume,
-//                     maker_order_fee_denum,
-//                     taker_fee_denum,
-//                     maker_fee_denum,
-//                 )| {
-//                     (
-//                         Just(maker_quote_asset_volume),
-//                         Just(maker_base_asset_volume),
-//                         (1..=maker_quote_asset_volume),
-//                         (0..=maker_order_fee_denum),
-//                         Just(maker_order_fee_denum),
-//                         Just(taker_fee_denum),
-//                         Just(maker_fee_denum),
-//                     )
-//                 },
-//             )
-//             .prop_flat_map(
-//                 |(
-//                     maker_quote_asset_volume,
-//                     maker_base_asset_volume,
-//                     maker_quote_asset_volume_left,
-//                     maker_order_fee_num,
-//                     maker_order_fee_denum,
-//                     taker_fee_denum,
-//                     maker_fee_denum,
-//                 )| {
-//                     (
-//                         (((maker_base_asset_volume as u128 * maker_quote_asset_volume_left as u128 + maker_quote_asset_volume as u128 - 1)/maker_quote_asset_volume as u128) as u16 + 1..=u16::MAX),
-//                         (maker_quote_asset_volume_left+1..=u16::MAX),
-//                         Just(maker_quote_asset_volume),
-//                         Just(maker_base_asset_volume),
-//                         Just(maker_quote_asset_volume_left),
-//                         Just(maker_order_fee_num),
-//                         Just(maker_order_fee_denum),
-//                         Just(taker_fee_denum),
-//                         Just(maker_fee_denum),
-//                     )
-//                 },
-//             )
-//             .prop_filter(
-//                 "maker_order price beneficial",
-//                 |(
-//                     request_quote_asset_volume,
-//                     request_base_asset_volume,
-//                     maker_quote_asset_volume,
-//                     maker_base_asset_volume,
-//                     maker_quote_asset_volume_left,
-//                     _,_,_,_
-//                 )| {
-//                     let request_quote_asset_volume = BigInt::from(*request_quote_asset_volume);
-//                     let request_base_asset_volume = BigInt::from(*request_base_asset_volume);
-//                     let maker_quote_asset_volume = BigInt::from(*maker_quote_asset_volume);
-//                     let maker_base_asset_volume = BigInt::from(*maker_base_asset_volume);
-//                     let maker_quote_asset_volume_left = BigInt::from(*maker_quote_asset_volume_left);
-//                     let maker_base_asset_volume_left = (maker_base_asset_volume
-//                         * maker_quote_asset_volume_left.clone()
-//                         + maker_quote_asset_volume.clone()
-//                         - BigInt::from(1))
-//                         / maker_quote_asset_volume;
-
-//                     request_quote_asset_volume * maker_quote_asset_volume_left
-//                         >= maker_base_asset_volume_left * request_base_asset_volume
-//                 },
-//             )
-//             .prop_flat_map(
-//                 |(
-//                     request_quote_asset_volume,
-//                     request_base_asset_volume,
-//                     maker_quote_asset_volume,
-//                     maker_base_asset_volume,
-//                     maker_quote_asset_volume_left,
-//                     maker_order_fee_num,
-//                     maker_order_fee_denum,
-//                     taker_fee_denum,
-//                     maker_fee_denum,
-//                 )| {
-//                     (
-//                         Just(Volume::from(request_quote_asset_volume)),
-//                         Just(Volume::from(request_base_asset_volume)),
-//                         Just(Order {
-//                             id: Uuid::new_v4(),
-//                             created_at: Utc::now(),
-//                             user_id: Uuid::new_v4(),
-//                             is_active: true,
-//                             quote_asset_id: request_base_asset_id,
-//                             base_asset_id: request_quote_asset_id,
-//                             quote_asset_volume: Volume::from(maker_quote_asset_volume),
-//                             base_asset_volume: Volume::from(maker_base_asset_volume),
-//                             quote_asset_volume_left: Volume::from(maker_quote_asset_volume_left),
-//                             maker_fee_num: Volume::from(maker_order_fee_num),
-//                             maker_fee_denum: Volume::from(maker_order_fee_denum),
-//                         }),
-//                         arb_fee(taker_fee_denum),
-//                         arb_fee(maker_fee_denum),
-//                     )
-//                 },
-//             ),
-//         |(
-//             request_quote_asset_volume,
-//             request_base_asset_volume,
-//             maker_order,
-//             taker_fee,
-//             maker_fee,
-//         )| {
-//             block_on(async {
-//                 let maker_base_asset_volume_left = maker_order.base_asset_volume_left_ceil();
-//                 assert!(
-//                     request_quote_asset_volume.to_owned()
-//                         > maker_base_asset_volume_left.to_owned()
-//                 );
-//                 assert!(
-//                     request_base_asset_volume.to_owned()
-//                         > maker_order.quote_asset_volume_left.to_owned()
-//                 );
-//                 assert!(
-//                     request_quote_asset_volume.to_owned()
-//                         * maker_order.quote_asset_volume_left.to_owned()
-//                         >= maker_base_asset_volume_left.to_owned()
-//                             * request_base_asset_volume.to_owned()
-//                 );
-
-//                 let matching_loop_input = MatchingEngineData::new(
-//                     request_user_id,
-//                     request_quote_asset_id,
-//                     request_base_asset_id,
-//                     request_quote_asset_volume.to_owned(),
-//                     request_base_asset_volume.to_owned(),
-//                     Box::pin(stream::iter(vec![Ok(maker_order.clone())])),
-//                     taker_fee.to_owned(),
-//                     maker_fee.to_owned(),
-//                 );
-
-//                 let result = MatchingEngine::matching_loop(matching_loop_input)
-//                     .await
-//                     .unwrap();
-
-//                 // assert correct response
-//                 assert!(result.order.is_some());
-//                 assert!(result.trades.len() == 1);
-
-//                 let order = result.order.unwrap();
-//                 let trade = result.trades.first().unwrap();
-
-//                 // checks
-//                 assert!(order.user_id == request_user_id);
-//                 assert!(order.is_active == true);
-//                 assert!(order.quote_asset_id == request_quote_asset_id);
-//                 assert!(order.base_asset_id == request_base_asset_id);
-//                 assert!(order.maker_fee_num == maker_fee.numerator.into());
-//                 assert!(order.maker_fee_denum == maker_fee.denominator.into());
-
-//                 assert!(trade.taker_id == request_user_id);
-//                 assert!(trade.order_id == maker_order.id);
-
-//                 // maker order totally taken
-//                 assert!(trade.taker_quote_volume == maker_base_asset_volume_left);
-
-//                 // ensure taker fee taken
-//                 assert!(
-//                     trade.taker_base_volume.to_owned() == maker_order.quote_asset_volume_left.to_owned() - maker_order.quote_asset_volume_left.to_owned() * taker_fee.to_owned()
-//                 );
-
-//                 // ensure maker fee taken
-//                 assert!(
-//                     trade.maker_base_volume
-//                         == trade.taker_quote_volume.to_owned() - trade.taker_quote_volume.to_owned() * maker_order.maker_fee().unwrap()
-//                 );
-//             });
-
-//             Ok(())
-//         },
-//     )
-//     .unwrap();
-// }
-// });
-
-// seq!(N in 0x000..0x010 {
-//     #[test]
-//     fn proctest_req_filled_by_matching_orders_vec~N() {
-//         let request_user_id = Uuid::new_v4();
-//         let request_quote_asset_id = Uuid::new_v4();
-//         let request_base_asset_id = Uuid::new_v4();
-
-//         TestRunner::new(Config {
-//             cases: CASES,
-//             max_local_rejects: MAX_LOCAL_REJECTS*50,
-//             ..Config::default()
-//         })
-//         .run(
-//             &(1..u16::MAX, 1..u16::MAX, 1..u16::MAX, 1..u16::MAX).prop_flat_map(
-//                 |(
-//                     request_quote_asset_volume,
-//                     request_base_asset_volume,
-//                     taker_fee_denum,
-//                     maker_fee_denum,
-//                 )| {
-//                     (
-//                         Just(Volume::from(request_quote_asset_volume)),
-//                         Just(Volume::from(request_base_asset_volume)),
-//                         prop::collection::vec(
-//                             arb_smaller_matching_order(
-//                                 request_quote_asset_id,
-//                                 request_base_asset_id,
-//                                 request_quote_asset_volume,
-//                                 request_base_asset_volume,
-//                             ),
-//                             1..=100,
-//                         ),
-//                         arb_fee(taker_fee_denum),
-//                         arb_fee(maker_fee_denum),
-//                     )
-//                 },
-//             ),
-//             |(
-//                 request_quote_asset_volume,
-//                 request_base_asset_volume,
-//                 mut matching_orders,
-//                 taker_fee,
-//                 maker_fee,
-//             )| {
-//                 block_on(async {
-//                     matching_orders.sort_by(|lhs, rhs| {
-//                         (lhs.base_asset_volume.to_owned() * rhs.quote_asset_volume.to_owned()).cmp(
-//                             &(rhs.base_asset_volume.to_owned() * lhs.quote_asset_volume.to_owned()),
-//                         )
-//                     });
-
-//                     let mut trades_counter = 0;
-//                     let mut matching_orders_iter = matching_orders.iter();
-//                     let mut request_quote_asset_volume_left = request_quote_asset_volume.to_owned();
-//                     while let Some(order) = matching_orders_iter.next() && request_quote_asset_volume_left > Volume::from(0) {
-//                         let maker_base_asset_volume_left = order.base_asset_volume_left_ceil();
-//                         request_quote_asset_volume_left -= maker_base_asset_volume_left.to_owned();
-//                         trades_counter += 1;
-//                     }
-
-//                     let matching_loop_input = MatchingEngineData::new(
-//                         request_user_id,
-//                         request_quote_asset_id,
-//                         request_base_asset_id,
-//                         request_quote_asset_volume,
-//                         request_base_asset_volume,
-//                         Box::pin(
-//                             stream::iter(matching_orders.to_owned())
-//                                 .map::<Result<Order, Error>, _>(|order| Ok(order)),
-//                         ),
-//                         taker_fee,
-//                         maker_fee,
-//                     );
-
-//                     let result = MatchingEngine::matching_loop(matching_loop_input)
-//                         .await
-//                         .unwrap();
-
-//                     assert!(result.trades.len() == trades_counter);
-//                     for (idx, trade) in result.trades.iter().enumerate() {
-//                         assert!(trade.taker_id == request_user_id);
-//                         assert!(trade.order_id == matching_orders[idx].id);
-//                     }
-//                 });
-//                 Ok(())
-//             },
-//         )
-//         .unwrap();
-//     }
-// });
+            // ensure correct presentation
+            assert_eq!(trade.taker_presentation, presentation);
+        })
+    }
+}
+});

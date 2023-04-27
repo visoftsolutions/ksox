@@ -26,7 +26,7 @@ export default function Markets() {
         <div class="p-4 font-sanspro text-trades-label font-semibold">Markets</div>
         <div class="px-[12px]">
           <SearchInput
-            class="mx-auto mb-2 w-full text-markets-searchbar"
+            class="text-markets-searchbar mx-auto mb-2 w-full"
             left={
               <>
                 <img src={joinPaths(base, "gfx/search.svg")} />
@@ -41,7 +41,7 @@ export default function Markets() {
         </div>
       </div>
       <div class="relative row-start-2 row-end-3">
-        <div class="absolute top-0 left-0 right-0 bottom-0 flex flex-col overflow-clip">
+        <div class="absolute bottom-0 left-0 right-0 top-0 flex flex-col overflow-clip">
           <Index each={store.markets}>
             {(element, i) => (
               <TriElement

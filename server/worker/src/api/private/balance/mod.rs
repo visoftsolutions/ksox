@@ -1,11 +1,17 @@
 mod sse;
 
-use axum::{extract::State, routing::get, Json, Router};
-use database::projections::spot::valut::Valut;
-use tokio_stream::StreamExt;
+use axum::{
+    extract::{Query, State},
+    routing::get,
+    Json, Router,
+};
+use database::projections::valut::Valut;
+use serde::Deserialize;
+use uuid::Uuid;
 
 use crate::{
-    api::{auth::models::UserId, AppError, Pagination},
+    api::{auth::models::UserId, AppError},
+    database,
     models::AppState,
 };
 
@@ -16,19 +22,19 @@ pub fn router(app_state: &AppState) -> Router {
         .with_state(app_state.clone())
 }
 
+#[derive(Deserialize)]
+pub struct Request {
+    pub asset_id: Uuid,
+}
+
 pub async fn root(
     State(state): State<AppState>,
     user_id: UserId,
-    mut payload: Option<Json<Pagination>>,
-) -> Result<Json<Vec<Valut>>, AppError> {
-    let pagination = payload.get_or_insert_default();
-    let mut stream =
-        state
-            .valuts_manager
-            .get_for_user(*user_id, pagination.limit, pagination.offset);
-    let mut vec = Vec::<Valut>::new();
-    while let Some(res) = stream.next().await {
-        vec.push(res?);
-    }
-    Ok(Json(vec))
+    Query(params): Query<Request>,
+) -> Result<Json<Valut>, AppError> {
+    let valut = state
+        .valuts_manager
+        .get_or_create_for_user_asset(*user_id, params.asset_id)
+        .await?;
+    Ok(Json(valut))
 }

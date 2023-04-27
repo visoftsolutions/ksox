@@ -14,7 +14,7 @@ node_modules
 .project
 .classpath
 *.launch
-.settings
+.settings/
 
 # Temp
 gitignore

@@ -1,4 +1,4 @@
-import { createMemo, JSX } from "solid-js";
+import { createUniqueId, JSX } from "solid-js";
 
 export interface SearchInputComponent {
   value?: string;
@@ -12,37 +12,34 @@ export interface SearchInputComponent {
 
 export default function SearchInput(props: SearchInputComponent) {
   let inputDOM!: HTMLInputElement;
-  const valueDOM = createMemo(() => {
-    return props.value == null || props.value == undefined ? "" : props.value;
-  });
+
+  const id = createUniqueId();
 
   return (
     <div
-      class={`grid cursor-text grid-cols-[auto_1fr] items-center rounded-md bg-gray-1 p-1 ${props.class} ${props.disabled ? props.disabledClass : ""}`}
+      class={`grid cursor-text grid-cols-[auto_1fr] items-center rounded-md bg-gray-1 p-[3px] font-sanspro text-searchInput font-normal
+        ${props.class}
+        ${props.disabled && props.disabledClass}
+      `}
       onClick={() => {
         inputDOM.focus();
       }}
     >
-      <div class="col-start-1 col-end-2 px-[8px] text-gray-4">{props.left}</div>
+      <label for={id} class="col-start-1 col-end-2 px-[6px]">
+        {props.left}
+      </label>
       <div class="col-start-2 col-end-3 text-right">
         <input
+          id={id}
           class={"w-full bg-transparent p-1 text-left placeholder-gray-4 outline-none"}
           type="text"
           spellcheck={true}
           ref={inputDOM}
-          value={valueDOM()}
+          value={props.value ?? ""}
           placeholder="Search"
           disabled={props.disabled}
-          onInput={(e) => {
-            if (props.onInput != undefined) {
-              props.onInput(e);
-            }
-          }}
-          onChange={(e) => {
-            if (props.onChange != undefined) {
-              props.onChange(e);
-            }
-          }}
+          onInput={(ev) => (props.onInput ? props.onInput(ev) : {})}
+          onChange={(ev) => (props.onChange ? props.onChange(ev) : {})}
           onFocus={(e) => {
             (e.target as HTMLInputElement).select();
           }}

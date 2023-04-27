@@ -14,7 +14,7 @@
 # MSVC Windows builds of rustc generate these, which store debugging information
 **/*.pdb
 
-# Envs should not be passed
+# Envs
 **/.cargo/
 
 # kubernetes manifests

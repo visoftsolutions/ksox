@@ -1,4 +1,4 @@
-
+.env
 dist
 .solid
 .output
@@ -19,7 +19,8 @@ node_modules
 *.launch
 .settings
 
-# Temp
+# Ignores
+.dockerignore
 .gitignore
 
 # System Files

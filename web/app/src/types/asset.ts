@@ -6,6 +6,7 @@ import { Uuid } from "./primitives/uuid";
 export const Asset = z.object({
   id: Uuid,
   created_at: Datetime,
+  last_modification_at: Datetime,
   name: z.string(),
   symbol: z.string(),
   maker_fee: Fraction,

@@ -1,34 +1,34 @@
 pub mod models;
 
-use std::ops::Deref;
-
 use axum::{
-    extract::{Json, State},
+    extract::{Json, Query, State},
+    http::{self, HeaderValue},
+    response::IntoResponse,
     routing::{delete, get, post},
     Router,
 };
-use cache::redis::AsyncCommands;
-use database::sqlx::error::Error;
+use hyper::HeaderMap;
 use models::*;
+use redis::AsyncCommands;
 
 use super::AppError;
 use crate::models::AppState;
 
-pub const NONCE_EXPIRATION_TIME: usize = 60; // in seconds
+pub const MESSAGE_EXPIRATION_TIME: usize = 60; // in seconds
 pub const SESSION_EXPIRATION_TIME: usize = 3600; // in seconds
 pub const COOKIE_NAME: &str = "session_id";
 
 pub fn router(app_state: &AppState) -> Router {
     Router::new()
-        .route("/", get(generate_nonce))
+        .route("/", get(generate_message))
         .route("/", post(validate_signature))
         .route("/", delete(logout))
         .with_state(app_state.clone())
 }
 
-async fn generate_nonce(
+async fn generate_message(
     State(state): State<AppState>,
-    Json(payload): Json<GenerateNonceRequest>,
+    Query(params): Query<GenerateNonceRequest>,
 ) -> Result<Json<GenerateNonceResponse>, AppError> {
     let nonce = Nonce::new(32);
     state
@@ -36,21 +36,21 @@ async fn generate_nonce(
         .get_async_connection()
         .await?
         .set_ex(
-            format!("auth:nonce:{}", payload.address),
-            nonce.clone(),
-            NONCE_EXPIRATION_TIME,
+            format!("auth:nonce:{}", params.address),
+            nonce.to_owned(),
+            MESSAGE_EXPIRATION_TIME,
         )
         .await?;
     Ok(Json(GenerateNonceResponse {
-        nonce,
-        expiration: NONCE_EXPIRATION_TIME,
+        message: Message::from(nonce),
+        expiration: MESSAGE_EXPIRATION_TIME,
     }))
 }
 
 async fn validate_signature(
     State(state): State<AppState>,
     Json(payload): Json<ValidateSignatureRequest>,
-) -> Result<Json<ValidateSignatureResponse>, AppError> {
+) -> Result<impl IntoResponse, AppError> {
     let mut redis_conn = state.session_store.get_async_connection().await?;
 
     let nonce = redis_conn
@@ -59,7 +59,7 @@ async fn validate_signature(
 
     payload
         .signature
-        .verify(nonce.deref().as_ref(), payload.address.clone())?;
+        .verify(Message::from(nonce).as_str(), payload.address.clone())?;
 
     let session_id = SessionId::new(32);
 
@@ -70,7 +70,7 @@ async fn validate_signature(
     {
         Ok(user) => Ok(user),
         Err(err) => match err {
-            Error::RowNotFound => {
+            sqlx::Error::RowNotFound => {
                 state
                     .users_manager
                     .insert_with_evmaddress(payload.address)
@@ -87,11 +87,21 @@ async fn validate_signature(
             SESSION_EXPIRATION_TIME,
         )
         .await?;
-    Ok(Json(ValidateSignatureResponse {
-        session_id,
-        user_id: UserId::new(user.id),
-        expiration: SESSION_EXPIRATION_TIME,
-    }))
+
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        http::header::SET_COOKIE,
+        HeaderValue::from_str(format!("{}={}", COOKIE_NAME, session_id).as_str())?,
+    );
+
+    Ok((
+        headers,
+        Json(ValidateSignatureResponse {
+            session_id,
+            user_id: UserId::new(user.id),
+            expiration: SESSION_EXPIRATION_TIME,
+        }),
+    ))
 }
 
 pub async fn logout(State(state): State<AppState>, user: User) -> Result<String, AppError> {

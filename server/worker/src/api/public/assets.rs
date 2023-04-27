@@ -1,8 +1,7 @@
 use axum::{extract::State, Json};
-use database::{projections::spot::asset::Asset, traits::table_manager::TableManager};
 use futures::StreamExt;
 
-use crate::{api::AppError, AppState};
+use crate::{api::AppError, database::projections::asset::Asset, AppState};
 
 // Return all assets that exist in db
 pub async fn root(State(state): State<AppState>) -> Result<Json<Vec<Asset>>, AppError> {

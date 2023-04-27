@@ -1,6 +1,7 @@
 use axum::{extract::State, Json};
-use database::{sqlx::types::Uuid, traits::TableManager, types::Volume};
+use fraction::Fraction;
 use serde::Deserialize;
+use uuid::Uuid;
 
 use crate::{
     api::{auth::models::UserId, AppError},
@@ -10,7 +11,7 @@ use crate::{
 #[derive(Deserialize)]
 pub struct Request {
     pub asset_id: Uuid,
-    pub amount: Volume,
+    pub amount: Fraction,
 }
 
 pub async fn root(

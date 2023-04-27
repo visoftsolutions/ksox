@@ -19,6 +19,12 @@ html {
     font-weight: 600;
     src: url("/fonts/SourceSansPro-SemiBold.ttf") format("truetype");
   }
+  @font-face {
+    font-family: "Lexend";
+    font-style: normal;
+    font-weight: 200;
+    src: url("/fonts/Lexend-ExtraLight.ttf") format("truetype");
+  }
 }
 
 @layer utilities {
@@ -31,7 +37,7 @@ html {
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-gray-4 bg-opacity-50;
+    @apply cursor-pointer rounded-sm bg-gray-1;
   }
 
   ::-webkit-scrollbar-thumb:hover {
@@ -46,7 +52,15 @@ html {
 /* .slider::-webkit-slider-runnable-track {} */
 
 .slider::-webkit-slider-thumb {
-  @apply h-[12px] w-[12px] cursor-ew-resize appearance-none rounded-[50%] bg-gray-4;
+  @apply h-[12px] w-[12px] cursor-ew-resize appearance-none rounded-[50%];
+}
+
+.slider-green::-webkit-slider-thumb {
+  @apply bg-green;
+}
+
+.slider-red::-webkit-slider-thumb {
+  @apply bg-red;
 }
 
 .number_input::-webkit-outer-spin-button,

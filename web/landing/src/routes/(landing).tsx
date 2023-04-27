@@ -1,12 +1,12 @@
-import Footer from "~/components/landing/Footer";
-import Header from "~/components/landing/Header";
-import Main from "~/components/landing/Main";
+import Footer from "~/components/Footer";
+import Header from "~/components/Header";
+import Main from "~/components/Main";
 import Spacing from "~/components/Spacing";
 
 export default function Landing() {
   return (
-    <div class="[background-image:linear-gradient(180deg,#000020_0%,#0F0D12_24%,#0F0D12_76%,#000020_100%)]">
-      <div class="m-auto flex min-h-screen max-w-7xl flex-col p-6">
+    <div class="[background-image:linear-gradient(180deg,#000033_0%,#00001d_24%,#00001d_76%,#000033_100%)]">
+      <div class="m-auto flex min-h-screen max-w-7xl flex-col p-6 ">
         <Header />
         <Spacing class="h-12" />
         <Main />

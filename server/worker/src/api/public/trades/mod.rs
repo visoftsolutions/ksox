@@ -1,12 +1,18 @@
 mod sse;
 
-use axum::{extract::State, routing::get, Json, Router};
-use database::{projections::spot::trade::Trade, sqlx::types::Uuid};
+use axum::{
+    extract::{Query, State},
+    routing::get,
+    Json, Router,
+};
+use fraction::num_traits::Inv;
 use serde::Deserialize;
 use tokio_stream::StreamExt;
+use uuid::Uuid;
 
+use super::ResponseTrade;
 use crate::{
-    api::{AppError, Pagination},
+    api::{AppError, Direction},
     models::AppState,
 };
 
@@ -17,44 +23,42 @@ pub fn router(app_state: &AppState) -> Router {
         .with_state(app_state.clone())
 }
 
-// TODO define macro for this
 #[derive(Deserialize)]
-pub struct RequestPartial {
-    pub quote_asset_id: Uuid,
-    pub base_asset_id: Uuid,
-    pub pagination: Option<Pagination>,
-}
-
 pub struct Request {
     pub quote_asset_id: Uuid,
     pub base_asset_id: Uuid,
-    pub pagination: Pagination,
-}
-
-impl RequestPartial {
-    fn insert_defaults(self) -> Request {
-        Request {
-            quote_asset_id: self.quote_asset_id,
-            base_asset_id: self.base_asset_id,
-            pagination: self.pagination.unwrap_or_default(),
-        }
-    }
+    pub limit: i64,
+    pub offset: i64,
 }
 
 pub async fn root(
     State(state): State<AppState>,
-    Json(payload): Json<RequestPartial>,
-) -> Result<Json<Vec<Trade>>, AppError> {
-    let payload = payload.insert_defaults();
+    Query(params): Query<Request>,
+) -> Result<Json<Vec<ResponseTrade>>, AppError> {
     let mut stream = state.trades_manager.get_for_asset_pair(
-        payload.quote_asset_id,
-        payload.base_asset_id,
-        payload.pagination.limit,
-        payload.pagination.offset,
+        params.quote_asset_id,
+        params.base_asset_id,
+        params.limit,
+        params.offset,
     );
-    let mut vec = Vec::<Trade>::new();
+    let mut vec = Vec::<ResponseTrade>::new();
     while let Some(res) = stream.next().await {
-        vec.push(res?);
+        let t = res?;
+        if t.is_opposite(params.quote_asset_id, params.base_asset_id) {
+            vec.push(ResponseTrade {
+                price: t.price.inv(),
+                volume: t.maker_quote_volume,
+                time: t.created_at,
+                direction: Direction::Sell,
+            });
+        } else {
+            vec.push(ResponseTrade {
+                price: t.price,
+                volume: t.taker_quote_volume,
+                time: t.created_at,
+                direction: Direction::Buy,
+            });
+        }
     }
     Ok(Json(vec))
 }

@@ -1,9 +1,13 @@
 mod sse;
 
-use axum::{extract::State, routing::get, Json, Router};
-use database::projections::spot::order::Order;
+use axum::{
+    extract::{Query, State},
+    routing::get,
+    Json, Router,
+};
 use tokio_stream::StreamExt;
 
+use super::ResponseOrder;
 use crate::{
     api::{auth::models::UserId, AppError, Pagination},
     models::AppState,
@@ -19,16 +23,14 @@ pub fn router(app_state: &AppState) -> Router {
 pub async fn root(
     State(state): State<AppState>,
     user_id: UserId,
-    mut payload: Option<Json<Pagination>>,
-) -> Result<Json<Vec<Order>>, AppError> {
-    let pagination = payload.get_or_insert_default();
-    let mut stream =
-        state
-            .orders_manager
-            .get_for_user(*user_id, pagination.limit, pagination.offset);
-    let mut vec = Vec::<Order>::new();
+    Query(params): Query<Pagination>,
+) -> Result<Json<Vec<ResponseOrder>>, AppError> {
+    let mut stream = state
+        .orders_manager
+        .get_for_user(*user_id, params.limit, params.offset);
+    let mut vec = Vec::<ResponseOrder>::new();
     while let Some(res) = stream.next().await {
-        vec.push(res?);
+        vec.push(ResponseOrder::from(res?));
     }
     Ok(Json(vec))
 }

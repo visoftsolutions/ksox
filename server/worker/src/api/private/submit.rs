@@ -1,6 +1,7 @@
 use axum::{extract::State, Json};
-use database::{sqlx::types::Uuid, types::Volume};
-use serde::Deserialize;
+use fraction::Fraction;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{
     api::{auth::models::UserId, AppError},
@@ -8,29 +9,39 @@ use crate::{
     models::AppState,
 };
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct Request {
     pub quote_asset_id: Uuid,
     pub base_asset_id: Uuid,
-    pub quote_asset_volume: Volume,
-    pub base_asset_volume: Volume,
+    pub price: Fraction,
+    pub quote_asset_volume: Fraction,
+    pub presentation: bool,
+}
+
+#[derive(Serialize)]
+pub struct Response {
+    pub response: String,
 }
 
 pub async fn root(
     State(mut state): State<AppState>,
     user_id: UserId,
     Json(payload): Json<Request>,
-) -> Result<String, AppError> {
+) -> Result<Json<Response>, AppError> {
     let response = state
         .engine_client
         .submit(SubmitRequest {
             user_id: (*user_id).to_string(),
             quote_asset_id: payload.quote_asset_id.to_string(),
             base_asset_id: payload.base_asset_id.to_string(),
-            quote_asset_volume: payload.quote_asset_volume.to_string(),
-            base_asset_volume: payload.base_asset_volume.to_string(),
+            price: serde_json::to_string(&payload.price)?,
+            quote_asset_volume: serde_json::to_string(&payload.quote_asset_volume)?,
+            presentation: serde_json::to_string(&payload.presentation)?,
         })
         .await?
         .into_inner();
-    Ok(format!("submitted {response:?}"))
+
+    Ok(Json(Response {
+        response: format!("submitted {response:?}"),
+    }))
 }

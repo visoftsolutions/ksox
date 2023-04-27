@@ -56,23 +56,27 @@ make sure you are in workspace root folder
 cargo +nightly udeps
 ```
 
+## update package.json
+npx npm-check-updates -u
 
 ## run code in kubernetes
 make sure you have minikube, docker and skaffold installed
 make sure you are in a docker group
+```shell
+minikube start --driver=docker --cpus 16 --memory 8192 --addons ingress
 ```
-minikube start --driver=docker --cpus 8 --memory 4096 && \
-minikube addons enable ingress
-```
+
 you can now connect with your browser to ingress, ask minikube for ip
-```
+```shell
 minikube ip
 ```
+
 To deploy application do
+```shell
+skaffold --kubeconfig ~/.kube/prod.conf --default-repo registry.internal.visoft.solutions run
 ```
-skaffold run
-```
-You can also work in development mode
-```
-skaffold dev
+
+To remove application do
+```shell
+skaffold --kubeconfig ~/.kube/prod.conf --default-repo registry.internal.visoft.solutions delete
 ```

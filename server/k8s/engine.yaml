@@ -18,9 +18,25 @@ spec:
         image: server-engine
         ports:
         - containerPort: 80
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "500m"
+          limits:
+            memory: "256Mi"
+            cpu: "1000m"
         env:
         - name: DATABASE_URL
-          value: postgresql://ksoxuser:ksoxuserp4ssword@postgres-postgresql/ksox
+          value: postgresql://ksoxuser:ksoxuserp4ssword@postgres-service/ksox
+        - name: ENGINE_FRACTION_ACCURACY
+          value: 1/10000
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox
+        command: ['sh', '-c', 'until nc -z postgres-service 5432; do echo waiting for postgres; sleep 1; done;']
+      - name: wait-for-redis
+        image: busybox
+        command: ['sh', '-c', 'until nc -z redis-service 6379; do echo waiting for redis; sleep 1; done;']
 ---
 apiVersion: v1
 kind: Service

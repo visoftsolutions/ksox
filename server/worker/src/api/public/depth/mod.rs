@@ -1,9 +1,16 @@
 mod sse;
 
-use axum::{extract::State, routing::get, Json, Router};
-use database::{sqlx::types::Uuid, types::PriceLevel};
+use axum::{
+    extract::{Query, State},
+    routing::get,
+    Json, Router,
+};
+use fraction::{num_traits::Inv, Fraction};
 use futures::StreamExt;
-use serde::Deserialize;
+use pricelevel::PriceLevel;
+use serde::{Deserialize, Serialize};
+use tokio::select;
+use uuid::Uuid;
 
 use crate::{api::AppError, models::AppState};
 
@@ -14,51 +21,65 @@ pub fn router(app_state: &AppState) -> Router {
         .with_state(app_state.clone())
 }
 
-// TODO define macro for this
 #[derive(Deserialize)]
-pub struct RequestPartial {
-    pub quote_asset_id: Uuid,
-    pub base_asset_id: Uuid,
-    pub precision: Option<i32>,
-    pub limit: Option<i64>,
-}
-
 pub struct Request {
     pub quote_asset_id: Uuid,
     pub base_asset_id: Uuid,
-    pub precision: i32,
-    pub limit: i64,
+    pub precision: usize,
+    pub limit: usize,
 }
 
-impl RequestPartial {
-    fn insert_defaults(self) -> Request {
-        Request {
-            quote_asset_id: self.quote_asset_id,
-            base_asset_id: self.base_asset_id,
-            precision: self.precision.unwrap_or(2),
-            limit: self.limit.unwrap_or(10),
+#[derive(Serialize, Clone)]
+pub struct Response {
+    pub sells: Vec<PriceLevel>,
+    pub buys: Vec<PriceLevel>,
+}
+
+impl Response {
+    fn new() -> Self {
+        Self {
+            sells: Vec::new(),
+            buys: Vec::new(),
         }
     }
 }
 
 pub async fn root(
     State(state): State<AppState>,
-    Json(payload): Json<RequestPartial>,
-) -> Result<Json<Vec<PriceLevel>>, AppError> {
-    let payload = payload.insert_defaults();
-    let mut stream = state
+    Query(params): Query<Request>,
+) -> Result<Json<Response>, AppError> {
+    let mut resp = Response::new();
+    let resp_ref = &mut resp;
+
+    let precision = Fraction::from(params.precision).inv();
+    let mut buys_stream = state
         .orders_manager
         .get_orderbook(
-            payload.quote_asset_id,
-            payload.base_asset_id,
-            payload.precision,
-            payload.limit,
+            params.quote_asset_id,
+            params.base_asset_id,
+            precision.to_owned(),
         )
-        .map(|f| f.and_then(TryInto::<PriceLevel>::try_into));
+        .take(params.limit);
+    let mut sells_stream = state
+        .orders_manager
+        .get_orderbook_opposite(
+            params.quote_asset_id,
+            params.base_asset_id,
+            precision.to_owned(),
+        )
+        .take(params.limit);
 
-    let mut vec = Vec::<PriceLevel>::new();
-    while let Some(res) = stream.next().await {
-        vec.push(res?);
+    loop {
+        select! {
+            Some(e) = sells_stream.next() => {
+                resp_ref.sells.push(e.unwrap_or_default());
+            },
+            Some(e) = buys_stream.next() => {
+                resp_ref.buys.push(e.unwrap_or_default());
+            },
+            else => break,
+        }
     }
-    Ok(Json(vec))
+
+    Ok(Json(resp))
 }
