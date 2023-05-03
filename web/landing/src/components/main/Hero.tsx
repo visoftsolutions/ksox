@@ -8,7 +8,13 @@ export default function Hero() {
   return (
     <div class="flex flex-col items-center text-white md:flex-row-reverse md:items-start">
       <div class="md:w-1/2 ">
-        <img src="/gfx/laptop.png" class="mx-auto" alt="laptop" />
+        <img
+          src="/gfx/laptop.png"
+          class="mx-auto"
+          alt="laptop"
+          fetchpriority="auto"
+          elementtiming="png-image"
+        />
       </div>
       <Spacing class="h-8" />
 

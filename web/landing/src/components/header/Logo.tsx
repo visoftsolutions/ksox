@@ -6,7 +6,13 @@ export default function Logo(props: DefaultProps) {
     <div class="flex justify-between">
       <A href="/" class={`flex items-center gap-[16px] ${props.class}`}>
         <div>
-          <img class="w-12" src="/gfx/logo.svg" alt="logo" />
+          <img
+            class="w-12"
+            src="/gfx/logo.svg"
+            alt="logo"
+            fetchpriority="auto"
+            elementtiming="svg-image"
+          />
         </div>
         <div class="font-inter text-logo text-white max-[250px]:hidden">
           KSOX

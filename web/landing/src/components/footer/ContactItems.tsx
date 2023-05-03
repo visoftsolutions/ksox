@@ -1,11 +1,10 @@
-import { A } from "solid-start";
 import Spacing from "~/components/Spacing";
 import ContactItem from "~/components/footer/ContactItem";
 
 export default function ContactItems() {
   return (
     <div>
-      <div class="flex flex-col items-center justify-center md:flex-col md:justify-start md:gap-[1.12rem] ">
+      <div>
         <ContactItem imageSrc="/gfx/mail-icon.svg">
           <div>
             <p class="font-lexend text-footer-element font-medium text-text-1">
@@ -20,33 +19,48 @@ export default function ContactItems() {
 
       <Spacing class="h-12" />
 
-      <A href="https://twitter.com/KsoxExchange" target="_blank">
+      <a href="https://twitter.com/KsoxExchange" target="_blank">
         <ContactItem imageSrc="/gfx/twitter-icon.svg">
           <div>
             <p class="font-lexend text-footer-element font-medium text-text-1">
-              KSOX - Exchange
+              KSOX | Twitter
             </p>
             <p class="text-center font-lexend text-footer-element-light font-light text-text-2 md:text-start">
-              keep in touch
+              stay in touch
             </p>
           </div>
         </ContactItem>
-      </A>
+      </a>
 
       <Spacing class="h-12" />
 
-      <A href="https://t.me/ksox_community" target="_blank">
-        <ContactItem imageSrc="/gfx/telegram-icon.svg">
+      <a href="https://discord.gg/u5ZGJ9mY" target="_blank">
+        <ContactItem imageSrc="/gfx/discord-icon.svg">
           <div>
             <p class="font-lexend text-footer-element font-medium text-text-1">
-              KSOX | Community
+              KSOX | Discord
             </p>
             <p class="text-center font-lexend text-footer-element-light font-light text-text-2 md:text-start">
               join community
             </p>
           </div>
         </ContactItem>
-      </A>
+      </a>
+
+      <Spacing class="h-12" />
+
+      <a href="https://t.me/ksox_community" target="_blank">
+        <ContactItem imageSrc="/gfx/telegram-icon.svg">
+          <div>
+            <p class="font-lexend text-footer-element font-medium text-text-1">
+              KSOX | Telegram
+            </p>
+            <p class="text-center font-lexend text-footer-element-light font-light text-text-2 md:text-start">
+              join community
+            </p>
+          </div>
+        </ContactItem>
+      </a>
     </div>
   );
 }
