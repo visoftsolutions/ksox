@@ -1,5 +1,5 @@
 import Spacing from "~/components/Spacing";
-import Benefit from "~/components/main/Benefit";
+import Benefit from "./Benefit";
 
 export default function Benefits() {
   return (

@@ -48,7 +48,7 @@ html {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   
-  animation: shine 10s linear infinite;
+  animation: shine 15s linear infinite;
 }
 
 .token-linear-wipe-button {
@@ -57,11 +57,16 @@ html {
   background-image: linear-gradient(to right, #bf088c, #b41c98, #a629a4, #9535af, #823eb8, #823eb8, #823eb8, #823eb8, #9535af, #a629a4, #b41c98, #bf088c);
   background-size: 400% auto;
   background-blend-mode: screen;
-  animation: shine 10s linear infinite;
+  animation: shine 15s linear infinite;
 }
 
 @keyframes shine {
   to {
     background-position: 400% center;
   }
+}
+
+.bucket-gradient {
+  background-size: auto;
+  background-image: linear-gradient(to bottom, #bf088c, #b41c98, #a629a4, #9535af, #823eb8, #823eb8, #823eb8, #823eb8);
 }

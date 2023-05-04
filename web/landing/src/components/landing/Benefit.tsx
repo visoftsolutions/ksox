@@ -1,4 +1,4 @@
-import { DefaultProps } from "../../interfaces";
+import { DefaultProps } from "~/utils/interfaces";
 import { base } from "~/root";
 import { joinPaths } from "solid-start/islands/server-router";
 

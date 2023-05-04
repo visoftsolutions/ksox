@@ -13,8 +13,8 @@ export default function Index() {
           <Spacing class="h-12" />
           <Outlet />
           <Spacing class="h-12" />
-          <Footer />
-          <Spacing class="h-20" />
+          {/* <Footer />
+          <Spacing class="h-20" /> */}
         </NavProvider>
       </div>
     </div>

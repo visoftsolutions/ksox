@@ -2,7 +2,7 @@ import Benefits from "./Benefits";
 import BigText from "./BigText";
 import Buttons from "./Buttons";
 import SmallText from "./SmallText";
-import Spacing from "../../Spacing";
+import Spacing from "~/components/Spacing";
 import { base } from "~/root";
 import { joinPaths } from "solid-start/islands/server-router";
 
