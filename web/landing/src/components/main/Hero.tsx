@@ -12,8 +12,6 @@ export default function Hero() {
           src="/gfx/laptop.png"
           class="mx-auto"
           alt="laptop"
-          fetchpriority="auto"
-          elementtiming="png-image"
         />
       </div>
       <Spacing class="h-8" />

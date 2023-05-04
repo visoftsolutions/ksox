@@ -1,19 +1,12 @@
 // @refresh reload
 import { Suspense } from "solid-js";
-import {
-  Body,
-  ErrorBoundary,
-  FileRoutes,
-  Head,
-  Html,
-  Link,
-  Meta,
-  Routes,
-  Scripts,
-  Title,
-} from "solid-start";
-import { joinPaths } from "solid-start/islands/server-router";
+import { Body, ErrorBoundary, FileRoutes, Head, Html, Link, Meta, Route, Routes, Scripts, Title } from "solid-start";
 import "./root.css";
+import Index from "./routes";
+import { Nav, setNav } from "./utils/providers/NavProvider";
+import Landing from "./components/Landing";
+import Token from "./components/Token";
+import { joinPaths } from "solid-start/islands/server-router";
 
 export const base = import.meta.env.BASE_URL;
 
@@ -47,7 +40,11 @@ export default function Root() {
         <Suspense>
           <ErrorBoundary>
             <Routes>
-              <FileRoutes />
+                <Route path="/" component={Index}>
+                  <Route path={"/"} element={<Landing />} preload={() => setNav(Nav.Landing)} />
+                  <Route path="/token" element={<Token />} preload={() => setNav(Nav.Token)} />
+                </Route>
+                <FileRoutes />
             </Routes>
           </ErrorBoundary>
         </Suspense>

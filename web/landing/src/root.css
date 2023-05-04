@@ -37,3 +37,31 @@ html {
     @apply bg-primary bg-opacity-80;
   }
 }
+
+.token-linear-wipe-text {
+  text-align: center;
+  
+  background-image: linear-gradient(to right, #bf088c, #b41c98, #a629a4, #9535af, #823eb8, #823eb8, #823eb8, #823eb8, #9535af, #a629a4, #b41c98, #bf088c);
+  background-size: 400% auto;
+  
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  
+  animation: shine 10s linear infinite;
+}
+
+.token-linear-wipe-button {
+  text-align: center;
+
+  background-image: linear-gradient(to right, #bf088c, #b41c98, #a629a4, #9535af, #823eb8, #823eb8, #823eb8, #823eb8, #9535af, #a629a4, #b41c98, #bf088c);
+  background-size: 400% auto;
+  background-blend-mode: screen;
+  animation: shine 10s linear infinite;
+}
+
+@keyframes shine {
+  to {
+    background-position: 400% center;
+  }
+}
