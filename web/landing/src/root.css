@@ -88,6 +88,9 @@ html {
       transparent 75%,
       transparent
   );
+}
+
+.animate-stripes {
   animation: animate-stripes 4s linear infinite;
 }
 

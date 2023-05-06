@@ -3,8 +3,8 @@ import ContactItem from "~/components/footer/ContactItem";
 
 export default function ContactItems() {
   return (
-    <div>
-      <div>
+    <div class="grid grid-cols-2 grid-rows-2 gap-16 items-center max-md:grid-rows-4 max-md:grid-cols-1">
+      <div class="col-start-1 col-end-2 row-start-1 row-end-2 max-md:col-start-1 max-md:col-end-2 max-md:row-start-1 max-md:row-end-2">
         <ContactItem imageSrc="/gfx/mail-icon.svg">
           <div>
             <p class="font-lexend text-footer-element font-medium text-text-1">
@@ -17,9 +17,7 @@ export default function ContactItems() {
         </ContactItem>
       </div>
 
-      <Spacing class="h-12" />
-
-      <a href="https://twitter.com/KsoxExchange" target="_blank">
+      <a href="https://twitter.com/KsoxExchange" target="_blank" class="col-start-1 col-end-2 row-start-2 row-end-3 max-md:col-start-1 max-md:col-end-2 max-md:row-start-2 max-md:row-end-3">
         <ContactItem imageSrc="/gfx/twitter-icon.svg">
           <div>
             <p class="font-lexend text-footer-element font-medium text-text-1">
@@ -32,9 +30,7 @@ export default function ContactItems() {
         </ContactItem>
       </a>
 
-      <Spacing class="h-12" />
-
-      <a href="https://discord.gg/u5ZGJ9mY" target="_blank">
+      <a href="https://discord.gg/u5ZGJ9mY" target="_blank" class="col-start-2 col-end-3 row-start-1 row-end-2 max-md:col-start-1 max-md:col-end-2 max-md:row-start-3 max-md:row-end-4">
         <ContactItem imageSrc="/gfx/discord-icon.svg">
           <div>
             <p class="font-lexend text-footer-element font-medium text-text-1">
@@ -47,9 +43,7 @@ export default function ContactItems() {
         </ContactItem>
       </a>
 
-      <Spacing class="h-12" />
-
-      <a href="https://t.me/ksox_community" target="_blank">
+      <a href="https://t.me/ksox_community" target="_blank" class="col-start-2 col-end-3 row-start-2 row-end-3 max-md:col-start-1 max-md:col-end-2 max-md:row-start-4 max-md:row-end-5">
         <ContactItem imageSrc="/gfx/telegram-icon.svg">
           <div>
             <p class="font-lexend text-footer-element font-medium text-text-1">

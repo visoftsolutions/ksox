@@ -8,8 +8,8 @@ import { joinPaths } from "solid-start/islands/server-router";
 
 export default function Hero() {
   return (
-    <div class="grid grid-cols-[0.8fr_1fr] gap-8 items-center text-white md:flex-row-reverse">
-      <div class="flex flex-col">
+    <div class="grid grid-cols-[0.8fr_1fr] gap-8 items-center text-white max-md:grid-cols-[1fr]">
+      <div class="grid grid-flow-row">
         <BigText />
         <Spacing class="h-8" />
         <SmallText />
@@ -19,7 +19,7 @@ export default function Hero() {
         <Buttons />
       </div>
 
-      <div>
+      <div class="max-md:hidden">
         <img src={joinPaths(base, "/gfx/laptop.png")} class="mx-auto" />
       </div>
     </div>

@@ -2,6 +2,7 @@ import { createEffect, onMount } from "solid-js";
 
 export interface ProgressBarProps {
     fill: number;
+    disable: boolean
 }
 
 export default function ProgressBar (props: ProgressBarProps) {
@@ -20,28 +21,28 @@ export default function ProgressBar (props: ProgressBarProps) {
     }
 
     createEffect(() => {
-        const popupRect = popupDOM.getBoundingClientRect();
-        popupDOM.style.bottom = - popupRect.height - 5 + "px";
-        const left = popupPosition(sliderDOM, popupDOM, props.fill);
+        popupDOM.style.bottom = "-16px";
+        const left = popupPosition(sliderDOM, popupDOM, !props.disable ? props.fill : 0);
         popupDOM.style.left = left + "px";
     })
 
     const handler = () => {
-        const popupRect = popupDOM.getBoundingClientRect();
-        popupDOM.style.bottom = - popupRect.height - 10 + "px";
-        const left = popupPosition(sliderDOM, popupDOM, props.fill);
+        popupDOM.style.bottom = "-16px";
+        const left = popupPosition(sliderDOM, popupDOM, !props.disable ? props.fill : 0);
         popupDOM.style.left = left + "px";
     }
 
     onMount(() => {
         window.addEventListener('resize', handler);
-      });
+        popupDOM.style.display = "Block";
+        handler();
+    });
 
     return (
-        <div class="relative rounded-sm h-8 stripes" ref={sliderDOM}>
-            <div class="absolute text-white font-bold text-xs duration-100 transition-all" ref={popupDOM}>{((Math.min(1, Math.max(0, props.fill)))*100).toFixed(2)+"%"}</div>
-            <div class="absolute left-0 top-0 bottom-0 rounded-sm token-linear-wipe-button duration-100 transition-all"
-                style={{right: ((1-Math.min(1, Math.max(0, props.fill)))*100).toFixed(2)+"%"}}
+        <div class={`relative rounded-sm h-8 stripes ${!props.disable ? "animate-stripes" : ""}`} ref={sliderDOM}>
+            <div class={`absolute font-bold text-xs duration-100 hidden ${!props.disable ? "text-white" : "text-gray-700"}`} ref={popupDOM}>{((Math.min(1, Math.max(0, !props.disable ? props.fill : 0)))*100).toFixed(2)+"%"}</div>
+            <div class={`absolute left-0 top-0 bottom-0 rounded-sm ${!props.disable ? "token-linear-wipe-button duration-100" : "text-gray-700"}`}
+                style={{right: ((1-Math.min(1, Math.max(0, !props.disable ? props.fill : 0)))*100).toFixed(2)+"%"}}
             />
         </div>
     );

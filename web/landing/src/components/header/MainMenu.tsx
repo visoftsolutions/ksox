@@ -1,6 +1,14 @@
-export default function MainMenu() {
+import { DefaultProps } from "~/utils/interfaces";
+
+export default function MainMenu(props: DefaultProps) {
   return (
-    <div class="flex items-center justify-end space-x-6 max-[850px]:hidden">
+    <div class={`flex items-center justify-end space-x-6 max-[850px]:hidden ${props.class}`}>
+      <a
+        class="main-menu-button rounded-full bg-buttonbg_new px-5 py-2 font-medium text-text-1 hover:bg-text-1 hover:text-buttonbg_new"
+        href="/app"
+      >
+        Launch App
+      </a>
       <a
         class="main-menu-button font-extrabold text-secondary token-linear-wipe-text"
         href="/token"
@@ -26,12 +34,7 @@ export default function MainMenu() {
       >
         Contact
       </a>
-      <a
-        class="main-menu-button rounded-full bg-buttonbg_new px-5 py-2 font-medium text-text-1 hover:bg-text-1 hover:text-buttonbg_new"
-        href="/app"
-      >
-        Launch App
-      </a>
+      
     </div>
   );
 }
