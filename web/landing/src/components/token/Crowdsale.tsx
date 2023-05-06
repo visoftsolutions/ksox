@@ -2,13 +2,11 @@ import { createSignal } from "solid-js";
 import Divider from "../Divider";
 import ProgressBar from "./ProgressBar";
 import TimerTile from "./TimerTile";
+import { useCrowdsale } from "~/utils/providers/CrowdsaleProvider";
 
-interface CrowdsaleProps {
-    phaseName: string; // eq Phase 1
-    status: boolean; // active / inactive
-}
+export default function Crowdsale () {
+    const crowdsale = useCrowdsale();
 
-export default function Crowdsale (props: CrowdsaleProps) {
     const [timerDays, setTimerDays] = createSignal<string | undefined>(undefined);
     const [timerHours, setTimerHours] = createSignal<string | undefined>(undefined);
     const [timerMinutes, setTimerMinutes] = createSignal<string | undefined>(undefined);
@@ -20,10 +18,10 @@ export default function Crowdsale (props: CrowdsaleProps) {
         <div class="grid grid-rows-[auto_auto] font-lexend text-text-1 gap-24">
             <div class="row-start-1 row-end-2 text-center font-medium">
                 <div class="text-4xl">KSXT Crowdsale</div>
-                <div class="text-xl">{props.phaseName} - {props.status ? "active" : "inactive"}</div>
+                <div class="text-xl">{crowdsale().phaseName} - {crowdsale().status ? "active" : "inactive"}</div>
             </div>
 
-            <div class={`grid grid-cols-[1fr_1fr] row-start-2 row-end-3 gap-5 gap-y-16 items-stretch max-md:grid-cols-1 max-md:grid-rows-2 ${props.status ? "text-text-1" : "text-gray-700"}`}>
+            <div class={`grid grid-cols-[1fr_1fr] row-start-2 row-end-3 gap-5 gap-y-16 items-stretch max-md:grid-cols-1 max-md:grid-rows-2 ${crowdsale().status ? "text-text-1" : "text-gray-700"}`}>
                 
                 <div class="col-start-1 col-end-2 max-md:col-start-1 max-md:col-end-2 max-md:row-start-2 max-md:row-end-3 grid grid-rows-[auto_1fr_80px] gap-8 px-16 max-md:px-1 justify-items-stretch">
                     <div class="row-start-1 row-end-2 text-2xl font-medium text-center px-8">
@@ -39,7 +37,7 @@ export default function Crowdsale (props: CrowdsaleProps) {
 
                     <div class="row-start-3 row-end-4 self-end grid grid-rows-[auto_auto] gap-1">
                         <div>Phase supply</div>
-                        <ProgressBar fill={0.1} disable={!props.status}/>
+                        <ProgressBar fill={0.1} disable={!crowdsale().status}/>
                     </div>
                 </div>
 
@@ -54,11 +52,11 @@ export default function Crowdsale (props: CrowdsaleProps) {
 
                     <div class="row-start-3 row-end-4 self-center grid grid-rows-[auto_auto] gap-1">
                         <div>Bucket supply</div>
-                        <ProgressBar fill={0.8} disable={!props.status}/>
+                        <ProgressBar fill={0.8} disable={!crowdsale().status}/>
                     </div>
 
                     <div class="row-start-4 row-end-5 self-end">
-                        <div class={`rounded-full p-[11px_32px] text-center font-lexend text-hero-button font-medium md:p-[16px_40px] ${props.status ? "text-text-1 cursor-pointer hover:opacity-90 transition-opacity duration-100 token-linear-wipe-button" : "text-gray-700 bg-gray-900"}`}>
+                        <div class={`rounded-full p-[11px_32px] text-center font-lexend text-hero-button font-medium md:p-[16px_40px] ${crowdsale().status ? "text-text-1 cursor-pointer hover:opacity-90 transition-opacity duration-100 token-linear-wipe-button" : "text-gray-700 bg-gray-900"}`}>
                             Buy KSXT Token
                         </div>
                     </div>

@@ -1,6 +1,8 @@
 import { DefaultProps } from "~/utils/interfaces";
+import { useCrowdsale } from "~/utils/providers/CrowdsaleProvider";
 
 export default function MainMenu(props: DefaultProps) {
+  const crowdsale = useCrowdsale();
   return (
     <div class={`flex items-center justify-end space-x-6 max-[850px]:hidden ${props.class}`}>
       <a
@@ -10,7 +12,7 @@ export default function MainMenu(props: DefaultProps) {
         Launch App
       </a>
       <a
-        class="main-menu-button font-extrabold text-secondary token-linear-wipe-text"
+        class={`main-menu-button font-extrabold ${crowdsale().status ? "token-linear-wipe-text" : "text-gray-700"}`}
         href="/token"
       >
         Buy Token

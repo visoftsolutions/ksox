@@ -40,8 +40,8 @@ export default function ProgressBar (props: ProgressBarProps) {
 
     return (
         <div class={`relative rounded-sm h-8 stripes ${!props.disable ? "animate-stripes" : ""}`} ref={sliderDOM}>
-            <div class={`absolute font-bold text-xs duration-100 hidden ${!props.disable ? "text-white" : "text-gray-700"}`} ref={popupDOM}>{((Math.min(1, Math.max(0, !props.disable ? props.fill : 0)))*100).toFixed(2)+"%"}</div>
-            <div class={`absolute left-0 top-0 bottom-0 rounded-sm ${!props.disable ? "token-linear-wipe-button duration-100" : "text-gray-700"}`}
+            <div class={`absolute font-bold text-xs hidden ${!props.disable ? "text-white" : "text-gray-700"}`} ref={popupDOM}>{((Math.min(1, Math.max(0, !props.disable ? props.fill : 0)))*100).toFixed(2)+"%"}</div>
+            <div class={`absolute left-0 top-0 bottom-0 rounded-sm ${!props.disable ? "token-linear-wipe-button " : "text-gray-700"}`}
                 style={{right: ((1-Math.min(1, Math.max(0, !props.disable ? props.fill : 0)))*100).toFixed(2)+"%"}}
             />
         </div>
