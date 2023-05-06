@@ -21,14 +21,14 @@ export default function ProgressBar (props: ProgressBarProps) {
 
     createEffect(() => {
         const popupRect = popupDOM.getBoundingClientRect();
-        popupDOM.style.top = - popupRect.height - 5 + "px";
+        popupDOM.style.bottom = - popupRect.height - 5 + "px";
         const left = popupPosition(sliderDOM, popupDOM, props.fill);
         popupDOM.style.left = left + "px";
     })
 
     const handler = () => {
         const popupRect = popupDOM.getBoundingClientRect();
-        popupDOM.style.top = - popupRect.height - 10 + "px";
+        popupDOM.style.bottom = - popupRect.height - 10 + "px";
         const left = popupPosition(sliderDOM, popupDOM, props.fill);
         popupDOM.style.left = left + "px";
     }
