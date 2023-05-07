@@ -8,7 +8,7 @@ import { joinPaths } from "solid-start/islands/server-router";
 
 export default function Hero() {
   return (
-    <div class="grid grid-cols-[0.8fr_1fr] gap-8 items-center text-white max-md:grid-cols-[1fr]">
+    <div class="grid grid-cols-[0.8fr_1fr] items-center gap-8 text-white max-md:grid-cols-[1fr]">
       <div class="grid grid-flow-row">
         <BigText />
         <Spacing class="h-8" />

@@ -40,21 +40,49 @@ html {
 
 .token-linear-wipe-text {
   text-align: center;
-  
-  background: linear-gradient(to right, #bf088c, #b41c98, #a629a4, #9535af, #823eb8, #823eb8, #823eb8, #823eb8, #9535af, #a629a4, #b41c98, #bf088c);
+
+  background: linear-gradient(
+    to right,
+    #bf088c,
+    #b41c98,
+    #a629a4,
+    #9535af,
+    #823eb8,
+    #823eb8,
+    #823eb8,
+    #823eb8,
+    #9535af,
+    #a629a4,
+    #b41c98,
+    #bf088c
+  );
   background-size: 400% auto;
-  
+
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  
+
   animation: shine 15s linear infinite;
 }
 
 .token-linear-wipe-button {
   text-align: center;
 
-  background: linear-gradient(to right, #bf088c, #b41c98, #a629a4, #9535af, #823eb8, #823eb8, #823eb8, #823eb8, #9535af, #a629a4, #b41c98, #bf088c);
+  background: linear-gradient(
+    to right,
+    #bf088c,
+    #b41c98,
+    #a629a4,
+    #9535af,
+    #823eb8,
+    #823eb8,
+    #823eb8,
+    #823eb8,
+    #9535af,
+    #a629a4,
+    #b41c98,
+    #bf088c
+  );
   background-size: 400% auto;
   background-blend-mode: screen;
   animation: shine 15s linear infinite;
@@ -68,25 +96,25 @@ html {
 
 @keyframes animate-stripes {
   0% {
-      background-position: 0 0;
+    background-position: 0 0;
   }
 
   100% {
-      background-position: 60px 0;
+    background-position: 60px 0;
   }
 }
 
 .stripes {
   background-size: 30px 30px;
   background-image: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, .15) 25%,
-      transparent 25%,
-      transparent 50%,
-      rgba(255, 255, 255, .15) 50%,
-      rgba(255, 255, 255, .15) 75%,
-      transparent 75%,
-      transparent
+    135deg,
+    rgba(255, 255, 255, 0.15) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.15) 75%,
+    transparent 75%,
+    transparent
   );
 }
 

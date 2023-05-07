@@ -1,6 +1,18 @@
 // @refresh reload
 import { Suspense } from "solid-js";
-import { Body, ErrorBoundary, FileRoutes, Head, Html, Link, Meta, Route, Routes, Scripts, Title } from "solid-start";
+import {
+  Body,
+  ErrorBoundary,
+  FileRoutes,
+  Head,
+  Html,
+  Link,
+  Meta,
+  Route,
+  Routes,
+  Scripts,
+  Title,
+} from "solid-start";
 import "./root.css";
 import Index from "./routes";
 import { Nav, setNav } from "./utils/providers/NavProvider";
@@ -40,11 +52,19 @@ export default function Root() {
         <Suspense>
           <ErrorBoundary>
             <Routes>
-                <Route path="/" component={Index}>
-                  <Route path={"/"} element={<Landing />} preload={() => setNav(Nav.Landing)} />
-                  <Route path="/token" element={<Token />} preload={() => setNav(Nav.Token)} />
-                </Route>
-                <FileRoutes />
+              <Route path="/" component={Index}>
+                <Route
+                  path={"/"}
+                  element={<Landing />}
+                  preload={() => setNav(Nav.Landing)}
+                />
+                <Route
+                  path="/token"
+                  element={<Token />}
+                  preload={() => setNav(Nav.Token)}
+                />
+              </Route>
+              <FileRoutes />
             </Routes>
           </ErrorBoundary>
         </Suspense>
