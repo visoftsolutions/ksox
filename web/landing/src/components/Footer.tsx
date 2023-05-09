@@ -1,6 +1,6 @@
 import Spacing from "~/components/Spacing";
-import ContactItems from "~/components/footer/ContactItems";
-import Text from "~/components/footer/Text";
+import ContactItems from "~/components/Footer/ContactItems";
+import Text from "~/components/Footer/Text";
 
 export default function Footer() {
   return (

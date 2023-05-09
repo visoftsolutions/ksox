@@ -1,7 +1,7 @@
 import { Show, onMount } from "solid-js";
-import Logo from "~/components/header/Logo";
-import MainMenu from "~/components/header/MainMenu";
-import Wallet from "./header/Wallet";
+import Logo from "~/components/Header/Logo";
+import MainMenu from "~/components/Header/MainMenu";
+import Wallet from "./Header/Wallet";
 import { Nav, useNav } from "~/utils/providers/NavProvider";
 import { useCrowdsale } from "~/utils/providers/CrowdsaleProvider";
 
@@ -15,7 +15,7 @@ export default function Header() {
         <header class="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center justify-between px-6 py-2">
           <Logo class="col-start-1 col-end-2 justify-self-start" />
           <MainMenu class="col-start-2 col-end-3 justify-self-center" />
-          <Show when={nav() == Nav.Token && crowdsale().status == true}>
+          <Show when={nav() == Nav.Token && crowdsale.status == true}>
             <Wallet class="col-start-3 col-end-4 justify-self-end" />
           </Show>
         </header>

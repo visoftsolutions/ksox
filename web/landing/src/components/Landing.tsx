@@ -1,7 +1,7 @@
 import Divider from "~/components/Divider";
 import Spacing from "~/components/Spacing";
-import Hero from "~/components/landing/Hero";
-import Section from "~/components/landing/Section";
+import Hero from "~/components/Landing/Hero";
+import Section from "~/components/Landing/Section";
 
 export default function Main() {
   return (
