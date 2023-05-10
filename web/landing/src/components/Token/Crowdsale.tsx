@@ -6,6 +6,7 @@ import {
   setCrowdsale,
   useCrowdsale,
 } from "~/utils/providers/CrowdsaleProvider";
+import TokenDropdown from "./TokenDropdown";
 
 export default function Crowdsale() {
   const crowdsale = useCrowdsale();
@@ -63,7 +64,7 @@ export default function Crowdsale() {
             />
           </div>
 
-          <div class="row-start-4 row-end-5 self-end">
+          <div class="row-start-4 row-end-5 self-end grid grid-cols-[1fr_auto] gap-2 items-center justify-center">
             <div
               class={`rounded-full p-[11px_32px] text-center font-lexend text-hero-button font-medium md:p-[16px_40px] ${
                 crowdsale.status
@@ -75,6 +76,10 @@ export default function Crowdsale() {
               }}
             >
               Buy KSXT Token
+            </div>
+            <div class="grid grid-cols-[auto_auto] gap-2 items-center justify-center">
+              <div class="text-lg">with</div>
+              <TokenDropdown />
             </div>
           </div>
         </div>

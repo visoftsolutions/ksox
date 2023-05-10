@@ -7,18 +7,22 @@ import {
 } from "~/utils/providers/CrowdsaleProvider";
 
 export function TermsModal() {
+  const [termsChecked, setTermsChecked] = createSignal<boolean>(false);
+
   let modalDOM!: HTMLDivElement;
   onMount(() => {
     modalDOM.focus();
   });
 
   return (
-    <div class="fixed bottom-0 left-0 right-0 top-0 z-20 grid items-center justify-center bg-dark bg-opacity-80 font-lexend ">
+    <div class="fixed bottom-0 left-0 right-0 top-0 z-20 grid items-center justify-center bg-dark bg-opacity-80 font-lexend " onClick={(e) => {
+      if (!modalDOM.contains(e.target)) {
+        setCrowdsale({ showModal: false });
+      }
+    }}>
       <div
         class="m-auto grid h-[500px] w-[50%] grid-flow-row gap-8 rounded-xl bg-[#000033] p-4 text-text-1 outline-none"
         ref={modalDOM}
-        tabindex="0"
-        onfocusout={() => setCrowdsale({ showModal: false })}
       >
         <div class="grid grid-cols-[auto_1fr_auto] items-center justify-center gap-4 text-xl font-bold">
           <img
@@ -37,6 +41,7 @@ export function TermsModal() {
             onClick={() => setCrowdsale({ showModal: false })}
           />
         </div>
+
         <div class="overflow-scroll rounded-md border-[1px] border-gray-700 p-2">
           Lorem Ipsum is simply dummy text of the printing and typesetting
           industry. Lorem Ipsum has been the industry's standard dummy text ever
@@ -74,11 +79,23 @@ export function TermsModal() {
           versions from the 1914 translation by H. Rackham.
         </div>
 
-        <div
-          class="token-linear-wipe-button cursor-pointer rounded-full px-4 py-2 text-center font-lexend font-medium text-text-1"
-          onClick={() => setCrowdsale({ showModal: false })}
+        <div class="grid grid-cols-[auto_1fr] items-center mr-4 cursor-pointer">
+            <input id="terms-checkbox" type="checkbox" onchange={(e) => setTermsChecked(e.target.checked)} class="w-4 h-4 accent-buttonbg_new cursor-pointer" />
+            <label for="terms-checkbox" class="ml-2 text-sm font-medium select-none cursor-pointer">I agree to terms of KSXT Crowdsale</label>
+        </div>
+
+        <div class={`rounded-full p-[11px_32px] text-center font-lexend text-hero-button font-medium md:p-[16px_40px] 
+          ${termsChecked()
+              ? "token-linear-wipe-button cursor-pointer text-text-1 transition-opacity duration-100 hover:opacity-90"
+              : "bg-gray-900 text-gray-700"
+          }`}
+          onClick={() => {
+            if (termsChecked()) {
+              setCrowdsale({ showModal: false });
+            }
+          }}
         >
-          Accept
+          Continue
         </div>
       </div>
     </div>

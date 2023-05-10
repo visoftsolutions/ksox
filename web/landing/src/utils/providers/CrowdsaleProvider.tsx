@@ -6,7 +6,11 @@ export interface Network {
   name: string;
 }
 
-export interface Token {}
+export interface Token {
+  icon: string;
+  name: string;
+  symbol: string;
+}
 
 interface BucketInfo {
   durationDays: string;
@@ -22,8 +26,8 @@ export interface CrowdsaleProvider {
   showModal: boolean;
   available_networks: Network[];
   available_tokens: Token[];
-  selected_network: Network | undefined;
-  selected_token: Token | undefined;
+  selected_network: Network;
+  selected_token: Token;
   timerDays: string | undefined;
   timerHours: string | undefined;
   timerMinutes: string | undefined;
@@ -40,12 +44,17 @@ export const [crowdsale, setCrowdsale] = createStore<CrowdsaleProvider>({
   status: true,
   showModal: false,
   available_networks: [
-    { icon: "/gfx/asset_icons/eth.svg", name: "ethereum" },
-    { icon: "/gfx/asset_icons/matic.svg", name: "polygon" },
+    { icon: "/gfx/asset_icons/eth.svg", name: "Ethereum"},
+    { icon: "/gfx/asset_icons/matic.svg", name: "Polygon" },
   ],
-  available_tokens: [{}],
-  selected_network: undefined,
-  selected_token: undefined,
+  available_tokens: [
+    { icon: "/gfx/asset_icons/eth.svg", name: "Ethereum" , symbol: "ETH"},
+    { icon: "/gfx/asset_icons/eth.svg", name: "Wrapped Ethereum" , symbol: "WETH"},
+    { icon: "/gfx/asset_icons/usdc.svg", name: "USD Coin" , symbol: "USDC"},
+    { icon: "/gfx/asset_icons/usdt.svg", name: "Tether" , symbol: "USDT"},
+  ],
+  selected_network: { icon: "/gfx/asset_icons/eth.svg", name: "Ethereum" },
+  selected_token: { icon: "/gfx/asset_icons/eth.svg", name: "Ethereum" , symbol: "ETH"},
   timerDays: undefined,
   timerHours: undefined,
   timerMinutes: undefined,

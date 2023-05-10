@@ -6,7 +6,7 @@ import {
   useCrowdsale,
 } from "~/utils/providers/CrowdsaleProvider";
 
-export default function NetworkDropdown() {
+export default function TokenDropdown() {
   const crowdsale = useCrowdsale();
   const [showDropdown, setShowDropdown] = createSignal<boolean>(false);
 
@@ -18,17 +18,20 @@ export default function NetworkDropdown() {
       }}
     >
       <div
-        class="grid grid-cols-2 items-center justify-center gap-2 rounded-lg border border-gray-500 p-2"
+        class="grid grid-cols-[auto_50px_auto] items-center justify-center gap-2 rounded-lg border border-gray-500 p-2"
         onclick={() => setShowDropdown(!showDropdown())}
       >
         <div>
           <img
-            src={joinPaths(base, crowdsale.selected_network.icon)}
+            src={joinPaths(base, crowdsale.selected_token.icon)}
             alt="network"
             width="25px"
             elementtiming={""}
             fetchpriority={"high"}
           />
+        </div>
+        <div>
+          {crowdsale.selected_token.symbol}
         </div>
         <div>
           <img
@@ -41,18 +44,18 @@ export default function NetworkDropdown() {
         </div>
       </div>
       <Show when={showDropdown()}>
-        <div class="absolute right-0 top-[50px] grid grid-flow-row gap-2 rounded-lg border border-gray-500 p-2 backdrop-blur-xl">
+        <div class="absolute right-0 top-[60px] w-[300px] grid gap-2 rounded-lg border border-gray-500 p-2 backdrop-blur-xl">
           <div class=" rounded-lg px-4 py-2 font-semibold text-text-1">
-            Select Network
+            Select Token
           </div>
           <div class="border-[1px] border-solid border-gray-500" />
-          <For each={crowdsale.available_networks}>
+          <For each={crowdsale.available_tokens}>
             {(item, index) => (
               <div
                 data-index={index()}
-                class="grid grid-cols-[40px_1fr] items-center gap-2 rounded-lg px-4 py-2 font-semibold text-text-1 transition-colors duration-100 hover:bg-buttonbg_new"
+                class="grid grid-cols-[40px_auto] justify-start items-center gap-2 rounded-lg px-4 py-2 font-semibold text-text-1 transition-colors duration-100 hover:bg-buttonbg_new"
                 onclick={() => {
-                  setCrowdsale({ selected_network: item });
+                  setCrowdsale({ selected_token: item });
                   setShowDropdown(false);
                 }}
               >
@@ -64,7 +67,10 @@ export default function NetworkDropdown() {
                     fetchpriority={"high"}
                   />
                 </div>
-                <div class="col-start-2 col-end-3 text-left">{item.name}</div>
+                <div class="col-start-2 col-end-3 text-left">
+                  <div>{item.name}</div>
+                  <div class="text-gray-300">{item.symbol}</div>
+                </div>
               </div>
             )}
           </For>
