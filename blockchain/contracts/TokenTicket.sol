@@ -3,15 +3,18 @@ pragma solidity ^0.8.9;
 
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
-import "solady/src/tokens/ERC20.sol";
-import "solady/src/auth/OwnableRoles.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract TokenTicket is ERC20 {
-    
-    function name() public pure override returns (string memory) {
-        return "KSOX Ticket Token";
+contract TokenTicket is ERC20, AccessControl {
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
+    constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol) {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
-    function symbol() public pure override returns (string memory) {
-        return "KSXT";
+    
+    function mint(address to, uint256 amount) public onlyRole(MINTER_ROLE) returns (bool) {
+        _mint(to, amount);
+        return true;
     }
 }

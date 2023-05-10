@@ -1,5 +1,4 @@
-import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
@@ -12,7 +11,7 @@ describe("TokenTicket", function () {
     const [owner, otherAccount] = await ethers.getSigners();
 
     const TokenTicket = await ethers.getContractFactory("TokenTicket");
-    const tokenTicket = await TokenTicket.connect(owner).deploy();
+    const tokenTicket = await TokenTicket.connect(owner).deploy("KSOX Ticket Token", "KSXT");
 
     return { tokenTicket, owner, otherAccount };
   }

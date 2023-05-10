@@ -1,7 +1,6 @@
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { config } from "dotenv";
 
 describe("Token", function () {
   // We define a fixture to reuse the same setup in every test.

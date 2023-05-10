@@ -12,6 +12,7 @@ const config: HardhatUserConfig = {
     hardhat: {
       forking: {
         url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
+        blockNumber: 17228270,
       },
     },
   },

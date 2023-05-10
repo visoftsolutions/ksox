@@ -1,5 +1,6 @@
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { ethers } from "hardhat";
+import { expect } from "chai";
 
 const ETHEREUM_UNISWAP_V3_FACTORY_ADDRESS =
   "0x1F98431c8aD98523631AE4a59f267346ea31F984";
@@ -25,12 +26,12 @@ describe("UniswapV3Twap", function () {
   it("Basic Test", async () => {
     const { simpleOracle } = await loadFixture(deploy);
 
-    const price = await simpleOracle.getTokenPrice(
+    const price = await simpleOracle.estimateAmountOut(
       ETHEREUM_WETH_ADDRESS,
       10n ** 18n,
       3600
     );
 
-    console.log(price);
+    expect(price).to.equal(1844616450);
   });
 });
