@@ -2,7 +2,7 @@
 pragma solidity ^0.7.0;
 
 // Uncomment this line to use console.log
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 import "@uniswap/v3-core/contracts/libraries/FullMath.sol";
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
@@ -27,17 +27,35 @@ contract Phase is Ownable {
     uint256 public currentRateDenominator;
 
     bool public isPhaseActive;
-    uint256 public nextBucketStartTimestamp;
-    uint256 public nextBucketFinishTimestamp;
+    uint256 public bucketStartTimestamp;
+    uint256 public bucketFinishTimestamp;
     uint public currentBucketId;
     uint256 public currentBucketAmountToSell;
     bool public isBucketActive;
 
-    event NewBucketCreated(uint256 indexed bucketId, uint indexed startTimestamp, uint256 amountToSell, uint256 rate);
-    event BucketConcluded(uint256 indexed bucketId, uint256 amountSold, uint256 amountCollected);
-    event BuyExecuted(address indexed buyer, address indexed token, uint256 amountIn, uint256 amountOut);
+    event NewBucketCreated(
+        uint256 indexed bucketId,
+        uint indexed startTimestamp,
+        uint256 amountToSell,
+        uint256 rate
+    );
+    event BucketConcluded(
+        uint256 indexed bucketId,
+        uint256 amountSold,
+        uint256 amountCollected
+    );
+    event BuyExecuted(
+        address indexed buyer,
+        address indexed token,
+        uint256 amountIn,
+        uint256 amountOut
+    );
     event PhaseConcluded(uint256 amountSold);
-    event WithdrawExecuted(address indexed token, address indexed to, uint256 amount);
+    event WithdrawExecuted(
+        address indexed token,
+        address indexed to,
+        uint256 amount
+    );
 
     constructor(
         address _uniswapV3FactoryAddress,
@@ -63,27 +81,56 @@ contract Phase is Ownable {
         isPhaseActive = true;
     }
 
-    function startNewBucket(uint256 startTimestamp, uint256 amountToSell, uint256 newRate) public onlyOwner {
+    function startNewBucket(
+        uint256 startTimestamp,
+        uint256 finishTimestamp,
+        uint256 amountToSell,
+        uint256 newRate
+    ) public onlyOwner {
         require(isPhaseActive, "PHASE_NOT_ACTIVE");
         require(!isBucketActive, "BUCKET_ACTIVE");
-        require(startTimestamp >= 12 hours && startTimestamp - 12 hours >= block.timestamp, "INVALID_START_TIMESTAMP");
-        require(10**6 * 10**18 >= amountToSell && amountToSell > 0, "INVALID_AMOUNT_TO_SELL");
-        require(currentRate * 3 / 2 >= newRate && newRate >= currentRate, "INVALID_RATE");
-        nextBucketStartTimestamp = startTimestamp;
+        require(
+            startTimestamp >= 12 hours &&
+                startTimestamp - 12 hours >= block.timestamp,
+            "INVALID_START_TIMESTAMP"
+        );
+        require(
+            10 ** 6 * 10 ** 18 >= amountToSell && amountToSell > 0,
+            "INVALID_AMOUNT_TO_SELL"
+        );
+        require(
+            (currentRate * 3) / 2 >= newRate && newRate >= currentRate,
+            "INVALID_RATE"
+        );
+        bucketStartTimestamp = startTimestamp;
+        bucketFinishTimestamp = finishTimestamp;
         currentBucketAmountToSell = amountToSell;
         currentRate = newRate;
         isBucketActive = true;
         currentBucketId += 1;
-        emit NewBucketCreated(currentBucketId, startTimestamp, amountToSell, newRate);
+        emit NewBucketCreated(
+            currentBucketId,
+            startTimestamp,
+            amountToSell,
+            newRate
+        );
     }
 
     function concludeCurrentBucket() public onlyOwner {
         require(isPhaseActive, "PHASE_NOT_ACTIVE");
         require(isBucketActive, "BUCKET_NOT_ACTIVE");
+        _concludeCurrentBucket();
+    }
+
+    function _concludeCurrentBucket() internal {
         isBucketActive = false;
         uint256 currentBucketAmountSold = amountSold - prevAmountSold;
         prevAmountSold = amountSold;
-        emit BucketConcluded(currentBucketId, amountSold, currentBucketAmountSold);
+        emit BucketConcluded(
+            currentBucketId,
+            amountSold,
+            currentBucketAmountSold
+        );
     }
 
     function getTokensCollected(address token) public view returns (uint256) {
@@ -144,7 +191,11 @@ contract Phase is Ownable {
         emit PhaseConcluded(amountSold);
     }
 
-    function withdraw(address token, address to, uint256 amount) public onlyOwner {
+    function withdraw(
+        address token,
+        address to,
+        uint256 amount
+    ) public onlyOwner {
         require(!isPhaseActive, "PHASE_ACTIVE");
         require(isAccepted[token], "TOKEN_NOT_ACCEPTED");
         IERC20(token).transfer(to, amount);
@@ -156,18 +207,35 @@ contract Phase is Ownable {
         require(wethAddress != address(0), "TOKEN_NOT_ACCEPTED");
         require(isBucketActive, "BUCKET_NOT_ACTIVE");
         require(msg.value > 0, "INVALID_AMOUNT");
-        address token = wethAddress;
-        uint256 amount = msg.value;
+        if (block.timestamp >= bucketFinishTimestamp) {
+            msg.sender.transfer(msg.value);
+            _concludeCurrentBucket();
+        } else {
+            address token = wethAddress;
+            uint256 amount = msg.value;
 
-        uint256 reducedAmount;
-        uint256 reducedTokensToMint;
-        (reducedAmount, reducedTokensToMint) = _calculateReducedAmounts(token, amount);
-        IWETH(wethAddress).deposit{value: reducedAmount}();
-        IWETH(wethAddress).transfer(msg.sender, reducedAmount);
-        _buyWithERC20(msg.sender, address(this), wethAddress, reducedAmount, reducedTokensToMint);
-        msg.sender.transfer(amount - reducedAmount);
+            uint256 reducedAmount;
+            uint256 reducedTokensToMint;
+            (reducedAmount, reducedTokensToMint) = _calculateReducedAmounts(
+                token,
+                amount
+            );
+            IWETH(wethAddress).deposit{value: reducedAmount}();
+            IWETH(wethAddress).transfer(msg.sender, reducedAmount);
+            _buyWithERC20(
+                msg.sender,
+                address(this),
+                wethAddress,
+                reducedAmount,
+                reducedTokensToMint
+            );
+            msg.sender.transfer(amount - reducedAmount);
+            if (amount - reducedAmount > 0) {
+                _concludeCurrentBucket();
+            }
 
-        emit BuyExecuted(msg.sender, token, amount, reducedTokensToMint);
+            emit BuyExecuted(msg.sender, token, amount, reducedTokensToMint);
+        }
     }
 
     function buyWithERC20(address token, uint256 amount) public {
@@ -175,34 +243,62 @@ contract Phase is Ownable {
         require(isAccepted[token], "TOKEN_NOT_ACCEPTED");
         require(isBucketActive, "BUCKET_NOT_ACTIVE");
         require(amount > 0, "INVALID_AMOUNT");
+        if (block.timestamp >= bucketFinishTimestamp) {
+            _concludeCurrentBucket();
+        } else {
+            uint256 reducedAmount;
+            uint256 reducedTokensToMint;
+            (reducedAmount, reducedTokensToMint) = _calculateReducedAmounts(
+                token,
+                amount
+            );
+            _buyWithERC20(
+                msg.sender,
+                address(this),
+                token,
+                reducedAmount,
+                reducedTokensToMint
+            );
+            if (amount - reducedAmount > 0) {
+                _concludeCurrentBucket();
+            }
 
-        uint256 reducedAmount;
-        uint256 reducedTokensToMint;
-        (reducedAmount, reducedTokensToMint) = _calculateReducedAmounts(token, amount);
-        _buyWithERC20(msg.sender, address(this), token, reducedAmount, reducedTokensToMint);
-
-        emit BuyExecuted(msg.sender, token, amount, reducedTokensToMint);
+            emit BuyExecuted(msg.sender, token, amount, reducedTokensToMint);
+        }
     }
 
-    function _calculateReducedAmounts(address token, uint256 amount) internal view returns (uint256 reducedAmount, uint256 reducedTokensToMint) {
+    function _calculateReducedAmounts(
+        address token,
+        uint256 amount
+    )
+        internal
+        view
+        returns (uint256 reducedAmount, uint256 reducedTokensToMint)
+    {
         uint256 price = getERC20Price(token);
         uint256 tokensToMint = (amount * price * currentRateDenominator) /
             10 ** IERC20Metadata(referenceTokenAddress).decimals() /
             currentRate;
-        reducedTokensToMint = min(tokensToMint, currentBucketAmountToSell - amountSold);
-        reducedAmount = amount * reducedTokensToMint / tokensToMint;
+        reducedTokensToMint = min(
+            tokensToMint,
+            currentBucketAmountToSell - amountSold
+        );
+        reducedAmount = (amount * reducedTokensToMint) / tokensToMint;
     }
 
-    function _buyWithERC20(address buyer, address seller, address token, uint256 amount, uint256 tokensToMint) internal {
+    function _buyWithERC20(
+        address buyer,
+        address seller,
+        address token,
+        uint256 amount,
+        uint256 tokensToMint
+    ) internal {
         IERC20(token).transferFrom(buyer, seller, amount);
         amountSold += tokensToMint;
         tokensCollected[token] += amount;
         IERC20Mintable(soldTokenAddress).mint(buyer, tokensToMint);
     }
 
-    /**
-     * @dev Returns the smallest of two numbers.
-     */
     function min(uint256 a, uint256 b) internal pure returns (uint256) {
         return a < b ? a : b;
     }
