@@ -36,6 +36,7 @@ contract Phase is Ownable {
     event NewBucketCreated(
         uint256 indexed bucketId,
         uint indexed startTimestamp,
+        uint indexed finishTimestamp,
         uint256 amountToSell,
         uint256 rate
     );
@@ -111,6 +112,7 @@ contract Phase is Ownable {
         emit NewBucketCreated(
             currentBucketId,
             startTimestamp,
+            finishTimestamp,
             amountToSell,
             newRate
         );
@@ -187,6 +189,7 @@ contract Phase is Ownable {
 
     function concludeWholePhase() public onlyOwner {
         require(isPhaseActive, "PHASE_NOT_ACTIVE");
+        require(!isBucketActive, "BUCKET_ACTIVE");
         isPhaseActive = false;
         emit PhaseConcluded(amountSold);
     }
@@ -196,7 +199,7 @@ contract Phase is Ownable {
         address to,
         uint256 amount
     ) public onlyOwner {
-        require(!isPhaseActive, "PHASE_ACTIVE");
+        require(!isBucketActive, "BUCKET_ACTIVE");
         require(isAccepted[token], "TOKEN_NOT_ACCEPTED");
         IERC20(token).transfer(to, amount);
         emit WithdrawExecuted(token, to, amount);

@@ -8,7 +8,7 @@ import "solady/src/auth/Ownable.sol";
 
 contract Token is ERC20, Ownable {
     constructor() {
-        _mint(msg.sender, 100 * 10**decimals());
+        _mint(msg.sender, 100 * 10**decimals()); // QUESTION dont know why we mint 100 tokens for ourselfs
     }
     
     function name() public pure override returns (string memory) {
