@@ -38,7 +38,13 @@ describe("Phase", function () {
       ETHEREUM_USDC_ADDRESS,
       ETHEREUM_WETH_ADDRESS,
       [ETHEREUM_GRT_ADDRESS],
-      tokenTicket.address
+      tokenTicket.address,
+      10,
+      100,
+      3,
+      2,
+      10n ** 6n * 10n ** 18n,
+      12 * 3600
     );
 
     await tokenTicket
@@ -62,7 +68,13 @@ describe("Phase", function () {
       ETHEREUM_USDC_ADDRESS,
       ETHEREUM_WETH_ADDRESS,
       [ETHEREUM_GRT_ADDRESS],
-      tokenTicket.address
+      tokenTicket.address,
+      10,
+      100,
+      3,
+      2,
+      10n ** 6n * 10n ** 18n,
+      12 * 3600
     );
 
     await tokenTicket
@@ -77,7 +89,8 @@ describe("Phase", function () {
         startTimestamp,
         finishTimestamp,
         10n ** 6n * 10n ** 18n,
-        10
+        10,
+        100
       );
     await time.setNextBlockTimestamp(startTimestamp);
 
@@ -98,12 +111,21 @@ describe("Phase", function () {
       .withArgs(0);
   });
 
-  it("Withdraw Throws When Phase Active", async () => {
+  it("Withdraw Throws When Bucket Active", async () => {
     const { phase, otherAccount } = await loadFixture(deploy);
     const wethToken = await getTokenAt(ETHEREUM_WETH_ADDRESS);
+    let startTimestamp = Math.round(Date.now() / 1000) + 13 * 3600;
+    let finishTimestamp = startTimestamp + 12 * 3600;
+    await phase.startNewBucket(
+        startTimestamp,
+        finishTimestamp,
+        10n ** 6n * 10n ** 18n,
+        10,
+        100
+      );
     await expect(
       phase.withdraw(wethToken.address, otherAccount.address, 100)
-    ).to.be.revertedWith("PHASE_ACTIVE");
+    ).to.be.revertedWith("BUCKET_ACTIVE");
   });
 
   it("Start New Bucket Emits Event", async () => {
@@ -115,11 +137,12 @@ describe("Phase", function () {
         startTimestamp,
         finishTimestamp,
         10n * 10n ** 18n,
-        10
+        10,
+        100
       )
     )
       .to.emit(phase, "NewBucketCreated")
-      .withArgs(1, startTimestamp, 10n * 10n ** 18n, 10);
+      .withArgs(1, startTimestamp, finishTimestamp, 10n * 10n ** 18n, 10, 100);
   });
 
   it("Conclde current bucket", async () => {
@@ -143,12 +166,14 @@ describe("Phase", function () {
         startTimestamp,
         finishTimestamp,
         10n ** 6n * 10n ** 18n,
-        10
+        10,
+        100
       );
     await time.setNextBlockTimestamp(startTimestamp);
 
     await wethToken.connect(otherAccount).approve(phase.address, 10n ** 18n);
     await phase.connect(otherAccount).buyWithETH({ value: 10n ** 18n });
+    expect(await phase.isBucketActive()).to.be.true;
     expect(
       await tokenTicket.connect(otherAccount).balanceOf(otherAccount.address)
     ).to.be.equal(18418517370000000000000n);
@@ -163,14 +188,14 @@ describe("Phase", function () {
     let startTimestamp = Math.round(Date.now() / 1000) + 13 * 3600;
     let finishTimestamp = startTimestamp + 12 * 3600;
     let amountToSell = 10n ** 6n * 10n ** 18n;
-    let rate = 10;
     await phase
       .connect(owner)
       .startNewBucket(
         startTimestamp,
         finishTimestamp,
         amountToSell,
-        rate
+        10,
+        100
       );
     await time.setNextBlockTimestamp(startTimestamp);
     expect(await phase.isBucketActive()).to.be.true;

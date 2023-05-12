@@ -23,8 +23,12 @@ contract Phase is Ownable {
     uint256 public prevAmountSold;
     uint256 public amountSold;
     mapping(address => uint256) public tokensCollected;
-    uint256 public currentRate;
-    uint256 public currentRateDenominator;
+    uint256 public currentRateNumer;
+    uint256 public currentRateDenom;
+    uint256 public maxRateStepNumer;
+    uint256 public maxRateStepDenom;
+    uint256 public minimalAmountToSell;
+    uint256 public minimalPrecreationTime;
 
     bool public isPhaseActive;
     uint256 public bucketStartTimestamp;
@@ -38,7 +42,8 @@ contract Phase is Ownable {
         uint indexed startTimestamp,
         uint indexed finishTimestamp,
         uint256 amountToSell,
-        uint256 rate
+        uint256 newRateNumer,
+        uint256 newRateDenom
     );
     event BucketConcluded(
         uint256 indexed bucketId,
@@ -63,7 +68,13 @@ contract Phase is Ownable {
         address _referenceTokenAddress,
         address payable _wethAddress,
         address[] memory _acceptedTokens,
-        address _soldTokenAddress
+        address _soldTokenAddress,
+        uint256 _rateNumer,
+        uint256 _rateDenom,
+        uint256 _maxRateStepNumer,
+        uint256 _maxRateStepDenom,
+        uint256 _minimalAmountToSell,
+        uint256 _minimalPrecreationTime
     ) {
         uniswapV3FactoryAddress = _uniswapV3FactoryAddress;
         referenceTokenAddress = _referenceTokenAddress;
@@ -74,10 +85,15 @@ contract Phase is Ownable {
             isAccepted[_acceptedTokens[i]] = true;
         }
         soldTokenAddress = _soldTokenAddress;
+        currentRateNumer = _rateNumer;
+        currentRateDenom = _rateDenom;
+        maxRateStepNumer = _maxRateStepNumer;
+        maxRateStepDenom = _maxRateStepDenom;
+        minimalAmountToSell = _minimalAmountToSell;
+        minimalPrecreationTime = _minimalPrecreationTime;
+
         prevAmountSold = 0;
         amountSold = 0;
-        currentRate = 10;
-        currentRateDenominator = 100;
         currentBucketId = 0;
         isPhaseActive = true;
     }
@@ -86,27 +102,32 @@ contract Phase is Ownable {
         uint256 startTimestamp,
         uint256 finishTimestamp,
         uint256 amountToSell,
-        uint256 newRate
+        uint256 newRateNumer,
+        uint256 newRateDenom
     ) public onlyOwner {
         require(isPhaseActive, "PHASE_NOT_ACTIVE");
         require(!isBucketActive, "BUCKET_ACTIVE");
         require(
-            startTimestamp >= 12 hours &&
-                startTimestamp - 12 hours >= block.timestamp,
+            startTimestamp >= minimalPrecreationTime
+                && startTimestamp - minimalPrecreationTime >= block.timestamp,
             "INVALID_START_TIMESTAMP"
         );
         require(
-            10 ** 6 * 10 ** 18 >= amountToSell && amountToSell > 0,
+            minimalAmountToSell >= amountToSell
+                && amountToSell > 0,
             "INVALID_AMOUNT_TO_SELL"
         );
         require(
-            (currentRate * 3) / 2 >= newRate && newRate >= currentRate,
+            // currentRate * maxRateStep > newRate && currentRate <= newRate
+            currentRateNumer * maxRateStepNumer * newRateDenom > newRateNumer * maxRateStepDenom * currentRateDenom
+                && newRateNumer * currentRateDenom >= newRateDenom * currentRateNumer,
             "INVALID_RATE"
         );
         bucketStartTimestamp = startTimestamp;
         bucketFinishTimestamp = finishTimestamp;
         currentBucketAmountToSell = amountToSell;
-        currentRate = newRate;
+        currentRateNumer = newRateNumer;
+        currentRateDenom = newRateDenom;
         isBucketActive = true;
         currentBucketId += 1;
         emit NewBucketCreated(
@@ -114,7 +135,8 @@ contract Phase is Ownable {
             startTimestamp,
             finishTimestamp,
             amountToSell,
-            newRate
+            newRateNumer,
+            newRateDenom
         );
     }
 
@@ -279,12 +301,12 @@ contract Phase is Ownable {
         returns (uint256 reducedAmount, uint256 reducedTokensToMint)
     {
         uint256 price = getERC20Price(token);
-        uint256 tokensToMint = (amount * price * currentRateDenominator) /
+        uint256 tokensToMint = (amount * price * currentRateDenom) /
             10 ** IERC20Metadata(referenceTokenAddress).decimals() /
-            currentRate;
+            currentRateNumer;
         reducedTokensToMint = min(
             tokensToMint,
-            currentBucketAmountToSell - amountSold
+            prevAmountSold + currentBucketAmountToSell - amountSold
         );
         reducedAmount = (amount * reducedTokensToMint) / tokensToMint;
     }
