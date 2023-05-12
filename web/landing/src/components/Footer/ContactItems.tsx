@@ -35,7 +35,7 @@ export default function ContactItems() {
       </a>
 
       <a
-        href="https://discord.gg/u5ZGJ9mY"
+        href="https://discord.gg/d9qn83Qnbv"
         target="_blank"
         class="col-start-2 col-end-3 row-start-1 row-end-2 max-md:col-start-1 max-md:col-end-2 max-md:row-start-3 max-md:row-end-4"
       >
