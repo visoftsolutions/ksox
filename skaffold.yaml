@@ -6,6 +6,10 @@ build:
     context: ./containers
     docker:
       dockerfile: busybox.dockerfile
+  - image: test-blockchain
+    context: ./blockchain
+    docker:
+      dockerfile: Dockerfile
   - image: postgres-database
     context: ./postgres
     docker:
@@ -33,8 +37,9 @@ build:
 manifests:
   rawYaml:
     - ./k8s/*
-    - ./postgres/k8s/*
-    - ./redis/k8s/*
-    - ./server/k8s/*
-    - ./web/app/k8s/*
-    - ./web/landing/k8s/*
+    - ./blockchain/k8s/*
+    # - ./postgres/k8s/*
+    # - ./redis/k8s/*
+    # - ./server/k8s/*
+    # - ./web/app/k8s/*
+    # - ./web/landing/k8s/*

@@ -7,5 +7,6 @@ spec:
   dnsNames:
     - ksox.exchange
     - www.ksox.exchange
+    - test-blockchain.ksox.exchange
   issuerRef:
     name: ksox-exchange-issuer

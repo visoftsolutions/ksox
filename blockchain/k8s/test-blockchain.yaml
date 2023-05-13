@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-blockchain-deployment
+  labels:
+    app: test-blockchain
+spec:
+  selector:
+    matchLabels:
+      app: test-blockchain
+  template:
+    metadata:
+      labels:
+        app: test-blockchain
+    spec:
+      containers:
+        - name: test-blockchain
+          image: test-blockchain
+          ports:
+            - containerPort: 8545
+          resources:
+            requests:
+              memory: "1024Mi"
+              cpu: "500m"
+            limits:
+              memory: "2048Mi"
+              cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-blockchain-service
+spec:
+  selector:
+    app: test-blockchain
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8545
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: test-blockchain-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
+spec:
+  tls:
+    - hosts:
+        - test-blockchain.ksox.exchange
+      secretName: ksox-exchange-tls
+  rules:
+    - host: test-blockchain.ksox.exchange
+      http:
+        paths:
+          - path: /(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: test-blockchain-service
+                port:
+                  number: 80
