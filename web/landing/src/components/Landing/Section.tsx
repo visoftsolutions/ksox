@@ -13,7 +13,12 @@ export default function Section(
     <section id={props.sectionId}>
       <div class={`flex flex-col items-center justify-between ${props.class}`}>
         <div class="flex-1">
-          <img src={props.imagePath} alt="about" elementtiming={""} fetchpriority={"high"} />
+          <img
+            src={props.imagePath}
+            alt="about"
+            elementtiming={""}
+            fetchpriority={"high"}
+          />
         </div>
 
         <Spacing class="h-8 md:w-5" />

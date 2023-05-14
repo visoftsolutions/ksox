@@ -15,9 +15,7 @@ export default function Header() {
         <header class="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center justify-between px-6 py-2">
           <Logo class="col-start-1 col-end-2 justify-self-start" />
           <MainMenu class="col-start-2 col-end-3 justify-self-center" />
-          <Show when={nav() == Nav.Token && crowdsale.status == true}>
-            <Wallet class="col-start-3 col-end-4 justify-self-end" />
-          </Show>
+          <Wallet class="col-start-3 col-end-4 justify-self-end" />
         </header>
       </div>
     </>

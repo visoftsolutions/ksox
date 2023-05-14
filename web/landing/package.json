@@ -26,9 +26,13 @@
   "dependencies": {
     "@solidjs/meta": "^0.28.4",
     "@solidjs/router": "^0.8.2",
+    "@wagmi/core": "^1.0.2",
+    "@web3modal/ethereum": "^2.4.1",
+    "@web3modal/html": "^2.4.1",
     "solid-js": "^1.7.4",
     "solid-start": "^0.2.26",
-    "undici": "^5.22.0"
+    "undici": "^5.22.0",
+    "viem": "^0.3.22"
   },
   "engines": {
     "node": ">=16"

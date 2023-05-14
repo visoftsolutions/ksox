@@ -8,7 +8,12 @@ export default function Benefit(props: DefaultProps) {
       class={`grid grid-cols-[auto_1fr] items-center justify-start gap-4 ${props.class}`}
     >
       <div>
-        <img class="w-6" src={joinPaths(base, "/gfx/sign.svg")} elementtiming={""} fetchpriority={"high"} />
+        <img
+          class="w-6"
+          src={joinPaths(base, "/gfx/sign.svg")}
+          elementtiming={""}
+          fetchpriority={"high"}
+        />
       </div>
 
       <p class="text-left font-lexend text-hero-benefit font-normal text-text-1">

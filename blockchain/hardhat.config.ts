@@ -14,7 +14,7 @@ const config: HardhatUserConfig = {
         url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
         blockNumber: 17228270,
       },
-      chainId: 1
+      chainId: 1337,
     },
   },
 };

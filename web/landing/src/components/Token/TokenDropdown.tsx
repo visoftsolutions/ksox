@@ -1,38 +1,42 @@
 import { For, Show, createSignal } from "solid-js";
 import { joinPaths } from "solid-start/islands/server-router";
 import { base } from "~/root";
-import {
-  setCrowdsale,
-  useCrowdsale,
-} from "~/utils/providers/CrowdsaleProvider";
+import { setWallet, useWallet } from "~/utils/providers/WalletProvider";
 
-export default function TokenDropdown() {
-  const crowdsale = useCrowdsale();
+interface TokenDropdownProps {
+  disabled: boolean;
+}
+
+export default function TokenDropdown(props: TokenDropdownProps) {
+  const wallet = useWallet();
   const [showDropdown, setShowDropdown] = createSignal<boolean>(false);
 
   return (
     <button
-      class="relative"
+      class={`relative ${props.disabled ? `cursor-default` : "cursor-pointer"}`}
       onfocusout={() => {
         setShowDropdown(false);
       }}
     >
       <div
-        class="grid grid-cols-[auto_50px_auto] items-center justify-center gap-2 rounded-lg border border-gray-500 p-2"
-        onclick={() => setShowDropdown(!showDropdown())}
+        class="grid grid-cols-[auto_50px_auto] items-center justify-center gap-2 rounded-lg border-[1px] border-slate-600 p-2"
+        onclick={() => {
+          if (!props.disabled) {
+            setShowDropdown(!showDropdown());
+          }
+        }}
       >
         <div>
           <img
-            src={joinPaths(base, crowdsale.selected_token.icon)}
+            src={joinPaths(base, wallet.selected_token.icon)}
             alt="network"
             width="25px"
             elementtiming={""}
             fetchpriority={"high"}
+            class={props.disabled ? `grayscale` : ""}
           />
         </div>
-        <div>
-          {crowdsale.selected_token.symbol}
-        </div>
+        <div>{wallet.selected_token.symbol}</div>
         <div>
           <img
             src={joinPaths(base, "/gfx/down-arrow.svg")}
@@ -40,22 +44,23 @@ export default function TokenDropdown() {
             width="20px"
             elementtiming={""}
             fetchpriority={"high"}
+            class={props.disabled ? `grayscale` : ""}
           />
         </div>
       </div>
       <Show when={showDropdown()}>
-        <div class="absolute right-0 top-[60px] w-[300px] grid gap-2 rounded-lg border border-gray-500 p-2 backdrop-blur-xl">
+        <div class="absolute right-0 top-[50px] grid w-[300px] gap-2 rounded-lg border border-gray-500 p-2 backdrop-blur-xl">
           <div class=" rounded-lg px-4 py-2 font-semibold text-text-1">
             Select Token
           </div>
           <div class="border-[1px] border-solid border-gray-500" />
-          <For each={crowdsale.available_tokens}>
+          <For each={wallet.selected_network.tokens}>
             {(item, index) => (
               <div
                 data-index={index()}
-                class="grid grid-cols-[40px_auto] justify-start items-center gap-2 rounded-lg px-4 py-2 font-semibold text-text-1 transition-colors duration-100 hover:bg-buttonbg_new"
+                class="grid grid-cols-[40px_auto] items-center justify-start gap-2 rounded-lg px-4 py-2 font-semibold text-text-1 transition-colors duration-100 hover:bg-buttonbg_new"
                 onclick={() => {
-                  setCrowdsale({ selected_token: item });
+                  setWallet({ selected_token: item });
                   setShowDropdown(false);
                 }}
               >

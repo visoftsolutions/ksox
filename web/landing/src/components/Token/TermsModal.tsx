@@ -15,11 +15,14 @@ export function TermsModal() {
   });
 
   return (
-    <div class="fixed bottom-0 left-0 right-0 top-0 z-20 grid items-center justify-center bg-dark bg-opacity-80 font-lexend " onClick={(e) => {
-      if (!modalDOM.contains(e.target)) {
-        setCrowdsale({ showModal: false });
-      }
-    }}>
+    <div
+      class="fixed bottom-0 left-0 right-0 top-0 z-20 grid items-center justify-center bg-dark bg-opacity-80 font-lexend "
+      onClick={(e) => {
+        if (!modalDOM.contains(e.target)) {
+          setCrowdsale({ showModal: false });
+        }
+      }}
+    >
       <div
         class="m-auto grid h-[500px] w-[50%] grid-flow-row gap-8 rounded-xl bg-[#000033] p-4 text-text-1 outline-none"
         ref={modalDOM}
@@ -79,13 +82,25 @@ export function TermsModal() {
           versions from the 1914 translation by H. Rackham.
         </div>
 
-        <div class="grid grid-cols-[auto_1fr] items-center mr-4 cursor-pointer">
-            <input id="terms-checkbox" type="checkbox" onchange={(e) => setTermsChecked(e.target.checked)} class="w-4 h-4 accent-buttonbg_new cursor-pointer" />
-            <label for="terms-checkbox" class="ml-2 text-sm font-medium select-none cursor-pointer">I agree to terms of KSXT Crowdsale</label>
+        <div class="mr-4 grid cursor-pointer grid-cols-[auto_1fr] items-center">
+          <input
+            id="terms-checkbox"
+            type="checkbox"
+            onchange={(e) => setTermsChecked(e.target.checked)}
+            class="h-4 w-4 cursor-pointer accent-buttonbg_new"
+          />
+          <label
+            for="terms-checkbox"
+            class="ml-2 cursor-pointer select-none text-sm font-medium"
+          >
+            I agree to terms of KSXT Crowdsale
+          </label>
         </div>
 
-        <div class={`rounded-full p-[11px_32px] text-center font-lexend text-hero-button font-medium md:p-[16px_40px] 
-          ${termsChecked()
+        <div
+          class={`rounded-full p-[11px_32px] text-center font-lexend text-hero-button font-medium md:p-[16px_40px] 
+          ${
+            termsChecked()
               ? "token-linear-wipe-button cursor-pointer text-text-1 transition-opacity duration-100 hover:opacity-90"
               : "bg-gray-900 text-gray-700"
           }`}
