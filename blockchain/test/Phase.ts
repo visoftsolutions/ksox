@@ -198,8 +198,8 @@ describe("Phase", function () {
     await time.setNextBlockTimestamp(startTimestamp);
     expect(await phase.isBucketActive()).to.be.true;
 
-    await wethToken.connect(otherAccount).approve(phase.address, 100n * 10n ** 18n);
-    await phase.connect(otherAccount).buyWithETH({ value: 100n * 10n ** 18n });
+    await wethToken.connect(otherAccount).approve(phase.address, 90n * 10n ** 18n);
+    await phase.connect(otherAccount).buyWithETH({ value: 90n * 10n ** 18n });
     expect(await phase.isBucketActive()).to.be.false;
     expect(
       await tokenTicket.connect(otherAccount).balanceOf(otherAccount.address)
