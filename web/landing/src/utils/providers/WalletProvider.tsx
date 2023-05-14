@@ -1,7 +1,15 @@
 import { PublicClient } from "@wagmi/core";
 import { createContext, JSX, useContext } from "solid-js";
 import { createStore } from "solid-js/store";
-import { Address, CustomTransport, http, HttpTransport, WalletClient, webSocket, WebSocketTransport } from "viem";
+import {
+  Address,
+  CustomTransport,
+  http,
+  HttpTransport,
+  WalletClient,
+  webSocket,
+  WebSocketTransport,
+} from "viem";
 import {
   Chain,
   mainnet,
@@ -10,7 +18,7 @@ import {
   avalanche,
   localhost,
 } from "viem/chains";
-import { phaseContractAbi } from "~/components/contract";
+import { phaseContractAbi } from "~/components/contracts/phaseContract";
 import {
   EthereumClient,
   w3mConnectors,
@@ -169,13 +177,14 @@ export function useWallet() {
 const projectId = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID;
 
 export const walletConnect = async () => {
-  const { publicClient, chains } = configureChains(availableChains.map((e) => e.network), [
-    w3mProvider({ projectId }),
-  ]);
+  const { publicClient, chains } = configureChains(
+    availableChains.map((e) => e.network),
+    [w3mProvider({ projectId })]
+  );
   const wagmiConfig = createConfig({
     autoConnect: true,
     connectors: w3mConnectors({ projectId, version: 1, chains }),
-    publicClient
+    publicClient,
   });
   const ethereumClient = new EthereumClient(wagmiConfig, chains);
   const web3modal = new Web3Modal({ projectId }, ethereumClient);
@@ -192,9 +201,9 @@ export const walletConnect = async () => {
       const address = await walletClient.getAddresses().then((e) => e.at(0));
       setWallet({ address: address });
     } else {
-      setWallet({ 
+      setWallet({
         walletClient: undefined,
-        address: undefined
+        address: undefined,
       });
     }
   });

@@ -1,4 +1,3 @@
-import Spacing from "~/components/Spacing";
 import ContactItem from "~/components/Footer/ContactItem";
 
 export default function ContactItems() {

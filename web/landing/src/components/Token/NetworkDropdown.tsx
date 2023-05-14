@@ -14,14 +14,14 @@ export default function NetworkDropdown(props: NetworkDropdownProps) {
 
   return (
     <button
-      class={`relative ${props.disabled ? `cursor-default` : "cursor-pointer"}`}
-      onfocusout={() => {
+      class={`relative ${props.disabled ? "cursor-default" : "cursor-pointer"}`}
+      onFocusOut={() => {
         setShowDropdown(false);
       }}
     >
       <div
         class="grid grid-cols-2 items-center justify-center gap-2 rounded-lg border-[1px] border-slate-600 p-2"
-        onclick={() => {
+        onClick={() => {
           if (!props.disabled) {
             setShowDropdown(!showDropdown());
           }
@@ -34,7 +34,7 @@ export default function NetworkDropdown(props: NetworkDropdownProps) {
             width="25px"
             elementtiming={""}
             fetchpriority={"high"}
-            class={props.disabled ? `grayscale` : ""}
+            class={props.disabled ? "grayscale" : ""}
           />
         </div>
         <div>
@@ -44,13 +44,13 @@ export default function NetworkDropdown(props: NetworkDropdownProps) {
             width="20px"
             elementtiming={""}
             fetchpriority={"high"}
-            class={props.disabled ? `grayscale` : ""}
+            class={props.disabled ? "grayscale" : ""}
           />
         </div>
       </div>
       <Show when={showDropdown()}>
         <div class="absolute right-0 top-[50px] grid w-[300px] grid-flow-row gap-2 rounded-lg border border-gray-500 p-2 backdrop-blur-xl">
-          <div class=" rounded-lg px-4 py-2 font-semibold text-text-1">
+          <div class="rounded-lg px-4 py-2 font-semibold text-text-1">
             Select Network
           </div>
           <div class="border-[1px] border-solid border-gray-500" />
@@ -59,7 +59,7 @@ export default function NetworkDropdown(props: NetworkDropdownProps) {
               <div
                 data-index={index()}
                 class="grid grid-cols-[40px_1fr] items-center gap-2 rounded-lg px-4 py-2 font-semibold text-text-1 transition-colors duration-100 hover:bg-buttonbg_new"
-                onclick={async () => {
+                onClick={async () => {
                   try {
                     await wallet.walletClient?.addChain({
                       chain: unwrap(item.network),

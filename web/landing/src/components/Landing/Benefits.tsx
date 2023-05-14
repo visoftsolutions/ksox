@@ -1,4 +1,3 @@
-import Spacing from "~/components/Spacing";
 import Benefit from "./Benefit";
 
 export default function Benefits() {

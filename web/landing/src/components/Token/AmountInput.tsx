@@ -1,4 +1,4 @@
-import { createUniqueId, JSX } from "solid-js";
+import { createUniqueId } from "solid-js";
 
 export interface AmountInputProps {
   disabled: boolean;

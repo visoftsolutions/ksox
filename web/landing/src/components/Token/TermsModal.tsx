@@ -1,10 +1,7 @@
-import { Setter, Show, createEffect, createSignal, onMount } from "solid-js";
+import { createSignal, onMount } from "solid-js";
 import { joinPaths } from "solid-start/islands/server-router";
 import { base } from "~/root";
-import {
-  setCrowdsale,
-  useCrowdsale,
-} from "~/utils/providers/CrowdsaleProvider";
+import { setCrowdsale } from "~/utils/providers/CrowdsaleProvider";
 
 export function TermsModal() {
   const [termsChecked, setTermsChecked] = createSignal<boolean>(false);
@@ -86,7 +83,7 @@ export function TermsModal() {
           <input
             id="terms-checkbox"
             type="checkbox"
-            onchange={(e) => setTermsChecked(e.target.checked)}
+            onChange={(e) => setTermsChecked(e.target.checked)}
             class="h-4 w-4 cursor-pointer accent-buttonbg_new"
           />
           <label

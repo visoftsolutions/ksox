@@ -12,73 +12,85 @@ import { createEffect, createSignal, onCleanup, onMount } from "solid-js";
 export default function Crowdsale() {
   const crowdsale = useCrowdsale();
 
-  const [nowTimestamp, setNowTimestamp] = createSignal<number>(Math.floor(Date.now()/1000));
+  const [nowTimestamp, setNowTimestamp] = createSignal<number>(
+    Math.floor(Date.now() / 1000)
+  );
 
   const setTimer = (direction: boolean, duration: number) => {
-    setCrowdsale({timer: {
-      direction,
-      timerDays: Math.floor(duration / (60*60*24)),
-      timerHours: Math.floor((duration % (60*60*24)) / (60*60)),
-      timerMinutes: Math.floor((duration % (60*60)) / 60),
-      timerSeconds: Math.floor(duration % 60),
-    }})
-  }
+    setCrowdsale({
+      timer: {
+        direction,
+        timerDays: Math.floor(duration / (60 * 60 * 24)),
+        timerHours: Math.floor((duration % (60 * 60 * 24)) / (60 * 60)),
+        timerMinutes: Math.floor((duration % (60 * 60)) / 60),
+        timerSeconds: Math.floor(duration % 60),
+      },
+    });
+  };
 
   createEffect(() => {
     if (crowdsale.phaseContract.isBucketActive) {
       const now = nowTimestamp();
-      const bucketStart = Number(crowdsale.phaseContract.startTimestamp);
-      const bucketFinish = Number(crowdsale.phaseContract.endTimestamp);
-      
+      const bucketStart = Number(
+        crowdsale.phaseContract.currentBucketStartTimestamp
+      );
+      const bucketFinish = Number(
+        crowdsale.phaseContract.currentBucketEndTimestamp
+      );
+
       if (now <= bucketStart) {
-        setTimer(true,  bucketStart - now)
+        setTimer(true, bucketStart - now);
       } else if (bucketStart < now && now <= bucketFinish) {
-        setTimer(false,  bucketFinish - now)
+        setTimer(false, bucketFinish - now);
       } else {
-        setCrowdsale('phaseContract', _p => ({
-          isBucketActive: false
+        setCrowdsale("phaseContract", () => ({
+          isBucketActive: false,
         }));
       }
     }
-  })
+  });
 
   let interval: NodeJS.Timer;
-  
+
   onMount(() => {
     interval = setInterval(() => {
-      setNowTimestamp(Math.floor(Date.now()/1000));
-    }, 1000)
-  })
+      setNowTimestamp(Math.floor(Date.now() / 1000));
+    }, 1000);
+  });
 
   onCleanup(() => {
     clearInterval(interval);
-  })
+  });
 
   return (
     <div class="grid grid-rows-[auto_auto] gap-24 font-lexend text-text-1">
       <div class="row-start-1 row-end-2 grid grid-rows-[auto_auto] gap-2 text-center font-medium">
         <div class="text-5xl">KSXT Crowdsale</div>
         <div class="text-xl">
-          {crowdsale.phaseContract.phaseName} -{" "}
+          {crowdsale.phaseContract.name} -{" "}
           {crowdsale.phaseContract.isPhaseActive ? "active" : "inactive"}
         </div>
       </div>
 
       <div
         class={`row-start-2 row-end-3 grid grid-cols-[1fr_1fr] items-stretch gap-5 gap-y-16 max-md:grid-cols-1 max-md:grid-rows-2 ${
-          crowdsale.phaseContract.isBucketActive ? "text-text-1" : "text-gray-700"
+          crowdsale.phaseContract.isBucketActive
+            ? "text-text-1"
+            : "text-gray-700"
         }`}
       >
         <div class="col-start-1 col-end-2 grid grid-flow-col grid-rows-[auto_1fr] items-center gap-8 px-16 max-md:col-start-1 max-md:col-end-2 max-md:row-start-2 max-md:row-end-3 max-md:px-1">
-          <div class="row-start-1 row-end-2 px-8 text-center text-2xl font-medium grid grid-cols-[auto_auto] items-center justify-center gap-2">
-            {crowdsale.phaseContract.isBucketActive ? 
-            <>
-              BUCKET 
-              <div class="text-3xl token-linear-wipe-text font-extrabold">
-                {crowdsale.phaseContract.id.toString()}
-              </div>
-            </> 
-            : <>NO OPEN BUCKET</>}
+          <div class="row-start-1 row-end-2 grid grid-cols-[auto_auto] items-center justify-center gap-2 px-8 text-center text-2xl font-medium">
+            {crowdsale.phaseContract.isBucketActive ? (
+              <>
+                BUCKET
+                <div class="token-linear-wipe-text text-3xl font-extrabold">
+                  {crowdsale.phaseContract.currentBucketId.toString()}
+                </div>
+              </>
+            ) : (
+              <>NO OPEN BUCKET</>
+            )}
           </div>
 
           <div class="row-start-2 row-end-3 grid grid-rows-[auto_auto] gap-8">
@@ -87,23 +99,48 @@ export default function Crowdsale() {
             </div>
 
             <div class="grid grid-cols-4 items-start justify-around gap-4 text-center text-2xl font-medium max-md:gap-4">
-              <TimerTile disabled={!crowdsale.phaseContract.isBucketActive} name="days" value={crowdsale.timer.timerDays.toString()} />
-              <TimerTile disabled={!crowdsale.phaseContract.isBucketActive} name="hrs" value={crowdsale.timer.timerHours.toString()} />
-              <TimerTile disabled={!crowdsale.phaseContract.isBucketActive} name="mins" value={crowdsale.timer.timerMinutes.toString()} />
-              <TimerTile disabled={!crowdsale.phaseContract.isBucketActive} name="secs" value={crowdsale.timer.timerSeconds.toString()} />
+              <TimerTile
+                disabled={!crowdsale.phaseContract.isBucketActive}
+                name="days"
+                value={crowdsale.timer.timerDays.toString()}
+              />
+              <TimerTile
+                disabled={!crowdsale.phaseContract.isBucketActive}
+                name="hrs"
+                value={crowdsale.timer.timerHours.toString()}
+              />
+              <TimerTile
+                disabled={!crowdsale.phaseContract.isBucketActive}
+                name="mins"
+                value={crowdsale.timer.timerMinutes.toString()}
+              />
+              <TimerTile
+                disabled={!crowdsale.phaseContract.isBucketActive}
+                name="secs"
+                value={crowdsale.timer.timerSeconds.toString()}
+              />
             </div>
           </div>
         </div>
 
         <div class="col-start-2 col-end-3 grid grid-rows-[auto_auto_1fr] justify-items-stretch gap-12 px-16 max-md:col-start-1 max-md:col-end-2 max-md:row-start-1 max-md:row-end-2 max-md:px-1">
           <div class="row-start-1 row-end-2 px-8 text-center text-2xl font-medium">
-            KSXT Token Price = {crowdsale.phaseContract.rate?.toFixed(2) ?? "X"} USDC
+            KSXT Token Price ={" "}
+            {crowdsale.phaseContract.currentBucketRate?.toFixed(2) ?? "X"} USDC
           </div>
 
           <div class="row-start-2 row-end-3 grid grid-rows-[auto_auto] gap-1 self-center">
             <div>Bucket supply</div>
             <ProgressBar
-              fill={crowdsale.phaseContract.capacity ? Number(crowdsale.phaseContract.soldAmount * 10000n / crowdsale.phaseContract.capacity) / 100 : 0}
+              fill={
+                crowdsale.phaseContract.currentBucketCapacity
+                  ? Number(
+                      (crowdsale.phaseContract.currentBucketSoldAmount *
+                        10000n) /
+                        crowdsale.phaseContract.currentBucketCapacity
+                    ) / 100
+                  : 0
+              }
               disable={!crowdsale.phaseContract.isBucketActive}
             />
           </div>
@@ -114,7 +151,9 @@ export default function Crowdsale() {
                 disabled={!crowdsale.phaseContract.isBucketActive}
                 onInput={(n) => setCrowdsale({ tokenAmount: n })}
               />
-              <TokenDropdown disabled={!crowdsale.phaseContract.isBucketActive} />
+              <TokenDropdown
+                disabled={!crowdsale.phaseContract.isBucketActive}
+              />
             </div>
 
             <div
@@ -166,7 +205,7 @@ export default function Crowdsale() {
             </div>
           </div>
         </div>
-        <div class="col-start-2 col-end-3 max-md:hidden"></div>
+        <div class="col-start-2 col-end-3 max-md:hidden" />
       </div>
 
       <Divider />

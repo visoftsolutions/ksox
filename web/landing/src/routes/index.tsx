@@ -12,14 +12,14 @@ export default function Index() {
       <NavProvider>
         <WalletProvider>
           <CrowdsaleProvider>
-          <Header />
-          <div class="m-auto flex min-h-screen max-w-7xl flex-col p-6">
-            <Spacing class="h-24" />
-            <Outlet />
-            <Spacing class="h-12" />
-            <Footer />
-            <Spacing class="h-20" />
-          </div>
+            <Header />
+            <div class="m-auto flex min-h-screen max-w-7xl flex-col p-6">
+              <Spacing class="h-24" />
+              <Outlet />
+              <Spacing class="h-12" />
+              <Footer />
+              <Spacing class="h-20" />
+            </div>
           </CrowdsaleProvider>
         </WalletProvider>
       </NavProvider>

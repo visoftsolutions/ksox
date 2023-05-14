@@ -13,14 +13,14 @@ export default function TokenDropdown(props: TokenDropdownProps) {
 
   return (
     <button
-      class={`relative ${props.disabled ? `cursor-default` : "cursor-pointer"}`}
-      onfocusout={() => {
+      class={`relative ${props.disabled ? "cursor-default" : "cursor-pointer"}`}
+      onFocusOut={() => {
         setShowDropdown(false);
       }}
     >
       <div
         class="grid grid-cols-[auto_50px_auto] items-center justify-center gap-2 rounded-lg border-[1px] border-slate-600 p-2"
-        onclick={() => {
+        onClick={() => {
           if (!props.disabled) {
             setShowDropdown(!showDropdown());
           }
@@ -33,7 +33,7 @@ export default function TokenDropdown(props: TokenDropdownProps) {
             width="25px"
             elementtiming={""}
             fetchpriority={"high"}
-            class={props.disabled ? `grayscale` : ""}
+            class={props.disabled ? "grayscale" : ""}
           />
         </div>
         <div>{wallet.selected_token.symbol}</div>
@@ -44,7 +44,7 @@ export default function TokenDropdown(props: TokenDropdownProps) {
             width="20px"
             elementtiming={""}
             fetchpriority={"high"}
-            class={props.disabled ? `grayscale` : ""}
+            class={props.disabled ? "grayscale" : ""}
           />
         </div>
       </div>
@@ -59,7 +59,7 @@ export default function TokenDropdown(props: TokenDropdownProps) {
               <div
                 data-index={index()}
                 class="grid grid-cols-[40px_auto] items-center justify-start gap-2 rounded-lg px-4 py-2 font-semibold text-text-1 transition-colors duration-100 hover:bg-buttonbg_new"
-                onclick={() => {
+                onClick={() => {
                   setWallet({ selected_token: item });
                   setShowDropdown(false);
                 }}

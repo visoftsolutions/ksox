@@ -2,6 +2,11 @@ export const phaseContractAbi = [
   {
     inputs: [
       {
+        internalType: "string",
+        name: "_name",
+        type: "string",
+      },
+      {
         internalType: "address",
         name: "_uniswapV3FactoryAddress",
         type: "address",
@@ -17,43 +22,48 @@ export const phaseContractAbi = [
         type: "address",
       },
       {
-        internalType: "address[]",
-        name: "_acceptedTokens",
-        type: "address[]",
-      },
-      {
         internalType: "address",
         name: "_soldTokenAddress",
         type: "address",
       },
       {
         internalType: "uint256",
-        name: "_rateNumer",
+        name: "_minBucketStartDelay",
         type: "uint256",
       },
       {
         internalType: "uint256",
-        name: "_rateDenom",
+        name: "_minBucketDuration",
         type: "uint256",
       },
       {
         internalType: "uint256",
-        name: "_maxRateStepNumer",
+        name: "_minBucketCapacity",
         type: "uint256",
       },
       {
         internalType: "uint256",
-        name: "_maxRateStepDenom",
+        name: "_maxBucketRateIncreaseNumer",
         type: "uint256",
       },
       {
         internalType: "uint256",
-        name: "_minimalAmountToSell",
+        name: "_maxBucketRateIncreaseDenom",
+        type: "uint256",
+      },
+      {
+        internalType: "address[]",
+        name: "_acceptedTokens",
+        type: "address[]",
+      },
+      {
+        internalType: "uint256",
+        name: "_initialRateNumer",
         type: "uint256",
       },
       {
         internalType: "uint256",
-        name: "_minimalPrecreationTime",
+        name: "_initialRateDenom",
         type: "uint256",
       },
     ],
@@ -72,48 +82,11 @@ export const phaseContractAbi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "amountSold",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amountCollected",
+        name: "bucketSoldAmount",
         type: "uint256",
       },
     ],
     name: "BucketConcluded",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "buyer",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amountIn",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amountOut",
-        type: "uint256",
-      },
-    ],
-    name: "BuyExecuted",
     type: "event",
   },
   {
@@ -134,29 +107,48 @@ export const phaseContractAbi = [
       {
         indexed: true,
         internalType: "uint256",
-        name: "finishTimestamp",
+        name: "endTimestamp",
         type: "uint256",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "amountToSell",
+        name: "capacity",
         type: "uint256",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "newRateNumer",
+        name: "rateNumer",
         type: "uint256",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "newRateDenom",
+        name: "rateDenom",
         type: "uint256",
       },
     ],
-    name: "NewBucketCreated",
+    name: "BucketCreated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "bucketId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "bucketSoldAmount",
+        type: "uint256",
+      },
+    ],
+    name: "BuyExecuted",
     type: "event",
   },
   {
@@ -184,7 +176,7 @@ export const phaseContractAbi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "amountSold",
+        name: "totalSoldAmount",
         type: "uint256",
       },
     ],
@@ -197,13 +189,13 @@ export const phaseContractAbi = [
       {
         indexed: true,
         internalType: "address",
-        name: "token",
+        name: "tokenAddress",
         type: "address",
       },
       {
         indexed: true,
         internalType: "address",
-        name: "to",
+        name: "toAddress",
         type: "address",
       },
       {
@@ -215,45 +207,6 @@ export const phaseContractAbi = [
     ],
     name: "WithdrawExecuted",
     type: "event",
-  },
-  {
-    inputs: [],
-    name: "amountSold",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "bucketFinishTimestamp",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "bucketStartTimestamp",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
   },
   {
     inputs: [
@@ -296,7 +249,20 @@ export const phaseContractAbi = [
   },
   {
     inputs: [],
-    name: "currentBucketAmountToSell",
+    name: "currentBucketCapacity",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "currentBucketEndTimestamp",
     outputs: [
       {
         internalType: "uint256",
@@ -322,7 +288,7 @@ export const phaseContractAbi = [
   },
   {
     inputs: [],
-    name: "currentRateDenom",
+    name: "currentBucketRateDenom",
     outputs: [
       {
         internalType: "uint256",
@@ -335,7 +301,33 @@ export const phaseContractAbi = [
   },
   {
     inputs: [],
-    name: "currentRateNumer",
+    name: "currentBucketRateNumer",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "currentBucketSoldAmount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "currentBucketStartTimestamp",
     outputs: [
       {
         internalType: "uint256",
@@ -386,31 +378,12 @@ export const phaseContractAbi = [
         type: "address",
       },
     ],
-    name: "getTokensCollected",
+    name: "getTotalTokensCollected",
     outputs: [
       {
         internalType: "uint256",
         name: "",
         type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    name: "isAccepted",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
       },
     ],
     stateMutability: "view",
@@ -443,8 +416,27 @@ export const phaseContractAbi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "isTokenAccepted",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
-    name: "maxRateStepDenom",
+    name: "maxBucketRateIncreaseDenom",
     outputs: [
       {
         internalType: "uint256",
@@ -457,7 +449,7 @@ export const phaseContractAbi = [
   },
   {
     inputs: [],
-    name: "maxRateStepNumer",
+    name: "maxBucketRateIncreaseNumer",
     outputs: [
       {
         internalType: "uint256",
@@ -470,7 +462,7 @@ export const phaseContractAbi = [
   },
   {
     inputs: [],
-    name: "minimalAmountToSell",
+    name: "minBucketCapacity",
     outputs: [
       {
         internalType: "uint256",
@@ -483,12 +475,38 @@ export const phaseContractAbi = [
   },
   {
     inputs: [],
-    name: "minimalPrecreationTime",
+    name: "minBucketDuration",
     outputs: [
       {
         internalType: "uint256",
         name: "",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "minBucketStartDelay",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "name",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
       },
     ],
     stateMutability: "view",
@@ -502,19 +520,6 @@ export const phaseContractAbi = [
         internalType: "address",
         name: "",
         type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "prevAmountSold",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -562,12 +567,12 @@ export const phaseContractAbi = [
       },
       {
         internalType: "uint256",
-        name: "finishTimestamp",
+        name: "endTimestamp",
         type: "uint256",
       },
       {
         internalType: "uint256",
-        name: "amountToSell",
+        name: "capacity",
         type: "uint256",
       },
       {
@@ -587,6 +592,45 @@ export const phaseContractAbi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "tenToTheReferenceTokenDecimals",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "tenToTheWethTokenDecimals",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "totalSoldAmount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -594,7 +638,7 @@ export const phaseContractAbi = [
         type: "address",
       },
     ],
-    name: "tokensCollected",
+    name: "totalTokensCollected",
     outputs: [
       {
         internalType: "uint256",
@@ -648,12 +692,12 @@ export const phaseContractAbi = [
     inputs: [
       {
         internalType: "address",
-        name: "token",
+        name: "tokenAddress",
         type: "address",
       },
       {
         internalType: "address",
-        name: "to",
+        name: "toAddress",
         type: "address",
       },
       {
@@ -664,192 +708,6 @@ export const phaseContractAbi = [
     ],
     name: "withdraw",
     outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-] as const;
-
-export const ERC20ContractAbi = [
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "owner",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "spender",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "value",
-        type: "uint256",
-      },
-    ],
-    name: "Approval",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "from",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "value",
-        type: "uint256",
-      },
-    ],
-    name: "Transfer",
-    type: "event",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "owner",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "spender",
-        type: "address",
-      },
-    ],
-    name: "allowance",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "spender",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "approve",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-    ],
-    name: "balanceOf",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "totalSupply",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "transfer",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "from",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "transferFrom",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
     stateMutability: "nonpayable",
     type: "function",
   },

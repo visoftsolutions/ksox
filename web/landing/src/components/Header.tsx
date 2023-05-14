@@ -1,14 +1,8 @@
-import { Show, onMount } from "solid-js";
 import Logo from "~/components/Header/Logo";
 import MainMenu from "~/components/Header/MainMenu";
 import Wallet from "./Header/Wallet";
-import { Nav, useNav } from "~/utils/providers/NavProvider";
-import { useCrowdsale } from "~/utils/providers/CrowdsaleProvider";
 
 export default function Header() {
-  const nav = useNav();
-  const crowdsale = useCrowdsale();
-
   return (
     <>
       <div class="header-shadow fixed left-0 right-0 top-0 z-10 bg-[#000033]">

@@ -1,6 +1,6 @@
 export type Fraction = {
-  numer: bigint
-  denom: bigint
+  numer: bigint;
+  denom: bigint;
 };
 
 export function finv(f: Fraction): Fraction {
