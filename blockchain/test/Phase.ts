@@ -34,17 +34,16 @@ describe("Phase", function () {
 
     const Phase = await ethers.getContractFactory("Phase");
     const phase = await Phase.connect(owner).deploy(
+      "Phase 1",
       ETHEREUM_UNISWAP_V3_FACTORY_ADDRESS,
       ETHEREUM_USDC_ADDRESS,
       ETHEREUM_WETH_ADDRESS,
-      [ETHEREUM_GRT_ADDRESS],
       tokenTicket.address,
-      10,
-      100,
-      3,
-      2,
-      10n ** 6n * 10n ** 18n,
-      12 * 3600
+      10n, 10n,
+      10n ** 18n,
+      3, 2,
+      [ETHEREUM_GRT_ADDRESS],
+      10, 100
     );
 
     await tokenTicket
@@ -64,17 +63,16 @@ describe("Phase", function () {
 
     const Phase = await ethers.getContractFactory("Phase");
     const phase = await Phase.connect(owner).deploy(
+      "Phase 1",
       ETHEREUM_UNISWAP_V3_FACTORY_ADDRESS,
       ETHEREUM_USDC_ADDRESS,
       ETHEREUM_WETH_ADDRESS,
-      [ETHEREUM_GRT_ADDRESS],
       tokenTicket.address,
-      10,
-      100,
-      3,
-      2,
-      10n ** 6n * 10n ** 18n,
-      12 * 3600
+      10n, 10n,
+      10n ** 18n,
+      3, 2,
+      [ETHEREUM_GRT_ADDRESS],
+      10, 100
     );
 
     await tokenTicket
@@ -141,7 +139,7 @@ describe("Phase", function () {
         100
       )
     )
-      .to.emit(phase, "NewBucketCreated")
+      .to.emit(phase, "BucketCreated")
       .withArgs(1, startTimestamp, finishTimestamp, 10n * 10n ** 18n, 10, 100);
   });
 
@@ -149,7 +147,7 @@ describe("Phase", function () {
     const { phase } = await loadFixture(deployAndStart);
     await expect(phase.concludeCurrentBucket())
       .to.emit(phase, "BucketConcluded")
-      .withArgs(1, 0, 0);
+      .withArgs(1, 0);
   });
 
   it("But With ETH", async () => {
