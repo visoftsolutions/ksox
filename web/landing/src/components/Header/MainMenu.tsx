@@ -15,7 +15,7 @@ export default function MainMenu(props: DefaultProps) {
       </a>
       <a
         class={`main-menu-button font-extrabold ${
-          crowdsale.status ? "token-linear-wipe-text" : "text-gray-700"
+          crowdsale.phaseContract.isPhaseActive ? "token-linear-wipe-text" : "text-gray-700"
         }`}
         href="/token"
       >

@@ -26,7 +26,7 @@ export default function Buttons() {
       >
         <div
           class={`rounded-full p-[11px_32px] text-center font-lexend text-hero-button font-medium md:p-[16px_40px] ${
-            crowdsale.status
+            crowdsale.phaseContract.isPhaseActive
               ? "token-linear-wipe-button"
               : "bg-gray-900 text-gray-700"
           }`}

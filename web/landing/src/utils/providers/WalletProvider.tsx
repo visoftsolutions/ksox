@@ -135,15 +135,21 @@ export interface WalletProvider {
   selected_network: Network;
   selected_token: Token;
   walletClient: WalletClient<CustomTransport, typeof localhost> | undefined;
-  publicClient: PublicClient<HttpTransport, typeof localhost> | undefined;
-  publicWSClient: PublicClient<WebSocketTransport, typeof localhost> | undefined;
+  publicClient: PublicClient<HttpTransport, typeof localhost>;
+  publicWSClient: PublicClient<WebSocketTransport, typeof localhost>;
   address: Address | undefined;
 }
 
 export const [wallet, setWallet] = createStore<WalletProvider>({
   walletClient: undefined,
-  publicClient: undefined,
-  publicWSClient: undefined,
+  publicClient: createPublicClient({
+    chain: localhost,
+    transport: http("http://127.0.0.1:8545/"),
+  }),
+  publicWSClient: createPublicClient({
+    chain: localhost,
+    transport: webSocket("ws://127.0.0.1:8545/"),
+  }),
   address: undefined,
   selected_network: availableChains[0],
   selected_token: availableChains[0].tokens[0],
@@ -181,24 +187,13 @@ export const walletConnect = async () => {
         chain: localhost,
         transport: custom(await account.connector.getProvider()),
       });
-      const publicClient = createPublicClient({
-        chain: localhost,
-        transport: http("http://127.0.0.1:8545/"),
-      });
-      const publicWSClient = createPublicClient({
-        chain: localhost,
-        transport: webSocket("ws://127.0.0.1:8545/"),
-      });
-
-      setWallet({ walletClient: walletClient, publicClient: publicClient, publicWSClient: publicWSClient });
+      setWallet({ walletClient: walletClient });
 
       const address = await walletClient.getAddresses().then((e) => e.at(0));
       setWallet({ address: address });
     } else {
       setWallet({ 
         walletClient: undefined,
-        publicClient: undefined,
-        publicWSClient: undefined,
         address: undefined
       });
     }
