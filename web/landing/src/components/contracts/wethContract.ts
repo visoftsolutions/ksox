@@ -1,4 +1,4 @@
-export const ERC20ContractAbi = [
+export const wethContractAbi = [
   {
     anonymous: false,
     inputs: [

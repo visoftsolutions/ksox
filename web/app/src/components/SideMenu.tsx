@@ -12,7 +12,11 @@ export default function SideMenu() {
   return (
     <div class="grid h-full grid-rows-[76px_1fr_76px] items-start justify-center gap-4">
       <div class="row-start-1 row-end-2 py-4">
-        <img src={joinPaths(base, "/gfx/logo.png")} alt="ksox logo" class="m-auto h-[47px] w-[36px]" />
+        <A href="/">
+          <div>
+            <img src={joinPaths(base, "/gfx/logo.png")} alt="ksox logo" class="m-auto h-[47px] w-[36px]" />
+          </div>
+        </A>
       </div>
       <div class="row-start-2 row-end-3 grid items-center justify-center gap-4">
         <A href={`${market().base_asset && market().quote_asset ? "/" + market().base_asset?.id + "/" + market().quote_asset?.id : "/"}`}>

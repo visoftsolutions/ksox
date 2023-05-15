@@ -76,78 +76,75 @@ export function CrowdsaleProvider(props: { children: JSX.Element }) {
       currentBucketSoldAmount,
     ] = await Promise.all([
       wallet.publicClient.readContract({
-        address: wallet.selected_network.contract.address,
-        abi: wallet.selected_network.contract.abi,
+        address: wallet.selected_network.phaseContract.address,
+        abi: wallet.selected_network.phaseContract.abi,
         functionName: "name",
       }),
       wallet.publicClient.readContract({
-        address: wallet.selected_network.contract.address,
-        abi: wallet.selected_network.contract.abi,
+        address: wallet.selected_network.phaseContract.address,
+        abi: wallet.selected_network.phaseContract.abi,
         functionName: "isPhaseActive",
       }),
       wallet.publicClient.readContract({
-        address: wallet.selected_network.contract.address,
-        abi: wallet.selected_network.contract.abi,
+        address: wallet.selected_network.phaseContract.address,
+        abi: wallet.selected_network.phaseContract.abi,
         functionName: "isBucketActive",
       }),
       wallet.publicClient.readContract({
-        address: wallet.selected_network.contract.address,
-        abi: wallet.selected_network.contract.abi,
+        address: wallet.selected_network.phaseContract.address,
+        abi: wallet.selected_network.phaseContract.abi,
         functionName: "currentBucketId",
       }),
       wallet.publicClient.readContract({
-        address: wallet.selected_network.contract.address,
-        abi: wallet.selected_network.contract.abi,
+        address: wallet.selected_network.phaseContract.address,
+        abi: wallet.selected_network.phaseContract.abi,
         functionName: "currentBucketStartTimestamp",
       }),
       wallet.publicClient.readContract({
-        address: wallet.selected_network.contract.address,
-        abi: wallet.selected_network.contract.abi,
+        address: wallet.selected_network.phaseContract.address,
+        abi: wallet.selected_network.phaseContract.abi,
         functionName: "currentBucketEndTimestamp",
       }),
       wallet.publicClient.readContract({
-        address: wallet.selected_network.contract.address,
-        abi: wallet.selected_network.contract.abi,
+        address: wallet.selected_network.phaseContract.address,
+        abi: wallet.selected_network.phaseContract.abi,
         functionName: "currentBucketCapacity",
       }),
       wallet.publicClient.readContract({
-        address: wallet.selected_network.contract.address,
-        abi: wallet.selected_network.contract.abi,
+        address: wallet.selected_network.phaseContract.address,
+        abi: wallet.selected_network.phaseContract.abi,
         functionName: "currentBucketRateNumer",
       }),
       wallet.publicClient.readContract({
-        address: wallet.selected_network.contract.address,
-        abi: wallet.selected_network.contract.abi,
+        address: wallet.selected_network.phaseContract.address,
+        abi: wallet.selected_network.phaseContract.abi,
         functionName: "currentBucketRateDenom",
       }),
       wallet.publicClient.readContract({
-        address: wallet.selected_network.contract.address,
-        abi: wallet.selected_network.contract.abi,
+        address: wallet.selected_network.phaseContract.address,
+        abi: wallet.selected_network.phaseContract.abi,
         functionName: "currentBucketSoldAmount",
       }),
     ]);
 
-    setCrowdsale({
-      phaseContract: {
-        name,
-        isPhaseActive,
-        isBucketActive,
-        // bucket info
-        currentBucketId,
-        currentBucketStartTimestamp,
-        currentBucketEndTimestamp,
-        currentBucketCapacity,
-        currentBucketRate:
-          Number((currentBucketRateNumer * 100n) / currentBucketRateDenom) /
-          100,
-        currentBucketSoldAmount,
-      },
-    });
+    setCrowdsale("phaseContract", () => ({
+      name,
+      isPhaseActive,
+      isBucketActive,
+      // bucket info
+      currentBucketId,
+      currentBucketStartTimestamp,
+      currentBucketEndTimestamp,
+      currentBucketCapacity,
+      currentBucketRate:
+        Number((currentBucketRateNumer * 100n) / currentBucketRateDenom) / 100,
+      currentBucketSoldAmount,
+    }));
 
     unwatchers = [
       wallet.publicWSClient.watchContractEvent({
-        address: wallet.selected_network.contract.address,
-        abi: wallet.selected_network.contract.abi,
+        address: wallet.selected_network.phaseContract.address,
+        abi: wallet.selected_network.phaseContract.abi,
         eventName: "BucketCreated",
         onLogs: (logs) => {
           const event = logs.at(0)?.args;
@@ -158,6 +155,7 @@ export function CrowdsaleProvider(props: { children: JSX.Element }) {
               currentBucketStartTimestamp: event.startTimestamp,
               currentBucketEndTimestamp: event.endTimestamp,
               currentBucketCapacity: event.capacity,
+              currentBucketSoldAmount: 0n,
               currentBucketRate:
                 Number((event.rateNumer * 100n) / event.rateDenom) / 100,
             }));
@@ -165,23 +163,22 @@ export function CrowdsaleProvider(props: { children: JSX.Element }) {
         },
       }),
       wallet.publicWSClient.watchContractEvent({
-        address: wallet.selected_network.contract.address,
-        abi: wallet.selected_network.contract.abi,
+        address: wallet.selected_network.phaseContract.address,
+        abi: wallet.selected_network.phaseContract.abi,
         eventName: "BucketConcluded",
         onLogs: (logs) => {
           const event = logs.at(0)?.args;
           if (event) {
             setCrowdsale("phaseContract", () => ({
               isBucketActive: false,
-              id: event.bucketId,
+              currentBucketId: event.bucketId,
             }));
-            setCrowdsale({ timer: undefined });
           }
         },
       }),
       wallet.publicWSClient.watchContractEvent({
-        address: wallet.selected_network.contract.address,
-        abi: wallet.selected_network.contract.abi,
+        address: wallet.selected_network.phaseContract.address,
+        abi: wallet.selected_network.phaseContract.abi,
         eventName: "BuyExecuted",
         onLogs: (logs) => {
           const event = logs.at(0)?.args;
@@ -193,8 +190,8 @@ export function CrowdsaleProvider(props: { children: JSX.Element }) {
         },
       }),
       wallet.publicWSClient.watchContractEvent({
-        address: wallet.selected_network.contract.address,
-        abi: wallet.selected_network.contract.abi,
+        address: wallet.selected_network.phaseContract.address,
+        abi: wallet.selected_network.phaseContract.abi,
         eventName: "PhaseConcluded",
         onLogs: (logs) => {
           const event = logs.at(0)?.args;

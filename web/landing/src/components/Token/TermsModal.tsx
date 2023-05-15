@@ -1,10 +1,13 @@
 import { createSignal, onMount } from "solid-js";
 import { joinPaths } from "solid-start/islands/server-router";
 import { base } from "~/root";
-import { setCrowdsale } from "~/utils/providers/CrowdsaleProvider";
+import { crowdsale, setCrowdsale } from "~/utils/providers/CrowdsaleProvider";
+import { useWallet, walletConnect } from "~/utils/providers/WalletProvider";
 
 export function TermsModal() {
   const [termsChecked, setTermsChecked] = createSignal<boolean>(false);
+
+  const wallet = useWallet();
 
   let modalDOM!: HTMLDivElement;
   onMount(() => {
@@ -101,9 +104,67 @@ export function TermsModal() {
               ? "token-linear-wipe-button cursor-pointer text-text-1 transition-opacity duration-100 hover:opacity-90"
               : "bg-gray-900 text-gray-700"
           }`}
-          onClick={() => {
+          onClick={async () => {
             if (termsChecked()) {
               setCrowdsale({ showModal: false });
+              try {
+                if (
+                  wallet.walletClient == undefined ||
+                  wallet.address == undefined
+                ) {
+                  await walletConnect();
+                } else {
+                  const amount = BigInt(
+                    Math.floor(crowdsale.tokenAmount * 10 ** 18)
+                  );
+
+                  await wallet.walletClient.writeContract({
+                    address: wallet.selected_network.wethContract.address,
+                    abi: wallet.selected_network.wethContract.abi,
+                    functionName: "approve",
+                    args: [
+                      wallet.selected_network.phaseContract.address,
+                      amount,
+                    ],
+                    account: wallet.address,
+                  });
+
+                  await wallet.walletClient.writeContract({
+                    address: wallet.selected_network.phaseContract.address,
+                    abi: wallet.selected_network.phaseContract.abi,
+                    functionName: "buyWithETH",
+                    value: amount,
+                    account: wallet.address,
+                  });
+
+                  const [symbol, decimals] = await Promise.all([
+                    wallet.publicClient.readContract({
+                      address:
+                        wallet.selected_network.tokenTicketContract.address,
+                      abi: wallet.selected_network.tokenTicketContract.abi,
+                      functionName: "symbol",
+                    }),
+                    wallet.publicClient.readContract({
+                      address:
+                        wallet.selected_network.tokenTicketContract.address,
+                      abi: wallet.selected_network.tokenTicketContract.abi,
+                      functionName: "decimals",
+                    }),
+                  ]);
+
+                  await wallet.walletClient.watchAsset({
+                    type: "ERC20",
+                    options: {
+                      address:
+                        wallet.selected_network.tokenTicketContract.address,
+                      decimals: decimals,
+                      symbol: symbol,
+                    },
+                  });
+                }
+              } catch (error) {
+                console.log(error);
+              }
             }
           }}
         >

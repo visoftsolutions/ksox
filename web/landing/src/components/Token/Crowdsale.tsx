@@ -8,6 +8,8 @@ import {
 import TokenDropdown from "./TokenDropdown";
 import AmountInput from "./AmountInput";
 import { createEffect, createSignal, onCleanup, onMount } from "solid-js";
+import { unwrap } from "solid-js/store";
+import { wallet, walletConnect } from "~/utils/providers/WalletProvider";
 
 export default function Crowdsale() {
   const crowdsale = useCrowdsale();
@@ -17,18 +19,17 @@ export default function Crowdsale() {
   );
 
   const setTimer = (direction: boolean, duration: number) => {
-    setCrowdsale({
-      timer: {
-        direction,
-        timerDays: Math.floor(duration / (60 * 60 * 24)),
-        timerHours: Math.floor((duration % (60 * 60 * 24)) / (60 * 60)),
-        timerMinutes: Math.floor((duration % (60 * 60)) / 60),
-        timerSeconds: Math.floor(duration % 60),
-      },
-    });
+    setCrowdsale("timer", () => ({
+      direction,
+      timerDays: Math.floor(duration / (60 * 60 * 24)),
+      timerHours: Math.floor((duration % (60 * 60 * 24)) / (60 * 60)),
+      timerMinutes: Math.floor((duration % (60 * 60)) / 60),
+      timerSeconds: Math.floor(duration % 60),
+    }));
   };
 
   createEffect(() => {
+    console.log(unwrap(crowdsale));
     if (crowdsale.phaseContract.isBucketActive) {
       const now = nowTimestamp();
       const bucketStart = Number(
@@ -101,21 +102,25 @@ export default function Crowdsale() {
             <div class="grid grid-cols-4 items-start justify-around gap-4 text-center text-2xl font-medium max-md:gap-4">
               <TimerTile
                 disabled={!crowdsale.phaseContract.isBucketActive}
+                higlighted={!crowdsale.timer.direction}
                 name="days"
                 value={crowdsale.timer.timerDays.toString()}
               />
               <TimerTile
                 disabled={!crowdsale.phaseContract.isBucketActive}
+                higlighted={!crowdsale.timer.direction}
                 name="hrs"
                 value={crowdsale.timer.timerHours.toString()}
               />
               <TimerTile
                 disabled={!crowdsale.phaseContract.isBucketActive}
+                higlighted={!crowdsale.timer.direction}
                 name="mins"
                 value={crowdsale.timer.timerMinutes.toString()}
               />
               <TimerTile
                 disabled={!crowdsale.phaseContract.isBucketActive}
+                higlighted={!crowdsale.timer.direction}
                 name="secs"
                 value={crowdsale.timer.timerSeconds.toString()}
               />
@@ -138,7 +143,7 @@ export default function Crowdsale() {
                       (crowdsale.phaseContract.currentBucketSoldAmount *
                         10000n) /
                         crowdsale.phaseContract.currentBucketCapacity
-                    ) / 100
+                    ) / 10000
                   : 0
               }
               disable={!crowdsale.phaseContract.isBucketActive}
@@ -158,12 +163,26 @@ export default function Crowdsale() {
 
             <div
               class={`rounded-full p-[11px_32px] text-center font-lexend text-hero-button font-medium md:p-[16px_40px] ${
-                crowdsale.phaseContract.isBucketActive
+                crowdsale.phaseContract.isBucketActive &&
+                !crowdsale.timer.direction
                   ? "token-linear-wipe-button cursor-pointer text-text-1 transition-opacity duration-100 hover:opacity-90"
                   : "bg-gray-900 text-gray-700"
               }`}
-              onClick={() => {
-                setCrowdsale({ showModal: true });
+              onClick={async () => {
+                if (
+                  crowdsale.phaseContract.isBucketActive &&
+                  !crowdsale.timer.direction
+                ) {
+                  try {
+                    if (wallet.walletClient == undefined) {
+                      await walletConnect();
+                    } else {
+                      setCrowdsale({ showModal: true });
+                    }
+                  } catch (error) {
+                    console.log(error);
+                  }
+                }
               }}
             >
               Buy KSXT Token

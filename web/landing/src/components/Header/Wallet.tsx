@@ -11,8 +11,8 @@ export default function Wallet(props: DefaultProps) {
       <NetworkDropdown disabled={false} />
       <div
         class="token-linear-wipe-button cursor-pointer rounded-full px-4 py-2 text-center font-lexend font-medium text-text-1"
-        onClick={() => {
-          walletConnect();
+        onClick={async () => {
+          await walletConnect();
         }}
       >
         {wallet.address == undefined

@@ -10,14 +10,7 @@ import {
   webSocket,
   WebSocketTransport,
 } from "viem";
-import {
-  Chain,
-  mainnet,
-  polygon,
-  bsc,
-  avalanche,
-  localhost,
-} from "viem/chains";
+import { Chain, mainnet, polygon, bsc, avalanche, hardhat } from "viem/chains";
 import { phaseContractAbi } from "~/components/contracts/phaseContract";
 import {
   EthereumClient,
@@ -27,6 +20,8 @@ import {
 import { Web3Modal } from "@web3modal/html";
 import { configureChains, createConfig } from "@wagmi/core";
 import { createPublicClient, createWalletClient, custom } from "viem";
+import { wethContractAbi } from "~/components/contracts/wethContract";
+import { tokenTicketContractAbi } from "~/components/contracts/tokenTicketContract";
 
 export interface Token {
   icon: string;
@@ -34,25 +29,45 @@ export interface Token {
   symbol: string;
 }
 
-export interface Contract {
+export interface phaseContract {
   address: Address;
   abi: typeof phaseContractAbi;
+}
+
+export interface wethContract {
+  address: Address;
+  abi: typeof wethContractAbi;
+}
+
+export interface tokenTicketContract {
+  address: Address;
+  abi: typeof tokenTicketContractAbi;
 }
 
 export interface Network {
   network: Chain;
   icon: string;
   tokens: Token[];
-  contract: Contract;
+  phaseContract: phaseContract;
+  wethContract: wethContract;
+  tokenTicketContract: tokenTicketContract;
 }
 
 export const availableChains: Network[] = [
   {
     network: mainnet,
     icon: "/gfx/asset_icons/eth.svg",
-    contract: {
+    phaseContract: {
       address: "0xc0c5618f0F3Fa66b496F2940f373DC366d765BAe",
       abi: phaseContractAbi,
+    },
+    wethContract: {
+      address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      abi: wethContractAbi,
+    },
+    tokenTicketContract: {
+      address: "0xb04CB6c52E73CF3e2753776030CE85a36549c9C2",
+      abi: tokenTicketContractAbi,
     },
     tokens: [
       { icon: "/gfx/asset_icons/eth.svg", name: "Ethereum", symbol: "ETH" },
@@ -68,9 +83,17 @@ export const availableChains: Network[] = [
   {
     network: polygon,
     icon: "/gfx/asset_icons/matic.svg",
-    contract: {
+    phaseContract: {
       address: "0xc0c5618f0F3Fa66b496F2940f373DC366d765BAe",
       abi: phaseContractAbi,
+    },
+    wethContract: {
+      address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      abi: wethContractAbi,
+    },
+    tokenTicketContract: {
+      address: "0xb04CB6c52E73CF3e2753776030CE85a36549c9C2",
+      abi: tokenTicketContractAbi,
     },
     tokens: [
       { icon: "/gfx/asset_icons/eth.svg", name: "Ethereum", symbol: "ETH" },
@@ -86,9 +109,17 @@ export const availableChains: Network[] = [
   {
     network: bsc,
     icon: "/gfx/asset_icons/bnb.svg",
-    contract: {
+    phaseContract: {
       address: "0xc0c5618f0F3Fa66b496F2940f373DC366d765BAe",
       abi: phaseContractAbi,
+    },
+    wethContract: {
+      address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      abi: wethContractAbi,
+    },
+    tokenTicketContract: {
+      address: "0xb04CB6c52E73CF3e2753776030CE85a36549c9C2",
+      abi: tokenTicketContractAbi,
     },
     tokens: [
       { icon: "/gfx/asset_icons/eth.svg", name: "Ethereum", symbol: "ETH" },
@@ -104,9 +135,17 @@ export const availableChains: Network[] = [
   {
     network: avalanche,
     icon: "/gfx/asset_icons/avax.svg",
-    contract: {
+    phaseContract: {
       address: "0xc0c5618f0F3Fa66b496F2940f373DC366d765BAe",
       abi: phaseContractAbi,
+    },
+    wethContract: {
+      address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      abi: wethContractAbi,
+    },
+    tokenTicketContract: {
+      address: "0xb04CB6c52E73CF3e2753776030CE85a36549c9C2",
+      abi: tokenTicketContractAbi,
     },
     tokens: [
       { icon: "/gfx/asset_icons/eth.svg", name: "Ethereum", symbol: "ETH" },
@@ -120,11 +159,19 @@ export const availableChains: Network[] = [
     ],
   },
   {
-    network: localhost,
+    network: hardhat,
     icon: "/gfx/asset_icons/leo.svg",
-    contract: {
+    phaseContract: {
       address: "0xc0c5618f0F3Fa66b496F2940f373DC366d765BAe",
       abi: phaseContractAbi,
+    },
+    wethContract: {
+      address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      abi: wethContractAbi,
+    },
+    tokenTicketContract: {
+      address: "0xb04CB6c52E73CF3e2753776030CE85a36549c9C2",
+      abi: tokenTicketContractAbi,
     },
     tokens: [
       { icon: "/gfx/asset_icons/eth.svg", name: "Ethereum", symbol: "ETH" },
@@ -142,20 +189,20 @@ export const availableChains: Network[] = [
 export interface WalletProvider {
   selected_network: Network;
   selected_token: Token;
-  walletClient: WalletClient<CustomTransport, typeof localhost> | undefined;
-  publicClient: PublicClient<HttpTransport, typeof localhost>;
-  publicWSClient: PublicClient<WebSocketTransport, typeof localhost>;
+  walletClient: WalletClient<CustomTransport, typeof hardhat> | undefined;
+  publicClient: PublicClient<HttpTransport, typeof hardhat>;
+  publicWSClient: PublicClient<WebSocketTransport, typeof hardhat>;
   address: Address | undefined;
 }
 
 export const [wallet, setWallet] = createStore<WalletProvider>({
   walletClient: undefined,
   publicClient: createPublicClient({
-    chain: localhost,
+    chain: hardhat,
     transport: http("http://127.0.0.1:8545/"),
   }),
   publicWSClient: createPublicClient({
-    chain: localhost,
+    chain: hardhat,
     transport: webSocket("ws://127.0.0.1:8545/"),
   }),
   address: undefined,
@@ -193,7 +240,7 @@ export const walletConnect = async () => {
   ethereumClient.watchAccount(async (account) => {
     if (account.address && account.connector && account.isConnected) {
       const walletClient = createWalletClient({
-        chain: localhost,
+        chain: hardhat,
         transport: custom(await account.connector.getProvider()),
       });
       setWallet({ walletClient: walletClient });

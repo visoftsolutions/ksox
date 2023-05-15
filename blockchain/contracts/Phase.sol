@@ -208,6 +208,7 @@ contract Phase is Ownable {
     function buyWithETH() public payable {
         require(isPhaseActive, "PHASE_NOT_ACTIVE");
         require(isBucketActive, "BUCKET_NOT_ACTIVE");
+        // require(isBucketActive && block.timestamp >= currentBucketStartTimestamp, "BUCKET_NOT_ACTIVE");
         require(wethAddress != address(0), "TOKEN_NOT_ACCEPTED");
         require(msg.value > 0, "INVALID_AMOUNT");
         if (block.timestamp >= currentBucketEndTimestamp) {
@@ -245,6 +246,7 @@ contract Phase is Ownable {
         require(isPhaseActive, "PHASE_NOT_ACTIVE");
         require(isTokenAccepted[token], "TOKEN_NOT_ACCEPTED");
         require(isBucketActive, "BUCKET_NOT_ACTIVE");
+        // require(isBucketActive && block.timestamp >= currentBucketStartTimestamp, "BUCKET_NOT_ACTIVE");
         require(amount > 0, "INVALID_AMOUNT");
         if (block.timestamp >= currentBucketEndTimestamp) {
             _concludeCurrentBucket();
