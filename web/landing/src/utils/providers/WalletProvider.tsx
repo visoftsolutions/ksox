@@ -58,7 +58,7 @@ export const availableChains: Network[] = [
     network: mainnet,
     icon: "/gfx/asset_icons/eth.svg",
     phaseContract: {
-      address: "0xc0c5618f0F3Fa66b496F2940f373DC366d765BAe",
+      address: "0x9A4fb652B552f9e92bc8af063cbb0B8F80690Dc3",
       abi: phaseContractAbi,
     },
     wethContract: {
@@ -66,7 +66,7 @@ export const availableChains: Network[] = [
       abi: wethContractAbi,
     },
     tokenTicketContract: {
-      address: "0xb04CB6c52E73CF3e2753776030CE85a36549c9C2",
+      address: "0x7442E41B0a85cdAf8540B69714E46E07ffa4fD6e",
       abi: tokenTicketContractAbi,
     },
     tokens: [
@@ -84,7 +84,7 @@ export const availableChains: Network[] = [
     network: polygon,
     icon: "/gfx/asset_icons/matic.svg",
     phaseContract: {
-      address: "0xc0c5618f0F3Fa66b496F2940f373DC366d765BAe",
+      address: "0x9A4fb652B552f9e92bc8af063cbb0B8F80690Dc3",
       abi: phaseContractAbi,
     },
     wethContract: {
@@ -92,7 +92,7 @@ export const availableChains: Network[] = [
       abi: wethContractAbi,
     },
     tokenTicketContract: {
-      address: "0xb04CB6c52E73CF3e2753776030CE85a36549c9C2",
+      address: "0x7442E41B0a85cdAf8540B69714E46E07ffa4fD6e",
       abi: tokenTicketContractAbi,
     },
     tokens: [
@@ -110,7 +110,7 @@ export const availableChains: Network[] = [
     network: bsc,
     icon: "/gfx/asset_icons/bnb.svg",
     phaseContract: {
-      address: "0xc0c5618f0F3Fa66b496F2940f373DC366d765BAe",
+      address: "0x9A4fb652B552f9e92bc8af063cbb0B8F80690Dc3",
       abi: phaseContractAbi,
     },
     wethContract: {
@@ -118,7 +118,7 @@ export const availableChains: Network[] = [
       abi: wethContractAbi,
     },
     tokenTicketContract: {
-      address: "0xb04CB6c52E73CF3e2753776030CE85a36549c9C2",
+      address: "0x7442E41B0a85cdAf8540B69714E46E07ffa4fD6e",
       abi: tokenTicketContractAbi,
     },
     tokens: [
@@ -136,7 +136,7 @@ export const availableChains: Network[] = [
     network: avalanche,
     icon: "/gfx/asset_icons/avax.svg",
     phaseContract: {
-      address: "0xc0c5618f0F3Fa66b496F2940f373DC366d765BAe",
+      address: "0x9A4fb652B552f9e92bc8af063cbb0B8F80690Dc3",
       abi: phaseContractAbi,
     },
     wethContract: {
@@ -144,7 +144,7 @@ export const availableChains: Network[] = [
       abi: wethContractAbi,
     },
     tokenTicketContract: {
-      address: "0xb04CB6c52E73CF3e2753776030CE85a36549c9C2",
+      address: "0x7442E41B0a85cdAf8540B69714E46E07ffa4fD6e",
       abi: tokenTicketContractAbi,
     },
     tokens: [
@@ -162,7 +162,7 @@ export const availableChains: Network[] = [
     network: hardhat,
     icon: "/gfx/asset_icons/leo.svg",
     phaseContract: {
-      address: "0xc0c5618f0F3Fa66b496F2940f373DC366d765BAe",
+      address: "0x9A4fb652B552f9e92bc8af063cbb0B8F80690Dc3",
       abi: phaseContractAbi,
     },
     wethContract: {
@@ -170,7 +170,7 @@ export const availableChains: Network[] = [
       abi: wethContractAbi,
     },
     tokenTicketContract: {
-      address: "0xb04CB6c52E73CF3e2753776030CE85a36549c9C2",
+      address: "0x7442E41B0a85cdAf8540B69714E46E07ffa4fD6e",
       abi: tokenTicketContractAbi,
     },
     tokens: [
@@ -256,10 +256,9 @@ export const walletConnect = async () => {
   });
 
   ethereumClient.watchNetwork(async (network) => {
-    setWallet({
-      selected_network: availableChains.find(
-        (e) => e.network.id == network.chain?.id
-      ),
-    });
+    const net = availableChains.find((e) => e.network.id == network.chain?.id);
+    if (net != undefined) {
+      setWallet({ selected_network: net });
+    }
   });
 };
