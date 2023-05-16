@@ -2,7 +2,8 @@ import { For, Show, createSignal } from "solid-js";
 import { unwrap } from "solid-js/store";
 import { joinPaths } from "solid-start/islands/server-router";
 import { base } from "~/root";
-import { availableChains, useWallet } from "~/utils/providers/WalletProvider";
+import { useWallet } from "~/utils/providers/WalletProvider";
+import { AVAILABLE_CHAINS } from "../contracts/chains";
 
 interface NetworkDropdownProps {
   disabled: boolean;
@@ -29,7 +30,7 @@ export default function NetworkDropdown(props: NetworkDropdownProps) {
       >
         <div>
           <img
-            src={joinPaths(base, wallet.selected_network.icon)}
+            src={joinPaths(base, wallet.selected_network?.icon)}
             alt="network"
             width="25px"
             elementtiming={""}
@@ -54,7 +55,7 @@ export default function NetworkDropdown(props: NetworkDropdownProps) {
             Select Network
           </div>
           <div class="border-[1px] border-solid border-gray-500" />
-          <For each={availableChains}>
+          <For each={AVAILABLE_CHAINS}>
             {(item, index) => (
               <div
                 data-index={index()}

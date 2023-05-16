@@ -1,4 +1,4 @@
-export const wethContractAbi = [
+export const WETH_CONTRACT_ABI = [
   {
     anonymous: false,
     inputs: [

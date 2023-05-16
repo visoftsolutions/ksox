@@ -7,9 +7,20 @@ import {
 } from "~/utils/providers/CrowdsaleProvider";
 import TokenDropdown from "./TokenDropdown";
 import AmountInput from "./AmountInput";
-import { createEffect, createSignal, onCleanup, onMount } from "solid-js";
+import {
+  For,
+  JSX,
+  createEffect,
+  createMemo,
+  createSignal,
+  onCleanup,
+  onMount,
+} from "solid-js";
+import { wallet, walletClientConnect } from "~/utils/providers/WalletProvider";
+import { AVAILABLE_CHAINS } from "../contracts/chains";
 import { unwrap } from "solid-js/store";
-import { wallet, walletConnect } from "~/utils/providers/WalletProvider";
+import { joinPaths } from "solid-start/islands/server-router";
+import { base } from "~/root";
 
 export default function Crowdsale() {
   const crowdsale = useCrowdsale();
@@ -29,7 +40,6 @@ export default function Crowdsale() {
   };
 
   createEffect(() => {
-    console.log(unwrap(crowdsale));
     if (crowdsale.phaseContract.isBucketActive) {
       const now = nowTimestamp();
       const bucketStart = Number(
@@ -47,6 +57,7 @@ export default function Crowdsale() {
         setCrowdsale("phaseContract", () => ({
           isBucketActive: false,
         }));
+        setAmountInputStyle({});
       }
     }
   });
@@ -61,6 +72,18 @@ export default function Crowdsale() {
 
   onCleanup(() => {
     clearInterval(interval);
+  });
+
+  const [amountInputStyle, setAmountInputStyle] =
+    createSignal<JSX.CSSProperties>({});
+
+  const progressFill = createMemo(() => {
+    return crowdsale.phaseContract.currentBucketCapacity
+      ? Number(
+          (crowdsale.phaseContract.currentBucketSoldAmount * 10000n) /
+            crowdsale.phaseContract.currentBucketCapacity
+        ) / 10000
+      : 0;
   });
 
   return (
@@ -137,15 +160,7 @@ export default function Crowdsale() {
           <div class="row-start-2 row-end-3 grid grid-rows-[auto_auto] gap-1 self-center">
             <div>Bucket supply</div>
             <ProgressBar
-              fill={
-                crowdsale.phaseContract.currentBucketCapacity
-                  ? Number(
-                      (crowdsale.phaseContract.currentBucketSoldAmount *
-                        10000n) /
-                        crowdsale.phaseContract.currentBucketCapacity
-                    ) / 10000
-                  : 0
-              }
+              fill={progressFill()}
               disable={!crowdsale.phaseContract.isBucketActive}
             />
           </div>
@@ -153,6 +168,7 @@ export default function Crowdsale() {
           <div class="row-start-3 row-end-4 grid grid-rows-[auto_auto] items-center gap-4 self-end">
             <div class="grid grid-cols-[1fr_auto] items-stretch justify-center gap-2">
               <AmountInput
+                style={amountInputStyle()}
                 disabled={!crowdsale.phaseContract.isBucketActive}
                 onInput={(n) => setCrowdsale({ tokenAmount: n })}
               />
@@ -173,14 +189,17 @@ export default function Crowdsale() {
                   crowdsale.phaseContract.isBucketActive &&
                   !crowdsale.timer.direction
                 ) {
-                  try {
-                    if (wallet.walletClient == undefined) {
-                      await walletConnect();
-                    } else {
-                      setCrowdsale({ showModal: true });
+                  if (crowdsale.tokenAmount) {
+                    setAmountInputStyle({});
+                    if (
+                      wallet.walletClient == undefined ||
+                      wallet.address == undefined
+                    ) {
+                      await walletClientConnect();
                     }
-                  } catch (error) {
-                    console.log(error);
+                    setCrowdsale({ showModal: true });
+                  } else {
+                    setAmountInputStyle({ "border-color": "red" });
                   }
                 }
               }}
@@ -193,16 +212,12 @@ export default function Crowdsale() {
 
       <Divider />
 
-      <div class="grid grid-cols-[1fr_1fr] max-md:grid-cols-[1fr]">
-        <div class="col-start-1 col-end-2 grid grid-rows-[auto_1fr] gap-4">
-          <div class="text-4xl font-medium">The Bucket System</div>
+      <div class="grid grid-cols-[1fr_1fr] items-stretch gap-8 max-md:grid-cols-[1fr] max-md:grid-rows-[auto_auto]">
+        <div class="col-start-1 col-end-2 grid grid-rows-[auto_1fr] items-center gap-4 max-md:col-start-1 max-md:col-end-2 max-md:row-start-1 max-md:row-end-2">
+          <div class="font-lexend text-4xl font-medium">The Bucket System</div>
           <div class="text-xl">
-            <div class="py-1">100% public sale</div>
+            <div class="py-1 text-2xl">100% PUBLIC SALE</div>
             <div class="py-1">No vesting, no pre-allocation</div>
-            <div class="py-1">Token Ticker instantly tradable</div>
-            <div class="py-1">
-              Each bucket has a predetermined, fixed capacity.
-            </div>
             <div class="py-1">
               Checkout{" "}
               <a
@@ -224,7 +239,101 @@ export default function Crowdsale() {
             </div>
           </div>
         </div>
-        <div class="col-start-2 col-end-3 max-md:hidden" />
+        <div class="col-start-2 col-end-3 grid grid-flow-row gap-4 max-md:col-start-1 max-md:col-end-2 max-md:row-start-2 max-md:row-end-3">
+          <div class="py-1 text-2xl">KSXT Token on chains:</div>
+          <For each={AVAILABLE_CHAINS}>
+            {(item, index) => (
+              <div
+                data-index={index()}
+                class="grid grid-cols-[auto_1fr_auto] items-center gap-2"
+              >
+                <div class="col-start-1 col-end-2">
+                  <img
+                    src={joinPaths(base, item.icon)}
+                    width="30px"
+                    elementtiming={""}
+                    fetchpriority={"high"}
+                  />
+                </div>
+                <div class="col-start-2 col-end-3 grid grid-cols-[auto_auto] items-center justify-center gap-4">
+                  <div class="col-start-1 col-end-2 overflow-hidden text-ellipsis">
+                    {item.tokenTicketContract.address}
+                  </div>
+                  <div
+                    class="col-start-2 col-end-3 cursor-pointer rounded-full"
+                    onClick={async () => {
+                      await navigator.clipboard.writeText(
+                        item.tokenTicketContract.address
+                      );
+                    }}
+                  >
+                    <img
+                      src={joinPaths(base, "/gfx/copy.svg")}
+                      width="20px"
+                      elementtiming={""}
+                      fetchpriority={"high"}
+                    />
+                  </div>
+
+                  <div
+                    class="col-start-3 col-end-4 cursor-pointer text-links_new"
+                    onClick={async () => {
+                      if (
+                        wallet.walletClient == undefined ||
+                        wallet.address == undefined
+                      ) {
+                        await walletClientConnect();
+                      }
+
+                      if (
+                        wallet.walletClient != undefined &&
+                        wallet.address != undefined
+                      ) {
+                        try {
+                          await wallet.walletClient.addChain({
+                            chain: unwrap(item.network),
+                          });
+
+                          await wallet.walletClient.switchChain({
+                            id: unwrap(item.network).id,
+                          });
+
+                          const [symbol, decimals] = await Promise.all([
+                            wallet.publicClient.readContract({
+                              address: item.tokenTicketContract.address,
+                              abi: item.tokenTicketContract.abi,
+                              functionName: "symbol",
+                            }),
+                            wallet.publicClient.readContract({
+                              address: item.tokenTicketContract.address,
+                              abi: item.tokenTicketContract.abi,
+                              functionName: "decimals",
+                            }),
+                          ]);
+
+                          await wallet.walletClient.watchAsset({
+                            type: "ERC20",
+                            options: {
+                              address:
+                                wallet.selected_network.tokenTicketContract
+                                  .address,
+                              decimals: decimals,
+                              symbol: symbol,
+                            },
+                          });
+                        } catch (error) {
+                          console.log("Adding token to wallet failed");
+                        }
+                      }
+                    }}
+                  >
+                    Add to wallet
+                  </div>
+                </div>
+              </div>
+            )}
+          </For>
+        </div>
       </div>
 
       <Divider />

@@ -1,7 +1,10 @@
 import { DefaultProps } from "~/utils/interfaces";
 import NetworkDropdown from "../Token/NetworkDropdown";
 import { firstLastChars } from "~/utils/formatters/AddressFormatter";
-import { useWallet, walletConnect } from "~/utils/providers/WalletProvider";
+import {
+  useWallet,
+  walletClientConnect,
+} from "~/utils/providers/WalletProvider";
 
 export default function Wallet(props: DefaultProps) {
   const wallet = useWallet();
@@ -12,7 +15,7 @@ export default function Wallet(props: DefaultProps) {
       <div
         class="token-linear-wipe-button cursor-pointer rounded-full px-4 py-2 text-center font-lexend font-medium text-text-1"
         onClick={async () => {
-          await walletConnect();
+          await walletClientConnect().catch((e) => console.log(e));
         }}
       >
         {wallet.address == undefined

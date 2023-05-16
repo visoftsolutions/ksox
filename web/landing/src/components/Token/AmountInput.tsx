@@ -1,6 +1,7 @@
-import { createUniqueId } from "solid-js";
+import { JSX, createEffect, createUniqueId } from "solid-js";
 
 export interface AmountInputProps {
+  style?: JSX.CSSProperties;
   disabled: boolean;
   onInput(e: number): void;
 }
@@ -11,7 +12,10 @@ export default function AmountInput(props: AmountInputProps) {
   const id = createUniqueId();
 
   return (
-    <div class="bg-gray-1 grid grid-cols-[auto_1fr] items-center rounded-lg border-[1px] border-slate-600">
+    <div
+      class="bg-gray-1 grid grid-cols-[auto_1fr] items-center rounded-lg border-[1px] border-slate-600"
+      style={props.style}
+    >
       <label
         for={id}
         class="text-submit-sublabel text-gray-4 col-start-1 col-end-2 min-w-[50px] px-[8px] text-left"

@@ -1,4 +1,4 @@
-export const phaseContractAbi = [
+export const PHASE_CONTRACT_ABI = [
   {
     inputs: [
       {

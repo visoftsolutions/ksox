@@ -2,17 +2,15 @@ import { createSignal, onMount } from "solid-js";
 import { joinPaths } from "solid-start/islands/server-router";
 import { base } from "~/root";
 import { crowdsale, setCrowdsale } from "~/utils/providers/CrowdsaleProvider";
-import { useWallet, walletConnect } from "~/utils/providers/WalletProvider";
+import {
+  useWallet,
+  walletClientConnect,
+} from "~/utils/providers/WalletProvider";
 
 export function TermsModal() {
-  const [termsChecked, setTermsChecked] = createSignal<boolean>(false);
-
-  const wallet = useWallet();
-
   let modalDOM!: HTMLDivElement;
-  onMount(() => {
-    modalDOM.focus();
-  });
+  const [termsChecked, setTermsChecked] = createSignal<boolean>(false);
+  const wallet = useWallet();
 
   return (
     <div
@@ -109,11 +107,9 @@ export function TermsModal() {
               setCrowdsale({ showModal: false });
               try {
                 if (
-                  wallet.walletClient == undefined ||
-                  wallet.address == undefined
+                  wallet.walletClient != undefined &&
+                  wallet.address != undefined
                 ) {
-                  await walletConnect();
-                } else {
                   const amount = BigInt(
                     Math.floor(crowdsale.tokenAmount * 10 ** 18)
                   );
@@ -136,34 +132,9 @@ export function TermsModal() {
                     value: amount,
                     account: wallet.address,
                   });
-
-                  const [symbol, decimals] = await Promise.all([
-                    wallet.publicClient.readContract({
-                      address:
-                        wallet.selected_network.tokenTicketContract.address,
-                      abi: wallet.selected_network.tokenTicketContract.abi,
-                      functionName: "symbol",
-                    }),
-                    wallet.publicClient.readContract({
-                      address:
-                        wallet.selected_network.tokenTicketContract.address,
-                      abi: wallet.selected_network.tokenTicketContract.abi,
-                      functionName: "decimals",
-                    }),
-                  ]);
-
-                  await wallet.walletClient.watchAsset({
-                    type: "ERC20",
-                    options: {
-                      address:
-                        wallet.selected_network.tokenTicketContract.address,
-                      decimals: decimals,
-                      symbol: symbol,
-                    },
-                  });
                 }
               } catch (error) {
-                console.log(error);
+                console.log("Buying KSXT failed");
               }
             }
           }}

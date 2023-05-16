@@ -2,24 +2,11 @@ import ContactItem from "~/components/Footer/ContactItem";
 
 export default function ContactItems() {
   return (
-    <div class="grid grid-cols-2 grid-rows-2 items-center gap-16 max-md:grid-cols-1 max-md:grid-rows-4">
-      <div class="col-start-1 col-end-2 row-start-1 row-end-2 max-md:col-start-1 max-md:col-end-2 max-md:row-start-1 max-md:row-end-2">
-        <ContactItem imageSrc="/gfx/mail-icon.svg">
-          <div>
-            <p class="font-lexend text-footer-element font-medium text-text-1">
-              ksox.exchange@proton.me
-            </p>
-            <p class="text-center font-lexend text-footer-element-light font-light text-text-2 md:text-start">
-              send us email
-            </p>
-          </div>
-        </ContactItem>
-      </div>
-
+    <div class="grid grid-cols-3 grid-rows-1 items-center gap-16 max-md:grid-cols-1 max-md:grid-rows-4">
       <a
         href="https://twitter.com/KsoxExchange"
         target="_blank"
-        class="col-start-1 col-end-2 row-start-2 row-end-3 max-md:col-start-1 max-md:col-end-2 max-md:row-start-2 max-md:row-end-3"
+        class="col-start-1 col-end-2 row-start-1 row-end-2 max-md:col-start-1 max-md:col-end-2 max-md:row-start-2 max-md:row-end-3"
       >
         <ContactItem imageSrc="/gfx/twitter-icon.svg">
           <div>
@@ -53,7 +40,7 @@ export default function ContactItems() {
       <a
         href="https://t.me/ksox_community"
         target="_blank"
-        class="col-start-2 col-end-3 row-start-2 row-end-3 max-md:col-start-1 max-md:col-end-2 max-md:row-start-4 max-md:row-end-5"
+        class="col-start-3 col-end-4 row-start-1 row-end-2 max-md:col-start-1 max-md:col-end-2 max-md:row-start-4 max-md:row-end-5"
       >
         <ContactItem imageSrc="/gfx/telegram-icon.svg">
           <div>
