@@ -28,9 +28,9 @@ import {
 export interface WalletProvider {
   selected_network: Network;
   selected_token: Token;
-  walletClient: WalletClient<CustomTransport, typeof hardhat> | undefined;
-  publicClient: PublicClient<HttpTransport, typeof hardhat>;
-  publicWSClient: PublicClient<WebSocketTransport, typeof hardhat>;
+  walletClient: WalletClient<CustomTransport, typeof mainnet> | undefined;
+  publicClient: PublicClient<HttpTransport, typeof mainnet>;
+  publicWSClient: PublicClient<WebSocketTransport, typeof mainnet>;
   address: Address | undefined;
 }
 
@@ -38,16 +38,16 @@ export const [wallet, setWallet] = createStore<WalletProvider>({
   walletClient: undefined,
   address: undefined,
   publicClient: createPublicClient({
-    chain: hardhat,
-    // chain: mainnet,
-    transport: http("http://127.0.0.1:8545/"),
-    // transport: http("https://eth-goerli.g.alchemy.com/v2/YBzQbzNel58NfEmy574HdQ2hPKjfO93g"),
+    // chain: hardhat,
+    chain: mainnet,
+    // transport: http("http://127.0.0.1:8545/"),
+    transport: http("https://eth-goerli.g.alchemy.com/v2/YBzQbzNel58NfEmy574HdQ2hPKjfO93g"),
   }),
   publicWSClient: createPublicClient({
-    chain: hardhat,
-    // chain: mainnet,
-    transport: webSocket("ws://127.0.0.1:8545/"),
-    // transport: webSocket("wss://eth-goerli.g.alchemy.com/v2/YBzQbzNel58NfEmy574HdQ2hPKjfO93g"),
+    // chain: hardhat,
+    chain: mainnet,
+    // transport: webSocket("ws://127.0.0.1:8545/"),
+    transport: webSocket("wss://eth-goerli.g.alchemy.com/v2/YBzQbzNel58NfEmy574HdQ2hPKjfO93g"),
   }),
   selected_network: AVAILABLE_CHAINS[0],
   selected_token: AVAILABLE_CHAINS[0].tokens[0],
@@ -83,7 +83,7 @@ export const walletClientConnect = async () => {
   ethereumClient.watchAccount(async (account) => {
     if (account.address && account.connector && account.isConnected) {
       const walletClient = createWalletClient({
-        chain: hardhat,
+        chain: mainnet,
         transport: custom(await account.connector.getProvider()),
       });
       console.log(account);

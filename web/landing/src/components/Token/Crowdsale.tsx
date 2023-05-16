@@ -91,8 +91,7 @@ export default function Crowdsale() {
       <div class="row-start-1 row-end-2 grid grid-rows-[auto_auto] gap-2 text-center font-medium">
         <div class="text-5xl">KSXT Crowdsale</div>
         <div class="text-xl">
-          {crowdsale.phaseContract.name} -{" "}
-          {crowdsale.phaseContract.isPhaseActive ? "active" : "inactive"}
+          {crowdsale.phaseContract.isPhaseActive ? crowdsale.phaseContract.name+" - active" : "inactive"}
         </div>
       </div>
 
