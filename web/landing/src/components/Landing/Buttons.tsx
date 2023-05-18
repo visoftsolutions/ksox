@@ -13,7 +13,7 @@ export default function Buttons() {
         </div>
       </a>
       <A
-        href="#section-1"
+        href="#safety"
         class="col-start-2 col-end-3 row-start-1 row-end-2 max-md:col-start-1 max-md:col-end-2 max-md:row-start-2 max-md:row-end-3"
       >
         <div class="rounded-full border-2 border-solid border-text-1 p-[10px_32px] text-center font-lexend text-hero-button font-medium text-text-1 hover:bg-buttonbg_new md:p-[16px_40px]">

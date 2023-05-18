@@ -1,4 +1,4 @@
-import { PublicClient } from "@wagmi/core";
+import { GetAccountResult, GetNetworkResult, PublicClient } from "@wagmi/core";
 import { createContext, JSX, useContext } from "solid-js";
 import { createStore } from "solid-js/store";
 import {
@@ -66,6 +66,25 @@ export function useWallet() {
 
 const projectId = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID;
 
+const walletAccount = async (account: GetAccountResult<PublicClient>) => {
+  if (account.address && account.connector && account.isConnected) {
+    const walletClient = createWalletClient({
+      chain: mainnet,
+      transport: custom(await account.connector.getProvider()),
+    });
+    setWallet({ walletClient: walletClient, address: account.address });
+  } else {
+    setWallet({ walletClient: undefined, address: undefined });
+  }
+}
+
+const walletNetwork = async (network: GetNetworkResult) => {
+  const net = AVAILABLE_CHAINS.find((e) => e.network.id == network.chain?.id);
+    if (net != undefined) {
+      setWallet({ selected_network: net });
+    }
+}
+
 export const walletClientConnect = async () => {
   const { publicClient, chains } = configureChains(
     AVAILABLE_CHAINS.map((e) => e.network),
@@ -80,23 +99,6 @@ export const walletClientConnect = async () => {
   const web3modal = new Web3Modal({ projectId }, ethereumClient);
   await web3modal.openModal();
 
-  ethereumClient.watchAccount(async (account) => {
-    if (account.address && account.connector && account.isConnected) {
-      const walletClient = createWalletClient({
-        chain: mainnet,
-        transport: custom(await account.connector.getProvider()),
-      });
-      console.log(account);
-      setWallet({ walletClient: walletClient, address: account.address });
-    } else {
-      setWallet({ walletClient: undefined, address: undefined });
-    }
-  });
-
-  ethereumClient.watchNetwork(async (network) => {
-    const net = AVAILABLE_CHAINS.find((e) => e.network.id == network.chain?.id);
-    if (net != undefined) {
-      setWallet({ selected_network: net });
-    }
-  });
+  ethereumClient.watchAccount(async (account) => await walletAccount(account));
+  ethereumClient.watchNetwork(async (network) => await walletNetwork(network));
 };

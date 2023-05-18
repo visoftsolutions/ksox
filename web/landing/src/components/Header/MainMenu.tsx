@@ -1,3 +1,4 @@
+import { A } from "@solidjs/router";
 import { DefaultProps } from "~/utils/interfaces";
 import { useCrowdsale } from "~/utils/providers/CrowdsaleProvider";
 
@@ -13,7 +14,7 @@ export default function MainMenu(props: DefaultProps) {
       >
         Launch App
       </a>
-      <a
+      <A
         class={`main-menu-button font-extrabold ${
           crowdsale.phaseContract.isPhaseActive
             ? "token-linear-wipe-text"
@@ -22,7 +23,7 @@ export default function MainMenu(props: DefaultProps) {
         href="/token"
       >
         Buy Token
-      </a>
+      </A>
       <a
         class="main-menu-button font-medium text-links_new hover:text-text-1"
         href="/whitepaper/ksox-whitepaper.pdf"
@@ -32,13 +33,13 @@ export default function MainMenu(props: DefaultProps) {
       </a>
       <a
         class="main-menu-button font-medium text-links_new hover:text-text-1"
-        href="/#section-1"
+        href="/#safety"
       >
         About KSOX
       </a>
       <a
         class="main-menu-button font-medium text-links_new hover:text-text-1"
-        href="#section-4"
+        href="#contact"
       >
         Contact
       </a>

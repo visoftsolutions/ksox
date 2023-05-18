@@ -13,8 +13,8 @@ export default function Main() {
       <Spacing class="h-12" />
 
       <Section
-        sectionId="section-1"
-        sectionToId="section-2"
+        sectionId="safety"
+        sectionToId="zk-STARK"
         imagePath="/gfx/section01.webp"
         class="md:flex-row"
       >
@@ -37,8 +37,8 @@ export default function Main() {
       <Spacing class="h-16" />
 
       <Section
-        sectionId="section-2"
-        sectionToId="section-3"
+        sectionId="zk-STARK"
+        sectionToId="technology-stack"
         imagePath="/gfx/section02.webp"
         class="md:flex-row-reverse"
       >
@@ -62,8 +62,8 @@ export default function Main() {
       <Spacing class="h-16" />
 
       <Section
-        sectionId="section-3"
-        sectionToId="section-4"
+        sectionId="technology-stack"
+        sectionToId="contact"
         imagePath="/gfx/section03.webp"
         class="md:flex-row"
       >

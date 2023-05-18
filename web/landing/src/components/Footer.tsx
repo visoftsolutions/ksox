@@ -4,7 +4,7 @@ import Text from "~/components/Footer/Text";
 
 export default function Footer() {
   return (
-    <section id="section-4">
+    <section id="contact">
       <footer>
         <div class="flex flex-col items-center justify-around">
           <Text />

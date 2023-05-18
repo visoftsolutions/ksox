@@ -10,7 +10,7 @@ export default function Section(
   }
 ) {
   return (
-    <section id={props.sectionId}>
+    <section id={props.sectionId} class="scroll-mt-36">
       <div class={`flex flex-col items-center justify-between ${props.class}`}>
         <div class="flex-1">
           <img
