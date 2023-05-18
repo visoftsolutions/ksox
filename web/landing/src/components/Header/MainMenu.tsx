@@ -1,4 +1,4 @@
-import { A } from "@solidjs/router";
+import { A } from "solid-start";
 import { DefaultProps } from "~/utils/interfaces";
 import { useCrowdsale } from "~/utils/providers/CrowdsaleProvider";
 
