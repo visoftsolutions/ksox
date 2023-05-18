@@ -31,7 +31,7 @@ export default function SellForm(props: { market?: Market; available_balance?: F
       const base_asset_volume = fmin(max_base_asset_volume, storeComponent.base_asset_volume);
       return {
         base_asset_volume,
-        quote_asset_volume: fmul(base_asset_volume, storeComponent.price)
+        quote_asset_volume: storeComponent.price.numer != 0n ? fmul(base_asset_volume, storeComponent.price) : { numer: 0n, denom: 1n }
       };
     })
     setStoreComponent("base_asset_volume", base_asset_volume);
@@ -53,7 +53,7 @@ export default function SellForm(props: { market?: Market; available_balance?: F
         value={storeComponent.price}
         onChange={(price_val) => {
           setStoreComponent("price", price_val);
-          setStoreComponent("quote_asset_volume", fmul(storeComponent.base_asset_volume, price_val));
+          setStoreComponent("quote_asset_volume", price_val.numer != 0n ? fmul(storeComponent.base_asset_volume, price_val) : { numer: 0n, denom: 1n });
         }}
         precision={props.precision ?? 2}
         left={"Price"}
@@ -61,12 +61,12 @@ export default function SellForm(props: { market?: Market; available_balance?: F
       />
       <NumberInput
         class="my-[4px] bg-gray-1 p-1 text-submit-label"
-        value={fmin(storeComponent.base_asset_volume, props.available_balance ?? { numer: 0n, denom: 1n })}
+        value={storeComponent.base_asset_volume}
         onChange={(base_val) => {
           const max_base_asset_volume = props.available_balance ?? { numer: 0n, denom: 1n };
           const base_asset_volume = fmin(max_base_asset_volume, base_val);
           setStoreComponent("base_asset_volume", base_asset_volume);
-          const quote_asset_volume = fmul(base_asset_volume, storeComponent.price)
+          const quote_asset_volume = storeComponent.price.numer != 0n ? fmul(base_asset_volume, storeComponent.price) : { numer: 0n, denom: 1n };
           setStoreComponent("quote_asset_volume", quote_asset_volume);
           setStoreComponent("slider", fmul(base_asset_volume, finv(max_base_asset_volume)));
         }}
@@ -81,7 +81,7 @@ export default function SellForm(props: { market?: Market; available_balance?: F
           const max_base_asset_volume = props.available_balance ?? { numer: 0n, denom: 1n };
           const base_asset_volume = fmul(max_base_asset_volume, slider_val);
           setStoreComponent("base_asset_volume", base_asset_volume);
-          const quote_asset_volume = fmul(base_asset_volume, storeComponent.price);
+          const quote_asset_volume = storeComponent.price.numer != 0n ? fmul(base_asset_volume, storeComponent.price) : { numer: 0n, denom: 1n };
           setStoreComponent("quote_asset_volume", quote_asset_volume);
         }}
       />

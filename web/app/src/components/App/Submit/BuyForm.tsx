@@ -7,7 +7,7 @@ import SubmitRectangularButton from "./SubmitButton";
 import NumberInput from "~/components/Inputs/NumberInput";
 import Slider from "~/components/Inputs/Slider";
 import { Market } from "~/utils/providers/MarketProvider";
-import { Fraction, ev, fFromBigint, finv, fmax, fmin, fmul } from "~/types/primitives/fraction";
+import { Fraction, ev, fFromBigint, finv, fmin, fmul } from "~/types/primitives/fraction";
 import { createEffect, untrack } from "solid-js";
 
 interface FormValues {
@@ -31,7 +31,7 @@ export default function BuyForm(props: { market?: Market; available_balance?: Fr
       const quote_asset_volume = fmin(max_quote_asset_volume, storeComponent.quote_asset_volume)
       return {
         quote_asset_volume,
-        base_asset_volume: fmul(quote_asset_volume, finv(storeComponent.price))
+        base_asset_volume: storeComponent.price.numer != 0n ? fmul(quote_asset_volume, finv(storeComponent.price)) : { numer: 0n, denom: 1n }
       };
     })
     setStoreComponent("quote_asset_volume", quote_asset_volume);
@@ -53,7 +53,7 @@ export default function BuyForm(props: { market?: Market; available_balance?: Fr
         value={storeComponent.price}
         onChange={(price_val) => {
           setStoreComponent("price", price_val);
-          setStoreComponent("base_asset_volume", fmul(storeComponent.quote_asset_volume, finv(price_val)));
+          setStoreComponent("base_asset_volume", price_val.numer != 0n ? fmul(storeComponent.quote_asset_volume, finv(price_val)) : { numer: 0n, denom: 1n });
         }}
         precision={props.precision ?? 2}
         left={"Price"}
@@ -82,7 +82,7 @@ export default function BuyForm(props: { market?: Market; available_balance?: Fr
           const max_quote_asset_volume = props.available_balance ?? { numer: 0n, denom: 1n };
           const quote_asset_volume = fmul(max_quote_asset_volume, slider_val);
           setStoreComponent("quote_asset_volume", quote_asset_volume);
-          const base_asset_volume = fmul(quote_asset_volume, finv(storeComponent.price));
+          const base_asset_volume = storeComponent.price.numer != 0n ? fmul(quote_asset_volume, finv(storeComponent.price)) : { numer: 0n, denom: 1n };
           setStoreComponent("base_asset_volume", base_asset_volume);
         }}
       />
@@ -93,7 +93,7 @@ export default function BuyForm(props: { market?: Market; available_balance?: Fr
           const max_quote_asset_volume = props.available_balance ?? { numer: 0n, denom: 1n };
           const quote_asset_volume = fmin(max_quote_asset_volume, quote_val);
           setStoreComponent("quote_asset_volume", quote_asset_volume);
-          const base_asset_volume = fmul(quote_asset_volume, finv(storeComponent.price));
+          const base_asset_volume = storeComponent.price.numer != 0n ? fmul(quote_asset_volume, finv(storeComponent.price)) : { numer: 0n, denom: 1n };
           setStoreComponent("base_asset_volume", base_asset_volume);
           setStoreComponent("slider", fmul(quote_asset_volume, finv(max_quote_asset_volume)));
         }}
