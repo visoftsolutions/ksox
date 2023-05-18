@@ -8,6 +8,7 @@ import NumberInput from "~/components/Inputs/NumberInput";
 import Slider from "~/components/Inputs/Slider";
 import { Market } from "~/utils/providers/MarketProvider";
 import { Fraction, ev, fFromBigint, finv, fmin, fmul } from "~/types/primitives/fraction";
+import { createEffect, untrack } from "solid-js";
 
 interface FormValues {
   price: Fraction;
@@ -23,6 +24,20 @@ export default function SellForm(props: { market?: Market; available_balance?: F
     base_asset_volume: fFromBigint(0n),
     quote_asset_volume: fFromBigint(0n),
   });
+
+  createEffect(() => {          
+    const max_base_asset_volume = props.available_balance ?? { numer: 0n, denom: 1n };
+    const {quote_asset_volume, base_asset_volume} = untrack(() => {
+      const base_asset_volume = fmin(max_base_asset_volume, storeComponent.base_asset_volume);
+      return {
+        base_asset_volume,
+        quote_asset_volume: fmul(base_asset_volume, storeComponent.price)
+      };
+    })
+    setStoreComponent("base_asset_volume", base_asset_volume);
+    setStoreComponent("quote_asset_volume", quote_asset_volume);
+    setStoreComponent("slider", fmul(base_asset_volume, finv(max_base_asset_volume)));
+  })
 
   return (
     <div>
@@ -46,15 +61,14 @@ export default function SellForm(props: { market?: Market; available_balance?: F
       />
       <NumberInput
         class="my-[4px] bg-gray-1 p-1 text-submit-label"
-        value={storeComponent.base_asset_volume}
+        value={fmin(storeComponent.base_asset_volume, props.available_balance ?? { numer: 0n, denom: 1n })}
         onChange={(base_val) => {
           const max_base_asset_volume = props.available_balance ?? { numer: 0n, denom: 1n };
-          const max_quote_asset_volume = fmul(max_base_asset_volume, storeComponent.price);
           const base_asset_volume = fmin(max_base_asset_volume, base_val);
           setStoreComponent("base_asset_volume", base_asset_volume);
-          const quote_asset_volume = fmin(fmul(base_asset_volume, storeComponent.price), max_quote_asset_volume);
+          const quote_asset_volume = fmul(base_asset_volume, storeComponent.price)
           setStoreComponent("quote_asset_volume", quote_asset_volume);
-          setStoreComponent("slider", fmul(quote_asset_volume, finv(max_quote_asset_volume)));
+          setStoreComponent("slider", fmul(base_asset_volume, finv(max_base_asset_volume)));
         }}
         precision={props.precision ?? 2}
         left={"Quantity"}
@@ -81,7 +95,7 @@ export default function SellForm(props: { market?: Market; available_balance?: F
           setStoreComponent("quote_asset_volume", quote_asset_volume);
           const base_asset_volume = fmin(fmul(quote_asset_volume, finv(storeComponent.price)), max_base_asset_volume);
           setStoreComponent("base_asset_volume", base_asset_volume);
-          setStoreComponent("slider", fmul(quote_asset_volume, finv(max_quote_asset_volume)));
+          setStoreComponent("slider", fmul(base_asset_volume, finv(max_base_asset_volume)));
         }}
         precision={props.precision ?? 2}
         left={"Value"}
@@ -108,9 +122,6 @@ export default function SellForm(props: { market?: Market; available_balance?: F
               (_, v) => (typeof v === "bigint" ? v.toString() : v)
             ),
           }).then((r) => r.text());
-          setStoreComponent("slider", { numer: 0n, denom: 1n });
-          setStoreComponent("base_asset_volume", { numer: 0n, denom: 1n });
-          setStoreComponent("quote_asset_volume", { numer: 0n, denom: 1n });
         }}
       >
         Sell

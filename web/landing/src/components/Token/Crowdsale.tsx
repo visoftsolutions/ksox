@@ -10,6 +10,7 @@ import AmountInput from "./AmountInput";
 import {
   For,
   JSX,
+  Show,
   createEffect,
   createMemo,
   createSignal,
@@ -211,11 +212,10 @@ export default function Crowdsale() {
 
       <Divider />
 
-      <div class="grid grid-cols-[1fr_1fr] items-stretch gap-8 max-md:grid-cols-[1fr] max-md:grid-rows-[auto_auto]">
-        <div class="col-start-1 col-end-2 grid grid-rows-[auto_1fr] items-center gap-4 max-md:col-start-1 max-md:col-end-2 max-md:row-start-1 max-md:row-end-2">
-          <div class="font-lexend text-4xl font-medium">The Bucket System</div>
+      <div class="grid grid-cols-[1fr_1fr] gap-12 max-md:grid-cols-[1fr] max-md:grid-rows-[auto_auto]">
+        <div class="col-start-1 col-end-2 grid gap-4 max-md:col-start-1 max-md:col-end-2 max-md:row-start-1 max-md:row-end-2">
           <div class="text-xl">
-            <div class="py-1 text-2xl">100% PUBLIC SALE</div>
+            <div class="py-1 text-2xl font-bold">100% PUBLIC SALE</div>
             <div class="py-1">No vesting, no pre-allocation</div>
             <div class="py-1">
               Checkout{" "}
@@ -239,7 +239,7 @@ export default function Crowdsale() {
           </div>
         </div>
         <div class="col-start-2 col-end-3 grid grid-flow-row gap-4 max-md:col-start-1 max-md:col-end-2 max-md:row-start-2 max-md:row-end-3">
-          <div class="py-1 text-2xl">KSXT Token on chains:</div>
+          <div class="py-1 text-2xl font-bold">KSXT Token on chains:</div>
           <For each={AVAILABLE_CHAINS}>
             {(item, index) => (
               <div
@@ -254,7 +254,7 @@ export default function Crowdsale() {
                     fetchpriority={"high"}
                   />
                 </div>
-                <div class="col-start-2 col-end-3 grid grid-cols-[auto_auto] items-center justify-center gap-4">
+                <div class="col-start-2 col-end-3 grid grid-cols-[auto_auto_105px] items-center justify-center gap-4">
                   <div class="col-start-1 col-end-2 overflow-hidden text-ellipsis">
                     {item.tokenTicketContract.address}
                   </div>
@@ -274,16 +274,10 @@ export default function Crowdsale() {
                     />
                   </div>
 
+                  <Show when={wallet.walletClient != undefined && wallet.address != undefined}>
                   <div
                     class="col-start-3 col-end-4 cursor-pointer text-links_new"
                     onClick={async () => {
-                      if (
-                        wallet.walletClient == undefined ||
-                        wallet.address == undefined
-                      ) {
-                        await walletClientConnect();
-                      }
-
                       if (
                         wallet.walletClient != undefined &&
                         wallet.address != undefined
@@ -328,6 +322,7 @@ export default function Crowdsale() {
                   >
                     Add to wallet
                   </div>
+                  </Show>
                 </div>
               </div>
             )}

@@ -1,5 +1,5 @@
 import { JSX, createUniqueId } from "solid-js";
-import { Fraction, ev, fFromBigint, fmul } from "~/types/primitives/fraction";
+import { Fraction, ev, fFromBigint, fmax, fmin, fmul } from "~/types/primitives/fraction";
 
 export interface SliderComponent {
   value: Fraction;
@@ -60,7 +60,7 @@ export default function Slider(props: SliderComponent) {
           min={0}
           max={1000}
           step={1}
-          value={ev(fmul(props.value, fFromBigint(1000n)))}
+          value={ev(fmul(fmin(fmax(props.value, fFromBigint(0n)), fFromBigint(1n)), fFromBigint(1000n)))}
           ref={sliderDOM}
           disabled={props.disabled}
           onMouseDown={() => {

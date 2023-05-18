@@ -7,7 +7,8 @@ import SubmitRectangularButton from "./SubmitButton";
 import NumberInput from "~/components/Inputs/NumberInput";
 import Slider from "~/components/Inputs/Slider";
 import { Market } from "~/utils/providers/MarketProvider";
-import { Fraction, ev, fFromBigint, finv, fmin, fmul } from "~/types/primitives/fraction";
+import { Fraction, ev, fFromBigint, finv, fmax, fmin, fmul } from "~/types/primitives/fraction";
+import { createEffect, untrack } from "solid-js";
 
 interface FormValues {
   price: Fraction;
@@ -23,6 +24,20 @@ export default function BuyForm(props: { market?: Market; available_balance?: Fr
     base_asset_volume: fFromBigint(0n),
     quote_asset_volume: fFromBigint(0n),
   });
+
+  createEffect(() => {          
+    const max_quote_asset_volume = props.available_balance ?? { numer: 0n, denom: 1n };
+    const {quote_asset_volume, base_asset_volume} = untrack(() => {
+      const quote_asset_volume = fmin(max_quote_asset_volume, storeComponent.quote_asset_volume)
+      return {
+        quote_asset_volume,
+        base_asset_volume: fmul(quote_asset_volume, finv(storeComponent.price))
+      };
+    })
+    setStoreComponent("quote_asset_volume", quote_asset_volume);
+    setStoreComponent("base_asset_volume", base_asset_volume);
+    setStoreComponent("slider", fmul(quote_asset_volume, finv(max_quote_asset_volume)));
+  })
 
   return (
     <div>
@@ -107,9 +122,6 @@ export default function BuyForm(props: { market?: Market; available_balance?: Fr
               (_, v) => (typeof v === "bigint" ? v.toString() : v)
             ),
           }).then((r) => r.text());
-          setStoreComponent("slider", { numer: 0n, denom: 1n });
-          setStoreComponent("base_asset_volume", { numer: 0n, denom: 1n });
-          setStoreComponent("quote_asset_volume", { numer: 0n, denom: 1n });
         }}
       >
         Buy
