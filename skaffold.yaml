@@ -38,8 +38,8 @@ manifests:
   rawYaml:
     - ./k8s/*
     - ./blockchain/k8s/*
-    # - ./postgres/k8s/*
-    # - ./redis/k8s/*
-    # - ./server/k8s/*
-    # - ./web/app/k8s/*
-    # - ./web/landing/k8s/*
+    - ./postgres/k8s/*
+    - ./redis/k8s/*
+    - ./server/k8s/*
+    - ./web/app/k8s/*
+    - ./web/landing/k8s/*
