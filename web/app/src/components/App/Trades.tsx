@@ -12,6 +12,7 @@ import { api } from "~/root";
 import { Asset } from "~/types/asset";
 import { Market } from "~/utils/providers/MarketProvider";
 import { ev, finv, fmul } from "~/types/primitives/fraction";
+import subscribeEvents from "~/utils/subscribeEvents";
 
 export default function CreateTrades(market: Market, precision?: number, capacity?: number) {
   return () => (
@@ -24,9 +25,9 @@ export default function CreateTrades(market: Market, precision?: number, capacit
 export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precision?: number; capacity?: number }) {
   const [tradesState, setTradesState] = createStore<{ trades: TriElementComponent[] }>({ trades: [] });
 
-  let events: EventSource | null = null;
+  let eventsource: EventSource | undefined;
 
-  onMount(() => {
+  onMount(async () => {
     if (props.quote_asset && props.base_asset && props.precision && props.capacity) {
       const quote_asset = props.quote_asset;
       const base_asset = props.base_asset;
@@ -41,36 +42,19 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
         };
       };
 
-      events = new EventSource(
-        `${api}/public/trades/sse?${params({
-          quote_asset_id: quote_asset.id,
-          base_asset_id: base_asset.id,
-        })}`
-      );
-      events.onopen = async () =>
-        await fetch(
-          `${api}/public/trades?${params({
-            quote_asset_id: quote_asset.id,
-            base_asset_id: base_asset.id,
-            limit: capacity,
-            offset: 0,
-          })}`
-        )
-          .then((r) => r.json())
-          .then((r) => z.array(PublicTrade).parse(r))
-          .then((r) => r.map<TriElementComponent | undefined>((e) => convertTrade(e)).filter((e): e is TriElementComponent => !!e))
-          .then((r) => setTradesState("trades", (prev) => [...prev, ...r].slice(0, props.capacity)));
-      events.onmessage = (ev) => {
-        const trades = PublicTrade.array().parse(JSON.parse(ev.data)).map(convertTrade);
-        if (trades) {
-          setTradesState("trades", (prev) => [...trades, ...prev].slice(0, props.capacity));
+      eventsource = await subscribeEvents(
+        `${api}/public/trades`,
+        params({ quote_asset_id: quote_asset.id, base_asset_id: base_asset.id, limit: capacity, offset: 0 }),
+        params({ quote_asset_id: quote_asset.id, base_asset_id: base_asset.id }),
+        (data) => {
+          setTradesState("trades", (prev) => [...prev, ...z.array(PublicTrade).parse(data).map(convertTrade)].slice(0, props.capacity));
         }
-      };
+      );
     }
   });
 
   onCleanup(() => {
-    events?.close();
+    eventsource?.close();
   });
 
   return (

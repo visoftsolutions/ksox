@@ -25,19 +25,19 @@ export default function SellForm(props: { market?: Market; available_balance?: F
     quote_asset_volume: fFromBigint(0n),
   });
 
-  createEffect(() => {          
+  createEffect(() => {
     const max_base_asset_volume = props.available_balance ?? { numer: 0n, denom: 1n };
-    const {quote_asset_volume, base_asset_volume} = untrack(() => {
+    const { quote_asset_volume, base_asset_volume } = untrack(() => {
       const base_asset_volume = fmin(max_base_asset_volume, storeComponent.base_asset_volume);
       return {
         base_asset_volume,
-        quote_asset_volume: storeComponent.price.numer != 0n ? fmul(base_asset_volume, storeComponent.price) : { numer: 0n, denom: 1n }
+        quote_asset_volume: storeComponent.price.numer != 0n ? fmul(base_asset_volume, storeComponent.price) : { numer: 0n, denom: 1n },
       };
-    })
+    });
     setStoreComponent("base_asset_volume", base_asset_volume);
     setStoreComponent("quote_asset_volume", quote_asset_volume);
     setStoreComponent("slider", fmul(base_asset_volume, finv(max_base_asset_volume)));
-  })
+  });
 
   return (
     <div>
@@ -104,7 +104,7 @@ export default function SellForm(props: { market?: Market; available_balance?: F
       <SubmitRectangularButton
         class="my-[12px] bg-red"
         onClick={async () => {
-          const response = await fetch(`${api}/private/submit`, {
+          await fetch(`${api}/private/submit`, {
             method: "POST",
             headers: {
               Accept: "application/json",

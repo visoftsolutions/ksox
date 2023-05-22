@@ -92,7 +92,9 @@ export default function Crowdsale() {
       <div class="row-start-1 row-end-2 grid grid-rows-[auto_auto] gap-2 text-center font-medium">
         <div class="text-5xl">KSXT Crowdsale</div>
         <div class="text-xl">
-          {crowdsale.phaseContract.isPhaseActive ? crowdsale.phaseContract.name+" - active" : "inactive"}
+          {crowdsale.phaseContract.isPhaseActive
+            ? crowdsale.phaseContract.name + " - active"
+            : "inactive"}
         </div>
       </div>
 
@@ -275,6 +277,7 @@ export default function Crowdsale() {
                     />
                   </div> */}
 
+<<<<<<< HEAD
                   {/* <Show when={wallet.walletClient != undefined && wallet.address != undefined}>
                   <div
                     class="col-start-3 col-end-4 cursor-pointer text-links_new"
@@ -324,6 +327,62 @@ export default function Crowdsale() {
                     Add to wallet
                   </div>
                   </Show> */}
+=======
+                  <Show
+                    when={
+                      wallet.walletClient != undefined &&
+                      wallet.address != undefined
+                    }
+                  >
+                    <div
+                      class="col-start-3 col-end-4 cursor-pointer text-links_new"
+                      onClick={async () => {
+                        if (
+                          wallet.walletClient != undefined &&
+                          wallet.address != undefined
+                        ) {
+                          try {
+                            await wallet.walletClient.addChain({
+                              chain: unwrap(item.network),
+                            });
+
+                            await wallet.walletClient.switchChain({
+                              id: unwrap(item.network).id,
+                            });
+
+                            const [symbol, decimals] = await Promise.all([
+                              wallet.publicClient.readContract({
+                                address: item.tokenTicketContract.address,
+                                abi: item.tokenTicketContract.abi,
+                                functionName: "symbol",
+                              }),
+                              wallet.publicClient.readContract({
+                                address: item.tokenTicketContract.address,
+                                abi: item.tokenTicketContract.abi,
+                                functionName: "decimals",
+                              }),
+                            ]);
+
+                            await wallet.walletClient.watchAsset({
+                              type: "ERC20",
+                              options: {
+                                address:
+                                  wallet.selected_network.tokenTicketContract
+                                    .address,
+                                decimals: decimals,
+                                symbol: symbol,
+                              },
+                            });
+                          } catch (error) {
+                            console.log("Adding token to wallet failed");
+                          }
+                        }
+                      }}
+                    >
+                      Add to wallet
+                    </div>
+                  </Show>
+>>>>>>> 46e4512 (subscribeEvents)
                 </div>
               </div>
             )}

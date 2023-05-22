@@ -14,9 +14,11 @@ import { formatTemplate } from "~/utils/precision";
 import { joinPaths } from "solid-start/islands/server-router";
 import { ev, finv, fmul } from "~/types/primitives/fraction";
 import { Direction } from "~/types/primitives/direction";
+import subscribeEvents from "~/utils/subscribeEvents";
 
 interface OpenOrder {
   id: Uuid;
+  is_active: boolean;
   order_time: Date;
   asset_pair: [Asset | undefined, Asset | undefined];
   direction: Direction;
@@ -50,9 +52,9 @@ export function OpenOrders(props: { market?: Market; session?: ValidateSignature
   const assets = useAssets();
   const [openOrders, setOpenOrders] = createStore<{ [key: Uuid]: OpenOrder }>({});
 
-  let events: EventSource | null = null;
+  let eventsource: EventSource | undefined;
 
-  onMount(() => {
+  onMount(async () => {
     if (props.market?.quote_asset && props.market?.base_asset && props.capacity && assets()) {
       const capacity = props.capacity;
 
@@ -65,6 +67,7 @@ export function OpenOrders(props: { market?: Market; session?: ValidateSignature
         const asset_pair: [Asset | undefined, Asset | undefined] = [assets().get(order.base_asset_id), assets().get(order.quote_asset_id)];
         return {
           id: order.id,
+          is_active: order.is_active,
           order_time: order.created_at,
           asset_pair: asset_pair,
           direction: order.direction,
@@ -75,38 +78,20 @@ export function OpenOrders(props: { market?: Market; session?: ValidateSignature
         };
       };
 
-      events = new EventSource(`${api}/private/active/sse`, { withCredentials: true });
-      events.onopen = async () =>
-        await fetch(
-          `${api}/private/active?${params({
-            limit: capacity,
-            offset: 0,
-          })}`,
-          { credentials: "same-origin" }
-        )
-          .then((r) => r.json())
-          .then((r) => z.array(PrivateOrder).parse(r))
-          .then((r) => r.map<OpenOrder | undefined>((e) => convertOpenOrder(e)).filter((e): e is OpenOrder => !!e))
-          .then((r) => batch(() => r.forEach((e) => setOpenOrders({ [e.id]: e }))));
-      events.onmessage = (ev) => {
-        PrivateOrder.array()
-          .parse(JSON.parse(ev.data))
-          .forEach((e) => {
-            if (!e.is_active) {
-              setOpenOrders({ [e.id]: undefined });
-            } else {
-              const r = convertOpenOrder(e);
-              if (r) {
-                setOpenOrders({ [r.id]: r });
-              }
-            }
-          });
-      };
+      eventsource = await subscribeEvents(`${api}/private/active`, params({ limit: capacity, offset: 0 }), params({}), (data) => {
+        batch(() =>
+          z
+            .array(PrivateOrder)
+            .parse(data)
+            .map(convertOpenOrder)
+            .forEach((e) => setOpenOrders({ [e.id]: e.is_active ? e : undefined }))
+        );
+      });
     }
   });
 
   onCleanup(() => {
-    events?.close();
+    eventsource?.close();
   });
 
   return (

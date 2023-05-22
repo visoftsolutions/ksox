@@ -13,6 +13,7 @@ import params from "~/utils/params";
 import { PrivateTrade } from "~/types/trade";
 import { z } from "zod";
 import { ev } from "~/types/primitives/fraction";
+import subscribeEvents from "~/utils/subscribeEvents";
 
 interface TradeHistory {
   id: Uuid;
@@ -48,9 +49,9 @@ export function TradeHistory(props: { market?: Market; session?: ValidateSignatu
   const assets = useAssets();
   const [tradeHistory, setTradeHistory] = createStore<{ [key: Uuid]: TradeHistory }>({});
 
-  let events: EventSource | null = null;
+  let eventsource: EventSource | undefined;
 
-  onMount(() => {
+  onMount(async () => {
     if (props.market?.quote_asset && props.market?.base_asset && props.capacity && assets()) {
       const capacity = props.capacity;
 
@@ -72,32 +73,20 @@ export function TradeHistory(props: { market?: Market; session?: ValidateSignatu
         };
       };
 
-      events = new EventSource(`${api}/private/trades/sse`, { withCredentials: true });
-      events.onopen = async () =>
-        await fetch(
-          `${api}/private/trades?${params({
-            limit: capacity,
-            offset: 0,
-          })}`,
-          { credentials: "same-origin" }
-        )
-          .then((r) => r.json())
-          .then((r) => z.array(PrivateTrade).parse(r))
-          .then((r) => r.map<TradeHistory | undefined>((e) => convertTradeHistory(e)).filter((e): e is TradeHistory => !!e))
-          .then((r) => batch(() => r.forEach((e) => setTradeHistory({ [e.id]: e }))));
-      events.onmessage = (ev) => {
-        PrivateTrade.array()
-          .parse(JSON.parse(ev.data))
-          .forEach((e) => {
-            const r = convertTradeHistory(e);
-            setTradeHistory({ [r.id]: r });
-          });
-      };
+      eventsource = await subscribeEvents(`${api}/private/trades`, params({ limit: capacity, offset: 0 }), params({}), (data) => {
+        batch(() =>
+          z
+            .array(PrivateTrade)
+            .parse(data)
+            .map(convertTradeHistory)
+            .forEach((e) => setTradeHistory({ [e.id]: e }))
+        );
+      });
     }
   });
 
   onCleanup(() => {
-    events?.close();
+    eventsource?.close();
   });
 
   return (

@@ -1,11 +1,8 @@
-import { createSignal, onMount } from "solid-js";
+import { createSignal } from "solid-js";
 import { joinPaths } from "solid-start/islands/server-router";
 import { base } from "~/root";
 import { crowdsale, setCrowdsale } from "~/utils/providers/CrowdsaleProvider";
-import {
-  useWallet,
-  walletClientConnect,
-} from "~/utils/providers/WalletProvider";
+import { useWallet } from "~/utils/providers/WalletProvider";
 
 export function TermsModal() {
   let modalDOM!: HTMLDivElement;

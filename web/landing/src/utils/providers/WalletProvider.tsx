@@ -76,14 +76,14 @@ const walletAccount = async (account: GetAccountResult<PublicClient>) => {
   } else {
     setWallet({ walletClient: undefined, address: undefined });
   }
-}
+};
 
 const walletNetwork = async (network: GetNetworkResult) => {
   const net = AVAILABLE_CHAINS.find((e) => e.network.id == network.chain?.id);
-    if (net != undefined) {
-      setWallet({ selected_network: net });
-    }
-}
+  if (net != undefined) {
+    setWallet({ selected_network: net });
+  }
+};
 
 export const walletClientConnect = async () => {
   const { publicClient, chains } = configureChains(

@@ -1,4 +1,3 @@
-import { onMount } from "solid-js";
 import { Outlet } from "solid-start";
 import Footer from "~/components/Footer";
 import Header from "~/components/Header";

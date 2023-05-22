@@ -43,28 +43,27 @@ export function Chart(props: { market?: Market }) {
           span: 60000000,
         })}`
       );
-      events.onopen = async () => {
-        for (let i = 0; i < 5; i++) {
-          reference_point -= interval;
-          await fetch(
-            `${api}/public/ohlcv?${params({
-              quote_asset_id: quote_asset.id,
-              base_asset_id: basee_asset.id,
-              kind: ChartType.Interval.toString(),
-              reference_point: new Date(reference_point).toISOString(),
-              span: 60000000,
-            })}`
-          )
-            .then((r) => r.json())
-            .then((r) => z.nullable(Candlestick).parse(r))
-            .then((r) => {
-              if (r != null) chart.unshift(r);
-            });
-        }
-      };
       events.onmessage = (ev) => {
         chart.push(Candlestick.parse(JSON.parse(ev.data)));
       };
+
+      for (let i = 0; i < 5; i++) {
+        reference_point -= interval;
+        await fetch(
+          `${api}/public/ohlcv?${params({
+            quote_asset_id: quote_asset.id,
+            base_asset_id: basee_asset.id,
+            kind: ChartType.Interval.toString(),
+            reference_point: new Date(reference_point).toISOString(),
+            span: 60000000,
+          })}`
+        )
+          .then((r) => r.json())
+          .then((r) => z.nullable(Candlestick).parse(r))
+          .then((r) => {
+            if (r != null) chart.unshift(r);
+          });
+      }
     }
   });
 

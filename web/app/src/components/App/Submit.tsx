@@ -9,6 +9,7 @@ import RectangularButton from "./Buttons/NavButton";
 import BuyForm from "./Submit/BuyForm";
 import SellForm from "./Submit/SellForm";
 import { Fraction } from "~/types/primitives/fraction";
+import subscribeEvents from "~/utils/subscribeEvents";
 
 export default function CreateSubmit(market: Market, session?: ValidateSignatureResponse, precision?: number) {
   return () => (
@@ -27,67 +28,37 @@ export function Submit(props: { market?: Market; session?: ValidateSignatureResp
     sell_available_balance: undefined,
   });
 
-  let buy_available_balance_events: EventSource | null = null;
-  let sell_available_balance: EventSource | null = null;
+  let eventsource_balance_buy: EventSource | undefined;
+  let eventsource_balance_sell: EventSource | undefined;
 
-  onMount(() => {
+  onMount(async () => {
     if (props.session && props.market?.quote_asset && props.market?.base_asset && props.precision) {
       const quote_asset = props.market?.quote_asset;
       const base_asset = props.market?.base_asset;
 
-      buy_available_balance_events = new EventSource(
-        `${api}/private/balance/sse?${params({
-          asset_id: quote_asset.id,
-        })}`,
-        { withCredentials: true }
+      eventsource_balance_buy = await subscribeEvents(
+        `${api}/private/balance`,
+        params({ asset_id: quote_asset.id }),
+        params({ asset_id: quote_asset.id }),
+        (data) => {
+          setStoreSubmit("buy_available_balance", Valut.parse(data).balance);
+        }
       );
-      buy_available_balance_events.onopen = async () => {
-        await fetch(
-          `${api}/private/balance?${params({
-            asset_id: quote_asset.id,
-          })}`,
-          {
-            method: "GET",
-            credentials: "same-origin",
-          }
-        )
-          .then((r) => r.json())
-          .then((r) => Valut.parse(r))
-          .then((r) => setStoreSubmit("buy_available_balance", r.balance));
-      };
-      buy_available_balance_events.onmessage = (ev) => {
-        setStoreSubmit("buy_available_balance", Valut.parse(JSON.parse(ev.data)).balance);
-      };
 
-      sell_available_balance = new EventSource(
-        `${api}/private/balance/sse?${params({
-          asset_id: base_asset.id,
-        })}`,
-        { withCredentials: true }
+      eventsource_balance_sell = await subscribeEvents(
+        `${api}/private/balance`,
+        params({ asset_id: base_asset.id }),
+        params({ asset_id: base_asset.id }),
+        (data) => {
+          setStoreSubmit("sell_available_balance", Valut.parse(data).balance);
+        }
       );
-      sell_available_balance.onopen = async () => {
-        await fetch(
-          `${api}/private/balance?${params({
-            asset_id: base_asset.id,
-          })}`,
-          {
-            method: "GET",
-            credentials: "same-origin",
-          }
-        )
-          .then((r) => r.json())
-          .then((r) => Valut.parse(r))
-          .then((r) => setStoreSubmit("sell_available_balance", r.balance));
-      };
-      sell_available_balance.onmessage = (ev) => {
-        setStoreSubmit("sell_available_balance", Valut.parse(JSON.parse(ev.data)).balance);
-      };
     }
   });
 
   onCleanup(() => {
-    buy_available_balance_events?.close();
-    sell_available_balance?.close();
+    eventsource_balance_buy?.close();
+    eventsource_balance_sell?.close();
   });
 
   return (

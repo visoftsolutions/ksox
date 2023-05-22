@@ -25,19 +25,19 @@ export default function BuyForm(props: { market?: Market; available_balance?: Fr
     quote_asset_volume: fFromBigint(0n),
   });
 
-  createEffect(() => {          
+  createEffect(() => {
     const max_quote_asset_volume = props.available_balance ?? { numer: 0n, denom: 1n };
-    const {quote_asset_volume, base_asset_volume} = untrack(() => {
-      const quote_asset_volume = fmin(max_quote_asset_volume, storeComponent.quote_asset_volume)
+    const { quote_asset_volume, base_asset_volume } = untrack(() => {
+      const quote_asset_volume = fmin(max_quote_asset_volume, storeComponent.quote_asset_volume);
       return {
         quote_asset_volume,
-        base_asset_volume: storeComponent.price.numer != 0n ? fmul(quote_asset_volume, finv(storeComponent.price)) : { numer: 0n, denom: 1n }
+        base_asset_volume: storeComponent.price.numer != 0n ? fmul(quote_asset_volume, finv(storeComponent.price)) : { numer: 0n, denom: 1n },
       };
-    })
+    });
     setStoreComponent("quote_asset_volume", quote_asset_volume);
     setStoreComponent("base_asset_volume", base_asset_volume);
     setStoreComponent("slider", fmul(quote_asset_volume, finv(max_quote_asset_volume)));
-  })
+  });
 
   return (
     <div>
@@ -104,7 +104,7 @@ export default function BuyForm(props: { market?: Market; available_balance?: Fr
       <SubmitRectangularButton
         class="my-[12px] bg-green"
         onClick={async () => {
-          const response = await fetch(`${api}/private/submit`, {
+          await fetch(`${api}/private/submit`, {
             method: "POST",
             headers: {
               Accept: "application/json",

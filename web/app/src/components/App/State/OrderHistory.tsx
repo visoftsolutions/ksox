@@ -13,9 +13,11 @@ import { z } from "zod";
 import { format } from "numerable";
 import { formatTemplate } from "~/utils/precision";
 import { Direction } from "~/types/primitives/direction";
+import subscribeEvents from "~/utils/subscribeEvents";
 
 interface OrderHistory {
   id: Uuid;
+  is_active: boolean;
   order_time: Date;
   asset_pair: [Asset | undefined, Asset | undefined];
   direction: Direction;
@@ -23,7 +25,6 @@ interface OrderHistory {
   order_value: number;
   order_qty: number;
   filled_qty: number;
-  is_active: boolean;
 }
 
 export default function CreateOrderHistory(market?: Market, session?: ValidateSignatureResponse, precision?: number, capacity?: number) {
@@ -50,9 +51,9 @@ export function OrderHistory(props: { market?: Market; session?: ValidateSignatu
   const assets = useAssets();
   const [orderHistory, setOrderHistory] = createStore<{ [key: Uuid]: OrderHistory }>({});
 
-  let events: EventSource | null = null;
+  let eventsource: EventSource | null = null;
 
-  onMount(() => {
+  onMount(async () => {
     if (props.market?.quote_asset && props.market?.base_asset && props.capacity && assets()) {
       const capacity = props.capacity;
 
@@ -65,6 +66,7 @@ export function OrderHistory(props: { market?: Market; session?: ValidateSignatu
         const asset_pair: [Asset | undefined, Asset | undefined] = [assets().get(order.base_asset_id), assets().get(order.quote_asset_id)];
         return {
           id: order.id,
+          is_active: order.is_active,
           order_time: order.created_at,
           asset_pair: asset_pair,
           direction: order.direction,
@@ -72,42 +74,23 @@ export function OrderHistory(props: { market?: Market; session?: ValidateSignatu
           order_value: quote_asset_volume,
           order_qty: base_asset_volume,
           filled_qty: filled_qty,
-          is_active: order.is_active,
         };
       };
 
-      events = new EventSource(`${api}/private/orders/sse`, { withCredentials: true });
-      events.onopen = async () =>
-        await fetch(
-          `${api}/private/orders?${params({
-            limit: capacity,
-            offset: 0,
-          })}`,
-          { credentials: "same-origin" }
-        )
-          .then((r) => r.json())
-          .then((r) => z.array(PrivateOrder).parse(r))
-          .then((r) => r.map<OrderHistory | undefined>((e) => convertOrderHistory(e)).filter((e): e is OrderHistory => !!e))
-          .then((r) => batch(() => r.forEach((e) => setOrderHistory({ [e.id]: e }))));
-      events.onmessage = (ev) => {
-        PrivateOrder.array()
-          .parse(JSON.parse(ev.data))
-          .forEach((e) => {
-            if (!e.is_active) {
-              setOrderHistory({ [e.id]: undefined });
-            } else {
-              const r = convertOrderHistory(e);
-              if (r) {
-                setOrderHistory({ [r.id]: r });
-              }
-            }
-          });
-      };
+      eventsource = await subscribeEvents(`${api}/private/orders`, params({ limit: capacity, offset: 0 }), params({}), (data) => {
+        batch(() =>
+          z
+            .array(PrivateOrder)
+            .parse(data)
+            .map(convertOrderHistory)
+            .forEach((e) => setOrderHistory({ [e.id]: e }))
+        );
+      });
     }
   });
 
   onCleanup(() => {
-    events?.close();
+    eventsource?.close();
   });
 
   return (

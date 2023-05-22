@@ -12,6 +12,7 @@ import TriElementHeader from "./TriElement/TriElementHeader";
 import { ev } from "~/types/primitives/fraction";
 import { PriceLevel } from "~/types/pricelevel";
 import { PublicTrade } from "~/types/trade";
+import subscribeEvents from "~/utils/subscribeEvents";
 
 export const DepthResponse = z.object({
   sells: z.array(PriceLevel),
@@ -39,10 +40,10 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
     sells: [],
   });
 
-  let depth_events: EventSource | null = null;
-  let trades_events: EventSource | null = null;
+  let eventsource_depth: EventSource | undefined;
+  let eventsource_price: EventSource | undefined;
 
-  onMount(() => {
+  onMount(async () => {
     if (props.quote_asset && props.base_asset && props.precision && props.capacity) {
       const quote_asset = props.quote_asset;
       const base_asset = props.base_asset;
@@ -89,72 +90,33 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
         });
       };
 
-      depth_events = new EventSource(
-        `${api}/public/depth/sse?${params({
-          quote_asset_id: quote_asset.id,
-          base_asset_id: base_asset.id,
-          limit: capacity,
-          precision: 1000,
-        })}`
-      );
-      depth_events.onopen = async () =>
-        await fetch(
-          `${api}/public/depth?${params({
-            quote_asset_id: quote_asset.id,
-            base_asset_id: base_asset.id,
-            limit: capacity,
-            precision: 1000,
-          })}`
-        )
-          .then((r) => r.json())
-          .then((r) => DepthResponse.parse(r))
-          .then((r) => {
-            const b = convertBuys(r.buys);
-            const s = convertSells(r.sells.reverse());
-            setOrderBook("buys", b);
-            setOrderBook("sells", s);
-          });
-      depth_events.onmessage = (ev) => {
-        const r = DepthResponse.parse(JSON.parse(ev.data));
-        const b = convertBuys(r.buys);
-        const s = convertSells(r.sells.reverse());
-        setOrderBook("buys", b);
-        setOrderBook("sells", s);
-      };
-
-      trades_events = new EventSource(
-        `${api}/public/trades/sse?${params({
-          quote_asset_id: quote_asset.id,
-          base_asset_id: base_asset.id,
-        })}`
-      );
-      trades_events.onopen = async () =>
-        await fetch(
-          `${api}/public/trades?${params({
-            quote_asset_id: quote_asset.id,
-            base_asset_id: base_asset.id,
-            limit: 1,
-            offset: 0,
-          })}`
-        )
-          .then((r) => r.json())
-          .then((r) => z.array(PublicTrade).parse(r))
-          .then((r) => {
-            if (r && r.length > 0) setOrderBook("price", convertTrade(r[0]));
-          });
-
-      trades_events.onmessage = (ev) => {
-        const trades = PublicTrade.array().parse(JSON.parse(ev.data));
-        if (trades.length > 0) {
-          setOrderBook("price", convertTrade(trades[0]));
+      eventsource_depth = await subscribeEvents(
+        `${api}/public/depth`,
+        params({ quote_asset_id: quote_asset.id, base_asset_id: base_asset.id, limit: capacity, precision: 1000 }),
+        params({ quote_asset_id: quote_asset.id, base_asset_id: base_asset.id, limit: capacity, precision: 1000 }),
+        (data) => {
+          const r = DepthResponse.parse(data);
+          setOrderBook({ buys: convertBuys(r.buys), sells: convertSells(r.sells.reverse()) });
         }
-      };
+      );
+
+      eventsource_price = await subscribeEvents(
+        `${api}/public/trades`,
+        params({ quote_asset_id: quote_asset.id, base_asset_id: base_asset.id, limit: 1, offset: 0 }),
+        params({ quote_asset_id: quote_asset.id, base_asset_id: base_asset.id }),
+        (data) => {
+          const trades = PublicTrade.array().parse(data);
+          if (trades.length > 0) {
+            setOrderBook("price", convertTrade(trades[0]));
+          }
+        }
+      );
     }
   });
 
   onCleanup(() => {
-    depth_events?.close();
-    trades_events?.close();
+    eventsource_depth?.close();
+    eventsource_price?.close();
   });
 
   return (

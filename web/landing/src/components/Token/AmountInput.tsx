@@ -1,4 +1,4 @@
-import { JSX, createEffect, createUniqueId } from "solid-js";
+import { JSX, createUniqueId } from "solid-js";
 
 export interface AmountInputProps {
   style?: JSX.CSSProperties;
