@@ -4,13 +4,9 @@ export default function BigText() {
       <p>
         Keep <span class="text-secondary">Safely</span> On
       </p>
-<<<<<<< HEAD
       <p>
         eXchange
       </p>
-=======
-      <p>eXhange</p>
->>>>>>> 46e4512 (subscribeEvents)
     </div>
   );
 }
