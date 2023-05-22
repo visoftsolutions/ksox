@@ -6,7 +6,7 @@ export default function MainMenu(props: DefaultProps) {
   const crowdsale = useCrowdsale();
   return (
     <div
-      class={`flex items-center justify-end space-x-6 max-[850px]:hidden ${props.class}`}
+      class={`flex items-center justify-end space-x-6 max-lg:hidden ${props.class}`}
     >
       <a
         class="main-menu-button rounded-full bg-buttonbg_new px-5 py-2 font-medium text-text-1 hover:bg-text-1 hover:text-buttonbg_new"

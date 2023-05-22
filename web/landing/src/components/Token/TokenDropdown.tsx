@@ -49,7 +49,7 @@ export default function TokenDropdown(props: TokenDropdownProps) {
         </div>
       </div>
       <Show when={showDropdown()}>
-        <div class="absolute right-0 top-[50px] z-10 grid w-[300px] gap-2 rounded-lg border border-gray-500 p-2 backdrop-blur-xl">
+        <div class="absolute right-0 top-[50px] z-10 grid w-[300px] gap-2 rounded-lg border border-gray-500 p-2 backdrop-blur-md">
           <div class=" rounded-lg px-4 py-2 font-semibold text-text-1">
             Select Token
           </div>
