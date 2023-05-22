@@ -1,12 +1,12 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: ksox-exchange
+  name: ksox-finance
 spec:
-  secretName: ksox-exchange-tls
+  secretName: ksox-finance-tls
   dnsNames:
-    - ksox.exchange
-    - www.ksox.exchange
-    - test-blockchain.ksox.exchange
+    - ksox.finance
+    - www.ksox.finance
+    - test-blockchain.ksox.finance
   issuerRef:
-    name: ksox-exchange-issuer
+    name: ksox-finance-issuer

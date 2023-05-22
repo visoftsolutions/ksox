@@ -48,11 +48,11 @@ metadata:
 spec:
   tls:
     - hosts:
-        - ksox.exchange
-        - www.ksox.exchange
-      secretName: ksox-exchange-tls
+        - ksox.finance
+        - www.ksox.finance
+      secretName: ksox-finance-tls
   rules:
-    - host: www.ksox.exchange
+    - host: www.ksox.finance
       http:
         paths:
           - path: /(.*)

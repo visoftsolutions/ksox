@@ -48,10 +48,10 @@ metadata:
 spec:
   tls:
     - hosts:
-        - test-blockchain.ksox.exchange
-      secretName: ksox-exchange-tls
+        - test-blockchain.ksox.finance
+      secretName: ksox-finance-tls
   rules:
-    - host: test-blockchain.ksox.exchange
+    - host: test-blockchain.ksox.finance
       http:
         paths:
           - path: /(.*)
