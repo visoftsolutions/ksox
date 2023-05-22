@@ -2,7 +2,7 @@ import ContactItem from "~/components/Footer/ContactItem";
 
 export default function ContactItems() {
   return (
-    <div class="grid grid-cols-3 grid-rows-1 items-center gap-16 max-md:grid-cols-1 max-md:grid-rows-4">
+    <div class="grid grid-cols-1 grid-rows-3 items-center gap-16 max-md:grid-cols-1 max-md:grid-rows-4">
       <a
         href="https://twitter.com/KsoxExchange"
         target="_blank"
@@ -23,7 +23,7 @@ export default function ContactItems() {
       <a
         href="https://discord.gg/d9qn83Qnbv"
         target="_blank"
-        class="col-start-2 col-end-3 row-start-1 row-end-2 max-md:col-start-1 max-md:col-end-2 max-md:row-start-3 max-md:row-end-4"
+        class="col-start-1 col-end-2 row-start-2 row-end-3 max-md:col-start-1 max-md:col-end-2 max-md:row-start-3 max-md:row-end-4"
       >
         <ContactItem imageSrc="/gfx/discord-icon.svg">
           <div>
@@ -40,7 +40,7 @@ export default function ContactItems() {
       <a
         href="https://t.me/ksox_community"
         target="_blank"
-        class="col-start-3 col-end-4 row-start-1 row-end-2 max-md:col-start-1 max-md:col-end-2 max-md:row-start-4 max-md:row-end-5"
+        class="col-start-1 col-end-2 row-start-3 row-end-4 max-md:col-start-1 max-md:col-end-2 max-md:row-start-4 max-md:row-end-5"
       >
         <ContactItem imageSrc="/gfx/telegram-icon.svg">
           <div>
