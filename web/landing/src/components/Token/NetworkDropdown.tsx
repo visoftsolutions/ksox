@@ -21,7 +21,7 @@ export default function NetworkDropdown(props: NetworkDropdownProps) {
       }}
     >
       <div
-        class="grid grid-cols-2 items-center justify-center gap-2 rounded-lg border-[1px] border-slate-600 p-2"
+        class="grid grid-cols-2 items-center justify-center gap-2 rounded-lg border-[1px] border-slate-600 px-2 py-2"
         onClick={() => {
           if (!props.disabled) {
             setShowDropdown(!showDropdown());
@@ -32,7 +32,8 @@ export default function NetworkDropdown(props: NetworkDropdownProps) {
           <img
             src={joinPaths(base, wallet.selected_network?.icon)}
             alt="network"
-            width="25px"
+            width={25}
+            height={25}
             elementtiming={""}
             fetchpriority={"high"}
             class={props.disabled ? "grayscale" : ""}

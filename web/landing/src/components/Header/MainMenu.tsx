@@ -6,7 +6,7 @@ export default function MainMenu(props: DefaultProps) {
   const crowdsale = useCrowdsale();
   return (
     <div
-      class={`flex items-center justify-end space-x-6 max-lg:hidden ${props.class}`}
+      class={`grid grid-flow-col items-center justify-end space-x-6 ${props.class}`}
     >
       <a
         class="main-menu-button rounded-full bg-buttonbg_new px-5 py-2 font-medium text-text-1 hover:bg-text-1 hover:text-buttonbg_new"
@@ -25,20 +25,20 @@ export default function MainMenu(props: DefaultProps) {
         Buy Token
       </A>
       <a
-        class="main-menu-button font-medium text-links_new hover:text-text-1"
+        class="main-menu-button font-medium text-links_new hover:text-text-1 max-xl:hidden"
         href="/whitepaper/ksox-whitepaper.pdf"
         target="_blank"
       >
         Whitepaper
       </a>
       <a
-        class="main-menu-button font-medium text-links_new hover:text-text-1"
+        class="main-menu-button font-medium text-links_new hover:text-text-1 max-xl:hidden"
         href="/#safety"
       >
         About KSOX
       </a>
       <a
-        class="main-menu-button font-medium text-links_new hover:text-text-1"
+        class="main-menu-button font-medium text-links_new hover:text-text-1 max-xl:hidden"
         href="#contact"
       >
         Contact
