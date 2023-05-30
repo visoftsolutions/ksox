@@ -2,7 +2,10 @@ CREATE TABLE "users" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "address" CHAR(42) UNIQUE NOT NULL
+  "address" CHAR(42) UNIQUE NOT NULL,
+  "name" VARCHAR(50) UNIQUE,
+  "phone" VARCHAR(50) UNIQUE,
+  "email" VARCHAR(100) UNIQUE
 );
 
 CREATE TABLE "spot"."valuts" (
@@ -76,6 +79,16 @@ CREATE TABLE "spot"."candlesticks" (
   "maker_base_volume" fraction NOT NULL
 );
 
+CREATE TABLE "transfers" (
+  "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "from" uuid NOT NULL,
+  "to" uuid NOT NULL,
+  "asset" uuid NOT NULL,
+  "amount" fraction NOT NULL
+);
+
 ALTER TABLE "spot"."valuts" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 ALTER TABLE "spot"."valuts" ADD FOREIGN KEY ("asset_id") REFERENCES "spot"."assets" ("id");
 ALTER TABLE "spot"."orders" ADD FOREIGN KEY ("maker_id") REFERENCES "users" ("id");
@@ -87,6 +100,9 @@ ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "spot"
 ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("base_asset_id") REFERENCES "spot"."assets" ("id");
 ALTER TABLE "spot"."candlesticks" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "spot"."assets" ("id");
 ALTER TABLE "spot"."candlesticks" ADD FOREIGN KEY ("base_asset_id") REFERENCES "spot"."assets" ("id");
+ALTER TABLE "transfers" ADD FOREIGN KEY ("from") REFERENCES "users" ("id");
+ALTER TABLE "transfers" ADD FOREIGN KEY ("to") REFERENCES "users" ("id");
+ALTER TABLE "transfers" ADD FOREIGN KEY ("asset") REFERENCES "spot"."assets" ("id");
 
 CREATE OR REPLACE FUNCTION update_last_modification_at()
 RETURNS TRIGGER AS $$
@@ -119,3 +135,7 @@ FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"SpotTradesChan
 CREATE OR REPLACE TRIGGER spot_candlesticks_update_last_modification_at
 AFTER INSERT OR UPDATE ON "spot"."candlesticks"
 FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"SpotCandlesticksChanged"');
+
+CREATE OR REPLACE TRIGGER transfers_update_last_modification_at
+AFTER INSERT OR UPDATE ON "transfers"
+FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"TransfersChanged"');
