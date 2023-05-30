@@ -48,6 +48,39 @@ impl TryFrom<Result<SubmitResponse, SubmitRequestError>> for base::SubmitRespons
     }
 }
 
+pub struct TransferRequest {
+    pub maker: Uuid,
+    pub taker: Uuid,
+    pub asset: Uuid,
+    pub volume: Fraction,
+}
+
+impl TryFrom<base::TransferRequest> for TransferRequest {
+    type Error = Status;
+    fn try_from(value: base::TransferRequest) -> Result<Self, Self::Error> {
+        Ok(Self {
+            maker: Uuid::from_str(&value.maker)
+                .map_err(|e| Status::invalid_argument(e.to_string()))?,
+            taker: Uuid::from_str(&value.taker)
+                .map_err(|e| Status::invalid_argument(e.to_string()))?,
+            asset: Uuid::from_str(&value.asset)
+                .map_err(|e| Status::invalid_argument(e.to_string()))?,
+            volume: serde_json::from_str(&value.volume)
+                .map_err(|e| Status::invalid_argument(e.to_string()))?,
+        })
+    }
+}
+
+pub struct TransferResponse {}
+
+impl TryFrom<Result<TransferResponse, TransferError>> for base::TransferResponse {
+    type Error = Status;
+    fn try_from(value: Result<TransferResponse, TransferError>) -> Result<Self, Self::Error> {
+        let _v = value.map_err(|e| Status::aborted(e.to_string()))?;
+        Ok(Self {})
+    }
+}
+
 pub struct CancelRequest {
     pub order_id: Uuid,
 }
@@ -118,6 +151,36 @@ pub enum MatchingLoopError {
 
 #[derive(Error, Debug)]
 pub enum SubmitRequestError {
+    #[error("asset not found in db")]
+    AssetNotFound,
+
+    #[error("order not found in db")]
+    OrderNotFound,
+
+    #[error("not enough balance in valut")]
+    InsufficientBalance,
+
+    #[error("add fractions failed")]
+    CheckedAddFailed,
+
+    #[error("sub fractions failed")]
+    CheckedSubFailed,
+
+    #[error("mul fractions failed")]
+    CheckedMulFailed,
+
+    #[error("div fractions failed")]
+    CheckedDivFailed,
+
+    #[error(transparent)]
+    Sqlx(#[from] sqlx::Error),
+
+    #[error(transparent)]
+    MatchingLoopError(#[from] MatchingLoopError),
+}
+
+#[derive(Error, Debug)]
+pub enum TransferError {
     #[error("asset not found in db")]
     AssetNotFound,
 

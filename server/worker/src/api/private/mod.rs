@@ -6,6 +6,8 @@ pub mod mint;
 pub mod orders;
 pub mod submit;
 pub mod trades;
+pub mod transfer;
+pub mod transfers;
 
 use axum::{
     routing::{delete, post},
@@ -28,11 +30,13 @@ pub fn router(app_state: &AppState) -> Router {
         .route("/burn", post(burn::root))
         .route("/cancel", delete(cancel::root))
         .route("/submit", post(submit::root))
+        .route("/transfer", post(transfer::root))
         .with_state(app_state.clone())
         .nest("/active", active::router(app_state))
         .nest("/balance", balance::router(app_state))
         .nest("/orders", orders::router(app_state))
         .nest("/trades", trades::router(app_state))
+        .nest("/transfers", transfers::router(app_state))
 }
 
 #[derive(Serialize)]

@@ -29,6 +29,7 @@ use crate::{
         notifications::NotificationManager,
         orders::{OrdersManager, OrdersNotificationManager},
         trades::{TradesManager, TradesNotificationManager},
+        transfers::{TransfersManager, TransfersNotificationManager},
         users::UsersManager,
         valuts::{ValutsManager, ValutsNotificationManager},
     },
@@ -71,6 +72,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ),
         candlesticks_manager: CandlesticksManager::new(database.clone()),
         candlesticks_notification_manager: CandlesticksNotificationManager::new(
+            notification_manager_controller.get_subscriber(),
+        ),
+        transfers_manager: TransfersManager::new(database.clone()),
+        transfers_notification_manager: TransfersNotificationManager::new(
             notification_manager_controller.get_subscriber(),
         ),
         assets_pair_recognition: AssetPairRecognition::new(database, Regex::new(r"[^a-zA-Z]+")?),

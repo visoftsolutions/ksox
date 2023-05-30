@@ -12,7 +12,14 @@ use fraction::Fraction;
 use sqlx::PgPool;
 use tonic::transport::Channel;
 
-use crate::{database, engine_base, recognition::AssetPairRecognition};
+use crate::{
+    database::{
+        self,
+        managers::transfers::{TransfersManager, TransfersNotificationManager},
+    },
+    engine_base,
+    recognition::AssetPairRecognition,
+};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -30,6 +37,8 @@ pub struct AppState {
     pub orders_notification_manager: OrdersNotificationManager,
     pub candlesticks_manager: CandlesticksManager,
     pub candlesticks_notification_manager: CandlesticksNotificationManager,
+    pub transfers_manager: TransfersManager,
+    pub transfers_notification_manager: TransfersNotificationManager,
     pub assets_pair_recognition: AssetPairRecognition,
     pub engine_client: EngineClient<Channel>,
 }

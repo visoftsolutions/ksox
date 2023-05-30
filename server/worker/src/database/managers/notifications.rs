@@ -14,9 +14,11 @@ use uuid::Uuid;
 use crate::database::{
     managers,
     projections::{
-        self, asset::Asset, candlestick::Candlestick, order::Order, trade::Trade, valut::Valut,
+        self, asset::Asset, candlestick::Candlestick, order::Order, trade::Trade, valut::Valut, transfer::Transfer,
     },
 };
+
+
 
 #[derive(Debug, Clone, Deserialize)]
 pub enum NotificationManagerEvent {
@@ -25,6 +27,7 @@ pub enum NotificationManagerEvent {
     SpotOrdersChanged,
     SpotTradesChanged,
     SpotCandlesticksChanged,
+    TransfersChanged,
 }
 
 #[derive(Debug, Clone)]
@@ -34,6 +37,7 @@ pub enum NotificationManagerPredicateInput {
     SpotOrdersChanged(projections::order::Order),
     SpotTradesChanged(projections::trade::Trade),
     SpotCandlesticksChanged(projections::candlestick::Candlestick),
+    TransfersChanged(projections::transfer::Transfer),
 }
 
 #[derive(Debug, Clone)]
@@ -43,6 +47,7 @@ pub enum NotificationManagerOutput {
     SpotOrdersChanged(Vec<projections::order::Order>),
     SpotTradesChanged(Vec<projections::trade::Trade>),
     SpotCandlesticksChanged(Vec<projections::candlestick::Candlestick>),
+    TransfersChanged(Vec<projections::transfer::Transfer>),
 }
 
 pub struct NotificationManagerEntry {
@@ -99,6 +104,9 @@ impl NotificationManager {
             let candlesticks_manager =
                 managers::candlesticks::CandlesticksManager::new(database.clone());
             let mut candlesticks_last_modification_at = Utc::now();
+            let transfers_manager =
+                managers::transfers::TransfersManager::new(database.clone());
+            let mut transfers_last_modification_at = Utc::now();
 
             loop {
                 select! {
@@ -247,6 +255,34 @@ impl NotificationManager {
                                                 candlesticks_last_modification_at = max(
                                                     candlesticks_last_modification_at,
                                                     elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(candlesticks_last_modification_at)
+                                                );
+
+                                            },
+                                            Err(err) => {
+                                                tracing::error!("Error: {}", err);
+                                            }
+                                        }
+                                    },
+                                    Ok(NotificationManagerEvent::TransfersChanged) => {
+                                        match transfers_manager.get_modified(transfers_last_modification_at).await {
+                                            Ok(elements) => {
+                                                let mut set_entry_to_remove_ids = Vec::new();
+                                                for set_entry in set.values() {
+                                                    let result: Vec<Transfer> = elements.iter().cloned()
+                                                        .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::TransfersChanged(e.clone()))).collect();
+
+                                                    if !result.is_empty() {
+                                                        if let Err(err) = set_entry.sender.send(NotificationManagerOutput::TransfersChanged(result)).await {
+                                                            set_entry_to_remove_ids.push(set_entry.id);
+                                                            tracing::info!("{}", err);
+                                                        }
+                                                    }
+                                                }
+                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+
+                                                trades_last_modification_at = max(
+                                                    trades_last_modification_at,
+                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(trades_last_modification_at)
                                                 );
 
                                             },

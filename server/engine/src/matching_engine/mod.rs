@@ -12,7 +12,8 @@ use uuid::Uuid;
 
 use self::models::{
     CancelRequest, CancelRequestError, CancelResponse, MatchingLoopError, MatchingLoopResponse,
-    SubmitRequest, SubmitRequestError, SubmitResponse,
+    SubmitRequest, SubmitRequestError, SubmitResponse, TransferError, TransferRequest,
+    TransferResponse,
 };
 use crate::{
     base,
@@ -54,6 +55,37 @@ impl Engine for MatchingEngine {
             .map_err(|e| Status::aborted(e.to_string()))?;
         Ok(Response::new(
             match self.submit(request.into_inner().try_into()?, &mut t).await {
+                Ok(r) => {
+                    t.commit()
+                        .await
+                        .map_err(|e| Status::aborted(e.to_string()))?;
+                    Ok(r)
+                }
+                Err(e) => {
+                    t.rollback()
+                        .await
+                        .map_err(|e| Status::aborted(e.to_string()))?;
+                    Err(e)
+                }
+            }
+            .try_into()?,
+        ))
+    }
+
+    async fn transfer(
+        &self,
+        request: Request<base::TransferRequest>,
+    ) -> Result<Response<base::TransferResponse>, Status> {
+        let mut t = self
+            .database
+            .begin()
+            .await
+            .map_err(|e| Status::aborted(e.to_string()))?;
+        Ok(Response::new(
+            match self
+                .transfer(request.into_inner().try_into()?, &mut t)
+                .await
+            {
                 Ok(r) => {
                     t.commit()
                         .await
@@ -202,6 +234,41 @@ impl MatchingEngine {
         }
 
         Ok(SubmitResponse {})
+    }
+
+    pub async fn transfer<'t, 'p>(
+        &self,
+        request: TransferRequest,
+        transaction: &'t mut Transaction<'p, Postgres>,
+    ) -> Result<TransferResponse, TransferError> {
+        let asset = AssetsManager::get_by_id(transaction, request.asset)
+            .await?
+            .ok_or(TransferError::AssetNotFound)?;
+
+        let mut maker_asset_valut =
+            ValutsManager::get_or_create(transaction, request.maker, asset.id).await?;
+
+        let mut taker_asset_valut =
+            ValutsManager::get_or_create(transaction, request.taker, asset.id).await?;
+
+        if maker_asset_valut.balance < request.volume {
+            return Err(TransferError::InsufficientBalance);
+        }
+
+        // transfer
+        maker_asset_valut.balance = maker_asset_valut
+            .balance
+            .checked_sub(&request.volume)
+            .ok_or(TransferError::CheckedSubFailed)?;
+        taker_asset_valut.balance = taker_asset_valut
+            .balance
+            .checked_add(&request.volume)
+            .ok_or(TransferError::CheckedAddFailed)?;
+
+        ValutsManager::update(transaction, maker_asset_valut).await?;
+        ValutsManager::update(transaction, taker_asset_valut).await?;
+
+        Ok(TransferResponse {})
     }
 
     pub async fn cancel<'t, 'p>(

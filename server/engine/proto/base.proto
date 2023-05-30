@@ -11,6 +11,14 @@ message SubmitRequest {
 }
 message SubmitResponse {}
 
+message TransferRequest {
+    string maker = 1;
+    string taker = 2;
+    string asset = 3;
+    string volume = 4;
+}
+message TransferResponse {}
+
 message CancelRequest {
     string order_id = 1;
 }
@@ -19,6 +27,7 @@ message CancelResponse {}
 
 service Engine {
     rpc Submit(SubmitRequest) returns (SubmitResponse) {}
+    rpc Transfer(TransferRequest) returns (TransferResponse) {}
     rpc Cancel(CancelRequest) returns (CancelResponse) {}
 }
 
