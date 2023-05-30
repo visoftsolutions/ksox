@@ -18,7 +18,7 @@ use crate::{
         managers::transfers::{TransfersManager, TransfersNotificationManager},
     },
     engine_base,
-    recognition::AssetPairRecognition,
+    recognition::{asset_pair::AssetPairRecognition, user::UserRecognition},
 };
 
 #[derive(Clone)]
@@ -40,6 +40,7 @@ pub struct AppState {
     pub transfers_manager: TransfersManager,
     pub transfers_notification_manager: TransfersNotificationManager,
     pub assets_pair_recognition: AssetPairRecognition,
+    pub user_recognition: UserRecognition,
     pub engine_client: EngineClient<Channel>,
 }
 

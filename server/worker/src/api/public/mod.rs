@@ -1,10 +1,10 @@
 pub mod assets;
 pub mod depth;
 pub mod ohlcv;
-pub mod search;
 pub mod trades;
+pub mod users;
 
-use axum::{routing::get, Router};
+use axum::Router;
 use chrono::{DateTime, Utc};
 use fraction::Fraction;
 use serde::Serialize;
@@ -14,12 +14,12 @@ use crate::models::AppState;
 
 pub fn router(app_state: &AppState) -> Router {
     Router::new()
-        .route("/assets", get(assets::root))
-        .route("/search", get(search::root))
         .with_state(app_state.clone())
         .nest("/depth", depth::router(app_state))
         .nest("/ohlcv", ohlcv::router(app_state))
         .nest("/trades", trades::router(app_state))
+        .nest("/assets", assets::router(app_state))
+        .nest("/users", assets::router(app_state))
 }
 
 #[derive(Serialize)]

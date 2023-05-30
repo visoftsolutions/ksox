@@ -14,11 +14,10 @@ use uuid::Uuid;
 use crate::database::{
     managers,
     projections::{
-        self, asset::Asset, candlestick::Candlestick, order::Order, trade::Trade, valut::Valut, transfer::Transfer,
+        self, asset::Asset, candlestick::Candlestick, order::Order, trade::Trade,
+        transfer::Transfer, valut::Valut,
     },
 };
-
-
 
 #[derive(Debug, Clone, Deserialize)]
 pub enum NotificationManagerEvent {
@@ -104,8 +103,7 @@ impl NotificationManager {
             let candlesticks_manager =
                 managers::candlesticks::CandlesticksManager::new(database.clone());
             let mut candlesticks_last_modification_at = Utc::now();
-            let transfers_manager =
-                managers::transfers::TransfersManager::new(database.clone());
+            let transfers_manager = managers::transfers::TransfersManager::new(database.clone());
             let mut transfers_last_modification_at = Utc::now();
 
             loop {
@@ -280,9 +278,9 @@ impl NotificationManager {
                                                 }
                                                 set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
 
-                                                trades_last_modification_at = max(
-                                                    trades_last_modification_at,
-                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(trades_last_modification_at)
+                                                transfers_last_modification_at = max(
+                                                    transfers_last_modification_at,
+                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(transfers_last_modification_at)
                                                 );
 
                                             },

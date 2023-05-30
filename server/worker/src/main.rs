@@ -34,7 +34,7 @@ use crate::{
         valuts::{ValutsManager, ValutsNotificationManager},
     },
     models::AppState,
-    recognition::AssetPairRecognition,
+    recognition::{asset_pair::AssetPairRecognition, user::UserRecognition},
 };
 
 #[tokio::main]
@@ -78,7 +78,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         transfers_notification_manager: TransfersNotificationManager::new(
             notification_manager_controller.get_subscriber(),
         ),
-        assets_pair_recognition: AssetPairRecognition::new(database, Regex::new(r"[^a-zA-Z]+")?),
+        assets_pair_recognition: AssetPairRecognition::new(
+            database.clone(),
+            Regex::new(r"[^a-zA-Z]+")?,
+        ),
+        user_recognition: UserRecognition::new(database, Regex::new(r"^[a-zA-Z0-9+@\.]+$")?),
         engine_client: EngineClient::connect(std::env::var("ENGINE_URL")?).await?,
     };
 

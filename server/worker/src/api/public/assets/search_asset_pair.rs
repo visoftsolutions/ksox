@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::{
     api::AppError, database::projections::asset::Asset, models::AppState,
-    recognition::AssetPairRecognitionResult,
+    recognition::asset_pair::AssetPairRecognitionResult,
 };
 
 #[derive(Deserialize)]

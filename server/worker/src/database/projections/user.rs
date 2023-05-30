@@ -3,6 +3,7 @@ use std::{io, ops::Deref, str::FromStr};
 use chrono::{DateTime, Utc};
 use ethereum_types::Address;
 use fraction::Fraction;
+use serde::{Deserialize, Serialize};
 use sqlx::{
     postgres::{PgArgumentBuffer, PgRow, PgValueRef},
     types::Uuid,
@@ -11,12 +12,15 @@ use sqlx::{
 
 use crate::database::managers::valuts::ValutsManager;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,
     pub last_modification_at: DateTime<Utc>,
     pub address: EvmAddress,
+    pub name: Option<String>,
+    pub phone: Option<String>,
+    pub email: Option<String>,
 }
 
 impl FromRow<'_, PgRow> for User {
@@ -33,6 +37,9 @@ impl FromRow<'_, PgRow> for User {
             created_at: row.try_get("created_at")?,
             last_modification_at: row.try_get("last_modification_at")?,
             address: evm_address,
+            name: row.try_get("name")?,
+            phone: row.try_get("phone")?,
+            email: row.try_get("email")?,
         })
     }
 }
@@ -65,7 +72,7 @@ impl User {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EvmAddress(pub Address);
 
 impl FromStr for EvmAddress {
