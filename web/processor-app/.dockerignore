@@ -1,0 +1,27 @@
+dist
+.solid
+.output
+.vercel
+.netlify
+netlify
+
+# kubernetes manifests
+k8s
+
+# dependencies
+node_modules
+
+# IDEs and editors
+.idea
+.project
+.classpath
+*.launch
+.settings
+
+# Ignores
+.dockerignore
+.gitignore
+
+# System Files
+.DS_Store
+Thumbs.db

@@ -56,7 +56,7 @@ services:
     container_name: ksox-app
     hostname: ksox-app
     build:
-      context: web/app
+      context: web/ksox-app
     depends_on:
       - worker
 
@@ -64,7 +64,23 @@ services:
     container_name: ksox-landing
     hostname: ksox-landing
     build:
-      context: web/landing
+      context: web/ksox-landing
+    depends_on:
+      - worker
+
+  processor-app:
+    container_name: processor-app
+    hostname: processor-app
+    build:
+      context: web/processor-app
+    depends_on:
+      - worker
+
+  processor-landing:
+    container_name: processor-landing
+    hostname: processor-landing
+    build:
+      context: web/processor-landing
     depends_on:
       - worker
 
@@ -77,6 +93,8 @@ services:
       - worker
       - ksox-app
       - ksox-landing
+      - processor-app
+      - processor-landing
     ports:
       - 0.0.0.0:80:80
       - 0.0.0.0:443:443

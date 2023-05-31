@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-ksox-landing-deployment
+  labels:
+    app: web-ksox-landing
+spec:
+  selector:
+    matchLabels:
+      app: web-ksox-landing
+  template:
+    metadata:
+      labels:
+        app: web-ksox-landing
+    spec:
+      containers:
+        - name: web-ksox-landing
+          image: web-ksox-landing
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "500m"
+            limits:
+              memory: "256Mi"
+              cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-ksox-landing-service
+spec:
+  selector:
+    app: web-ksox-landing
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-ksox-landing-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
+spec:
+  tls:
+    - hosts:
+        - ksox.finance
+        - www.ksox.finance
+      secretName: ksox-finance-tls
+  rules:
+    - host: www.ksox.finance
+      http:
+        paths:
+          - path: /(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: web-ksox-landing-service
+                port:
+                  number: 80

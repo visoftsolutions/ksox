@@ -71,6 +71,16 @@ you can now connect with your browser to ingress, ask minikube for ip
 minikube ip
 ```
 
+Install Cert-Manager
+```
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
+```
+
+Install OpenEBS
+```
+kubectl apply -f https://openebs.github.io/charts/openebs-operator.yaml
+```
+
 To deploy application do
 ```shell
 skaffold --kubeconfig ~/.kube/prod.conf --default-repo registry.internal.visoft.solutions run
@@ -80,3 +90,5 @@ To remove application do
 ```shell
 skaffold --kubeconfig ~/.kube/prod.conf --default-repo registry.internal.visoft.solutions delete
 ```
+
+

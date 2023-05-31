@@ -26,12 +26,20 @@ build:
     context: ./server
     docker:
       dockerfile: worker.dockerfile
-  - image: web-app
-    context: ./web/app
+  - image: web-ksox-app
+    context: ./web/ksox-app
     docker:
       dockerfile: Dockerfile
-  - image: web-landing
-    context: ./web/landing
+  - image: web-ksox-landing
+    context: ./web/ksox-landing
+    docker:
+      dockerfile: Dockerfile
+  - image: web-processor-app
+    context: ./web/processor-app
+    docker:
+      dockerfile: Dockerfile
+  - image: web-processor-landing
+    context: ./web/processor-landing
     docker:
       dockerfile: Dockerfile
 manifests:
@@ -41,5 +49,7 @@ manifests:
     - ./postgres/k8s/*
     - ./redis/k8s/*
     - ./server/k8s/*
-    - ./web/app/k8s/*
-    - ./web/landing/k8s/*
+    - ./web/ksox-app/k8s/*
+    - ./web/ksox-landing/k8s/*
+    - ./web/processor-app/k8s/*
+    - ./web/processor-landing/k8s/*
