@@ -246,7 +246,7 @@ export default function Crowdsale() {
             {(item, index) => (
               <div
                 data-index={index()}
-                class="grid grid-cols-[auto_1fr_auto] justify-start items-center gap-4"
+                class="grid grid-cols-[auto_1fr_auto] items-center justify-start gap-4"
               >
                 <div class="col-start-1 col-end-2">
                   <img

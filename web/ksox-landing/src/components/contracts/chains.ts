@@ -112,5 +112,5 @@ export const AVAILABLE_CHAINS: Network[] = [
       { icon: "/gfx/asset_icons/usdc.svg", name: "USD Coin", symbol: "USDC" },
       { icon: "/gfx/asset_icons/usdt.svg", name: "Tether", symbol: "USDT" },
     ],
-  }
+  },
 ];

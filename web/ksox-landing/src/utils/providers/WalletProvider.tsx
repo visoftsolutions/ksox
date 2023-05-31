@@ -41,13 +41,17 @@ export const [wallet, setWallet] = createStore<WalletProvider>({
     // chain: hardhat,
     chain: mainnet,
     // transport: http("http://127.0.0.1:8545/"),
-    transport: http("https://eth-goerli.g.alchemy.com/v2/YBzQbzNel58NfEmy574HdQ2hPKjfO93g"),
+    transport: http(
+      "https://eth-goerli.g.alchemy.com/v2/YBzQbzNel58NfEmy574HdQ2hPKjfO93g"
+    ),
   }),
   publicWSClient: createPublicClient({
     // chain: hardhat,
     chain: mainnet,
     // transport: webSocket("ws://127.0.0.1:8545/"),
-    transport: webSocket("wss://eth-goerli.g.alchemy.com/v2/YBzQbzNel58NfEmy574HdQ2hPKjfO93g"),
+    transport: webSocket(
+      "wss://eth-goerli.g.alchemy.com/v2/YBzQbzNel58NfEmy574HdQ2hPKjfO93g"
+    ),
   }),
   selected_network: AVAILABLE_CHAINS[0],
   selected_token: AVAILABLE_CHAINS[0].tokens[0],

@@ -4,9 +4,7 @@ export default function BigText() {
       <p>
         Keep <span class="text-secondary">Safely</span> On
       </p>
-      <p>
-        eXchange
-      </p>
+      <p>eXchange</p>
     </div>
   );
 }

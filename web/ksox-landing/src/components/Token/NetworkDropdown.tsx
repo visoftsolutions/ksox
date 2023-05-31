@@ -51,7 +51,7 @@ export default function NetworkDropdown(props: NetworkDropdownProps) {
         </div>
       </div>
       <Show when={showDropdown()}>
-        <div class="absolute md:right-0 md-max:left-0 top-[50px] grid w-[300px] max-md:w-auto grid-flow-row gap-2 rounded-lg border border-gray-500 p-2 backdrop-blur-md">
+        <div class="md-max:left-0 absolute top-[50px] grid w-[300px] grid-flow-row gap-2 rounded-lg border border-gray-500 p-2 backdrop-blur-md max-md:w-auto md:right-0">
           <div class="rounded-lg px-4 py-2 font-semibold text-text-1">
             Select Network
           </div>

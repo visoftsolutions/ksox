@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: web-processor-app-deployment
+  name: web-ksox-app-deployment
   labels:
-    app: web-processor-app
+    app: web-ksox-app
 spec:
   selector:
     matchLabels:
-      app: web-processor-app
+      app: web-ksox-app
   template:
     metadata:
       labels:
-        app: web-processor-app
+        app: web-ksox-app
     spec:
       containers:
-        - name: web-processor-app
-          image: web-processor-app
+        - name: web-ksox-app
+          image: web-ksox-app
           ports:
             - containerPort: 80
           resources:
@@ -29,10 +29,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: web-processor-app-service
+  name: web-ksox-app-service
 spec:
   selector:
-    app: web-processor-app
+    app: web-ksox-app
   ports:
     - protocol: TCP
       port: 80
@@ -41,7 +41,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: web-processor-app-ingress
+  name: web-ksox-app-ingress
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
     nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
@@ -49,16 +49,16 @@ spec:
   tls:
     - hosts:
         - ksox.finance
-        - pay.ksox.finance
+        - www.ksox.finance
       secretName: ksox-finance-tls
   rules:
-    - host: pay.ksox.finance
+    - host: www.ksox.finance
       http:
         paths:
           - path: /app(/|$)(.*)
             pathType: Prefix
             backend:
               service:
-                name: web-processor-app-service
+                name: web-ksox-app-service
                 port:
                   number: 80

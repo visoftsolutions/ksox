@@ -76,13 +76,13 @@ services:
     depends_on:
       - worker
 
-  processor-landing:
-    container_name: processor-landing
-    hostname: processor-landing
-    build:
-      context: web/processor-landing
-    depends_on:
-      - worker
+  # processor-landing:
+  #   container_name: processor-landing
+  #   hostname: processor-landing
+  #   build:
+  #     context: web/processor-landing
+  #   depends_on:
+  #     - worker
 
   proxy:
     container_name: ksox-proxy

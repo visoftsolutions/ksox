@@ -38,10 +38,10 @@ build:
     context: ./web/processor-app
     docker:
       dockerfile: Dockerfile
-  - image: web-processor-landing
-    context: ./web/processor-landing
-    docker:
-      dockerfile: Dockerfile
+  # - image: web-processor-landing
+  #   context: ./web/processor-landing
+  #   docker:
+  #     dockerfile: Dockerfile
 manifests:
   rawYaml:
     - ./k8s/*
@@ -52,4 +52,4 @@ manifests:
     - ./web/ksox-app/k8s/*
     - ./web/ksox-landing/k8s/*
     - ./web/processor-app/k8s/*
-    - ./web/processor-landing/k8s/*
+    # - ./web/processor-landing/k8s/*

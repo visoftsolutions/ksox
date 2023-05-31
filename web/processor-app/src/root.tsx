@@ -1,49 +1,38 @@
-// @refresh reload
 import { Suspense } from "solid-js";
-import {
-  useLocation,
-  A,
-  Body,
-  ErrorBoundary,
-  FileRoutes,
-  Head,
-  Html,
-  Meta,
-  Routes,
-  Scripts,
-  Title,
-} from "solid-start";
-import "./root.css";
+import { Body, ErrorBoundary, FileRoutes, Head, Html, Link, Meta, Route, Routes, Scripts, Title } from "solid-start";
+import "~/root.css";
+import { joinPaths } from "solid-start/islands/server-router";
+import Index from "~/routes";
+import App from "./components/App";
+import { Nav, NavProvider, setNav } from "./utils/providers/NavProvider";
+import Transfer from "./components/Transfer";
+
+export const base = import.meta.env.BASE_URL;
+export const api = joinPaths(base, "/api");
 
 export default function Root() {
-  const location = useLocation();
-  const active = (path: string) =>
-    path == location.pathname
-      ? "border-sky-600"
-      : "border-transparent hover:border-sky-600";
   return (
     <Html lang="en">
       <Head>
-        <Title>SolidStart - With TailwindCSS</Title>
+        <Title>KsoxPay</Title>
         <Meta charset="utf-8" />
         <Meta name="viewport" content="width=device-width, initial-scale=1" />
+        <Meta name="theme-color" content="#0F0D12" />
+        <Meta name="description" content="Ksox Payment Processor" />
+        <Link rel="icon" href="/gfx/logo.svg" />
       </Head>
       <Body>
         <Suspense>
           <ErrorBoundary>
-            <nav class="bg-sky-800">
-              <ul class="container flex items-center p-3 text-gray-200">
-                <li class={`border-b-2 ${active("/")} mx-1.5 sm:mx-6`}>
-                  <A href="/">Home</A>
-                </li>
-                <li class={`border-b-2 ${active("/about")} mx-1.5 sm:mx-6`}>
-                  <A href="/about">About</A>
-                </li>
-              </ul>
-            </nav>
-            <Routes>
-              <FileRoutes />
-            </Routes>
+            <NavProvider>
+              <Routes>
+                <Route path="/" component={Index}>
+                  <Route path={["/"]} element={<App />} preload={() => setNav(Nav.App)} />
+                  <Route path="/transfer" element={<Transfer />} preload={() => setNav(Nav.Transfer)} />
+                </Route>
+                <FileRoutes />
+              </Routes>
+            </NavProvider>
           </ErrorBoundary>
         </Suspense>
         <Scripts />

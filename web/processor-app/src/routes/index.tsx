@@ -1,31 +1,25 @@
-import { A } from "solid-start";
-import Counter from "~/components/Counter";
+import { AssetsProvider } from "~/utils/providers/AssetsProvider";
+import { Outlet } from "solid-start";
+import { SessionProvider } from "~/utils/providers/SessionProvider";
+import { PrecisionProvider } from "~/utils/providers/PrecisionProvider";
+import Header from "~/components/Header";
+import Navigation from "~/components/Navigation";
+import { NavProvider } from "~/utils/providers/NavProvider";
 
-export default function Home() {
+export default function Index() {
   return (
-    <main class="mx-auto p-4 text-center text-gray-700">
-      <h1 class="max-6-xs my-16 text-6xl font-thin uppercase text-sky-700">
-        Hello world!
-      </h1>
-      <Counter />
-      <p class="mt-8">
-        Visit{" "}
-        <a
-          href="https://solidjs.com"
-          target="_blank"
-          class="text-sky-600 hover:underline"
-        >
-          solidjs.com
-        </a>{" "}
-        to learn how to build Solid apps.
-      </p>
-      <p class="my-4">
-        <span>Home</span>
-        {" - "}
-        <A href="/about" class="text-sky-600 hover:underline">
-          About Page
-        </A>{" "}
-      </p>
-    </main>
+    <SessionProvider>
+      <NavProvider>
+        <main class="grid h-screen w-screen grid-rows-[auto_1fr_auto] overflow-auto bg-gray-1 font-sanspro text-white">
+          <Header />
+          <AssetsProvider>
+            <PrecisionProvider>
+              <Outlet />
+            </PrecisionProvider>
+          </AssetsProvider>
+          <Navigation />
+        </main>
+      </NavProvider>
+    </SessionProvider>
   );
 }
