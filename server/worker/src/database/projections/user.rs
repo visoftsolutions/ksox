@@ -44,13 +44,30 @@ impl FromRow<'_, PgRow> for User {
     }
 }
 
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum MintError {
+    #[error(transparent)]
+    Sqlx(#[from] sqlx::Error),
+}
+
+#[derive(Error, Debug)]
+pub enum BurnError {
+    #[error("insufficient balance")]
+    InsufficientBalance,
+
+    #[error(transparent)]
+    Sqlx(#[from] sqlx::Error),
+}
+
 impl User {
     pub async fn mint(
         &self,
         valuts_manager: &ValutsManager,
         asset_id: Uuid,
         amount: Fraction,
-    ) -> Result<(), sqlx::Error> {
+    ) -> Result<(), MintError> {
         let mut valut = valuts_manager
             .get_or_create_for_user_asset(self.id, asset_id)
             .await?;
@@ -64,9 +81,12 @@ impl User {
         valuts_manager: &ValutsManager,
         asset_id: Uuid,
         amount: Fraction,
-    ) -> Result<(), sqlx::Error> {
+    ) -> Result<(), BurnError> {
         let mut valut = valuts_manager.get_for_user_asset(self.id, asset_id).await?;
         valut.balance -= amount;
+        if valut.balance < Fraction::from(0) {
+            return Err(BurnError::InsufficientBalance);
+        }
         valuts_manager.update(valut).await?;
         Ok(())
     }

@@ -2409,6 +2409,22 @@
     },
     "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                maker_id,\n                is_active,\n                quote_asset_id,\n                base_asset_id,\n                price as \"price: Fraction\",\n                quote_asset_volume as \"quote_asset_volume: Fraction\",\n                quote_asset_volume_left as \"quote_asset_volume_left: Fraction\",\n                maker_fee as \"maker_fee: Fraction\",\n                maker_presentation\n            FROM spot.orders\n            WHERE maker_id = $1\n            ORDER BY last_modification_at DESC, created_at DESC\n            LIMIT $2\n            OFFSET $3\n            "
   },
+  "affbcd2c5e78ccacaecd710113fa35c36387c1945c02caa9852c1c98566706ce": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Timestamptz",
+          "Varchar",
+          "Varchar",
+          "Varchar"
+        ]
+      }
+    },
+    "query": "\n            UPDATE users\n            SET\n                last_modification_at = $2,\n                name = $3,\n                phone = $4,\n                email = $5\n            WHERE users.id = $1\n            "
+  },
   "b1d7d4258b16f40fc14544c7101832274c75e72548b437252781221c80bda956": {
     "describe": {
       "columns": [

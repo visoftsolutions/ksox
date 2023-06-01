@@ -82,7 +82,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             database.clone(),
             Regex::new(r"[^a-zA-Z]+")?,
         ),
-        user_recognition: UserRecognition::new(database, Regex::new(r"^[a-zA-Z0-9+@\.]+$")?),
+        user_recognition: UserRecognition::new(database),
         engine_client: EngineClient::connect(std::env::var("ENGINE_URL")?).await?,
     };
 

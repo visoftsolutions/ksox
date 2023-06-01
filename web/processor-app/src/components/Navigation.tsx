@@ -9,8 +9,8 @@ export default function Navigation() {
       <A href="/">
         <NavButton name="Home" imgPath="/gfx/home.svg" highlighted={nav() == Nav.App} />
       </A>
-      <A href="/transfer">
-        <NavButton name="Transfer" imgPath="/gfx/transfer.svg" highlighted={nav() == Nav.Transfer} />
+      <A href="/account">
+        <NavButton name="Account" imgPath="/gfx/user.svg" highlighted={nav() == Nav.Account} />
       </A>
     </div>
   );

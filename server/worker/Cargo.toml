@@ -16,6 +16,7 @@ fraction = { path = "../fraction" }
 futures = "0.3.28"
 headers = "0.3.8"
 hyper = { version = "0.14.26", features = ["full"] }
+nalgebra = "0.32.2"
 ordered-float = { version = "3.4.0", features = ["serde"] }
 predicates = "3.0.2"
 prefix-hex = "0.7.0"

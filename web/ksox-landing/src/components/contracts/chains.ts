@@ -1,6 +1,6 @@
 import { WETH_CONTRACT_ABI } from "~/components/contracts/abi/wethContract";
 import { TOKEN_TICKET_CONTRACT_ABI } from "~/components/contracts/abi/tokenTicketContract";
-import { Chain, mainnet, polygon, bsc, avalanche, hardhat } from "viem/chains";
+import { Chain, mainnet, polygon, bsc} from "viem/chains";
 import { PHASE_CONTRACT_ABI } from "~/components/contracts/abi/phaseContract";
 import { Address } from "viem";
 

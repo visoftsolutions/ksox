@@ -101,8 +101,7 @@ export const walletClientConnect = async () => {
   });
   const ethereumClient = new EthereumClient(wagmiConfig, chains);
   const web3modal = new Web3Modal({ projectId }, ethereumClient);
-  await web3modal.openModal();
-
   ethereumClient.watchAccount(async (account) => await walletAccount(account));
   ethereumClient.watchNetwork(async (network) => await walletNetwork(network));
+  await web3modal.openModal();
 };

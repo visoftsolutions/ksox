@@ -1,6 +1,10 @@
 use std::pin::Pin;
 
-use sqlx::{postgres::PgPool, Result};
+use chrono::Utc;
+use sqlx::{
+    postgres::{PgPool, PgQueryResult},
+    Result,
+};
 use tokio_stream::Stream;
 use uuid::Uuid;
 
@@ -117,5 +121,28 @@ impl UsersManager {
             "#
         )
         .fetch(&self.database)
+    }
+
+    pub async fn update(&self, user: User) -> sqlx::Result<PgQueryResult> {
+        let now = Utc::now();
+        sqlx::query_as!(
+            User,
+            r#"
+            UPDATE users
+            SET
+                last_modification_at = $2,
+                name = $3,
+                phone = $4,
+                email = $5
+            WHERE users.id = $1
+            "#,
+            user.id,
+            now,
+            user.name,
+            user.phone,
+            user.email,
+        )
+        .execute(&self.database)
+        .await
     }
 }

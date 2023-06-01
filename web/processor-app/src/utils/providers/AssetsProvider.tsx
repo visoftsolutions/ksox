@@ -20,6 +20,25 @@ const AssetsContext = createContext<Accessor<Map<Uuid, Asset>>>(assets);
 export function AssetsProvider(props: { children: JSX.Element }) {
   onMount(async () => {
     const x = await fetchAssets();
+    // const map = new Map<Uuid, Asset>();
+    // map.set("fe159f05-9b7d-4fc3-96f0-e105d2cde02d", {
+    //   id: "fe159f05-9b7d-4fc3-96f0-e105d2cde02d",
+    //   created_at: new Date(Date.now()),
+    //   last_modification_at: new Date(Date.now()),
+    //   name: "Bitcoin",
+    //   symbol: "BTC",
+    //   maker_fee: fFromBigint(0n),
+    //   taker_fee: fFromBigint(0n),
+    // });
+    // map.set("fe159f05-9b7d-4fc3-96f0-e105d2cde02a", {
+    //   id: "fe159f05-9b7d-4fc3-96f0-e105d2cde02a",
+    //   created_at: new Date(Date.now()),
+    //   last_modification_at: new Date(Date.now()),
+    //   name: "Bitcoin",
+    //   symbol: "BTC",
+    //   maker_fee: fFromBigint(0n),
+    //   taker_fee: fFromBigint(0n),
+    // });
     setAssets(x);
   });
 

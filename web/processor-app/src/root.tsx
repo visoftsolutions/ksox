@@ -5,7 +5,8 @@ import { joinPaths } from "solid-start/islands/server-router";
 import Index from "~/routes";
 import App from "./components/App";
 import { Nav, NavProvider, setNav } from "./utils/providers/NavProvider";
-import Transfer from "./components/Transfer";
+import Account from "./components/Account";
+import Asset from "./components/Asset";
 
 export const base = import.meta.env.BASE_URL;
 export const api = joinPaths(base, "/api");
@@ -27,8 +28,9 @@ export default function Root() {
             <NavProvider>
               <Routes>
                 <Route path="/" component={Index}>
-                  <Route path={["/"]} element={<App />} preload={() => setNav(Nav.App)} />
-                  <Route path="/transfer" element={<Transfer />} preload={() => setNav(Nav.Transfer)} />
+                  <Route path="/" element={<App />} preload={() => setNav(Nav.App)} />
+                  <Route path="/account" element={<Account />} preload={() => setNav(Nav.Account)} />
+                  <Route path="/asset/:assetId" element={<Asset />} preload={() => setNav(Nav.Asset)} />
                 </Route>
                 <FileRoutes />
               </Routes>

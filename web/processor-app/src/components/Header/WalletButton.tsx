@@ -9,6 +9,7 @@ import login from "~/auth/login";
 import logout from "~/auth/logout";
 import { setWallet, wallet } from "~/utils/providers/WalletProvider";
 import { session, setSession } from "~/utils/providers/SessionProvider";
+import { firstLastChars } from "~/utils/formatters/AddressFormatter";
 
 const projectId = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID;
 
@@ -24,19 +25,18 @@ export default function WalletButton() {
     });
     const ethereumClient = new EthereumClient(client, chains);
     const web3modal = new Web3Modal({ projectId }, ethereumClient);
-    await web3modal.openModal();
-
+  
     ethereumClient.watchAccount(async (account) => {
       if (account.address && account.connector) {
-        setWallet(
-          createWalletClient({
-            chain: mainnet,
-            transport: custom(await account.connector.getProvider()),
-          })
-        );
-        setSession(undefined);
+        const wallet = createWalletClient({
+          chain: mainnet,
+          transport: custom(await account.connector.getProvider()),
+        });
+        setWallet(wallet);
+        setSession(await login(wallet));
       }
     });
+    await web3modal.openModal();
   };
 
   return (
@@ -55,7 +55,7 @@ export default function WalletButton() {
       ) : (
         <img src={joinPaths(base, "gfx/user.svg")} alt="user" width="16px" class="m-auto" />
       )}
-      <div class="text-ellipsis text-wallet font-semibold">{!wallet() ? "CONNECT" : !session() ? "LOGIN" : wallet()?.account?.address}</div>
+      <div class="text-ellipsis text-wallet font-semibold">{!wallet() ? "CONNECT" : !session() ? "LOGIN" : firstLastChars(session()?.user_id ?? "", 6, 6)}</div>
     </div>
   );
 }

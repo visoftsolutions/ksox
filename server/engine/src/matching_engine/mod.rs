@@ -241,6 +241,10 @@ impl MatchingEngine {
         request: TransferRequest,
         transaction: &'t mut Transaction<'p, Postgres>,
     ) -> Result<TransferResponse, TransferError> {
+        if request.maker == request.taker {
+            return Ok(TransferResponse {});
+        }
+
         let asset = AssetsManager::get_by_id(transaction, request.asset)
             .await?
             .ok_or(TransferError::AssetNotFound)?;

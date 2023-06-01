@@ -94,7 +94,7 @@ services:
       - ksox-app
       - ksox-landing
       - processor-app
-      - processor-landing
+      # - processor-landing
     ports:
       - 0.0.0.0:80:80
       - 0.0.0.0:443:443

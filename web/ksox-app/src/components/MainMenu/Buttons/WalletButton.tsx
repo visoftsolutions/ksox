@@ -24,19 +24,18 @@ export default function WalletButton() {
     });
     const ethereumClient = new EthereumClient(client, chains);
     const web3modal = new Web3Modal({ projectId }, ethereumClient);
-    await web3modal.openModal();
 
     ethereumClient.watchAccount(async (account) => {
       if (account.address && account.connector) {
-        setWallet(
-          createWalletClient({
-            chain: mainnet,
-            transport: custom(await account.connector.getProvider()),
-          })
-        );
-        setSession(undefined);
+        const wallet = createWalletClient({
+          chain: mainnet,
+          transport: custom(await account.connector.getProvider()),
+        });
+        setWallet(wallet);
+        setSession(await login(wallet));
       }
     });
+    await web3modal.openModal();
   };
 
   return (

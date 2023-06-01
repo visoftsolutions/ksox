@@ -6,8 +6,18 @@ export interface SearchInputComponent {
   class?: JSX.HTMLAttributes<HTMLElement>["class"];
   disabled?: boolean;
   disabledClass?: JSX.HTMLAttributes<HTMLElement>["class"];
-  onInput?: (e: Event) => void;
-  onChange?: (e: Event) => void;
+  onInput?: (
+    e: Event & {
+      currentTarget: HTMLInputElement;
+      target: HTMLInputElement;
+    }
+  ) => void;
+  onChange?: (
+    e: Event & {
+      currentTarget: HTMLInputElement;
+      target: HTMLInputElement;
+    }
+  ) => void;
 }
 
 export default function SearchInput(props: SearchInputComponent) {
@@ -36,7 +46,7 @@ export default function SearchInput(props: SearchInputComponent) {
           spellcheck={true}
           ref={inputDOM}
           value={props.value ?? ""}
-          placeholder="Search"
+          placeholder="Find user"
           disabled={props.disabled}
           onInput={(ev) => (props.onInput ? props.onInput(ev) : {})}
           onChange={(ev) => (props.onChange ? props.onChange(ev) : {})}

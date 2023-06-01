@@ -19,7 +19,7 @@ pub fn router(app_state: &AppState) -> Router {
         .nest("/ohlcv", ohlcv::router(app_state))
         .nest("/trades", trades::router(app_state))
         .nest("/assets", assets::router(app_state))
-        .nest("/users", assets::router(app_state))
+        .nest("/users", users::router(app_state))
 }
 
 #[derive(Serialize)]
