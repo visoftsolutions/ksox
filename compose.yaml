@@ -52,35 +52,39 @@ services:
     ports:
       - 7979:80
 
-  ksox-app:
-    container_name: ksox-app
-    hostname: ksox-app
+  exchange:
+    container_name: web-exchange
+    hostname: web-exchange
     build:
-      context: web/ksox-app
+      context: web
+      dockerfile: ./exchange.dockerfile
     depends_on:
       - worker
 
-  ksox-landing:
-    container_name: ksox-landing
-    hostname: ksox-landing
+  exchange-landing:
+    container_name: web-exchange-landing
+    hostname: web-exchange-landing
     build:
-      context: web/ksox-landing
+      context: web
+      dockerfile: ./exchange-landing.dockerfile
     depends_on:
       - worker
 
-  processor-app:
-    container_name: processor-app
-    hostname: processor-app
+  processor:
+    container_name: web-processor
+    hostname: web-processor
     build:
-      context: web/processor-app
+      context: web
+      dockerfile: ./processor.dockerfile
     depends_on:
       - worker
 
-  # processor-landing:
-  #   container_name: processor-landing
-  #   hostname: processor-landing
+  # web-processor-landing:
+  #   container_name: web-processor-landing
+  #   hostname: web-processor-landing
   #   build:
-  #     context: web/processor-landing
+  #     context: web
+  #     dockerfile: ./processor-landing.dockerfile
   #   depends_on:
   #     - worker
 
@@ -91,9 +95,9 @@ services:
       context: proxy
     depends_on:
       - worker
-      - ksox-app
-      - ksox-landing
-      - processor-app
+      - exchange
+      - exchange-landing
+      - processor
       # - processor-landing
     ports:
       - 0.0.0.0:80:80

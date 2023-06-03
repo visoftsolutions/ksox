@@ -1,0 +1,22 @@
+{
+  "name": "@web/utils",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "prettier": "prettier -w .",
+    "lint": "eslint . --ext .tsx --config packages/eslint/.eslintrc.json",
+    "update": "npx npm-check-updates -u"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@web/eslint": "1.0.0",
+    "@web/prettier": "1.0.0",
+    "@web/tailwind": "1.0.0",
+    "typescript": "^5.1.3"
+  },
+  "dependencies": {
+    "zod": "^3.21.4"
+  }
+}

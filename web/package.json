@@ -1,0 +1,18 @@
+{
+  "name": "web",
+  "version": "1.0.0",
+  "description": "",
+  "private": "true",
+  "type": "module",
+  "scripts": {
+    "prettier": "prettier -w .",
+    "lint": "eslint . --ext .tsx --config packages/eslint/.eslintrc.json",
+    "update": "npx npm-check-updates -ws -u --root"
+  },
+  "author": "",
+  "license": "ISC",
+  "workspaces": [
+    "@app/*",
+    "packages/*"
+  ]
+}

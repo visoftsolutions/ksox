@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-exchange-deployment
+  labels:
+    app: web-exchange
+spec:
+  selector:
+    matchLabels:
+      app: web-exchange
+  template:
+    metadata:
+      labels:
+        app: web-exchange
+    spec:
+      containers:
+        - name: web-exchange
+          image: web-exchange
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "500m"
+            limits:
+              memory: "256Mi"
+              cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-exchange-service
+spec:
+  selector:
+    app: web-exchange
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-exchange-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
+spec:
+  tls:
+    - hosts:
+        - ksox.finance
+        - www.ksox.finance
+      secretName: ksox-finance-tls
+  rules:
+    - host: www.ksox.finance
+      http:
+        paths:
+          - path: /app(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: web-exchange-service
+                port:
+                  number: 80

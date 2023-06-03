@@ -1,0 +1,11 @@
+dist
+.solid
+
+# kubernetes manifests
+k8s
+
+# dependencies
+node_modules
+
+.gitignore
+
