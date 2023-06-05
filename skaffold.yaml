@@ -22,6 +22,10 @@ build:
     context: ./server
     docker:
       dockerfile: engine.dockerfile
+  - image: server-engagement
+    context: ./server
+    docker:
+      dockerfile: engagement.dockerfile
   - image: server-worker
     context: ./server
     docker:

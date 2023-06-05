@@ -117,3 +117,4 @@ CREATE CAST (fraction AS json) WITH FUNCTION to_json(fraction) AS ASSIGNMENT;
 CREATE CAST (numeric AS json) WITH FUNCTION to_json(numeric) AS ASSIGNMENT;
 
 CREATE SCHEMA "spot";
+CREATE SCHEMA "engagement";
