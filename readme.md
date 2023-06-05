@@ -5,6 +5,12 @@ docker compose up postgres
 cargo build
 ```
 
+# Run unlighthouse
+need to be in web folder
+```
+npx unlighthouse --site http://127.0.0.1/app/
+```
+
 # Run app
 ```
 docker compose up --build

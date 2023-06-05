@@ -1,7 +1,6 @@
 import { A } from "solid-start";
 
-
-export default function Logo(props: {class: string}) {
+export default function Logo(props: { class: string }) {
   return (
     <div class={`flex justify-between ${props.class}`}>
       <A href="/" class="flex items-center gap-[16px]">

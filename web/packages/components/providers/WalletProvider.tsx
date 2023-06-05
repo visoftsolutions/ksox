@@ -1,5 +1,5 @@
 import { GetAccountResult, GetNetworkResult, PublicClient } from "@wagmi/core";
-import { createContext, JSX, useContext } from "solid-js";
+import { createContext, JSX, onMount, useContext } from "solid-js";
 import { createStore } from "solid-js/store";
 import {
   Address,
@@ -23,35 +23,49 @@ import { AVAILABLE_CHAINS, Network } from "./WalletProvider/chains";
 
 export interface WalletProvider {
   selected_network: Network;
+  walletConnectProjectId: string | undefined;
   walletClient: WalletClient<CustomTransport, typeof mainnet> | undefined;
-  publicClient: PublicClient<HttpTransport, typeof mainnet>;
-  publicWSClient: PublicClient<WebSocketTransport, typeof mainnet>;
+  publicClient: PublicClient<HttpTransport, typeof mainnet> | undefined;
+  publicWSClient: PublicClient<WebSocketTransport, typeof mainnet> | undefined;
   address: Address | undefined;
 }
 
 export const [wallet, setWallet] = createStore<WalletProvider>({
   walletClient: undefined,
   address: undefined,
-  publicClient: createPublicClient({
-    // chain: hardhat,
-    chain: mainnet,
-    // transport: http("http://127.0.0.1:8545/"),
-    transport: http(
-      "https://eth-goerli.g.alchemy.com/v2/YBzQbzNel58NfEmy574HdQ2hPKjfO93g"
-    ),
-  }),
-  publicWSClient: createPublicClient({
-    // chain: hardhat,
-    chain: mainnet,
-    // transport: webSocket("ws://127.0.0.1:8545/"),
-    transport: webSocket(
-      "wss://eth-goerli.g.alchemy.com/v2/YBzQbzNel58NfEmy574HdQ2hPKjfO93g"
-    ),
-  }),
+  walletConnectProjectId: undefined,
+  publicClient: undefined,
+  publicWSClient: undefined,
   selected_network: AVAILABLE_CHAINS[0],
 });
 const WalletContext = createContext<WalletProvider>(wallet);
-export function WalletProvider(props: { children: JSX.Element }) {
+export function WalletProvider(props: {
+  children: JSX.Element;
+  projectId: string;
+  alchemyId: string;
+}) {
+  onMount(() => {
+    setWallet({
+      walletConnectProjectId: props.projectId,
+      publicClient: createPublicClient({
+        // chain: hardhat,
+        chain: mainnet,
+        // transport: http("http://127.0.0.1:8545/"),
+        transport: http(
+          `https://eth-goerli.g.alchemy.com/v2/${props.alchemyId}`
+        ),
+      }),
+      publicWSClient: createPublicClient({
+        // chain: hardhat,
+        chain: mainnet,
+        // transport: webSocket("ws://127.0.0.1:8545/"),
+        transport: webSocket(
+          `wss://eth-goerli.g.alchemy.com/v2/${props.alchemyId}`
+        ),
+      }),
+    });
+  });
+
   return (
     <WalletContext.Provider value={wallet}>
       {props.children}
@@ -81,19 +95,32 @@ const walletNetwork = async (network: GetNetworkResult) => {
   }
 };
 
-export const walletClientConnect = async (projectId: string, ) => {
-  const { publicClient, chains } = configureChains(
-    AVAILABLE_CHAINS.map((e) => e.network),
-    [w3mProvider({ projectId })]
-  );
-  const wagmiConfig = createConfig({
-    autoConnect: true,
-    connectors: w3mConnectors({ projectId, version: 1, chains }),
-    publicClient,
-  });
-  const ethereumClient = new EthereumClient(wagmiConfig, chains);
-  const web3modal = new Web3Modal({ projectId }, ethereumClient);
-  ethereumClient.watchAccount(async (account) => await walletAccount(account));
-  ethereumClient.watchNetwork(async (network) => await walletNetwork(network));
-  await web3modal.openModal();
+export const walletClientConnect = async () => {
+  if (wallet.walletConnectProjectId) {
+    const { publicClient, chains } = configureChains(
+      AVAILABLE_CHAINS.map((e) => e.network),
+      [w3mProvider({ projectId: wallet.walletConnectProjectId })]
+    );
+    const wagmiConfig = createConfig({
+      autoConnect: true,
+      connectors: w3mConnectors({
+        projectId: wallet.walletConnectProjectId,
+        version: 1,
+        chains,
+      }),
+      publicClient,
+    });
+    const ethereumClient = new EthereumClient(wagmiConfig, chains);
+    const web3modal = new Web3Modal(
+      { projectId: wallet.walletConnectProjectId },
+      ethereumClient
+    );
+    ethereumClient.watchAccount(
+      async (account) => await walletAccount(account)
+    );
+    ethereumClient.watchNetwork(
+      async (network) => await walletNetwork(network)
+    );
+    await web3modal.openModal();
+  }
 };

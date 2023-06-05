@@ -14,5 +14,9 @@
   "workspaces": [
     "@app/*",
     "packages/*"
-  ]
+  ],
+  "devDependencies": {
+    "unlighthouse": "^0.8.7",
+    "typescript": "^5.1.3"
+  }
 }
