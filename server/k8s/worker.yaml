@@ -44,6 +44,9 @@ spec:
       - name: wait-for-engine
         image: busybox
         command: ['sh', '-c', 'until nc -z server-engine-service 80; do echo waiting for engine; sleep 1; done;']
+      - name: wait-for-engagement
+        image: busybox
+        command: ['sh', '-c', 'until nc -z server-engagement-service 80; do echo waiting for engagement; sleep 1; done;']
 ---
 apiVersion: v1
 kind: Service

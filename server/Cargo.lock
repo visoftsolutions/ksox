@@ -630,6 +630,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "engagement"
+version = "0.1.0"
+dependencies = [
+ "async-stream",
+ "axum",
+ "fraction",
+ "futures",
+ "hyper",
+ "num-bigint",
+ "prost",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "tokio-stream",
+ "tonic",
+ "tonic-build",
+ "tower",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+]
+
+[[package]]
 name = "engine"
 version = "0.1.0"
 dependencies = [

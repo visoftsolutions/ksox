@@ -1,0 +1,588 @@
+{
+  "db": "PostgreSQL",
+  "1dab2f69d30555af88f8d624d92f7fbe9e9557b898c81681a9517c7f09bac443": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "is_active",
+          "ordinal": 1,
+          "type_info": "Bool"
+        },
+        {
+          "name": "maker_id",
+          "ordinal": 2,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "quote_asset_id",
+          "ordinal": 3,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "base_asset_id",
+          "ordinal": 4,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "quote_asset_volume_left: Fraction",
+          "ordinal": 5,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                is_active,\n                maker_id,\n                quote_asset_id,\n                base_asset_id,\n                quote_asset_volume_left as \"quote_asset_volume_left: Fraction\"\n            FROM spot.orders\n            WHERE spot.orders.id = $1\n            "
+  },
+  "228018021570ca68ba873d8b3fd9e3201c130676f04086b8c165abbfe0be3a1d": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Bool",
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          "Timestamptz"
+        ]
+      }
+    },
+    "query": "\n            UPDATE \n                spot.orders \n            SET\n                is_active = $2,\n                quote_asset_volume_left = $3::fraction,\n                last_modification_at = $4\n            WHERE\n                id = $1\n            "
+  },
+  "2555a58d5bd73e7a1a0585b21d59503b7fe5e2290029fe322437d3ab31ae11c9": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Bool",
+          "Timestamptz"
+        ]
+      }
+    },
+    "query": "\n            UPDATE \n                spot.orders \n            SET\n                is_active = $2,\n                last_modification_at = $3\n            WHERE\n                id = $1\n            "
+  },
+  "3d8f28b3e99ead9f1ef1922efb53c31024ef0b81add0d6dc907270e949eec3b1": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "price: Fraction",
+          "ordinal": 1,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "quote_asset_volume_left: Fraction",
+          "ordinal": 2,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "maker_fee: Fraction",
+          "ordinal": 3,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid",
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                price as \"price: Fraction\",\n                quote_asset_volume_left as \"quote_asset_volume_left: Fraction\",\n                maker_fee as \"maker_fee: Fraction\"\n            FROM spot.orders\n            WHERE quote_asset_id = $1\n            AND base_asset_id = $2\n            AND is_active = true\n            AND quote_asset_volume_left > (0,1)::fraction\n            AND $3::fraction <= price\n            ORDER BY price DESC\n            "
+  },
+  "3eaa035d0fd6007f1c3682756891c936e83f02fb0f2d24d489355a61cbbe36a4": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid",
+          "Uuid",
+          "Bool",
+          "Uuid",
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          "Timestamptz",
+          "Timestamptz"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO spot.trades\n                (quote_asset_id, base_asset_id, taker_id, taker_presentation, order_id, price, taker_quote_volume, maker_quote_volume, taker_base_volume, maker_base_volume, last_modification_at, created_at)\n            VALUES\n                ($1, $2, $3, $4, $5, $6::fraction, $7::fraction, $8::fraction, $9::fraction, $10::fraction, $11, $12)\n            "
+  },
+  "7e75435516ff478282cc6b8667be9c75d8e0e5159b91e469d8dcc2cc7414e7ba": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "balance: Fraction",
+          "ordinal": 1,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                balance as \"balance: Fraction\"\n            FROM spot.valuts\n            WHERE user_id = $1\n            AND asset_id = $2\n            "
+  },
+  "9b0c54af6809ffedb0c186ea3f051cec55a4484aa02f03d508c717cb838412d8": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid",
+          "Uuid",
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          "Bool",
+          "Timestamptz",
+          "Timestamptz"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO spot.orders\n                (maker_id, is_active, quote_asset_id, base_asset_id, price, quote_asset_volume, quote_asset_volume_left, maker_fee, maker_presentation, last_modification_at, created_at)\n            VALUES\n                ($1, true, $2, $3, $4::fraction, $5::fraction, $6::fraction, $7::fraction, $8, $9, $10)\n            "
+  },
+  "a7ce0802d0aba95552603f61987739b03699968d7cd65258977fdadef2149ae0": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          },
+          "Timestamptz"
+        ]
+      }
+    },
+    "query": "\n            UPDATE \n                spot.valuts \n            SET\n                balance = $2::fraction,\n                last_modification_at = $3\n            WHERE\n                id = $1\n            "
+  },
+  "a82d2db7a22d0dd92b428e60d42d57def4557211b594d7e4e1c454689f8b95a7": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "balance: Fraction",
+          "ordinal": 1,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid",
+          "Timestamptz",
+          "Timestamptz"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO spot.valuts\n                (user_id, asset_id, balance, last_modification_at, created_at)\n            VALUES ($1, $2, (0,1)::fraction, $3, $4)\n            RETURNING id, balance as \"balance: Fraction\"\n            "
+  },
+  "b877252d36b7639d4d3a199a6ac77da3a880a2a4a097efb0f26da35ec652620e": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "maker_fee: Fraction",
+          "ordinal": 1,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "taker_fee: Fraction",
+          "ordinal": 2,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\"\n            FROM spot.assets\n            WHERE spot.assets.id = $1\n            "
+  }
+}
