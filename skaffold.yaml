@@ -6,10 +6,10 @@ build:
     context: ./containers
     docker:
       dockerfile: busybox.dockerfile
-  - image: test-blockchain
-    context: ./blockchain
-    docker:
-      dockerfile: Dockerfile
+  # - image: test-blockchain
+  #   context: ./blockchain
+  #   docker:
+  #     dockerfile: Dockerfile
   - image: postgres-database
     context: ./postgres
     docker:
@@ -26,6 +26,10 @@ build:
     context: ./server
     docker:
       dockerfile: worker.dockerfile
+  - image: pay-worker
+    context: ./server
+    docker:
+      dockerfile: worker.dockerfile
   - image: web-exchange
     context: ./web
     docker:
@@ -38,14 +42,10 @@ build:
     context: ./web
     docker:
       dockerfile: processor.dockerfile
-  # - image: web-processor-landing
-  #   context: ./web/processor-landing
-  #   docker:
-  #     dockerfile: Dockerfile
 manifests:
   rawYaml:
     - ./k8s/*
-    - ./blockchain/k8s/*
+    # - ./blockchain/k8s/*
     - ./postgres/k8s/*
     - ./redis/k8s/*
     - ./server/k8s/*
