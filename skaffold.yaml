@@ -42,10 +42,10 @@ build:
     context: ./web
     docker:
       dockerfile: processor.dockerfile
-  # - image: web-processor-landing
-  #   context: ./web/processor-landing
-  #   docker:
-  #     dockerfile: Dockerfile
+  - image: web-dashboard
+    context: ./web
+    docker:
+      dockerfile: dashboard.dockerfile
 manifests:
   rawYaml:
     - ./k8s/*

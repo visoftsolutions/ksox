@@ -22,9 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let database = PgPool::connect(std::env::var("DATABASE_URL")?.as_str()).await?;
 
-    let engagement = EngagementEngine::new(
-        database
-    );
+    let engagement = EngagementEngine::new(database);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));
     tracing::info!("listening on {}", addr);

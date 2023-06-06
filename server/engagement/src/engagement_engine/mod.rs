@@ -1,4 +1,4 @@
-use sqlx::{PgPool};
+use sqlx::PgPool;
 
 use crate::base::engagement_server::Engagement;
 
@@ -13,5 +13,4 @@ impl EngagementEngine {
 }
 
 #[tonic::async_trait]
-impl Engagement for EngagementEngine {
-}
+impl Engagement for EngagementEngine {}

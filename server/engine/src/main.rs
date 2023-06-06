@@ -14,9 +14,7 @@ use base::engine_server::EngineServer;
 use sqlx::PgPool;
 use tonic::transport::Server;
 
-use crate::{
-    matching_engine::MatchingEngine,
-};
+use crate::matching_engine::MatchingEngine;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

@@ -9,5 +9,6 @@ spec:
     - www.ksox.finance
     - test-blockchain.ksox.finance
     - pay.ksox.finance
+    - dashboard.ksox.finance
   issuerRef:
     name: ksox-finance-issuer
