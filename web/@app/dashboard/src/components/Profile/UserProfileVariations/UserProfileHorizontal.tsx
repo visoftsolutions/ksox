@@ -30,9 +30,13 @@ export default function UserProfileHorizontal(props: UserProfileComponent) {
           </div>
           {/* display badges */}
           <div class="flex flex-row">
-            {props.badgesImages.map((badge) => {
-              return <img src={joinPaths(base, badge)} alt="badge" class="m-1 h-6 w-6" />;
-            })}
+          {props.maxBadges
+              ? props.badgesImages.map((badge, idx) => {
+                  if (idx < props.maxBadges!) return <img src={joinPaths(base, badge)} alt="badge" class="m-1 h-6 w-6" />;
+                })
+              : props.badgesImages.map((badge) => {
+                  return <img src={joinPaths(base, badge)} alt="badge" class="m-1 h-6 w-6" />;
+                })}
           </div>
           {/* buttons */}
           {/* <div class="flex flex-row">

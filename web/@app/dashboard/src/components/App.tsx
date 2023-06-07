@@ -11,6 +11,7 @@ export default function App() {
       publicWallet="0x3acaDFB15E991e8403D2Fe3E75Ee4782B88cF5b1"
       image="gfx/placeholderPhoto.jpeg"
       badgesImages={["gfx/placeholderBadge1.png", "gfx/placeholderBadge2.png", "gfx/placeholderBadge3.png", "gfx/placeholderBadge4.png"]}
+      // maxBadges={3}
     />
   );
 }
