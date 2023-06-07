@@ -83,8 +83,8 @@ CREATE TABLE "transfers" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "from" uuid NOT NULL,
-  "to" uuid NOT NULL,
+  "maker_id" uuid NOT NULL,
+  "taker_id" uuid NOT NULL,
   "asset" uuid NOT NULL,
   "amount" fraction NOT NULL
 );
@@ -100,8 +100,8 @@ ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "spot"
 ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("base_asset_id") REFERENCES "spot"."assets" ("id");
 ALTER TABLE "spot"."candlesticks" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "spot"."assets" ("id");
 ALTER TABLE "spot"."candlesticks" ADD FOREIGN KEY ("base_asset_id") REFERENCES "spot"."assets" ("id");
-ALTER TABLE "transfers" ADD FOREIGN KEY ("from") REFERENCES "users" ("id");
-ALTER TABLE "transfers" ADD FOREIGN KEY ("to") REFERENCES "users" ("id");
+ALTER TABLE "transfers" ADD FOREIGN KEY ("maker_id") REFERENCES "users" ("id");
+ALTER TABLE "transfers" ADD FOREIGN KEY ("taker_id") REFERENCES "users" ("id");
 ALTER TABLE "transfers" ADD FOREIGN KEY ("asset") REFERENCES "spot"."assets" ("id");
 
 CREATE OR REPLACE FUNCTION update_last_modification_at()

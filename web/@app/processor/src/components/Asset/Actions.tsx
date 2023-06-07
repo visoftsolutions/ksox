@@ -125,7 +125,7 @@ export function Actions(props: { session?: ValidateSignatureResponse; asset?: As
                 credentials: "same-origin",
                 body: JSON.stringify(
                   TransferRequest.parse({
-                    taker: selectedUser()?.id,
+                    taker_id: selectedUser()?.id,
                     asset: props.asset?.id,
                     volume: amount(),
                   }),

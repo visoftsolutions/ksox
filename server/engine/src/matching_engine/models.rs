@@ -49,8 +49,8 @@ impl TryFrom<Result<SubmitResponse, SubmitRequestError>> for base::SubmitRespons
 }
 
 pub struct TransferRequest {
-    pub maker: Uuid,
-    pub taker: Uuid,
+    pub maker_id: Uuid,
+    pub taker_id: Uuid,
     pub asset: Uuid,
     pub volume: Fraction,
 }
@@ -59,9 +59,9 @@ impl TryFrom<base::TransferRequest> for TransferRequest {
     type Error = Status;
     fn try_from(value: base::TransferRequest) -> Result<Self, Self::Error> {
         Ok(Self {
-            maker: Uuid::from_str(&value.maker)
+            maker_id: Uuid::from_str(&value.maker_id)
                 .map_err(|e| Status::invalid_argument(e.to_string()))?,
-            taker: Uuid::from_str(&value.taker)
+            taker_id: Uuid::from_str(&value.taker_id)
                 .map_err(|e| Status::invalid_argument(e.to_string()))?,
             asset: Uuid::from_str(&value.asset)
                 .map_err(|e| Status::invalid_argument(e.to_string()))?,

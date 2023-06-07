@@ -11,7 +11,7 @@ use crate::{
 
 #[derive(Deserialize, Serialize)]
 pub struct Request {
-    pub taker: Uuid,
+    pub taker_id: Uuid,
     pub asset: Uuid,
     pub volume: Fraction,
 }
@@ -29,8 +29,8 @@ pub async fn root(
     let response = state
         .engine_client
         .transfer(TransferRequest {
-            maker: (*user_id).to_string(),
-            taker: payload.taker.to_string(),
+            maker_id: (*user_id).to_string(),
+            taker_id: payload.taker_id.to_string(),
             asset: payload.asset.to_string(),
             volume: serde_json::to_string(&payload.volume)?,
         })

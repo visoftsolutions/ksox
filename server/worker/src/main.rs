@@ -31,7 +31,7 @@ use crate::{
         trades::{TradesManager, TradesNotificationManager},
         transfers::{TransfersManager, TransfersNotificationManager},
         users::UsersManager,
-        valuts::{ValutsManager, ValutsNotificationManager},
+        valuts::{ValutsManager, ValutsNotificationManager}, badges::{BadgesManager, BadgesNotificationManager},
     },
     models::AppState,
     recognition::{asset_pair::AssetPairRecognition, user::UserRecognition},
@@ -76,6 +76,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ),
         transfers_manager: TransfersManager::new(database.clone()),
         transfers_notification_manager: TransfersNotificationManager::new(
+            notification_manager_controller.get_subscriber(),
+        ),
+        badges_manager: BadgesManager::new(database.clone()),
+        badges_notification_manager: BadgesNotificationManager::new(
             notification_manager_controller.get_subscriber(),
         ),
         assets_pair_recognition: AssetPairRecognition::new(

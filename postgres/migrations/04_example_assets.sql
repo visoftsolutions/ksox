@@ -6,3 +6,6 @@ INSERT INTO "spot"."assets" ("name", "symbol", "maker_fee", "taker_fee") VALUES 
 INSERT INTO "spot"."assets" ("name", "symbol", "maker_fee", "taker_fee") VALUES ('Cardano', 'ADA', (0, 1), (0, 1));
 INSERT INTO "spot"."assets" ("name", "symbol", "maker_fee", "taker_fee") VALUES ('Monero', 'XMR', (0, 1), (0, 1));
 INSERT INTO "spot"."assets" ("name", "symbol", "maker_fee", "taker_fee") VALUES ('TRON', 'TRX', (0, 1), (0, 1));
+INSERT INTO "spot"."assets" ("name", "symbol", "maker_fee", "taker_fee") VALUES ('Chainlink', 'LINK', (0, 1), (0, 1));
+INSERT INTO "spot"."assets" ("name", "symbol", "maker_fee", "taker_fee") VALUES ('Cosmos', 'ATOM', (0, 1), (0, 1));
+INSERT INTO "spot"."assets" ("name", "symbol", "maker_fee", "taker_fee") VALUES ('Polygon', 'MATIC', (0, 1), (0, 1));

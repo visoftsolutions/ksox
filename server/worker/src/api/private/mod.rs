@@ -9,6 +9,7 @@ pub mod submit;
 pub mod trades;
 pub mod transfer;
 pub mod transfers;
+pub mod badges;
 
 use axum::{
     routing::{delete, post},
@@ -39,6 +40,7 @@ pub fn router(app_state: &AppState) -> Router {
         .nest("/orders", orders::router(app_state))
         .nest("/trades", trades::router(app_state))
         .nest("/transfers", transfers::router(app_state))
+        .nest("/badges", badges::router(app_state))
 }
 
 #[derive(Serialize)]

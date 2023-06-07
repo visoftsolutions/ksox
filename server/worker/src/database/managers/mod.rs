@@ -6,3 +6,4 @@ pub mod trades;
 pub mod transfers;
 pub mod users;
 pub mod valuts;
+pub mod badges;

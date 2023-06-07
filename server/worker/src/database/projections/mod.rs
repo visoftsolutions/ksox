@@ -5,3 +5,4 @@ pub mod trade;
 pub mod transfer;
 pub mod user;
 pub mod valut;
+pub mod badge;

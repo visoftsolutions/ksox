@@ -241,7 +241,7 @@ impl MatchingEngine {
         request: TransferRequest,
         transaction: &'t mut Transaction<'p, Postgres>,
     ) -> Result<TransferResponse, TransferError> {
-        if request.maker == request.taker {
+        if request.maker_id == request.taker_id {
             return Ok(TransferResponse {});
         }
 
@@ -250,10 +250,10 @@ impl MatchingEngine {
             .ok_or(TransferError::AssetNotFound)?;
 
         let mut maker_asset_valut =
-            ValutsManager::get_or_create(transaction, request.maker, asset.id).await?;
+            ValutsManager::get_or_create(transaction, request.maker_id, asset.id).await?;
 
         let mut taker_asset_valut =
-            ValutsManager::get_or_create(transaction, request.taker, asset.id).await?;
+            ValutsManager::get_or_create(transaction, request.taker_id, asset.id).await?;
 
         if maker_asset_valut.balance < request.volume {
             return Err(TransferError::InsufficientBalance);

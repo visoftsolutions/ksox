@@ -12,8 +12,8 @@ message SubmitRequest {
 message SubmitResponse {}
 
 message TransferRequest {
-    string maker = 1;
-    string taker = 2;
+    string maker_id = 1;
+    string taker_id = 2;
     string asset = 3;
     string volume = 4;
 }
