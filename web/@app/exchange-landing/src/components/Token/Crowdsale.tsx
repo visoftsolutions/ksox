@@ -147,7 +147,7 @@ export default function Crowdsale() {
                   if (crowdsale.tokenAmount) {
                     setAmountInputStyle({});
                     if (wallet.walletClient == undefined || wallet.address == undefined) {
-                      await walletClientConnect(projectId);
+                      await walletClientConnect();
                     }
                     setCrowdsale({ showModal: true });
                   } else {
