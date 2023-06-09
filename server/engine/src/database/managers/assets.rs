@@ -19,8 +19,8 @@ impl AssetsManager {
                 id,
                 maker_fee as "maker_fee: Fraction",
                 taker_fee as "taker_fee: Fraction"
-            FROM spot.assets
-            WHERE spot.assets.id = $1
+            FROM assets
+            WHERE assets.id = $1
             "#,
             id
         )

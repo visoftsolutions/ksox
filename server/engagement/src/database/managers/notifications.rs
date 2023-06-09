@@ -7,10 +7,7 @@ use tokio::{select, sync::oneshot};
 use tokio_stream::StreamExt;
 use uuid::Uuid;
 
-use crate::database::{
-    managers,
-    projections::badge::{BadgeName, TradeBadge, TransferBadge, ValutBadge},
-};
+use crate::database::{managers, projections::badge::BadgeName};
 
 #[derive(Debug, Clone, Deserialize)]
 pub enum NotificationManagerEvent {

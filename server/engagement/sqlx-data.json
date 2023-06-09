@@ -20,98 +20,6 @@
     },
     "query": "\n            SELECT COALESCE(COUNT(*), 0) as count\n            FROM transfers\n            WHERE transfers.maker_id = $1\n            "
   },
-  "162052300e67c9853c07cc5c38c0e8d7a50450bbe5657327bb64f54da670fe42": {
-    "describe": {
-      "columns": [
-        {
-          "name": "count",
-          "ordinal": 0,
-          "type_info": "Int8"
-        }
-      ],
-      "nullable": [
-        null
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      }
-    },
-    "query": "\n            SELECT COALESCE(COUNT(*), 0) as count\n            FROM spot.valuts\n            WHERE spot.valuts.user_id = $1 AND spot.valuts.balance > (0,1)::fraction\n            "
-  },
-  "1c00e5e84692c27763407e440f450abd34983ea12048adde4fb14ea2cec4b396": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "created_at",
-          "ordinal": 1,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "last_modification_at",
-          "ordinal": 2,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "maker_id",
-          "ordinal": 3,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "taker_id",
-          "ordinal": 4,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "asset",
-          "ordinal": 5,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "amount: Fraction",
-          "ordinal": 6,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Timestamptz"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                transfers.id,\n                transfers.created_at,\n                transfers.last_modification_at,\n                transfers.maker_id,\n                transfers.taker_id,\n                transfers.asset,\n                transfers.amount as \"amount: Fraction\"\n            FROM transfers\n            WHERE last_modification_at > $1\n            ORDER BY last_modification_at ASC\n            "
-  },
   "2bbb354d9bbd1e5ffde31b4e036cc649936c549938fef14446319a7262f90a6e": {
     "describe": {
       "columns": [
@@ -457,159 +365,25 @@
     },
     "query": "\n            SELECT COALESCE(COUNT(*), 0) as count\n            FROM spot.trades\n            WHERE spot.trades.taker_id = $1\n            "
   },
-  "64f3932b4d68ea93b35268c7ff141914ba979cb38f986db8e334db8a17fb608d": {
+  "69630f327148d11cb3b566539f25a0fab9b022ebb6af0e7d1b53a5661ae6ed12": {
     "describe": {
       "columns": [
         {
-          "name": "id",
+          "name": "count",
           "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "created_at",
-          "ordinal": 1,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "last_modification_at",
-          "ordinal": 2,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "user_id",
-          "ordinal": 3,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "asset_id",
-          "ordinal": 4,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "balance: Fraction",
-          "ordinal": 5,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
+          "type_info": "Int8"
         }
       ],
       "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
+        null
       ],
       "parameters": {
         "Left": [
-          "Timestamptz"
+          "Uuid"
         ]
       }
     },
-    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                user_id,\n                asset_id,\n                balance as \"balance: Fraction\"\n            FROM spot.valuts\n            WHERE last_modification_at > $1\n            ORDER BY last_modification_at ASC\n            "
-  },
-  "73940e52ad6d7b416c4b5cf26e8f7ebb5cac6fcc14eef520831433d738db367a": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "created_at",
-          "ordinal": 1,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "last_modification_at",
-          "ordinal": 2,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "name",
-          "ordinal": 3,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "symbol",
-          "ordinal": 4,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "maker_fee: Fraction",
-          "ordinal": 5,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        },
-        {
-          "name": "taker_fee: Fraction",
-          "ordinal": 6,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Timestamptz"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                name,\n                symbol,\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\"\n            FROM spot.assets\n            WHERE last_modification_at > $1\n            ORDER BY last_modification_at ASC\n            "
+    "query": "\n            SELECT COALESCE(COUNT(*), 0) as count\n            FROM valuts\n            WHERE valuts.user_id = $1 AND valuts.balance > (0,1)::fraction\n            "
   },
   "95d305c479a5e502088ae9a9a7b60b9af036a287fa0302c00834551b39b77071": {
     "describe": {
@@ -800,6 +574,78 @@
       }
     },
     "query": "\n            SELECT COALESCE(COUNT(*), 0) as count\n            FROM transfers\n            WHERE transfers.taker_id = $1\n            "
+  },
+  "9e62144793b547f891b1131b98ee9ca2ecff1ed542abb231cf5d270a919f695a": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "last_modification_at",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "maker_id",
+          "ordinal": 3,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "taker_id",
+          "ordinal": 4,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "asset_id",
+          "ordinal": 5,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "amount: Fraction",
+          "ordinal": 6,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Timestamptz"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                transfers.id,\n                transfers.created_at,\n                transfers.last_modification_at,\n                transfers.maker_id,\n                transfers.taker_id,\n                transfers.asset_id,\n                transfers.amount as \"amount: Fraction\"\n            FROM transfers\n            WHERE last_modification_at > $1\n            ORDER BY last_modification_at ASC\n            "
   },
   "a5a741acd000dcfa7cf602f56e152825073e054f7dc8cacf2059c644ffd321ff": {
     "describe": {
@@ -1066,5 +912,159 @@
       }
     },
     "query": "\n            SELECT\n                engagement.badges.id,\n                engagement.badges.created_at,\n                engagement.badges.last_modification_at,\n                engagement.badges.user_id,\n                engagement.badges.badge_name as \"badge_name: BadgeName\"\n            FROM engagement.badges\n            WHERE engagement.badges.last_modification_at > $1\n            ORDER BY engagement.badges.last_modification_at ASC\n            "
+  },
+  "d1a58664fe1841f38dc016c6b902b310dbaf09b14c6d9dd9730f3b292c152997": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "last_modification_at",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 3,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "asset_id",
+          "ordinal": 4,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "balance: Fraction",
+          "ordinal": 5,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Timestamptz"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                user_id,\n                asset_id,\n                balance as \"balance: Fraction\"\n            FROM valuts\n            WHERE last_modification_at > $1\n            ORDER BY last_modification_at ASC\n            "
+  },
+  "f56ba4be8c098fd9ed17a4c77c02ab47d95ed532f2f9380e67a9e7861f9a33d2": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "last_modification_at",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "name",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "symbol",
+          "ordinal": 4,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "maker_fee: Fraction",
+          "ordinal": 5,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "taker_fee: Fraction",
+          "ordinal": 6,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Timestamptz"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                name,\n                symbol,\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\"\n            FROM assets\n            WHERE last_modification_at > $1\n            ORDER BY last_modification_at ASC\n            "
   }
 }

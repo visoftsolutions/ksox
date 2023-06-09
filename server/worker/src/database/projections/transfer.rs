@@ -10,6 +10,6 @@ pub struct Transfer {
     pub last_modification_at: DateTime<Utc>,
     pub maker_id: Uuid,
     pub taker_id: Uuid,
-    pub asset: Uuid,
+    pub asset_id: Uuid,
     pub amount: Fraction,
 }

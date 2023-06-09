@@ -1,10 +1,6 @@
 mod sse;
 
-use axum::{
-    extract::{Query, State},
-    routing::get,
-    Json, Router,
-};
+use axum::{extract::State, routing::get, Json, Router};
 use tokio_stream::StreamExt;
 
 use crate::{

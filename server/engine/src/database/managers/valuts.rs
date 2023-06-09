@@ -19,7 +19,7 @@ impl ValutsManager {
             SELECT
                 id,
                 balance as "balance: Fraction"
-            FROM spot.valuts
+            FROM valuts
             WHERE user_id = $1
             AND asset_id = $2
             "#,
@@ -39,7 +39,7 @@ impl ValutsManager {
         sqlx::query_as!(
             Valut,
             r#"
-            INSERT INTO spot.valuts
+            INSERT INTO valuts
                 (user_id, asset_id, balance, last_modification_at, created_at)
             VALUES ($1, $2, (0,1)::fraction, $3, $4)
             RETURNING id, balance as "balance: Fraction"
@@ -61,7 +61,7 @@ impl ValutsManager {
             Valut,
             r#"
             UPDATE 
-                spot.valuts 
+                valuts 
             SET
                 balance = $2::fraction,
                 last_modification_at = $3

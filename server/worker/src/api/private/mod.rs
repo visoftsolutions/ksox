@@ -1,8 +1,8 @@
 pub mod active;
-pub mod badges;
 pub mod balance;
 pub mod burn;
 pub mod cancel;
+pub mod engagement;
 pub mod me;
 pub mod mint;
 pub mod orders;
@@ -40,7 +40,7 @@ pub fn router(app_state: &AppState) -> Router {
         .nest("/orders", orders::router(app_state))
         .nest("/trades", trades::router(app_state))
         .nest("/transfers", transfers::router(app_state))
-        .nest("/badges", badges::router(app_state))
+        .nest("/engagement", engagement::router(app_state))
 }
 
 #[derive(Serialize)]

@@ -1,10 +1,11 @@
 use axum::{extract::State, Json};
 use fraction::Fraction;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
     api::{auth::models::UserId, AppError},
+    engine_base::BurnRequest,
     models::AppState,
 };
 
@@ -14,20 +15,27 @@ pub struct Request {
     pub amount: Fraction,
 }
 
+#[derive(Serialize)]
+pub struct Response {
+    pub response: String,
+}
+
 pub async fn root(
-    State(state): State<AppState>,
+    State(mut state): State<AppState>,
     user_id: UserId,
     Json(payload): Json<Request>,
-) -> Result<String, AppError> {
-    let user = state.users_manager.get_by_id(*user_id).await?;
-    user.burn(
-        &state.valuts_manager,
-        payload.asset_id,
-        payload.amount.clone(),
-    )
-    .await?;
-    Ok(format!(
-        "burned {} of {} for {}",
-        payload.amount, payload.asset_id, user_id
-    ))
+) -> Result<Json<Response>, AppError> {
+    let response = state
+        .engine_client
+        .burn(BurnRequest {
+            user_id: (*user_id).to_string(),
+            asset_id: payload.asset_id.to_string(),
+            amount: serde_json::to_string(&payload.amount)?,
+        })
+        .await?
+        .into_inner();
+
+    Ok(Json(Response {
+        response: format!("transfered {response:?}"),
+    }))
 }

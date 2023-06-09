@@ -36,7 +36,7 @@ impl ValutsManager {
                 user_id,
                 asset_id,
                 balance as "balance: Fraction"
-            FROM spot.valuts
+            FROM valuts
             WHERE last_modification_at > $1
             ORDER BY last_modification_at ASC
             "#,
@@ -51,8 +51,8 @@ impl ValutsManager {
             Count,
             r#"
             SELECT COALESCE(COUNT(*), 0) as count
-            FROM spot.valuts
-            WHERE spot.valuts.user_id = $1 AND spot.valuts.balance > (0,1)::fraction
+            FROM valuts
+            WHERE valuts.user_id = $1 AND valuts.balance > (0,1)::fraction
             "#,
             user_id
         )

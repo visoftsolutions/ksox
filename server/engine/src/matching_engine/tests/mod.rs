@@ -8,6 +8,7 @@ use uuid::Uuid;
 use crate::{
     database::projections::order::OrderGet,
     matching_engine::{
+        matching_loop::matching_loop,
         models::MatchingLoopError,
         tests::{
             arb_asset::arb_asset,
@@ -16,7 +17,6 @@ use crate::{
                 arb_not_matching_order, arb_not_smaller_matching_order, arb_smaller_matching_order,
             },
         },
-        MatchingEngine,
     },
 };
 
@@ -48,7 +48,7 @@ proptest! {
                     yield Ok(maker_order);
             });
 
-            let matching = MatchingEngine::matching_loop(
+            let matching = matching_loop(
                 user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), maker_orders_stream, accuracy, presentation).await;
 
             assert!(matches!(matching, Err(MatchingLoopError::InvalidMatchingOrderData)))
@@ -83,7 +83,7 @@ proptest! {
                 yield Ok(maker_order);
             });
 
-            let matching = MatchingEngine::matching_loop(
+            let matching = matching_loop(
                 user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), maker_orders_stream, accuracy.to_owned(), presentation).await.unwrap();
 
             assert!(matching.order.is_some());
@@ -147,7 +147,7 @@ proptest! {
                 }
             });
 
-            let matching = MatchingEngine::matching_loop(
+            let matching = matching_loop(
                 user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), maker_orders_stream, accuracy, presentation).await.unwrap();
 
             assert!(matching.order.is_some());
@@ -193,7 +193,7 @@ proptest! {
                     yield Ok(maker_order);
             });
 
-            let matching = MatchingEngine::matching_loop(
+            let matching = matching_loop(
                 user_id.to_owned(), price.to_owned(), quote_asset_volume.to_owned(), quote_asset.to_owned(), base_asset.to_owned(), maker_orders_stream, accuracy.to_owned(), presentation).await.unwrap();
 
             assert!(matching.order.is_none());

@@ -35,7 +35,7 @@ impl ValutsManager {
                 user_id,
                 asset_id,
                 balance as "balance: Fraction"
-            FROM spot.valuts
+            FROM valuts
             WHERE last_modification_at > $1
             ORDER BY last_modification_at ASC
             "#,
@@ -56,7 +56,7 @@ impl ValutsManager {
                 user_id,
                 asset_id,
                 balance as "balance: Fraction"
-            FROM spot.valuts
+            FROM valuts
             WHERE user_id = $1
             AND asset_id = $2
             "#,
@@ -75,7 +75,7 @@ impl ValutsManager {
         sqlx::query_as!(
             Valut,
             r#"
-            INSERT INTO spot.valuts (last_modification_at, user_id, asset_id, balance)
+            INSERT INTO valuts (last_modification_at, user_id, asset_id, balance)
             VALUES ($1, $2, $3, (0,1))
             ON CONFLICT (user_id, asset_id) DO NOTHING;
             "#,
@@ -92,7 +92,7 @@ impl ValutsManager {
         sqlx::query!(
             r#"
             UPDATE 
-                spot.valuts 
+                valuts 
             SET
                 last_modification_at = $2,
                 user_id = $3,

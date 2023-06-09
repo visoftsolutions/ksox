@@ -1,9 +1,9 @@
 use std::{cmp::max, collections};
 
 use chrono::Utc;
+use engagement::database::managers::notifications::NotificationManagerEvent;
 use futures::StreamExt;
 use predicates::prelude::*;
-use serde::Deserialize;
 use sqlx::{postgres::PgListener, PgPool};
 use tokio::{
     select,
@@ -18,17 +18,6 @@ use crate::database::{
         transfer::Transfer, valut::Valut,
     },
 };
-
-#[derive(Debug, Clone, Deserialize)]
-pub enum NotificationManagerEvent {
-    SpotValutsChanged,
-    SpotAssetsChanged,
-    SpotOrdersChanged,
-    SpotTradesChanged,
-    SpotCandlesticksChanged,
-    TransfersChanged,
-    EngagementBadgesChanged,
-}
 
 #[derive(Debug, Clone)]
 pub enum NotificationManagerPredicateInput {
@@ -311,9 +300,9 @@ impl NotificationManager {
                                                 }
                                                 set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
 
-                                                transfers_last_modification_at = max(
-                                                    transfers_last_modification_at,
-                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(transfers_last_modification_at)
+                                                badges_last_modification_at = max(
+                                                    badges_last_modification_at,
+                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(badges_last_modification_at)
                                                 );
 
                                             },

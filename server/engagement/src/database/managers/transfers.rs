@@ -34,7 +34,7 @@ impl TransfersManager {
                 transfers.last_modification_at,
                 transfers.maker_id,
                 transfers.taker_id,
-                transfers.asset,
+                transfers.asset_id,
                 transfers.amount as "amount: Fraction"
             FROM transfers
             WHERE last_modification_at > $1
