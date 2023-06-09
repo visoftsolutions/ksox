@@ -1,6 +1,4 @@
 import { createSignal, onCleanup, onMount } from "solid-js";
-import UserProfileHorizontal from "./Profile/UserProfileVariations/UserProfileHorizontal";
-import UserProfileVertical from "./Profile/UserProfileVariations/UserProfileVertical";
 import UserProfile from "./Profile/UserProfile";
 
 export default function App() {
