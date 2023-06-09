@@ -1,11 +1,13 @@
 use std::pin::Pin;
+
+use sqlx::postgres::PgPool;
 use tokio_stream::Stream;
-use sqlx::postgres::{PgPool};
 use uuid::Uuid;
 
+use super::notifications::{
+    NotificationManagerOutput, NotificationManagerPredicateInput, NotificationManagerSubscriber,
+};
 use crate::database::projections::badge::{Badge, BadgeName};
-
-use super::notifications::{NotificationManagerSubscriber, NotificationManagerPredicateInput, NotificationManagerOutput};
 
 #[derive(Debug, Clone)]
 pub struct BadgesManager {
@@ -42,7 +44,7 @@ impl BadgesManager {
 
     pub fn get_for_user_id(
         &self,
-        user_id: Uuid
+        user_id: Uuid,
     ) -> Pin<Box<dyn Stream<Item = sqlx::Result<Badge>> + Send + '_>> {
         sqlx::query_as!(
             Badge,
@@ -80,7 +82,7 @@ impl BadgesNotificationManager {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
                 NotificationManagerPredicateInput::EngagementBadgesChanged(badge) => {
-                     badge.user_id == user_id
+                    badge.user_id == user_id
                 }
                 _ => false,
             }

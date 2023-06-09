@@ -68,17 +68,9 @@ impl NotificationManager {
                                                 for user in users {
                                                     match badges_manager.get_for_user_id(user).await.map(|e| e.into_iter().map(|e| e.badge_name).collect::<HashSet<BadgeName>>()) {
                                                         Ok(current_badges) => {
-                                                            let filtered_badges = current_badges.into_iter().filter_map(|f| {
-                                                                match f {
-                                                                    BadgeName::ValutBadge(f) => {
-                                                                        Some(f)
-                                                                    },
-                                                                    _ => None
-                                                                }
-                                                            }).collect::<HashSet<ValutBadge>>();
-                                                            match valuts_manager.eval_badges(user, filtered_badges).await {
+                                                            match valuts_manager.eval_badges(user, current_badges).await {
                                                                 Ok(badges_to_assign) => {
-                                                                    for badge in badges_to_assign.into_iter().map(|e| BadgeName::ValutBadge(e)) {
+                                                                    for badge in badges_to_assign {
                                                                         if let Err(err) = badges_manager.assign_badge(user, badge).await {
                                                                             tracing::error!("Error: {}", err);
                                                                         }
@@ -131,17 +123,9 @@ impl NotificationManager {
                                                 for user in users {
                                                     match badges_manager.get_for_user_id(user).await.map(|e| e.into_iter().map(|e| e.badge_name).collect::<HashSet<BadgeName>>()) {
                                                         Ok(current_badges) => {
-                                                            let filtered_badges = current_badges.into_iter().filter_map(|f| {
-                                                                match f {
-                                                                    BadgeName::TradeBadge(f) => {
-                                                                        Some(f)
-                                                                    },
-                                                                    _ => None
-                                                                }
-                                                            }).collect::<HashSet<TradeBadge>>();
-                                                            match trades_manager.eval_badges(user, filtered_badges).await {
+                                                            match trades_manager.eval_badges(user, current_badges).await {
                                                                 Ok(badges_to_assign) => {
-                                                                    for badge in badges_to_assign.into_iter().map(|e| BadgeName::TradeBadge(e)) {
+                                                                    for badge in badges_to_assign {
                                                                         if let Err(err) = badges_manager.assign_badge(user, badge).await {
                                                                             tracing::error!("Error: {}", err);
                                                                         }
@@ -184,17 +168,9 @@ impl NotificationManager {
                                                 for user in users {
                                                     match badges_manager.get_for_user_id(user).await.map(|e| e.into_iter().map(|e| e.badge_name).collect::<HashSet<BadgeName>>()) {
                                                         Ok(current_badges) => {
-                                                            let filtered_badges = current_badges.into_iter().filter_map(|f| {
-                                                                match f {
-                                                                    BadgeName::TransferBadge(f) => {
-                                                                        Some(f)
-                                                                    },
-                                                                    _ => None
-                                                                }
-                                                            }).collect::<HashSet<TransferBadge>>();
-                                                            match transfers_manager.eval_badges(user, filtered_badges).await {
+                                                            match transfers_manager.eval_badges(user, current_badges).await {
                                                                 Ok(badges_to_assign) => {
-                                                                    for badge in badges_to_assign.into_iter().map(|e| BadgeName::TransferBadge(e)) {
+                                                                    for badge in badges_to_assign {
                                                                         if let Err(err) = badges_manager.assign_badge(user, badge).await {
                                                                             tracing::error!("Error: {}", err);
                                                                         }

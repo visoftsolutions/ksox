@@ -14,8 +14,8 @@ use uuid::Uuid;
 use crate::database::{
     managers,
     projections::{
-        self, asset::Asset, candlestick::Candlestick, order::Order, trade::Trade,
-        transfer::Transfer, valut::Valut, badge::Badge,
+        self, asset::Asset, badge::Badge, candlestick::Candlestick, order::Order, trade::Trade,
+        transfer::Transfer, valut::Valut,
     },
 };
 
@@ -306,7 +306,7 @@ impl NotificationManager {
                                                         if let Err(err) = set_entry.sender.send(NotificationManagerOutput::EngagementBadgesChanged(result)).await {
                                                             set_entry_to_remove_ids.push(set_entry.id);
                                                             tracing::info!("{}", err);
-                                                        } 
+                                                        }
                                                     }
                                                 }
                                                 set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});

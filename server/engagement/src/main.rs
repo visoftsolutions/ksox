@@ -4,7 +4,7 @@ pub mod base {
     tonic::include_proto!("server.engagement.base");
 }
 
-mod database;
+pub mod database;
 mod engagement_engine;
 mod shutdown_signal;
 
@@ -21,7 +21,7 @@ use crate::{
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
-    
+
     let database = PgPoolOptions::new()
         .max_connections(10)
         .connect(std::env::var("DATABASE_URL")?.as_str())

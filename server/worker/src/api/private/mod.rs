@@ -1,4 +1,5 @@
 pub mod active;
+pub mod badges;
 pub mod balance;
 pub mod burn;
 pub mod cancel;
@@ -9,7 +10,6 @@ pub mod submit;
 pub mod trades;
 pub mod transfer;
 pub mod transfers;
-pub mod badges;
 
 use axum::{
     routing::{delete, post},

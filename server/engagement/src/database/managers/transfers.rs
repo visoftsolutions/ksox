@@ -6,7 +6,10 @@ use strum::IntoEnumIterator;
 use uuid::Uuid;
 
 use super::Count;
-use crate::database::projections::{badge::TransferBadge, transfer::Transfer};
+use crate::database::projections::{
+    badge::{BadgeName, TransferBadge},
+    transfer::Transfer,
+};
 
 #[derive(Debug, Clone)]
 pub struct TransfersManager {
@@ -76,15 +79,19 @@ impl TransfersManager {
     pub async fn eval_badges(
         &self,
         user_id: Uuid,
-        current_badges: HashSet<TransferBadge>,
-    ) -> sqlx::Result<HashSet<TransferBadge>> {
-        let value = self.get_num_maker_transfers_for_user(user_id).await?;
-        let mut potential_badges: HashSet<TransferBadge> = HashSet::new();
+        current_badges: HashSet<BadgeName>,
+    ) -> sqlx::Result<HashSet<BadgeName>> {
+        let mut potential_badges: HashSet<BadgeName> = HashSet::new();
+        let maker_transfers = self.get_num_maker_transfers_for_user(user_id).await?;
+        let taker_transfers = self.get_num_taker_transfers_for_user(user_id).await?;
+        let total_transfers = maker_transfers + taker_transfers;
+
         for variant in TransferBadge::iter() {
-            if value >= variant.clone() as i64 {
-                potential_badges.insert(variant);
+            if total_transfers >= variant.clone() as i64 {
+                potential_badges.insert(BadgeName::TransferBadge(variant));
             }
         }
+
         Ok(potential_badges
             .difference(&current_badges)
             .cloned()

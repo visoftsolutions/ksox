@@ -15,7 +15,10 @@ use tonic::transport::Channel;
 use crate::{
     database::{
         self,
-        managers::{transfers::{TransfersManager, TransfersNotificationManager}, badges::{BadgesManager, BadgesNotificationManager}},
+        managers::{
+            badges::{BadgesManager, BadgesNotificationManager},
+            transfers::{TransfersManager, TransfersNotificationManager},
+        },
     },
     engine_base,
     recognition::{asset_pair::AssetPairRecognition, user::UserRecognition},

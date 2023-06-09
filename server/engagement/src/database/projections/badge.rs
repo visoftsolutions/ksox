@@ -7,23 +7,11 @@ use sqlx::{
 use strum::EnumIter;
 use uuid::Uuid;
 
-// const DAY: isize = 86400;
-// const WEEK: isize = 7*DAY;
-
-// // -- USERS BADGES
-// // -- badge for being user for:
-// #[derive(Debug, Serialize, Deserialize, Clone)]
-// pub enum UserBadge {
-//     CryptoNewbie = DAY,
-//     CryptoConnoisseur = 1*4*WEEK,
-//     CryptoVeteran = 2*4*WEEK,
-//     CryptoOverlord = 3*4*WEEK,
-//     CryptonautForever = 4*4*WEEK,
-// }
 // -- VALUTS BADGES
 // -- badge for having N diffirent non zero valuts:
 #[derive(Debug, Serialize, Deserialize, Clone, Hash, PartialEq, Eq, EnumIter)]
 pub enum ValutBadge {
+    FirstToken = 1,
     TokenTourist = 1 * 10,
     TokenCollector = 2 * 10,
     TokenTamer = 3 * 10,
@@ -37,6 +25,7 @@ pub enum ValutBadge {
 // -- badge for performing N trades:
 #[derive(Debug, Serialize, Deserialize, Clone, Hash, PartialEq, Eq, EnumIter)]
 pub enum TradeBadge {
+    FirstTrade = 1,
     TradeNovice = 1 * 100,
     TradeTornado = 2 * 100,
     TradeTyrant = 3 * 100,
@@ -50,6 +39,7 @@ pub enum TradeBadge {
 // -- badge for performing N transfers:
 #[derive(Debug, Serialize, Deserialize, Clone, Hash, PartialEq, Eq, EnumIter)]
 pub enum TransferBadge {
+    FirstTransfer = 1,
     TransferRookie = 1 * 100,
     TransferTrooper = 2 * 100,
     TransferCourier = 3 * 100,
@@ -62,24 +52,26 @@ pub enum TransferBadge {
 // -- ORDERS BADGES
 // -- badge for performing N asks:
 #[derive(Debug, Serialize, Deserialize, Clone, Hash, PartialEq, Eq, EnumIter)]
-pub enum AskBadge {
-    AskingApprentice = 1 * 100,
-    AskingAficionado = 2 * 100,
-    AskAvenger = 3 * 100,
-    AskingAce = 4 * 100,
-    AskAvalanche = 5 * 100,
-    AskOverlord = 6 * 100,
+pub enum MakerBadge {
+    FirstMaker = 1,
+    MakerApprentice = 1 * 100,
+    MakerAficionado = 2 * 100,
+    MakerAvenger = 3 * 100,
+    MakerAce = 4 * 100,
+    MakerAvalanche = 5 * 100,
+    MakerOverlord = 6 * 100,
 }
 // -- ORDERS BADGES
 // -- badge for performing N bids:
 #[derive(Debug, Serialize, Deserialize, Clone, Hash, PartialEq, Eq, EnumIter)]
-pub enum BidBadge {
-    BidBeginner = 1 * 100,
-    BiddingBandit = 2 * 100,
-    BidBoss = 3 * 100,
-    BiddingBaron = 4 * 100,
-    BiddingBandwagon = 5 * 100,
-    BidBehemoth = 6 * 100,
+pub enum TakerBadge {
+    FirstTaker = 1,
+    TakerBeginner = 1 * 100,
+    TakerBandit = 2 * 100,
+    TakerBoss = 3 * 100,
+    TakerBaron = 4 * 100,
+    TakerBandwagon = 5 * 100,
+    TakerBehemoth = 6 * 100,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Hash, PartialEq, Eq)]
@@ -88,8 +80,8 @@ pub enum BadgeName {
     ValutBadge(ValutBadge),
     TradeBadge(TradeBadge),
     TransferBadge(TransferBadge),
-    AskBadge(AskBadge),
-    BidBadge(BidBadge),
+    MakerBadge(MakerBadge),
+    TakerBadge(TakerBadge),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Hash, PartialEq, Eq)]

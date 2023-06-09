@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 use super::Count;
 use crate::database::projections::{
-    badge::ValutBadge,
+    badge::{BadgeName, ValutBadge},
     valut::Valut,
 };
 
@@ -64,15 +64,17 @@ impl ValutsManager {
     pub async fn eval_badges(
         &self,
         user_id: Uuid,
-        current_badges: HashSet<ValutBadge>,
-    ) -> sqlx::Result<HashSet<ValutBadge>> {
-        let value = self.get_num_of_nonzero_for_user(user_id).await?;
-        let mut potential_badges: HashSet<ValutBadge> = HashSet::new();
+        current_badges: HashSet<BadgeName>,
+    ) -> sqlx::Result<HashSet<BadgeName>> {
+        let mut potential_badges: HashSet<BadgeName> = HashSet::new();
+        let non_zero_valuts = self.get_num_of_nonzero_for_user(user_id).await?;
+
         for variant in ValutBadge::iter() {
-            if value >= variant.clone() as i64 {
-                potential_badges.insert(variant);
+            if non_zero_valuts >= variant.clone() as i64 {
+                potential_badges.insert(BadgeName::ValutBadge(variant));
             }
         }
+
         Ok(potential_badges
             .difference(&current_badges)
             .cloned()
