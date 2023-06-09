@@ -5,7 +5,7 @@
     "build": "solid-start build",
     "start": "solid-start start",
     "prettier": "prettier -w .",
-    "lint": "eslint . --ext .tsx --config packages/eslint/.eslintrc.json",
+    "lint": "eslint . --ext .tsx",
     "update": "npx npm-check-updates -u"
   },
   "type": "module",
@@ -21,13 +21,13 @@
   "dependencies": {
     "@solidjs/meta": "^0.28.5",
     "@solidjs/router": "^0.8.2",
-    "@wagmi/core": "^1.1.0",
-    "@web3modal/ethereum": "^2.4.2",
-    "@web3modal/html": "^2.4.2",
+    "@wagmi/core": "^1.1.1",
+    "@web3modal/ethereum": "^2.4.5",
+    "@web3modal/html": "^2.4.5",
     "solid-js": "^1.7.6",
     "solid-start": "^0.2.26",
     "undici": "^5.22.1",
-    "viem": "^0.3.50"
+    "viem": "^1.0.2"
   },
   "engines": {
     "node": ">=16"

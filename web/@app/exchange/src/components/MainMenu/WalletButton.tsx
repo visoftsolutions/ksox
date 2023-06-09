@@ -1,14 +1,14 @@
 import { joinPaths } from "solid-start/islands/server-router";
 import { api, base } from "~/root";
 import { setSession, login, useSession } from "@web/components/providers/SessionProvider";
-import { useWallet, walletClientConnect  } from "@web/components/providers/WalletProvider";
+import { useWallet, walletClientConnect } from "@web/components/providers/WalletProvider";
 import firstLastChars from "@web/utils/firstLastChars";
 import { createEffect } from "solid-js";
 
 export default function WalletButton() {
   const wallet = useWallet();
   const session = useSession();
-  
+
   createEffect(async () => {
     if (wallet.walletClient) {
       setSession(await login(api, wallet.walletClient));

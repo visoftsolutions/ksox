@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "prettier": "prettier -w .",
-    "lint": "eslint . --ext .tsx --config packages/eslint/.eslintrc.json",
+    "lint": "eslint . --ext .tsx --config packages/eslint/.eslintrc.cjs",
     "update": "npx npm-check-updates -ws -u --root"
   },
   "author": "",

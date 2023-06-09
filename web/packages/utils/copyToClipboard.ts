@@ -1,3 +1,3 @@
-export default function copyToClipboard (data: string) {
-    navigator.clipboard.writeText(data);
-};
+export default function copyToClipboard(data: string) {
+  navigator.clipboard.writeText(data);
+}

@@ -181,7 +181,7 @@ export function CrowdsaleProvider(props: { children: JSX.Element }) {
     const publicClient = wallet.publicClient;
     const publicWSClient = wallet.publicWSClient;
     const phaseContract = CONTRACT_ON_CHAIN.get(wallet.selected_network.network.name)?.phaseContract;
-    
+
     if (phaseContract && publicClient && publicWSClient) {
       try {
         const name = await publicClient.readContract({
