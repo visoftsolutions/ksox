@@ -1,4 +1,3 @@
-import firstLastChars from "@web/utils/firstLastChars";
 import copyToClipboard from "@web/utils/copyToClipboard";
 import { joinPaths } from "solid-start/islands/server-router";
 import { base } from "~/root";

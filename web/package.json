@@ -16,7 +16,7 @@
     "packages/*"
   ],
   "devDependencies": {
-    "unlighthouse": "^0.8.7",
-    "typescript": "^5.1.3"
+    "typescript": "^5.1.3",
+    "unlighthouse": "^0.8.7"
   }
 }
