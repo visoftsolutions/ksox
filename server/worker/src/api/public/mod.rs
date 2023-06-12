@@ -1,5 +1,6 @@
 pub mod assets;
 pub mod depth;
+pub mod engagement;
 pub mod ohlcv;
 pub mod trades;
 pub mod users;
@@ -20,6 +21,7 @@ pub fn router(app_state: &AppState) -> Router {
         .nest("/trades", trades::router(app_state))
         .nest("/assets", assets::router(app_state))
         .nest("/users", users::router(app_state))
+        .nest("/engagement", engagement::router(app_state))
 }
 
 #[derive(Serialize)]

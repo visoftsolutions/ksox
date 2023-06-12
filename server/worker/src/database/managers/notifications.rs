@@ -99,6 +99,8 @@ impl NotificationManager {
             let mut transfers_last_modification_at = Utc::now();
             let badges_manager = managers::badges::BadgesManager::new(database.clone());
             let mut badges_last_modification_at = Utc::now();
+            let users_manager = managers::users::UsersManager::new(database.clone());
+            let mut users_last_modification_at = Utc::now();
 
             loop {
                 select! {
@@ -311,6 +313,19 @@ impl NotificationManager {
                                             }
                                         }
                                     }
+                                    Ok(NotificationManagerEvent::UsersChanged) => {
+                                        match users_manager.get_modified(users_last_modification_at).await {
+                                            Ok(elements) => {
+                                                users_last_modification_at = max(
+                                                    users_last_modification_at,
+                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(users_last_modification_at)
+                                                );
+                                            },
+                                            Err(err) => {
+                                                tracing::error!("Error: {}", err);
+                                            }
+                                        }
+                                    },
                                     Err(err) => {
                                         tracing::error!("Error: {}", err);
                                     }

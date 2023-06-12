@@ -4,7 +4,6 @@ pub mod candlesticks;
 pub mod mints;
 pub mod notifications;
 pub mod orders;
-pub mod stats;
 pub mod trades;
 pub mod transfers;
 pub mod users;

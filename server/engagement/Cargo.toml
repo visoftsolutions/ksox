@@ -10,6 +10,7 @@ bytes = "1.3.0"
 chrono = { version = "0.4.23", features = ["serde"] }
 ethereum-types = "0.14.1"
 fraction = { path = "../fraction" }
+futures = "0.3.28"
 headers = "0.3.8"
 hyper = { version = "0.14.26", features = ["full"] }
 prefix-hex = "0.7.0"

@@ -4,79 +4,164 @@ use sqlx::{
     postgres::{PgArgumentBuffer, PgTypeInfo, PgValueRef},
     Decode, Encode, Postgres, Type,
 };
-use strum::EnumIter;
+use strum::{Display, EnumDiscriminants, EnumIter, EnumString};
 use uuid::Uuid;
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct EnumValue {
+    pub name: &'static str,
+    pub description: &'static str,
+    pub value: i64,
+}
 
 // -- VALUTS BADGES
 // -- badge for having N diffirent non zero valuts:
-#[derive(Debug, Serialize, Deserialize, Clone, Hash, PartialEq, Eq, EnumIter)]
+#[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    Clone,
+    Hash,
+    PartialEq,
+    Eq,
+    EnumIter,
+    Default,
+    EnumString,
+    Display,
+)]
 pub enum ValutBadge {
-    FirstToken = 1,
-    TokenTourist = 1 * 10,
-    TokenCollector = 2 * 10,
-    TokenTamer = 3 * 10,
-    TokenHoarder = 4 * 10,
-    TokenDiversifier = 5 * 10,
-    TokenMagnate = 6 * 10,
-    TokenOverlord = 7 * 10,
-    TokenTitan = 8 * 10,
+    #[default]
+    FirstToken,
+    TokenTourist,
+    TokenCollector,
+    TokenTamer,
+    TokenHoarder,
+    TokenDiversifier,
+    TokenMagnate,
+    TokenOverlord,
+    TokenTitan,
 }
+
 // -- TRADES BADGES
 // -- badge for performing N trades:
-#[derive(Debug, Serialize, Deserialize, Clone, Hash, PartialEq, Eq, EnumIter)]
+#[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    Clone,
+    Hash,
+    PartialEq,
+    Eq,
+    EnumIter,
+    Default,
+    EnumString,
+    Display,
+)]
 pub enum TradeBadge {
-    FirstTrade = 1,
-    TradeNovice = 1 * 100,
-    TradeTornado = 2 * 100,
-    TradeTyrant = 3 * 100,
-    TradeMogul = 4 * 100,
-    TradeMagnate = 5 * 100,
-    TradeOverlord = 6 * 100,
-    TradeLegend = 7 * 100,
-    TradeTitan = 8 * 100,
+    #[default]
+    FirstTrade,
+    TradeNovice,
+    TradeTornado,
+    TradeTyrant,
+    TradeMogul,
+    TradeMagnate,
+    TradeOverlord,
+    TradeLegend,
+    TradeTitan,
 }
 // -- TRANSFERS BADGES
 // -- badge for performing N transfers:
-#[derive(Debug, Serialize, Deserialize, Clone, Hash, PartialEq, Eq, EnumIter)]
+#[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    Clone,
+    Hash,
+    PartialEq,
+    Eq,
+    EnumIter,
+    Default,
+    EnumString,
+    Display,
+)]
 pub enum TransferBadge {
-    FirstTransfer = 1,
-    TransferRookie = 1 * 100,
-    TransferTrooper = 2 * 100,
-    TransferCourier = 3 * 100,
-    TransferMagician = 4 * 100,
-    TransferWizard = 5 * 100,
-    TransferTerminator = 6 * 100,
-    TransferLegend = 7 * 100,
-    TransferTitan = 8 * 100,
+    #[default]
+    FirstTransfer,
+    TransferRookie,
+    TransferTrooper,
+    TransferCourier,
+    TransferMagician,
+    TransferWizard,
+    TransferTerminator,
+    TransferLegend,
+    TransferTitan,
 }
 // -- ORDERS BADGES
 // -- badge for performing N asks:
-#[derive(Debug, Serialize, Deserialize, Clone, Hash, PartialEq, Eq, EnumIter)]
+#[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    Clone,
+    Hash,
+    PartialEq,
+    Eq,
+    EnumIter,
+    Default,
+    EnumString,
+    Display,
+)]
 pub enum MakerBadge {
-    FirstMaker = 1,
-    MakerApprentice = 1 * 100,
-    MakerAficionado = 2 * 100,
-    MakerAvenger = 3 * 100,
-    MakerAce = 4 * 100,
-    MakerAvalanche = 5 * 100,
-    MakerOverlord = 6 * 100,
+    #[default]
+    FirstMaker,
+    MakerApprentice,
+    MakerAficionado,
+    MakerAvenger,
+    MakerAce,
+    MakerAvalanche,
+    MakerOverlord,
 }
 // -- ORDERS BADGES
 // -- badge for performing N bids:
-#[derive(Debug, Serialize, Deserialize, Clone, Hash, PartialEq, Eq, EnumIter)]
+#[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    Clone,
+    Hash,
+    PartialEq,
+    Eq,
+    EnumIter,
+    Default,
+    EnumString,
+    Display,
+)]
 pub enum TakerBadge {
-    FirstTaker = 1,
-    TakerBeginner = 1 * 100,
-    TakerBandit = 2 * 100,
-    TakerBoss = 3 * 100,
-    TakerBaron = 4 * 100,
-    TakerBandwagon = 5 * 100,
-    TakerBehemoth = 6 * 100,
+    #[default]
+    FirstTaker,
+    TakerBeginner,
+    TakerBandit,
+    TakerBoss,
+    TakerBaron,
+    TakerBandwagon,
+    TakerBehemoth,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Hash, PartialEq, Eq)]
+#[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    Clone,
+    Hash,
+    PartialEq,
+    Eq,
+    EnumDiscriminants,
+    EnumString,
+    Display,
+)]
+#[strum_discriminants(name(BadgeFamily))]
+#[strum_discriminants(derive(Deserialize, EnumString, Display))]
 pub enum BadgeName {
-    // UserBadge(UserBadge),
     ValutBadge(ValutBadge),
     TradeBadge(TradeBadge),
     TransferBadge(TransferBadge),

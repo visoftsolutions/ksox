@@ -1,4 +1,5 @@
 use crate::base::engagement_server::Engagement;
+pub mod badges;
 
 pub struct EngagementEngine {}
 

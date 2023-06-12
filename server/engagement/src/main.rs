@@ -5,7 +5,7 @@ pub mod base {
 }
 
 pub mod database;
-mod engagement_engine;
+pub mod engagement_engine;
 mod shutdown_signal;
 
 use std::net::SocketAddr;

@@ -3,6 +3,7 @@ import {
   JSX,
   createContext,
   createSignal,
+  onMount,
   useContext,
 } from "solid-js";
 import { mainnet } from "@wagmi/core";
@@ -14,6 +15,7 @@ import {
   ValidateSignatureRequest,
   ValidateSignatureResponse,
 } from "./SessionProvider/models";
+import { api } from "~/root";
 
 export const [session, setSession] = createSignal<
   ValidateSignatureResponse | undefined
@@ -21,6 +23,20 @@ export const [session, setSession] = createSignal<
 const SessionContext =
   createContext<Accessor<ValidateSignatureResponse | undefined>>(session);
 export function SessionProvider(props: { children: JSX.Element }) {
+
+  onMount(async () => {
+    let response = await fetch(`${api}/auth/session`, {
+      method: "GET",
+      credentials: "same-origin",
+    })
+    .then((r) => r.json())
+    .then((r) => ValidateSignatureResponse.nullable().parse(r))
+
+    if (response != null){
+      setSession(response)
+    }
+  })
+
   return (
     <SessionContext.Provider value={session}>
       {props.children}

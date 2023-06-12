@@ -20,12 +20,12 @@ pub struct Request {
 
 pub fn router(app_state: &AppState) -> Router {
     Router::new()
-        .route("/", get(get_data))
-        .route("/", post(update_data))
+        .route("/", get(get_metadata))
+        .route("/", post(update_metadata))
         .with_state(app_state.clone())
 }
 
-pub async fn get_data(
+pub async fn get_metadata(
     State(state): State<AppState>,
     user_id: UserId,
 ) -> Result<Json<User>, AppError> {
@@ -33,7 +33,7 @@ pub async fn get_data(
     Ok(Json(user))
 }
 
-pub async fn update_data(
+pub async fn update_metadata(
     State(state): State<AppState>,
     user_id: UserId,
     Json(params): Json<Request>,

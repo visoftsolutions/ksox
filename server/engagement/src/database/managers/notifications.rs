@@ -1,5 +1,6 @@
 use std::{cmp::max, collections::HashSet};
 
+use badges::{trade, transfer, valut, BadgeEval, BadgeMetric};
 use chrono::Utc;
 use serde::Deserialize;
 use sqlx::{postgres::PgListener, PgPool};
@@ -7,10 +8,17 @@ use tokio::{select, sync::oneshot};
 use tokio_stream::StreamExt;
 use uuid::Uuid;
 
-use crate::database::{managers, projections::badge::BadgeName};
+use crate::{
+    database::{
+        managers::{self},
+        projections::badge::{BadgeName, TradeBadge, TransferBadge, ValutBadge},
+    },
+    engagement_engine::badges,
+};
 
 #[derive(Debug, Clone, Deserialize)]
 pub enum NotificationManagerEvent {
+    UsersChanged,
     SpotValutsChanged,
     SpotAssetsChanged,
     SpotOrdersChanged,
@@ -48,6 +56,8 @@ impl NotificationManager {
             let mut transfers_last_modification_at = Utc::now();
             let badges_manager = managers::badges::BadgesManager::new(database.clone());
             let mut badges_last_modification_at = Utc::now();
+            let users_manager = managers::users::UsersManager::new(database.clone());
+            let mut users_last_modification_at = Utc::now();
 
             loop {
                 select! {
@@ -62,21 +72,22 @@ impl NotificationManager {
                                         match valuts_manager.get_modified(valuts_last_modification_at).await {
                                             Ok(elements) => {
                                                 let users: HashSet<Uuid> = elements.iter().cloned().map(|e| e.user_id).collect();
-                                                for user in users {
-                                                    match badges_manager.get_for_user_id(user).await.map(|e| e.into_iter().map(|e| e.badge_name).collect::<HashSet<BadgeName>>()) {
+                                                for user_id in users {
+                                                    match badges_manager.get_for_user_id(user_id).await.map(|e| e.into_iter().map(|e| e.badge_name).collect::<HashSet<BadgeName>>()) {
                                                         Ok(current_badges) => {
-                                                            match valuts_manager.eval_badges(user, current_badges).await {
-                                                                Ok(badges_to_assign) => {
-                                                                    for badge in badges_to_assign {
-                                                                        if let Err(err) = badges_manager.assign_badge(user, badge).await {
-                                                                            tracing::error!("Error: {}", err);
-                                                                        }
+                                                            match (ValutBadge::metric())(&valut::MetricInput{valuts_manager: valuts_manager.to_owned(), user_id}).await {
+                                                            Ok(metric) => {
+                                                                let badges_to_assign = ValutBadge::eval(metric).into_iter().map(|f| BadgeName::ValutBadge(f)).collect::<HashSet<BadgeName>>().difference(&current_badges).cloned().collect::<HashSet<BadgeName>>();
+                                                                for badge in badges_to_assign {
+                                                                    if let Err(err) = badges_manager.assign_badge(user_id, badge).await {
+                                                                        tracing::error!("Error: {}", err);
                                                                     }
                                                                 }
-                                                                Err(err) => {
-                                                                    tracing::error!("Error: {}", err);
-                                                                }
                                                             }
+                                                            Err(err) => {
+                                                                tracing::error!("Error: {}", err);
+                                                            }
+                                                        }
                                                         },
                                                         Err(err) => {
                                                             tracing::error!("Error: {}", err);
@@ -117,13 +128,14 @@ impl NotificationManager {
                                         match trades_manager.get_modified(trades_last_modification_at).await {
                                             Ok(elements) => {
                                                 let users: HashSet<Uuid> = elements.iter().cloned().map(|e| e.maker_id).collect();
-                                                for user in users {
-                                                    match badges_manager.get_for_user_id(user).await.map(|e| e.into_iter().map(|e| e.badge_name).collect::<HashSet<BadgeName>>()) {
+                                                for user_id in users {
+                                                    match badges_manager.get_for_user_id(user_id).await.map(|e| e.into_iter().map(|e| e.badge_name).collect::<HashSet<BadgeName>>()) {
                                                         Ok(current_badges) => {
-                                                            match trades_manager.eval_badges(user, current_badges).await {
-                                                                Ok(badges_to_assign) => {
+                                                            match (TradeBadge::metric())(&trade::MetricInput{trades_manager: trades_manager.to_owned(), user_id}).await {
+                                                                Ok(metric) => {
+                                                                    let badges_to_assign = TradeBadge::eval(metric).into_iter().map(|f| BadgeName::TradeBadge(f)).collect::<HashSet<BadgeName>>().difference(&current_badges).cloned().collect::<HashSet<BadgeName>>();
                                                                     for badge in badges_to_assign {
-                                                                        if let Err(err) = badges_manager.assign_badge(user, badge).await {
+                                                                        if let Err(err) = badges_manager.assign_badge(user_id, badge).await {
                                                                             tracing::error!("Error: {}", err);
                                                                         }
                                                                     }
@@ -162,17 +174,18 @@ impl NotificationManager {
                                         match transfers_manager.get_modified(transfers_last_modification_at).await {
                                             Ok(elements) => {
                                                 let users: HashSet<Uuid> = elements.iter().cloned().map(|e| e.maker_id).collect();
-                                                for user in users {
-                                                    match badges_manager.get_for_user_id(user).await.map(|e| e.into_iter().map(|e| e.badge_name).collect::<HashSet<BadgeName>>()) {
+                                                for user_id in users {
+                                                    match badges_manager.get_for_user_id(user_id).await.map(|e| e.into_iter().map(|e| e.badge_name).collect::<HashSet<BadgeName>>()) {
                                                         Ok(current_badges) => {
-                                                            match transfers_manager.eval_badges(user, current_badges).await {
-                                                                Ok(badges_to_assign) => {
+                                                            match (TransferBadge::metric())(&transfer::MetricInput{transfers_manager: transfers_manager.to_owned(), user_id}).await {
+                                                                Ok(metric) => {
+                                                                    let badges_to_assign = TradeBadge::eval(metric).into_iter().map(|f| BadgeName::TradeBadge(f)).collect::<HashSet<BadgeName>>().difference(&current_badges).cloned().collect::<HashSet<BadgeName>>();
                                                                     for badge in badges_to_assign {
-                                                                        if let Err(err) = badges_manager.assign_badge(user, badge).await {
+                                                                        if let Err(err) = badges_manager.assign_badge(user_id, badge).await {
                                                                             tracing::error!("Error: {}", err);
                                                                         }
                                                                     }
-                                                                }
+                                                                },
                                                                 Err(err) => {
                                                                     tracing::error!("Error: {}", err);
                                                                 }
@@ -205,7 +218,20 @@ impl NotificationManager {
                                     }
                                     Err(err) => {
                                         tracing::error!("Error: {}", err);
-                                    }
+                                    },
+                                    Ok(NotificationManagerEvent::UsersChanged) => {
+                                        match users_manager.get_modified(users_last_modification_at).await {
+                                            Ok(elements) => {
+                                                users_last_modification_at = max(
+                                                    users_last_modification_at,
+                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(users_last_modification_at)
+                                                );
+                                            },
+                                            Err(err) => {
+                                                tracing::error!("Error: {}", err);
+                                            }
+                                        }
+                                    },
                                 }
                             },
                             Err(err) => {
