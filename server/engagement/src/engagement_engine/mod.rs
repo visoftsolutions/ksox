@@ -1,14 +1,11 @@
-use sqlx::PgPool;
-
 use crate::base::engagement_server::Engagement;
+pub mod badges;
 
-pub struct EngagementEngine {
-    database: PgPool,
-}
+pub struct EngagementEngine {}
 
 impl EngagementEngine {
-    pub fn new(database: PgPool) -> Self {
-        Self { database }
+    pub fn new() -> Self {
+        Self {}
     }
 }
 

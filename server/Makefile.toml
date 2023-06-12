@@ -1,53 +1,73 @@
 [config]
 default_to_workspace = false
+skip_core_tasks = true
 
 [tasks.check]
-command = "cargo"
-args = ["check", "--release"]
+script = "cargo check --release"
 
 [tasks.build]
-command = "cargo"
-args = ["build", "--release"]
+script = "cargo build --release"
 
 [tasks.fmt]
-command = "cargo"
-args = ["fmt"]
+script = "cargo fmt"
 
 [tasks.clippy]
-command = "cargo"
-args = ["clippy"]
+script = "cargo clippy"
 
 [tasks.sort]
-command = "cargo"
-args = ["sort", "-w"]
+script = "cargo sort -w"
 
 [tasks.udeps]
-command = "cargo"
-args = ["udeps"]
+script = "cargo udeps"
 
 [tasks.test]
-command = "cargo"
-args = ["test", "--release"]
+script = "cargo test --release"
 
 [tasks.clean]
-command = "cargo"
-args = ["clean"]
+script = "cargo clean"
+dependencies = [
+    { name = "clean", path = "engagement" },
+    { name = "clean", path = "engine" },
+    { name = "clean", path = "fraction" },
+    { name = "clean", path = "worker" },
+    { name = "clean", path = "pricelevel" },
+]
 
-[tasks.run_db]
-script = '''
-sudo docker compose up --wait postgres
-'''
+[tasks.delete_postgres]
+script = "docker compose rm -vsf postgres"
 
-[tasks.stop_db]
-script = '''
-sudo docker compose stop postgres
-'''
+[tasks.run_postgres]
+script = "docker compose up --wait postgres"
 
-[tasks.total]
-dependencies = ["clean", "run_db", "build", "check", "fmt", "clippy", "sort", "test", "udeps", "stop_db"]
-
-[tasks.partial]
-dependencies = ["run_db","build", "fmt", "clippy", "stop_db"]
+[tasks.stop_postgres]
+script = "docker compose stop postgres"
 
 [tasks.default]
 alias = "total"
+
+[tasks.sqlx]
+dependencies = [
+    "delete_postgres",
+    "run_postgres",
+    { name = "sqlx", path = "engagement" },
+    { name = "sqlx", path = "engine" },
+    { name = "sqlx", path = "worker" },
+    "stop_postgres",
+]
+
+[tasks.total]
+dependencies = [
+    "delete_postgres",
+    "run_postgres",
+    "clean",
+    "fmt",
+    "sort",
+    { name = "sqlx", path = "engagement" },
+    { name = "sqlx", path = "engine" },
+    { name = "sqlx", path = "worker" },
+    "build",
+    "check",
+    "clippy",
+    "test",
+    "udeps",
+]

@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "prettier": "prettier -w .",
-    "lint": "eslint . --ext .tsx --config packages/eslint/.eslintrc.json",
+    "lint": "eslint . --ext .tsx --config packages/eslint/.eslintrc.cjs",
     "update": "npx npm-check-updates -ws -u --root"
   },
   "author": "",
@@ -16,7 +16,7 @@
     "packages/*"
   ],
   "devDependencies": {
-    "unlighthouse": "^0.8.7",
-    "typescript": "^5.1.3"
+    "typescript": "^5.1.3",
+    "unlighthouse": "^0.8.7"
   }
 }

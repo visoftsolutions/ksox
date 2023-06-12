@@ -1,11 +1,13 @@
 pub mod models;
 
+use std::{io, str::FromStr};
+
 use axum::{
     extract::{Json, Query, State},
     http::{self, HeaderValue},
     response::IntoResponse,
-    routing::{delete, get, post},
-    Router,
+    routing::{delete, get, post, },
+    Router, TypedHeader,
 };
 use hyper::HeaderMap;
 use models::*;
@@ -23,6 +25,7 @@ pub fn router(app_state: &AppState) -> Router {
         .route("/", get(generate_message))
         .route("/", post(validate_signature))
         .route("/", delete(logout))
+        .route("/session", get(session_info))
         .with_state(app_state.clone())
 }
 
@@ -110,4 +113,27 @@ pub async fn logout(State(state): State<AppState>, user: User) -> Result<String,
         .del(format!("auth:session_id:{}", user.session_id))
         .await?;
     Ok(format!("logout endpoint, Bye {}", user.user_id))
+}
+
+pub async fn session_info(
+    cookies: TypedHeader<headers::Cookie>,
+    State(state): State<AppState>,
+) -> Result<Json<Option<ValidateSignatureResponse>>, AppError> {
+    let mut redis_conn = state.session_store.get_async_connection().await?;
+    Ok(Json(match cookies.get(COOKIE_NAME) {
+        Some(session_id) => {
+            match redis_conn.get(format!("auth:session_id:{session_id}")).await {
+                Ok(user_id) => {
+                    Some(ValidateSignatureResponse {
+                        session_id: SessionId::from_str(session_id)?,
+                        user_id,
+                        expiration: redis_conn.pttl::<'_, _, usize>(format!("auth:session_id:{session_id}")).await.map(|t| t / 1000)?
+                    })
+                },
+                Err(_) => None
+            }
+            
+        },
+        None => None
+    }))
 }

@@ -31,9 +31,9 @@ impl TransfersManager {
                 transfers.id,
                 transfers.created_at,
                 transfers.last_modification_at,
-                transfers.from,
-                transfers.to,
-                transfers.asset,
+                transfers.maker_id,
+                transfers.taker_id,
+                transfers.asset_id,
                 transfers.amount as "amount: Fraction"
             FROM transfers
             WHERE last_modification_at > $1
@@ -53,9 +53,9 @@ impl TransfersManager {
                 transfers.id,
                 transfers.created_at,
                 transfers.last_modification_at,
-                transfers.from,
-                transfers.to,
-                transfers.asset,
+                transfers.maker_id,
+                transfers.taker_id,
+                transfers.asset_id,
                 transfers.amount as "amount: Fraction"
             FROM transfers
             "#
@@ -76,12 +76,12 @@ impl TransfersManager {
                 transfers.id,
                 transfers.created_at,
                 transfers.last_modification_at,
-                transfers.from,
-                transfers.to,
-                transfers.asset,
+                transfers.maker_id,
+                transfers.taker_id,
+                transfers.asset_id,
                 transfers.amount as "amount: Fraction"
             FROM transfers
-            WHERE transfers.to = $1 OR transfers.from = $1
+            WHERE transfers.taker_id = $1 OR transfers.maker_id = $1
             ORDER BY transfers.created_at DESC
             LIMIT $2
             OFFSET $3
@@ -112,7 +112,7 @@ impl TransfersNotificationManager {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
                 NotificationManagerPredicateInput::TransfersChanged(transfer) => {
-                    transfer.to == user_id
+                    transfer.taker_id == user_id
                 }
                 _ => false,
             }

@@ -1,16 +1,16 @@
 import { joinPaths } from "solid-start/islands/server-router";
 import { api, base } from "~/root";
-import { setSession, login, useSession } from "@web/components/providers/SessionProvider";
-import { walletClientConnect, useWallet } from "@web/components/providers/WalletProvider";
+import { setSession, login, useSession, logout } from "@web/components/providers/SessionProvider";
+import { useWallet, walletClientConnect } from "@web/components/providers/WalletProvider";
 import firstLastChars from "@web/utils/firstLastChars";
-import { createEffect } from "solid-js";
+import { createEffect, untrack } from "solid-js";
 
 export default function WalletButton() {
   const wallet = useWallet();
   const session = useSession();
 
   createEffect(async () => {
-    if (wallet.walletClient) {
+    if (wallet.walletClient && untrack(() => !session())) {
       setSession(await login(api, wallet.walletClient));
     }
   });
@@ -23,6 +23,10 @@ export default function WalletButton() {
       onClick={async () => {
         if (!wallet.walletClient) {
           await walletClientConnect();
+        } else if (session()) {
+          setSession(await logout(api));
+        } else {
+          setSession(await login(api, wallet.walletClient));
         }
       }}
     >
@@ -32,7 +36,7 @@ export default function WalletButton() {
         <img src={joinPaths(base, "gfx/user.svg")} alt="user" width="16px" class="m-auto" />
       )}
       <div class="text-ellipsis text-wallet font-semibold">
-        {!wallet.walletClient ? "CONNECT WALLET" : !session() ? "LOGIN" : firstLastChars(wallet.address ?? "", 6, 6)}
+        {!wallet.walletClient && !session() ? "CONNECT WALLET" : !session() ? "LOGIN" : firstLastChars(session()?.user_id ?? "", 6, 6)}
       </div>
     </div>
   );

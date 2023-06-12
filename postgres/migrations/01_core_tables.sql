@@ -8,7 +8,17 @@ CREATE TABLE "users" (
   "email" VARCHAR(100) UNIQUE
 );
 
-CREATE TABLE "spot"."valuts" (
+CREATE TABLE "assets" (
+  "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "name" VARCHAR NOT NULL,
+  "symbol" VARCHAR NOT NULL,
+  "maker_fee" fraction NOT NULL,
+  "taker_fee" fraction NOT NULL
+);
+
+CREATE TABLE valuts (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -18,15 +28,46 @@ CREATE TABLE "spot"."valuts" (
   UNIQUE ("user_id", "asset_id")
 );
 
-CREATE TABLE "spot"."assets" (
+ALTER TABLE "valuts" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
+ALTER TABLE "valuts" ADD FOREIGN KEY ("asset_id") REFERENCES "assets" ("id");
+
+CREATE TABLE "mints" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "name" VARCHAR NOT NULL,
-  "symbol" VARCHAR NOT NULL,
-  "maker_fee" fraction NOT NULL,
-  "taker_fee" fraction NOT NULL
+  "user_id" uuid NOT NULL,
+  "asset_id" uuid NOT NULL,
+  "amount" fraction NOT NULL
 );
+
+ALTER TABLE "mints" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
+ALTER TABLE "mints" ADD FOREIGN KEY ("asset_id") REFERENCES "assets" ("id");
+
+CREATE TABLE "burns" (
+  "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "user_id" uuid NOT NULL,
+  "asset_id" uuid NOT NULL,
+  "amount" fraction NOT NULL
+);
+
+ALTER TABLE "burns" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
+ALTER TABLE "burns" ADD FOREIGN KEY ("asset_id") REFERENCES "assets" ("id");
+
+CREATE TABLE "transfers" (
+  "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+  "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "maker_id" uuid NOT NULL,
+  "taker_id" uuid NOT NULL,
+  "asset_id" uuid NOT NULL,
+  "amount" fraction NOT NULL
+);
+
+ALTER TABLE "transfers" ADD FOREIGN KEY ("maker_id") REFERENCES "users" ("id");
+ALTER TABLE "transfers" ADD FOREIGN KEY ("taker_id") REFERENCES "users" ("id");
+ALTER TABLE "transfers" ADD FOREIGN KEY ("asset_id") REFERENCES "assets" ("id");
 
 CREATE TABLE "spot"."orders" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
@@ -43,6 +84,10 @@ CREATE TABLE "spot"."orders" (
   "maker_fee" fraction NOT NULL
 );
 
+ALTER TABLE "spot"."orders" ADD FOREIGN KEY ("maker_id") REFERENCES "users" ("id");
+ALTER TABLE "spot"."orders" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "assets" ("id");
+ALTER TABLE "spot"."orders" ADD FOREIGN KEY ("base_asset_id") REFERENCES "assets" ("id");
+
 CREATE TABLE "spot"."trades" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -58,6 +103,11 @@ CREATE TABLE "spot"."trades" (
   "maker_quote_volume" fraction NOT NULL,
   "maker_base_volume" fraction NOT NULL
 );
+
+ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("taker_id") REFERENCES "users" ("id");
+ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("order_id") REFERENCES "spot"."orders" ("id");
+ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "assets" ("id");
+ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("base_asset_id") REFERENCES "assets" ("id");
 
 CREATE TABLE "spot"."candlesticks" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
@@ -79,30 +129,9 @@ CREATE TABLE "spot"."candlesticks" (
   "maker_base_volume" fraction NOT NULL
 );
 
-CREATE TABLE "transfers" (
-  "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-  "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "from" uuid NOT NULL,
-  "to" uuid NOT NULL,
-  "asset" uuid NOT NULL,
-  "amount" fraction NOT NULL
-);
+ALTER TABLE "spot"."candlesticks" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "assets" ("id");
+ALTER TABLE "spot"."candlesticks" ADD FOREIGN KEY ("base_asset_id") REFERENCES "assets" ("id");
 
-ALTER TABLE "spot"."valuts" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-ALTER TABLE "spot"."valuts" ADD FOREIGN KEY ("asset_id") REFERENCES "spot"."assets" ("id");
-ALTER TABLE "spot"."orders" ADD FOREIGN KEY ("maker_id") REFERENCES "users" ("id");
-ALTER TABLE "spot"."orders" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "spot"."assets" ("id");
-ALTER TABLE "spot"."orders" ADD FOREIGN KEY ("base_asset_id") REFERENCES "spot"."assets" ("id");
-ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("taker_id") REFERENCES "users" ("id");
-ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("order_id") REFERENCES "spot"."orders" ("id");
-ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "spot"."assets" ("id");
-ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("base_asset_id") REFERENCES "spot"."assets" ("id");
-ALTER TABLE "spot"."candlesticks" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "spot"."assets" ("id");
-ALTER TABLE "spot"."candlesticks" ADD FOREIGN KEY ("base_asset_id") REFERENCES "spot"."assets" ("id");
-ALTER TABLE "transfers" ADD FOREIGN KEY ("from") REFERENCES "users" ("id");
-ALTER TABLE "transfers" ADD FOREIGN KEY ("to") REFERENCES "users" ("id");
-ALTER TABLE "transfers" ADD FOREIGN KEY ("asset") REFERENCES "spot"."assets" ("id");
 
 CREATE OR REPLACE FUNCTION update_last_modification_at()
 RETURNS TRIGGER AS $$
@@ -112,17 +141,21 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- CREATE OR REPLACE TRIGGER users_update_last_modification_at
--- AFTER INSERT OR UPDATE ON "users"
--- FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"UsersChanged"');
-
-CREATE OR REPLACE TRIGGER spot_valuts_update_last_modification_at
-AFTER INSERT OR UPDATE ON "spot"."valuts"
-FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"SpotValutsChanged"');
+CREATE OR REPLACE TRIGGER users_update_last_modification_at
+AFTER INSERT OR UPDATE ON "users"
+FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"UsersChanged"');
 
 CREATE OR REPLACE TRIGGER spot_assets_update_last_modification_at
-AFTER INSERT OR UPDATE ON "spot"."assets"
+AFTER INSERT OR UPDATE ON "assets"
 FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"SpotAssetsChanged"');
+
+CREATE OR REPLACE TRIGGER spot_valuts_update_last_modification_at
+AFTER INSERT OR UPDATE ON "valuts"
+FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"SpotValutsChanged"');
+
+CREATE OR REPLACE TRIGGER transfers_update_last_modification_at
+AFTER INSERT OR UPDATE ON "transfers"
+FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"TransfersChanged"');
 
 CREATE OR REPLACE TRIGGER spot_orders_update_last_modification_at
 AFTER INSERT OR UPDATE ON "spot"."orders"
@@ -136,6 +169,3 @@ CREATE OR REPLACE TRIGGER spot_candlesticks_update_last_modification_at
 AFTER INSERT OR UPDATE ON "spot"."candlesticks"
 FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"SpotCandlesticksChanged"');
 
-CREATE OR REPLACE TRIGGER transfers_update_last_modification_at
-AFTER INSERT OR UPDATE ON "transfers"
-FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"TransfersChanged"');

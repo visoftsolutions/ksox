@@ -25,6 +25,7 @@ use crate::{
     cache::get_client,
     database::managers::{
         assets::{AssetsManager, AssetsNotificationManager},
+        badges::{BadgesManager, BadgesNotificationManager},
         candlesticks::{CandlesticksManager, CandlesticksNotificationManager},
         notifications::NotificationManager,
         orders::{OrdersManager, OrdersNotificationManager},
@@ -76,6 +77,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ),
         transfers_manager: TransfersManager::new(database.clone()),
         transfers_notification_manager: TransfersNotificationManager::new(
+            notification_manager_controller.get_subscriber(),
+        ),
+        badges_manager: BadgesManager::new(database.clone()),
+        badges_notification_manager: BadgesNotificationManager::new(
             notification_manager_controller.get_subscriber(),
         ),
         assets_pair_recognition: AssetPairRecognition::new(

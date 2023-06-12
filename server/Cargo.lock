@@ -634,14 +634,21 @@ name = "engagement"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "bytes",
+ "chrono",
+ "ethereum-types",
  "fraction",
  "futures",
+ "headers",
  "hyper",
- "num-bigint",
+ "prefix-hex",
  "prost",
+ "rand",
+ "regex",
  "serde",
  "serde_json",
  "sqlx",
+ "strum",
  "thiserror",
  "tokio",
  "tokio-stream",
@@ -657,7 +664,9 @@ dependencies = [
 name = "engine"
 version = "0.1.0"
 dependencies = [
+ "async-stream",
  "axum",
+ "chrono",
  "fraction",
  "futures",
  "hyper",
@@ -3560,6 +3569,7 @@ dependencies = [
  "axum",
  "bytes",
  "chrono",
+ "engagement",
  "ethereum-types",
  "ethers-core",
  "fraction",
@@ -3580,6 +3590,7 @@ dependencies = [
  "serde_with",
  "sqlx",
  "strsim",
+ "strum",
  "thiserror",
  "tokio",
  "tokio-stream",

@@ -15,7 +15,10 @@ use tonic::transport::Channel;
 use crate::{
     database::{
         self,
-        managers::transfers::{TransfersManager, TransfersNotificationManager},
+        managers::{
+            badges::{BadgesManager, BadgesNotificationManager},
+            transfers::{TransfersManager, TransfersNotificationManager},
+        },
     },
     engine_base,
     recognition::{asset_pair::AssetPairRecognition, user::UserRecognition},
@@ -39,6 +42,8 @@ pub struct AppState {
     pub candlesticks_notification_manager: CandlesticksNotificationManager,
     pub transfers_manager: TransfersManager,
     pub transfers_notification_manager: TransfersNotificationManager,
+    pub badges_manager: BadgesManager,
+    pub badges_notification_manager: BadgesNotificationManager,
     pub assets_pair_recognition: AssetPairRecognition,
     pub user_recognition: UserRecognition,
     pub engine_client: EngineClient<Channel>,

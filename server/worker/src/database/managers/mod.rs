@@ -1,5 +1,7 @@
 pub mod assets;
+pub mod badges;
 pub mod candlesticks;
+pub mod mints;
 pub mod notifications;
 pub mod orders;
 pub mod trades;

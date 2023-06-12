@@ -11,6 +11,7 @@ mod shutdown_signal;
 use std::net::SocketAddr;
 
 use base::engine_server::EngineServer;
+use chrono::Duration;
 use sqlx::PgPool;
 use tonic::transport::Server;
 
@@ -25,6 +26,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let matching_engine = MatchingEngine::new(
         database,
         std::env::var("ENGINE_FRACTION_ACCURACY")?.parse()?,
+        Duration::days(1),
+        Duration::days(1),
     );
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));

@@ -1,9 +1,9 @@
 use std::{cmp::max, collections};
 
 use chrono::Utc;
+use engagement::database::managers::notifications::NotificationManagerEvent;
 use futures::StreamExt;
 use predicates::prelude::*;
-use serde::Deserialize;
 use sqlx::{postgres::PgListener, PgPool};
 use tokio::{
     select,
@@ -14,20 +14,10 @@ use uuid::Uuid;
 use crate::database::{
     managers,
     projections::{
-        self, asset::Asset, candlestick::Candlestick, order::Order, trade::Trade,
+        self, asset::Asset, badge::Badge, candlestick::Candlestick, order::Order, trade::Trade,
         transfer::Transfer, valut::Valut,
     },
 };
-
-#[derive(Debug, Clone, Deserialize)]
-pub enum NotificationManagerEvent {
-    SpotValutsChanged,
-    SpotAssetsChanged,
-    SpotOrdersChanged,
-    SpotTradesChanged,
-    SpotCandlesticksChanged,
-    TransfersChanged,
-}
 
 #[derive(Debug, Clone)]
 pub enum NotificationManagerPredicateInput {
@@ -37,6 +27,7 @@ pub enum NotificationManagerPredicateInput {
     SpotTradesChanged(projections::trade::Trade),
     SpotCandlesticksChanged(projections::candlestick::Candlestick),
     TransfersChanged(projections::transfer::Transfer),
+    EngagementBadgesChanged(projections::badge::Badge),
 }
 
 #[derive(Debug, Clone)]
@@ -47,6 +38,7 @@ pub enum NotificationManagerOutput {
     SpotTradesChanged(Vec<projections::trade::Trade>),
     SpotCandlesticksChanged(Vec<projections::candlestick::Candlestick>),
     TransfersChanged(Vec<projections::transfer::Transfer>),
+    EngagementBadgesChanged(Vec<projections::badge::Badge>),
 }
 
 pub struct NotificationManagerEntry {
@@ -105,6 +97,10 @@ impl NotificationManager {
             let mut candlesticks_last_modification_at = Utc::now();
             let transfers_manager = managers::transfers::TransfersManager::new(database.clone());
             let mut transfers_last_modification_at = Utc::now();
+            let badges_manager = managers::badges::BadgesManager::new(database.clone());
+            let mut badges_last_modification_at = Utc::now();
+            let users_manager = managers::users::UsersManager::new(database.clone());
+            let mut users_last_modification_at = Utc::now();
 
             loop {
                 select! {
@@ -283,6 +279,47 @@ impl NotificationManager {
                                                     elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(transfers_last_modification_at)
                                                 );
 
+                                            },
+                                            Err(err) => {
+                                                tracing::error!("Error: {}", err);
+                                            }
+                                        }
+                                    },
+                                    Ok(NotificationManagerEvent::EngagementBadgesChanged) => {
+                                        match badges_manager.get_modified(badges_last_modification_at).await {
+                                            Ok(elements) => {
+                                                let mut set_entry_to_remove_ids = Vec::new();
+                                                for set_entry in set.values() {
+                                                    let result: Vec<Badge> = elements.iter().cloned()
+                                                        .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::EngagementBadgesChanged(e.clone()))).collect();
+
+                                                    if !result.is_empty() {
+                                                        if let Err(err) = set_entry.sender.send(NotificationManagerOutput::EngagementBadgesChanged(result)).await {
+                                                            set_entry_to_remove_ids.push(set_entry.id);
+                                                            tracing::info!("{}", err);
+                                                        }
+                                                    }
+                                                }
+                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+
+                                                badges_last_modification_at = max(
+                                                    badges_last_modification_at,
+                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(badges_last_modification_at)
+                                                );
+
+                                            },
+                                            Err(err) => {
+                                                tracing::error!("Error: {}", err);
+                                            }
+                                        }
+                                    }
+                                    Ok(NotificationManagerEvent::UsersChanged) => {
+                                        match users_manager.get_modified(users_last_modification_at).await {
+                                            Ok(elements) => {
+                                                users_last_modification_at = max(
+                                                    users_last_modification_at,
+                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(users_last_modification_at)
+                                                );
                                             },
                                             Err(err) => {
                                                 tracing::error!("Error: {}", err);
