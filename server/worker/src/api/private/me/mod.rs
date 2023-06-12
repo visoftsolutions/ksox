@@ -1,9 +1,6 @@
-use axum::{ Router,
-};
+use axum::Router;
 
-use crate::{
-    models::AppState,
-};
+use crate::models::AppState;
 
 pub mod metadata;
 

@@ -6,7 +6,7 @@ use axum::{
     extract::{Json, Query, State},
     http::{self, HeaderValue},
     response::IntoResponse,
-    routing::{delete, get, post, },
+    routing::{delete, get, post},
     Router, TypedHeader,
 };
 use hyper::HeaderMap;
@@ -122,18 +122,21 @@ pub async fn session_info(
     let mut redis_conn = state.session_store.get_async_connection().await?;
     Ok(Json(match cookies.get(COOKIE_NAME) {
         Some(session_id) => {
-            match redis_conn.get(format!("auth:session_id:{session_id}")).await {
-                Ok(user_id) => {
-                    Some(ValidateSignatureResponse {
-                        session_id: SessionId::from_str(session_id)?,
-                        user_id,
-                        expiration: redis_conn.pttl::<'_, _, usize>(format!("auth:session_id:{session_id}")).await.map(|t| t / 1000)?
-                    })
-                },
-                Err(_) => None
+            match redis_conn
+                .get(format!("auth:session_id:{session_id}"))
+                .await
+            {
+                Ok(user_id) => Some(ValidateSignatureResponse {
+                    session_id: SessionId::from_str(session_id)?,
+                    user_id,
+                    expiration: redis_conn
+                        .pttl::<'_, _, usize>(format!("auth:session_id:{session_id}"))
+                        .await
+                        .map(|t| t / 1000)?,
+                }),
+                Err(_) => None,
             }
-            
-        },
-        None => None
+        }
+        None => None,
     }))
 }
