@@ -17,11 +17,11 @@ export interface ProfileProps {
 
 export default function Profile(props: ProfileProps) {
   return (
-    <div class="grid grid-cols-[auto_1fr] items-center justify-center gap-6 bg-gray-2">
+    <div class="grid grid-cols-[auto_1fr] items-center justify-center gap-6 bg-gray-2 p-2">
       <img
         src={props.image ? joinPaths(base, props.image) : joinPaths(base, "gfx/user.svg")}
         alt="profile photo"
-        class="m-2 h-16 w-16 rounded-full md:m-6 md:h-28 md:w-28"
+        class="m-2 h-16 w-16 rounded-full md:m-4 md:h-28 md:w-28"
       />
       <div class="grid grid-rows-[auto_auto_auto] gap-1">
         <p class="text-xl font-extrabold md:text-3xl">{props.name}</p>

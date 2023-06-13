@@ -23,19 +23,18 @@ export const [session, setSession] = createSignal<
 const SessionContext =
   createContext<Accessor<ValidateSignatureResponse | undefined>>(session);
 export function SessionProvider(props: { children: JSX.Element }) {
-
   onMount(async () => {
     let response = await fetch(`${api}/auth/session`, {
       method: "GET",
       credentials: "same-origin",
     })
-    .then((r) => r.json())
-    .then((r) => ValidateSignatureResponse.nullable().parse(r))
+      .then((r) => r.json())
+      .then((r) => ValidateSignatureResponse.nullable().parse(r));
 
-    if (response != null){
-      setSession(response)
+    if (response != null) {
+      setSession(response);
     }
-  })
+  });
 
   return (
     <SessionContext.Provider value={session}>

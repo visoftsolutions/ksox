@@ -13,7 +13,7 @@ export interface BadgesProps {
 
 export default function Badges(props: BadgesProps) {
   return (
-    <div class="grid grid-cols-[repeat(auto-fit,minmax(400px,1fr))] gap-6">
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-8 md:grid-cols-[repeat(auto-fit,minmax(500px,1fr))]">
       <Index each={props.badges}>
         {(element) => (
           <Badge
