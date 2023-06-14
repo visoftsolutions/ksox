@@ -126,8 +126,8 @@ export function Actions(props: { session?: ValidateSignatureResponse; asset?: As
                 body: JSON.stringify(
                   TransferRequest.parse({
                     taker_id: selectedUser()?.id,
-                    asset: props.asset?.id,
-                    volume: amount(),
+                    asset_id: props.asset?.id,
+                    amount: amount(),
                   }),
                   (_, v) => (typeof v === "bigint" ? v.toString() : v)
                 ),

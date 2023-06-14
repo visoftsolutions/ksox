@@ -2,7 +2,10 @@ use fraction::num_traits::{CheckedAdd, CheckedSub};
 use sqlx::{Postgres, Transaction};
 
 use super::models::transfer::{TransferError, TransferRequest, TransferResponse};
-use crate::database::managers::{AssetsManager, ValutsManager};
+use crate::database::{
+    managers::{transfers::TransfersManager, AssetsManager, ValutsManager},
+    projections::transfer::Transfer,
+};
 
 pub async fn transfer<'t, 'p>(
     request: TransferRequest,
@@ -36,6 +39,14 @@ pub async fn transfer<'t, 'p>(
         .checked_add(&request.amount)
         .ok_or(TransferError::CheckedAddFailed)?;
 
+    let transfer = Transfer {
+        maker_id: request.maker_id,
+        taker_id: request.taker_id,
+        asset_id: asset.id,
+        amount: request.amount,
+    };
+
+    TransfersManager::insert(transaction, transfer).await?;
     ValutsManager::update(transaction, maker_asset_valut).await?;
     ValutsManager::update(transaction, taker_asset_valut).await?;
 

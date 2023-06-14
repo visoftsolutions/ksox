@@ -1,7 +1,6 @@
-use std::{collections::HashSet, pin::Pin};
+use std::pin::Pin;
 
 use futures::Future;
-use strum::IntoEnumIterator;
 use uuid::Uuid;
 
 use super::{BadgeEval, BadgeMetric, BadgeValue};
@@ -10,13 +9,13 @@ use crate::database::{
     projections::badge::{EnumValue, TradeBadge},
 };
 
-pub struct MetricInput {
-    pub trades_manager: TradesManager,
+pub struct MetricInput<'a> {
+    pub trades_manager: &'a TradesManager,
     pub user_id: Uuid,
 }
 
-impl BadgeMetric for TradeBadge {
-    type MetricInput = MetricInput;
+impl<'b> BadgeMetric<'b> for TradeBadge {
+    type MetricInput = MetricInput<'b>;
     fn metric<'a>(
     ) -> fn(&'a Self::MetricInput) -> Pin<Box<dyn Future<Output = sqlx::Result<i64>> + Send + 'a>>
     {
@@ -36,61 +35,55 @@ impl BadgeMetric for TradeBadge {
     }
 }
 
-impl BadgeEval<Self> for TradeBadge {
-    fn eval(metric: i64) -> HashSet<Self> {
-        Self::iter()
-            .filter(|f| f.to_value().value <= metric)
-            .collect()
-    }
-}
+impl BadgeEval<Self> for TradeBadge {}
 
 impl BadgeValue for TradeBadge {
     fn to_value(&self) -> &'static EnumValue {
         match self {
             Self::FirstTrade => &EnumValue {
-                name: "",
-                description: "",
+                name: "First Trade",
+                description: "Badge for performing first trade",
                 value: 1,
             },
             Self::TradeNovice => &EnumValue {
-                name: "",
-                description: "",
-                value: 1,
+                name: "Trade Novice",
+                description: "Badge for performing ten trades",
+                value: 10,
             },
             Self::TradeTornado => &EnumValue {
-                name: "",
-                description: "",
-                value: 1,
+                name: "Trade Tornado",
+                description: "Badge for performing one hundred trades",
+                value: 100,
             },
             Self::TradeTyrant => &EnumValue {
-                name: "",
-                description: "",
-                value: 1,
+                name: "Trade Tyrant",
+                description: "Badge for performing five hundred trades",
+                value: 500,
             },
             Self::TradeMogul => &EnumValue {
-                name: "",
-                description: "",
-                value: 1,
+                name: "Trade Mogul",
+                description: "Badge for performing thousand trades",
+                value: 1000,
             },
             Self::TradeMagnate => &EnumValue {
-                name: "",
-                description: "",
-                value: 1,
+                name: "Trade Magnate",
+                description: "Badge for performing five thousand trades",
+                value: 5000,
             },
             Self::TradeOverlord => &EnumValue {
-                name: "",
-                description: "",
-                value: 1,
+                name: "Trade Overlord",
+                description: "Badge for performing ten thousand trades",
+                value: 10000,
             },
             Self::TradeLegend => &EnumValue {
-                name: "",
-                description: "",
-                value: 1,
+                name: "Trade Legend",
+                description: "Badge for performing fifty thousand trades",
+                value: 50000,
             },
             Self::TradeTitan => &EnumValue {
-                name: "",
-                description: "",
-                value: 1,
+                name: "Trade Titan",
+                description: "Badge for performing hundred thousand trades",
+                value: 100000,
             },
         }
     }

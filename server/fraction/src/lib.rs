@@ -59,6 +59,13 @@ impl Fraction {
         let (numer, denom) = self.0.clone().into();
         format!("({},{})", numer, denom)
     }
+
+    pub fn from_raw(data: (BigInt, BigInt)) -> Option<Self> {
+        if data.1 == BigInt::zero() {
+            return None;
+        }
+        Some(Self(BigRational::new_raw(data.0, data.1)))
+    }
 }
 
 impl Neg for Fraction {

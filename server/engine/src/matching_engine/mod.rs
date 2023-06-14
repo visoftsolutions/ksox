@@ -114,13 +114,7 @@ impl Engine for MatchingEngine {
             .await
             .map_err(|e| Status::aborted(e.to_string()))?;
         Ok(Response::new(
-            match mint::mint(
-                request.into_inner().try_into()?,
-                &mut t,
-                self.mint_timeout.clone(),
-            )
-            .await
-            {
+            match mint::mint(request.into_inner().try_into()?, &mut t, self.mint_timeout).await {
                 Ok(r) => {
                     t.commit()
                         .await
@@ -148,13 +142,7 @@ impl Engine for MatchingEngine {
             .await
             .map_err(|e| Status::aborted(e.to_string()))?;
         Ok(Response::new(
-            match burn::burn(
-                request.into_inner().try_into()?,
-                &mut t,
-                self.burn_timeout.clone(),
-            )
-            .await
-            {
+            match burn::burn(request.into_inner().try_into()?, &mut t, self.burn_timeout).await {
                 Ok(r) => {
                     t.commit()
                         .await

@@ -1,7 +1,6 @@
-use std::{collections::HashSet, pin::Pin};
+use std::pin::Pin;
 
 use futures::Future;
-use strum::IntoEnumIterator;
 use uuid::Uuid;
 
 use super::{BadgeEval, BadgeMetric, BadgeValue};
@@ -10,72 +9,65 @@ use crate::database::{
     projections::badge::{EnumValue, TakerBadge},
 };
 
-pub struct MetricInput {
-    pub trades_manager: TradesManager,
+pub struct MetricInput<'a> {
+    pub trades_manager: &'a TradesManager,
     pub user_id: Uuid,
 }
 
-impl BadgeMetric for TakerBadge {
-    type MetricInput = MetricInput;
+impl<'b> BadgeMetric<'b> for TakerBadge {
+    type MetricInput = MetricInput<'b>;
     fn metric<'a>(
     ) -> fn(&'a Self::MetricInput) -> Pin<Box<dyn Future<Output = sqlx::Result<i64>> + Send + 'a>>
     {
         |input: &Self::MetricInput| {
-            Box::pin(async {
+            Box::pin(
                 input
                     .trades_manager
-                    .get_num_taker_trades_for_user(input.user_id)
-                    .await
-            })
+                    .get_num_taker_trades_for_user(input.user_id),
+            )
         }
     }
 }
 
-impl BadgeEval<Self> for TakerBadge {
-    fn eval(metric: i64) -> HashSet<Self> {
-        Self::iter()
-            .filter(|f| f.to_value().value <= metric)
-            .collect()
-    }
-}
+impl BadgeEval<Self> for TakerBadge {}
 
 impl BadgeValue for TakerBadge {
     fn to_value(&self) -> &'static EnumValue {
         match self {
             Self::FirstTaker => &EnumValue {
-                name: "",
-                description: "",
+                name: "First Taker",
+                description: "Badge for performing first taker trade",
                 value: 1,
             },
             Self::TakerBeginner => &EnumValue {
-                name: "",
-                description: "",
-                value: 1,
+                name: "Taker Beginner",
+                description: "Badge for performing ten taker trades",
+                value: 10,
             },
             Self::TakerBandit => &EnumValue {
-                name: "",
-                description: "",
-                value: 1,
+                name: "Taker Bandit",
+                description: "Badge for performing hundred taker trades",
+                value: 100,
             },
             Self::TakerBoss => &EnumValue {
-                name: "",
-                description: "",
-                value: 1,
+                name: "Taker Boss",
+                description: "Badge for performing five hundred taker trades",
+                value: 500,
             },
             Self::TakerBaron => &EnumValue {
-                name: "",
-                description: "",
-                value: 1,
+                name: "Taker Baron",
+                description: "Badge for performing thousand taker trades",
+                value: 1000,
             },
             Self::TakerBandwagon => &EnumValue {
-                name: "",
-                description: "",
-                value: 1,
+                name: "Taker Bandwagon",
+                description: "Badge for performing five thousand taker trades",
+                value: 5000,
             },
             Self::TakerBehemoth => &EnumValue {
-                name: "",
-                description: "",
-                value: 1,
+                name: "Taker Behemoth",
+                description: "Badge for performing ten thousand taker trades",
+                value: 10000,
             },
         }
     }

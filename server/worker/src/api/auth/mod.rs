@@ -1,6 +1,6 @@
 pub mod models;
 
-use std::{io, str::FromStr};
+use std::str::FromStr;
 
 use axum::{
     extract::{Json, Query, State},

@@ -1,4 +1,6 @@
-use std::{collections::HashSet, future::Future, pin::Pin};
+use std::{future::Future, pin::Pin};
+
+use strum::IntoEnumIterator;
 
 use crate::database::projections::badge::{BadgeName, EnumValue};
 
@@ -8,7 +10,7 @@ pub mod trade;
 pub mod transfer;
 pub mod valut;
 
-pub trait BadgeMetric {
+pub trait BadgeMetric<'b> {
     type MetricInput;
     fn metric<'a>(
     ) -> fn(&'a Self::MetricInput) -> Pin<Box<dyn Future<Output = sqlx::Result<i64>> + Send + 'a>>;
@@ -18,8 +20,34 @@ pub trait BadgeValue {
     fn to_value(&self) -> &'static EnumValue;
 }
 
-pub trait BadgeEval<T> {
-    fn eval(metric: i64) -> HashSet<T>;
+pub trait BadgeEval<T>
+where
+    T: IntoEnumIterator + BadgeValue + std::hash::Hash + Eq,
+{
+    fn eval_recived(metric: &mut i64) -> Vec<T> {
+        T::iter()
+            .filter_map(|f| {
+                let element = f.to_value();
+                if *metric < element.value {
+                    Some(f)
+                } else {
+                    *metric -= element.value;
+                    None
+                }
+            })
+            .collect()
+    }
+    fn eval_open(metric: &mut i64) -> Option<T> {
+        T::iter().find_map(|f| {
+            let element = f.to_value();
+            if *metric < element.value {
+                Some(f)
+            } else {
+                *metric -= element.value;
+                None
+            }
+        })
+    }
 }
 
 impl BadgeValue for BadgeName {

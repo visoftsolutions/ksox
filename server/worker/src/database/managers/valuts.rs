@@ -123,6 +123,37 @@ impl ValutsNotificationManager {
         }
     }
 
+    pub async fn subscribe_to_user(
+        &self,
+        user_id: Uuid,
+    ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Vec<Valut>> + Send>>> {
+        let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
+            match input {
+                NotificationManagerPredicateInput::SpotValutsChanged(valut) => {
+                    valut.user_id == user_id
+                }
+                _ => false,
+            }
+        });
+
+        if let Ok(mut rx) = self
+            .notification_manager_subscriber
+            .subscribe_to(Box::new(p))
+            .await
+        {
+            let stream = async_stream::stream! {
+                while let Some(notification) = rx.recv().await {
+                    if let NotificationManagerOutput::SpotValutsChanged(valuts) = notification {
+                        yield valuts;
+                    }
+                }
+            };
+            Ok(Box::pin(stream))
+        } else {
+            Err(sqlx::Error::RowNotFound)
+        }
+    }
+
     pub async fn subscribe_for_user_asset(
         &self,
         user_id: Uuid,

@@ -1,13 +1,8 @@
 use crate::base::engagement_server::Engagement;
 pub mod badges;
 
+#[derive(Debug, Default)]
 pub struct EngagementEngine {}
-
-impl EngagementEngine {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
 
 #[tonic::async_trait]
 impl Engagement for EngagementEngine {}

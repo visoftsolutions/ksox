@@ -338,6 +338,39 @@
     },
     "query": "\n            INSERT INTO spot.trades\n                (quote_asset_id, base_asset_id, taker_id, taker_presentation, order_id, price, taker_quote_volume, maker_quote_volume, taker_base_volume, maker_base_volume, last_modification_at, created_at)\n            VALUES\n                ($1, $2, $3, $4, $5, $6::fraction, $7::fraction, $8::fraction, $9::fraction, $10::fraction, $11, $12)\n            "
   },
+  "3feacd7db3712260ad626796efca4508d08d39d7999b2d9717fc1f9913f344d0": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Timestamptz",
+          "Timestamptz",
+          "Uuid",
+          "Uuid",
+          "Uuid",
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO transfers\n                (created_at, last_modification_at, maker_id, taker_id, asset_id, amount)\n            VALUES\n                ($1, $2, $3, $4, $5, $6::fraction)\n            "
+  },
   "40b685cc315e0a9f1f5fa8d8a2874089b49c6cd401d7e8a45b1718b78de8af36": {
     "describe": {
       "columns": [

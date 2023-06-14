@@ -43,19 +43,18 @@ impl NotificationManager {
         let join_handle = tokio::spawn(async move {
             let valuts_manager = managers::valuts::ValutsManager::new(database.clone());
             let mut valuts_last_modification_at = Utc::now();
-            let assets_manager = managers::assets::AssetsManager::new(database.clone());
-            let mut assets_last_modification_at = Utc::now();
-            let orders_manager = managers::orders::OrdersManager::new(database.clone());
-            let mut orders_last_modification_at = Utc::now();
+            // let assets_manager = managers::assets::AssetsManager::new(database.clone());
+            // let mut assets_last_modification_at = Utc::now();
+            // let orders_manager = managers::orders::OrdersManager::new(database.clone());
+            // let mut orders_last_modification_at = Utc::now();
             let trades_manager = managers::trades::TradesManager::new(database.clone());
             let mut trades_last_modification_at = Utc::now();
-            let candlesticks_manager =
-                managers::candlesticks::CandlesticksManager::new(database.clone());
-            let mut candlesticks_last_modification_at = Utc::now();
+            // let candlesticks_manager = managers::candlesticks::CandlesticksManager::new(database.clone());
+            // let mut candlesticks_last_modification_at = Utc::now();
             let transfers_manager = managers::transfers::TransfersManager::new(database.clone());
             let mut transfers_last_modification_at = Utc::now();
             let badges_manager = managers::badges::BadgesManager::new(database.clone());
-            let mut badges_last_modification_at = Utc::now();
+            // let mut badges_last_modification_at = Utc::now();
             let users_manager = managers::users::UsersManager::new(database.clone());
             let mut users_last_modification_at = Utc::now();
 
@@ -75,9 +74,9 @@ impl NotificationManager {
                                                 for user_id in users {
                                                     match badges_manager.get_for_user_id(user_id).await.map(|e| e.into_iter().map(|e| e.badge_name).collect::<HashSet<BadgeName>>()) {
                                                         Ok(current_badges) => {
-                                                            match (ValutBadge::metric())(&valut::MetricInput{valuts_manager: valuts_manager.to_owned(), user_id}).await {
-                                                            Ok(metric) => {
-                                                                let badges_to_assign = ValutBadge::eval(metric).into_iter().map(|f| BadgeName::ValutBadge(f)).collect::<HashSet<BadgeName>>().difference(&current_badges).cloned().collect::<HashSet<BadgeName>>();
+                                                            match (ValutBadge::metric())(&valut::MetricInput{valuts_manager: &valuts_manager, user_id}).await {
+                                                            Ok(mut metric) => {
+                                                                let badges_to_assign = ValutBadge::eval_recived(&mut metric).into_iter().map(BadgeName::ValutBadge).collect::<HashSet<BadgeName>>().difference(&current_badges).cloned().collect::<HashSet<BadgeName>>();
                                                                 for badge in badges_to_assign {
                                                                     if let Err(err) = badges_manager.assign_badge(user_id, badge).await {
                                                                         tracing::error!("Error: {}", err);
@@ -105,24 +104,24 @@ impl NotificationManager {
                                         }
                                     },
                                     Ok(NotificationManagerEvent::SpotAssetsChanged) => {
-                                        match assets_manager.get_modified(assets_last_modification_at).await {
-                                            Ok(_elements) => {
+                                        // match assets_manager.get_modified(assets_last_modification_at).await {
+                                        //     Ok(_elements) => {
 
-                                            },
-                                            Err(err) => {
-                                                tracing::error!("Error: {}", err);
-                                            }
-                                        }
+                                        //     },
+                                        //     Err(err) => {
+                                        //         tracing::error!("Error: {}", err);
+                                        //     }
+                                        // }
                                     },
                                     Ok(NotificationManagerEvent::SpotOrdersChanged) => {
-                                        match orders_manager.get_modified(orders_last_modification_at).await {
-                                            Ok(_elements) => {
+                                        // match orders_manager.get_modified(orders_last_modification_at).await {
+                                        //     Ok(_elements) => {
 
-                                            },
-                                            Err(err) => {
-                                                tracing::error!("Error: {}", err);
-                                            }
-                                        }
+                                        //     },
+                                        //     Err(err) => {
+                                        //         tracing::error!("Error: {}", err);
+                                        //     }
+                                        // }
                                     },
                                     Ok(NotificationManagerEvent::SpotTradesChanged) => {
                                         match trades_manager.get_modified(trades_last_modification_at).await {
@@ -131,9 +130,9 @@ impl NotificationManager {
                                                 for user_id in users {
                                                     match badges_manager.get_for_user_id(user_id).await.map(|e| e.into_iter().map(|e| e.badge_name).collect::<HashSet<BadgeName>>()) {
                                                         Ok(current_badges) => {
-                                                            match (TradeBadge::metric())(&trade::MetricInput{trades_manager: trades_manager.to_owned(), user_id}).await {
-                                                                Ok(metric) => {
-                                                                    let badges_to_assign = TradeBadge::eval(metric).into_iter().map(|f| BadgeName::TradeBadge(f)).collect::<HashSet<BadgeName>>().difference(&current_badges).cloned().collect::<HashSet<BadgeName>>();
+                                                            match (TradeBadge::metric())(&trade::MetricInput{trades_manager: &trades_manager, user_id}).await {
+                                                                Ok(mut metric) => {
+                                                                    let badges_to_assign = TradeBadge::eval_recived(&mut metric).into_iter().map(BadgeName::TradeBadge).collect::<HashSet<BadgeName>>().difference(&current_badges).cloned().collect::<HashSet<BadgeName>>();
                                                                     for badge in badges_to_assign {
                                                                         if let Err(err) = badges_manager.assign_badge(user_id, badge).await {
                                                                             tracing::error!("Error: {}", err);
@@ -161,14 +160,14 @@ impl NotificationManager {
                                         }
                                     },
                                     Ok(NotificationManagerEvent::SpotCandlesticksChanged) => {
-                                        match candlesticks_manager.get_modified(candlesticks_last_modification_at).await {
-                                            Ok(_elements) => {
+                                        // match candlesticks_manager.get_modified(candlesticks_last_modification_at).await {
+                                        //     Ok(_elements) => {
 
-                                            },
-                                            Err(err) => {
-                                                tracing::error!("Error: {}", err);
-                                            }
-                                        }
+                                        //     },
+                                        //     Err(err) => {
+                                        //         tracing::error!("Error: {}", err);
+                                        //     }
+                                        // }
                                     },
                                     Ok(NotificationManagerEvent::TransfersChanged) => {
                                         match transfers_manager.get_modified(transfers_last_modification_at).await {
@@ -177,9 +176,9 @@ impl NotificationManager {
                                                 for user_id in users {
                                                     match badges_manager.get_for_user_id(user_id).await.map(|e| e.into_iter().map(|e| e.badge_name).collect::<HashSet<BadgeName>>()) {
                                                         Ok(current_badges) => {
-                                                            match (TransferBadge::metric())(&transfer::MetricInput{transfers_manager: transfers_manager.to_owned(), user_id}).await {
-                                                                Ok(metric) => {
-                                                                    let badges_to_assign = TradeBadge::eval(metric).into_iter().map(|f| BadgeName::TradeBadge(f)).collect::<HashSet<BadgeName>>().difference(&current_badges).cloned().collect::<HashSet<BadgeName>>();
+                                                            match (TransferBadge::metric())(&transfer::MetricInput{transfers_manager: &transfers_manager, user_id}).await {
+                                                                Ok(mut metric) => {
+                                                                    let badges_to_assign = TransferBadge::eval_recived(&mut metric).into_iter().map(BadgeName::TransferBadge).collect::<HashSet<BadgeName>>().difference(&current_badges).cloned().collect::<HashSet<BadgeName>>();
                                                                     for badge in badges_to_assign {
                                                                         if let Err(err) = badges_manager.assign_badge(user_id, badge).await {
                                                                             tracing::error!("Error: {}", err);
@@ -207,17 +206,14 @@ impl NotificationManager {
                                         }
                                     },
                                     Ok(NotificationManagerEvent::EngagementBadgesChanged) => {
-                                        match badges_manager.get_modified(badges_last_modification_at).await {
-                                            Ok(_elements) => {
+                                        // match badges_manager.get_modified(badges_last_modification_at).await {
+                                        //     Ok(_elements) => {
 
-                                            },
-                                            Err(err) => {
-                                                tracing::error!("Error: {}", err);
-                                            }
-                                        }
-                                    }
-                                    Err(err) => {
-                                        tracing::error!("Error: {}", err);
+                                        //     },
+                                        //     Err(err) => {
+                                        //         tracing::error!("Error: {}", err);
+                                        //     }
+                                        // }
                                     },
                                     Ok(NotificationManagerEvent::UsersChanged) => {
                                         match users_manager.get_modified(users_last_modification_at).await {
@@ -232,6 +228,9 @@ impl NotificationManager {
                                             }
                                         }
                                     },
+                                    Err(err) => {
+                                        tracing::error!("Error: {}", err);
+                                    }
                                 }
                             },
                             Err(err) => {

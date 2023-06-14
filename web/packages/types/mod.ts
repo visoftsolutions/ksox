@@ -70,8 +70,8 @@ export type CancelRequest = z.infer<typeof CancelRequest>;
 
 export const TransferRequest = z.object({
   taker_id: Uuid,
-  asset: Uuid,
-  volume: Fraction,
+  asset_id: Uuid,
+  amount: Fraction,
 });
 
 export type TransferRequest = z.infer<typeof TransferRequest>;

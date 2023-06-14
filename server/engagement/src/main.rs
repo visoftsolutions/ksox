@@ -30,7 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let notification_manager_controller =
         NotificationManager::start(database, "notifications").await?;
 
-    let engagement = EngagementEngine::new();
+    let engagement = EngagementEngine::default();
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));
     tracing::info!("listening on {}", addr);

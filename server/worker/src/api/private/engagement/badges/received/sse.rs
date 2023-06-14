@@ -7,9 +7,11 @@ use axum::{
     extract::State,
     response::sse::{Event, Sse},
 };
+use engagement::engagement_engine::badges::BadgeValue;
 use futures::stream::Stream;
 use tokio_stream::StreamExt;
 
+use super::Response;
 use crate::{api::auth::models::UserId, models::AppState};
 
 pub async fn root(
@@ -20,8 +22,10 @@ pub async fn root(
         let mut stream = state.badges_notification_manager.subscribe_to_user(*user_id).await
             .map_err(|err| Error::new(ErrorKind::BrokenPipe, err))?;
         while let Some(element) = stream.next().await {
-            yield Event::default().json_data(element).map_err(Error::from);
-        }
+            yield Event::default().json_data(
+                element.into_iter().map(|f| f.badge_name.to_value()).map(|f| Response { name: f.name.to_string(), description: f.description.to_string() }).collect::<Vec<Response>>()
+            ).map_err(Error::from);
+        };
     };
 
     Sse::new(stream).keep_alive(
