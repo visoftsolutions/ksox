@@ -1,7 +1,7 @@
 import { A } from "solid-start";
 import WalletButton from "./Header/WalletButton";
 import { joinPaths } from "solid-start/islands/server-router";
-import { base } from "~/root";
+import { api, base } from "~/root";
 
 export default function Header() {
   return (
@@ -15,7 +15,7 @@ export default function Header() {
         </div>
       </A>
       <div class="col-start-2 col-end-3">
-        <WalletButton />
+        <WalletButton base_url={base} api_url={api} />
       </div>
     </div>
   );

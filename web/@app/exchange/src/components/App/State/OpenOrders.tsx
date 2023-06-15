@@ -14,7 +14,7 @@ import { joinPaths } from "solid-start/islands/server-router";
 import { ev, finv, fmul } from "@web/types/primitives/fraction";
 import { Direction } from "@web/types/primitives/direction";
 import subscribeEvents from "@web/utils/subscribeEvents";
-import { ValidateSignatureResponse } from "@web/components/providers/SessionProvider/models";
+import { SessionResponse } from "@web/components/providers/SessionProvider/models";
 
 interface OpenOrder {
   id: Uuid;
@@ -28,7 +28,7 @@ interface OpenOrder {
   filled_qty: number;
 }
 
-export default function CreateOpenOrders(market?: Market, session?: ValidateSignatureResponse, precision?: number, capacity?: number) {
+export default function CreateOpenOrders(market?: Market, session?: SessionResponse, precision?: number, capacity?: number) {
   return () => (
     <>
       <div class="row-start-2 row-end-3 grid grid-cols-8 items-center self-center px-3 text-stateHeader font-semibold text-gray-4">
@@ -48,7 +48,7 @@ export default function CreateOpenOrders(market?: Market, session?: ValidateSign
   );
 }
 
-export function OpenOrders(props: { market?: Market; session?: ValidateSignatureResponse; precision?: number; capacity?: number }) {
+export function OpenOrders(props: { market?: Market; session?: SessionResponse; precision?: number; capacity?: number }) {
   const assets = useAssets();
   const [openOrders, setOpenOrders] = createStore<{ [key: Uuid]: OpenOrder }>({});
 

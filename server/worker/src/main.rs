@@ -31,7 +31,7 @@ use crate::{
         orders::{OrdersManager, OrdersNotificationManager},
         trades::{TradesManager, TradesNotificationManager},
         transfers::{TransfersManager, TransfersNotificationManager},
-        users::UsersManager,
+        users::{UsersManager, UsersNotificationManager},
         valuts::{ValutsManager, ValutsNotificationManager},
     },
     models::AppState,
@@ -54,6 +54,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         database: database.clone(),
         session_store: get_client()?,
         users_manager: UsersManager::new(database.clone()),
+        users_notification_manager: UsersNotificationManager::new(
+            notification_manager_controller.get_subscriber(),
+        ),
         assets_manager: AssetsManager::new(database.clone()),
         assets_notification_manager: AssetsNotificationManager::new(
             notification_manager_controller.get_subscriber(),

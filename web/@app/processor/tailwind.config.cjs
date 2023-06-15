@@ -3,6 +3,10 @@ const common = require("@web/tailwind/tailwind.config.cjs");
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   ...common,
+  content: [
+    ...common.content,
+    "./node_modules/web/components/**/*.{ts,tsx}",
+  ],
   theme: {
     extend: {
       colors: {

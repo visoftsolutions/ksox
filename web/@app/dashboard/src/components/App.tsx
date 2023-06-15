@@ -1,16 +1,20 @@
 import { BadgeFamily } from "@web/types/badge";
-import Badges from "./Badges";
-import Profile from "./Profile";
+import CreateProfile from "./App/Profile";
+import { Dynamic, Index } from "solid-js/web";
+import { useSession } from "@web/components/providers/SessionProvider";
+import CreateBadge from "./App/Badge";
 
 export default function App() {
+  const session = useSession();
+
   return (
     <div class="m-auto grid max-w-2xl grid-rows-[auto_1fr] items-center justify-stretch gap-10 md:max-w-7xl">
-      <Profile
-        name={"Okm165"}
-        publicWallet={"0x21B17b25b864659F2947a80B2A8E36f372f1D945"}
-        badges={[{ name: "Crypto Connoisseur" }, { name: "Crypto Connoisseur" }, { name: "Crypto Connoisseur" }]}
-      />
-      <Badges badgeFamilies={[BadgeFamily.ValutBadge, BadgeFamily.TradeBadge, BadgeFamily.TransferBadge, BadgeFamily.MakerBadge, BadgeFamily.TakerBadge]}/>
+      <Dynamic component={CreateProfile(session())} />
+      <div class="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-8 md:grid-cols-[repeat(auto-fit,minmax(500px,1fr))]">
+        <Index each={
+            [BadgeFamily.ValutBadge, BadgeFamily.TransferBadge, BadgeFamily.TradeBadge, BadgeFamily.MakerBadge, BadgeFamily.TakerBadge]
+          }>{(element) => <Dynamic component={CreateBadge(session(), element())} />}</Index>
+      </div>
     </div>
   );
 }

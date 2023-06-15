@@ -8,6 +8,9 @@ use sqlx::{
 use tokio_stream::Stream;
 use uuid::Uuid;
 
+use super::notifications::{
+    NotificationManagerOutput, NotificationManagerPredicateInput, NotificationManagerSubscriber,
+};
 use crate::database::projections::user::{EvmAddress, User};
 
 #[derive(Debug, Clone)]
@@ -144,5 +147,46 @@ impl UsersManager {
         )
         .execute(&self.database)
         .await
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UsersNotificationManager {
+    notification_manager_subscriber: NotificationManagerSubscriber,
+}
+impl UsersNotificationManager {
+    pub fn new(notification_manager_subscriber: NotificationManagerSubscriber) -> Self {
+        Self {
+            notification_manager_subscriber,
+        }
+    }
+
+    pub async fn subscribe_to_user(
+        &self,
+        user_id: Uuid,
+    ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Vec<User>> + Send>>> {
+        let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
+            match input {
+                NotificationManagerPredicateInput::UsersChanged(user) => user.id == user_id,
+                _ => false,
+            }
+        });
+
+        if let Ok(mut rx) = self
+            .notification_manager_subscriber
+            .subscribe_to(Box::new(p))
+            .await
+        {
+            let stream = async_stream::stream! {
+                while let Some(notification) = rx.recv().await {
+                    if let NotificationManagerOutput::UsersChanged(users) = notification {
+                        yield users;
+                    }
+                }
+            };
+            Ok(Box::pin(stream))
+        } else {
+            Err(sqlx::Error::RowNotFound)
+        }
     }
 }

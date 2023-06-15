@@ -5,10 +5,11 @@ import MainMenu from "~/components/MainMenu";
 import SideMenu from "~/components/SideMenu";
 import { SessionProvider } from "@web/components/providers/SessionProvider";
 import { PrecisionProvider } from "@web/components/providers/PrecisionProvider";
+import { api } from "~/root";
 
 export default function Index() {
   return (
-    <SessionProvider>
+    <SessionProvider api_url={api}>
       <MarketProvider>
         <main class="grid h-screen w-screen grid-cols-[72px_240px_1fr_260px_260px] grid-rows-[48px_1fr_280px] gap-[1px] overflow-auto bg-gray-1 font-sanspro text-white">
           <div class="col-start-2 col-end-6 row-start-1 row-end-2 bg-gray-2">

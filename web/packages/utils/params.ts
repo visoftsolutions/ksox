@@ -16,13 +16,7 @@ export default function params(a: any): string {
     if (prefix) {
       if (Array.isArray(obj)) {
         for (i = 0, len = obj.length; i < len; i++) {
-          buildParams(
-            prefix +
-              "[" +
-              (typeof obj[i] === "object" && obj[i] ? i : "") +
-              "]",
-            obj[i]
-          );
+          buildParams(prefix + "[" + (typeof obj[i] === "object" && obj[i] ? i : "") + "]", obj[i]);
         }
       } else if (Object.prototype.toString.call(obj) === "[object Object]") {
         for (key in obj) {

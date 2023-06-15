@@ -8,7 +8,7 @@ import NumberInput from "../Inputs/NumberInput";
 import { MintBurnRequest, TransferRequest } from "@web/types/mod";
 import SearchInput from "../Inputs/SearchInput";
 import { z } from "zod";
-import { ValidateSignatureResponse } from "@web/components/providers/SessionProvider/models";
+import { SessionResponse } from "@web/components/providers/SessionProvider/models";
 import { User } from "@web/types/user";
 
 export const UserRecognitionResult = z.object({
@@ -23,7 +23,7 @@ const querySearch = async (input: string) => {
     .then((r) => z.array(UserRecognitionResult).parse(r));
 };
 
-export default function CreateActions(asset?: Asset, session?: ValidateSignatureResponse, precision?: number) {
+export default function CreateActions(asset?: Asset, session?: SessionResponse, precision?: number) {
   return () => (
     <Show when={asset && precision}>
       <Actions asset={asset} precision={precision} session={session} />
@@ -31,7 +31,7 @@ export default function CreateActions(asset?: Asset, session?: ValidateSignature
   );
 }
 
-export function Actions(props: { session?: ValidateSignatureResponse; asset?: Asset; precision?: number }) {
+export function Actions(props: { session?: SessionResponse; asset?: Asset; precision?: number }) {
   const [amount, setAmount] = createSignal<Fraction>(fFromBigint(0n));
   const [search, setSearch] = createSignal<string>("");
   const [users, setUsers] = createSignal<UserRecognitionResult[]>([]);

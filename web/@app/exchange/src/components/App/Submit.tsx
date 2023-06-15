@@ -1,6 +1,6 @@
 import { onCleanup, onMount, Show } from "solid-js";
 import { createStore } from "solid-js/store";
-import { ValidateSignatureResponse } from "@web/components/providers/SessionProvider/models";
+import { SessionResponse } from "@web/components/providers/SessionProvider/models";
 import { api } from "~/root";
 import { Valut } from "@web/types/valut";
 import params from "@web/utils/params";
@@ -11,7 +11,7 @@ import SellForm from "./Submit/SellForm";
 import { Fraction } from "@web/types/primitives/fraction";
 import subscribeEvents from "@web/utils/subscribeEvents";
 
-export default function CreateSubmit(market: Market, session?: ValidateSignatureResponse, precision?: number) {
+export default function CreateSubmit(market: Market, session?: SessionResponse, precision?: number) {
   return () => (
     <Show when={market && market.quote_asset && market.base_asset && session && precision} fallback={<Submit />}>
       <Submit market={market} session={session} precision={precision} />
@@ -19,7 +19,7 @@ export default function CreateSubmit(market: Market, session?: ValidateSignature
   );
 }
 
-export function Submit(props: { market?: Market; session?: ValidateSignatureResponse; precision?: number }) {
+export function Submit(props: { market?: Market; session?: SessionResponse; precision?: number }) {
   const [storeSubmit, setStoreSubmit] = createStore<{
     buy_available_balance?: Fraction;
     sell_available_balance?: Fraction;

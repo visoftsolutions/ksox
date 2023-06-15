@@ -1,6 +1,6 @@
 import { batch, Index, onCleanup, onMount, Show } from "solid-js";
 import { createStore } from "solid-js/store";
-import { ValidateSignatureResponse } from "@web/components/providers/SessionProvider/models";
+import { SessionResponse } from "@web/components/providers/SessionProvider/models";
 import { Asset } from "@web/types/asset";
 import { Market } from "~/components/providers/MarketProvider";
 import { useAssets } from "~/components/providers/AssetsProvider";
@@ -26,7 +26,7 @@ interface TradeHistory {
   fee: number;
 }
 
-export default function CreateTradeHistory(market?: Market, session?: ValidateSignatureResponse, precision?: number, capacity?: number) {
+export default function CreateTradeHistory(market?: Market, session?: SessionResponse, precision?: number, capacity?: number) {
   return () => (
     <>
       <div class="row-start-2 row-end-3 grid grid-cols-7 items-center self-center px-3 text-stateHeader font-semibold text-gray-4">
@@ -45,7 +45,7 @@ export default function CreateTradeHistory(market?: Market, session?: ValidateSi
   );
 }
 
-export function TradeHistory(props: { market?: Market; session?: ValidateSignatureResponse; precision?: number; capacity?: number }) {
+export function TradeHistory(props: { market?: Market; session?: SessionResponse; precision?: number; capacity?: number }) {
   const assets = useAssets();
   const [tradeHistory, setTradeHistory] = createStore<{ [key: Uuid]: TradeHistory }>({});
 

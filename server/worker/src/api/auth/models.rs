@@ -317,13 +317,25 @@ pub struct ValidateSignatureRequest {
     pub signature: Signature,
 }
 
+// #[serde_as]
+// #[derive(Debug, Serialize, Deserialize)]
+// pub struct ValidateSignatureResponse {
+//     #[serde_as(as = "DisplayFromStr")]
+//     pub session_id: SessionId,
+//     #[serde_as(as = "DisplayFromStr")]
+//     pub user_id: UserId,
+//     pub expiration: usize,
+// }
+
 #[serde_as]
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ValidateSignatureResponse {
+pub struct SessionResponse {
     #[serde_as(as = "DisplayFromStr")]
     pub session_id: SessionId,
     #[serde_as(as = "DisplayFromStr")]
     pub user_id: UserId,
+    #[serde_as(as = "DisplayFromStr")]
+    pub address: EvmAddress,
     pub expiration: usize,
 }
 

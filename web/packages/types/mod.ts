@@ -76,10 +76,10 @@ export const TransferRequest = z.object({
 
 export type TransferRequest = z.infer<typeof TransferRequest>;
 
-export const MeRequest = z.object({
+export const UserUpdateRequest = z.object({
   name: z.nullable(z.string()),
   email: z.nullable(z.string()),
   phone: z.nullable(z.string()),
 });
 
-export type MeRequest = z.infer<typeof MeRequest>;
+export type UserUpdateRequest = z.infer<typeof UserUpdateRequest>;

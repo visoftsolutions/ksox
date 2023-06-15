@@ -16,3 +16,10 @@ export enum BadgeFamily {
   MakerBadge = "MakerBadge",
   TakerBadge = "TakerBadge",
 }
+
+export const Badge = z.object({
+  name: z.string(),
+  description: z.string(),
+});
+
+export type Badge = z.infer<typeof Badge>;

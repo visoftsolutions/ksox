@@ -2,8 +2,9 @@ import { onMount } from "solid-js";
 import SearchInput from "./Inputs/SearchInput";
 import { createStore } from "solid-js/store";
 import { api } from "~/root";
-import { MeRequest } from "@web/types/mod";
+import { UserUpdateRequest } from "@web/types/mod";
 import { useSession } from "@web/components/providers/SessionProvider";
+import { User } from "@web/types/user";
 
 interface UserData {
   name?: string;
@@ -16,12 +17,12 @@ export default function Account() {
   const session = useSession();
 
   onMount(async () => {
-    const response = await fetch(`${api}/private/me`, {
+    const response = await fetch(`${api}/private/user`, {
       method: "GET",
       credentials: "same-origin",
     })
       .then((r) => r.json())
-      .then((r) => MeRequest.parse(r));
+      .then((r) => User.parse(r));
 
     setUserData({
       name: response.name ?? undefined,
@@ -41,7 +42,7 @@ export default function Account() {
                     select-none items-center justify-center rounded-md  text-markets-label transition-colors duration-75`}
         onClick={async () => {
           if (session()) {
-            await fetch(`${api}/private/me`, {
+            await fetch(`${api}/private/user`, {
               method: "POST",
               headers: {
                 Accept: "application/json",
@@ -49,7 +50,7 @@ export default function Account() {
               },
               credentials: "same-origin",
               body: JSON.stringify(
-                MeRequest.parse({
+                UserUpdateRequest.parse({
                   name: userData.name,
                   email: userData.email,
                   phone: userData.phone,

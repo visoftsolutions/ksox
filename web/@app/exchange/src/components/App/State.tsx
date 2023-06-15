@@ -1,5 +1,5 @@
 import { createSignal, Match, Show, Switch } from "solid-js";
-import { ValidateSignatureResponse } from "@web/components/providers/SessionProvider/models";
+import { SessionResponse } from "@web/components/providers/SessionProvider/models";
 import { Market } from "~/components/providers/MarketProvider";
 import NavButton from "./Buttons/NavButton";
 import CreateOpenOrders from "./State/OpenOrders";
@@ -12,7 +12,7 @@ enum StateTabs {
   TradeHistory,
 }
 
-export default function CreateState(market?: Market, session?: ValidateSignatureResponse, precision?: number, capacity?: number) {
+export default function CreateState(market?: Market, session?: SessionResponse, precision?: number, capacity?: number) {
   return () => (
     <Show when={session && precision} fallback={<State />}>
       <State market={market} session={session} precision={precision} capacity={capacity} />
@@ -20,7 +20,7 @@ export default function CreateState(market?: Market, session?: ValidateSignature
   );
 }
 
-export function State(props: { market?: Market; session?: ValidateSignatureResponse; precision?: number; capacity?: number }) {
+export function State(props: { market?: Market; session?: SessionResponse; precision?: number; capacity?: number }) {
   const [tab, setTab] = createSignal<StateTabs>(StateTabs.OpenOrders);
 
   return (

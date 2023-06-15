@@ -3,13 +3,13 @@ pub mod balance;
 pub mod burn;
 pub mod cancel;
 pub mod engagement;
-pub mod me;
 pub mod mint;
 pub mod orders;
 pub mod submit;
 pub mod trades;
 pub mod transfer;
 pub mod transfers;
+pub mod user;
 
 use axum::{
     routing::{delete, post},
@@ -34,7 +34,7 @@ pub fn router(app_state: &AppState) -> Router {
         .route("/submit", post(submit::root))
         .route("/transfer", post(transfer::root))
         .with_state(app_state.clone())
-        .nest("/me", me::router(app_state))
+        .nest("/user", user::router(app_state))
         .nest("/active", active::router(app_state))
         .nest("/balance", balance::router(app_state))
         .nest("/orders", orders::router(app_state))

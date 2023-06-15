@@ -1,6 +1,6 @@
 import { batch, Index, onCleanup, onMount, Show } from "solid-js";
 import { createStore } from "solid-js/store";
-import { ValidateSignatureResponse } from "@web/components/providers/SessionProvider/models";
+import { SessionResponse } from "@web/components/providers/SessionProvider/models";
 import { Asset } from "@web/types/asset";
 import { Market } from "~/components/providers/MarketProvider";
 import { ev, finv, fmul } from "@web/types/primitives/fraction";
@@ -27,7 +27,7 @@ interface OrderHistory {
   filled_qty: number;
 }
 
-export default function CreateOrderHistory(market?: Market, session?: ValidateSignatureResponse, precision?: number, capacity?: number) {
+export default function CreateOrderHistory(market?: Market, session?: SessionResponse, precision?: number, capacity?: number) {
   return () => (
     <>
       <div class="row-start-2 row-end-3 grid grid-cols-8 items-center self-center px-3 text-stateHeader font-semibold text-gray-4">
@@ -47,7 +47,7 @@ export default function CreateOrderHistory(market?: Market, session?: ValidateSi
   );
 }
 
-export function OrderHistory(props: { market?: Market; session?: ValidateSignatureResponse; precision?: number; capacity?: number }) {
+export function OrderHistory(props: { market?: Market; session?: SessionResponse; precision?: number; capacity?: number }) {
   const assets = useAssets();
   const [orderHistory, setOrderHistory] = createStore<{ [key: Uuid]: OrderHistory }>({});
 

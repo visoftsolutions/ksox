@@ -26,12 +26,12 @@ where
 {
     fn eval_recived(metric: &mut i64) -> Vec<T> {
         T::iter()
-            .filter_map(|f| {
+            .map_while(|f| {
                 let element = f.to_value();
-                if *metric < element.value {
+                if *metric >= element.value {
+                    *metric -= element.value;
                     Some(f)
                 } else {
-                    *metric -= element.value;
                     None
                 }
             })

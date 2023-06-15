@@ -15,7 +15,7 @@ use crate::database::{
     managers,
     projections::{
         self, asset::Asset, badge::Badge, candlestick::Candlestick, order::Order, trade::Trade,
-        transfer::Transfer, valut::Valut,
+        transfer::Transfer, user::User, valut::Valut,
     },
 };
 
@@ -27,6 +27,7 @@ pub enum NotificationManagerPredicateInput {
     SpotTradesChanged(projections::trade::Trade),
     SpotCandlesticksChanged(projections::candlestick::Candlestick),
     TransfersChanged(projections::transfer::Transfer),
+    UsersChanged(projections::user::User),
     EngagementBadgesChanged(projections::badge::Badge),
 }
 
@@ -38,6 +39,7 @@ pub enum NotificationManagerOutput {
     SpotTradesChanged(Vec<projections::trade::Trade>),
     SpotCandlesticksChanged(Vec<projections::candlestick::Candlestick>),
     TransfersChanged(Vec<projections::transfer::Transfer>),
+    UsersChanged(Vec<projections::user::User>),
     EngagementBadgesChanged(Vec<projections::badge::Badge>),
 }
 
@@ -316,6 +318,20 @@ impl NotificationManager {
                                     Ok(NotificationManagerEvent::UsersChanged) => {
                                         match users_manager.get_modified(users_last_modification_at).await {
                                             Ok(elements) => {
+                                                let mut set_entry_to_remove_ids = Vec::new();
+                                                for set_entry in set.values() {
+                                                    let result: Vec<User> = elements.iter().cloned()
+                                                        .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::UsersChanged(e.clone()))).collect();
+
+                                                    if !result.is_empty() {
+                                                        if let Err(err) = set_entry.sender.send(NotificationManagerOutput::UsersChanged(result)).await {
+                                                            set_entry_to_remove_ids.push(set_entry.id);
+                                                            tracing::info!("{}", err);
+                                                        }
+                                                    }
+                                                }
+                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+
                                                 users_last_modification_at = max(
                                                     users_last_modification_at,
                                                     elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(users_last_modification_at)

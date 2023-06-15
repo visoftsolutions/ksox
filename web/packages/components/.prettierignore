@@ -1,0 +1,4 @@
+dist
+.solid
+node_modules
+.unlighthouse

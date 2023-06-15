@@ -1,21 +1,9 @@
 import { GetAccountResult, GetNetworkResult, PublicClient } from "@wagmi/core";
 import { createContext, JSX, onMount, useContext } from "solid-js";
 import { createStore } from "solid-js/store";
-import {
-  Address,
-  CustomTransport,
-  http,
-  HttpTransport,
-  WalletClient,
-  webSocket,
-  WebSocketTransport,
-} from "viem";
+import { Address, CustomTransport, http, HttpTransport, WalletClient, webSocket, WebSocketTransport } from "viem";
 import { mainnet } from "viem/chains";
-import {
-  EthereumClient,
-  w3mConnectors,
-  w3mProvider,
-} from "@web3modal/ethereum";
+import { EthereumClient, w3mConnectors, w3mProvider } from "@web3modal/ethereum";
 import { Web3Modal } from "@web3modal/html";
 import { configureChains, createConfig } from "@wagmi/core";
 import { createPublicClient, createWalletClient, custom } from "viem";
@@ -39,11 +27,7 @@ export const [wallet, setWallet] = createStore<WalletProvider>({
   selected_network: AVAILABLE_CHAINS[0],
 });
 const WalletContext = createContext<WalletProvider>(wallet);
-export function WalletProvider(props: {
-  children: JSX.Element;
-  projectId: string;
-  alchemyId: string;
-}) {
+export function WalletProvider(props: { children: JSX.Element; projectId: string; alchemyId: string }) {
   onMount(() => {
     setWallet({
       walletConnectProjectId: props.projectId,
@@ -51,26 +35,18 @@ export function WalletProvider(props: {
         // chain: hardhat,
         chain: mainnet,
         // transport: http("http://127.0.0.1:8545/"),
-        transport: http(
-          `https://eth-goerli.g.alchemy.com/v2/${props.alchemyId}`
-        ),
+        transport: http(`https://eth-goerli.g.alchemy.com/v2/${props.alchemyId}`),
       }),
       publicWSClient: createPublicClient({
         // chain: hardhat,
         chain: mainnet,
         // transport: webSocket("ws://127.0.0.1:8545/"),
-        transport: webSocket(
-          `wss://eth-goerli.g.alchemy.com/v2/${props.alchemyId}`
-        ),
+        transport: webSocket(`wss://eth-goerli.g.alchemy.com/v2/${props.alchemyId}`),
       }),
     });
   });
 
-  return (
-    <WalletContext.Provider value={wallet}>
-      {props.children}
-    </WalletContext.Provider>
-  );
+  return <WalletContext.Provider value={wallet}>{props.children}</WalletContext.Provider>;
 }
 export function useWallet() {
   return useContext<WalletProvider>(WalletContext);
@@ -111,16 +87,9 @@ export const walletClientConnect = async () => {
       publicClient,
     });
     const ethereumClient = new EthereumClient(wagmiConfig, chains);
-    const web3modal = new Web3Modal(
-      { projectId: wallet.walletConnectProjectId },
-      ethereumClient
-    );
-    ethereumClient.watchAccount(
-      async (account) => await walletAccount(account)
-    );
-    ethereumClient.watchNetwork(
-      async (network) => await walletNetwork(network)
-    );
+    const web3modal = new Web3Modal({ projectId: wallet.walletConnectProjectId }, ethereumClient);
+    ethereumClient.watchAccount(async (account) => await walletAccount(account));
+    ethereumClient.watchNetwork(async (network) => await walletNetwork(network));
     await web3modal.openModal();
   }
 };

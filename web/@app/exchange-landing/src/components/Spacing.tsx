@@ -1,5 +1,3 @@
-import { DefaultProps } from "~/utils/interfaces";
-
-export default function Spacing(props: DefaultProps) {
+export default function Spacing(props: { class: string }) {
   return <div class={`${props.class}`} />;
 }

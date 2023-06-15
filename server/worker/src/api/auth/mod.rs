@@ -76,7 +76,7 @@ async fn validate_signature(
             sqlx::Error::RowNotFound => {
                 state
                     .users_manager
-                    .insert_with_evmaddress(payload.address)
+                    .insert_with_evmaddress(payload.address.clone())
                     .await
             }
             _ => Err(err),
@@ -99,7 +99,8 @@ async fn validate_signature(
 
     Ok((
         headers,
-        Json(ValidateSignatureResponse {
+        Json(SessionResponse {
+            address: payload.address,
             session_id,
             user_id: UserId::new(user.id),
             expiration: SESSION_EXPIRATION_TIME,
@@ -118,22 +119,24 @@ pub async fn logout(State(state): State<AppState>, user: User) -> Result<String,
 pub async fn session_info(
     cookies: TypedHeader<headers::Cookie>,
     State(state): State<AppState>,
-) -> Result<Json<Option<ValidateSignatureResponse>>, AppError> {
+) -> Result<Json<Option<SessionResponse>>, AppError> {
     let mut redis_conn = state.session_store.get_async_connection().await?;
     Ok(Json(match cookies.get(COOKIE_NAME) {
         Some(session_id) => {
-            match redis_conn
-                .get(format!("auth:session_id:{session_id}"))
-                .await
-            {
-                Ok(user_id) => Some(ValidateSignatureResponse {
-                    session_id: SessionId::from_str(session_id)?,
-                    user_id,
-                    expiration: redis_conn
-                        .pttl::<'_, _, usize>(format!("auth:session_id:{session_id}"))
-                        .await
-                        .map(|t| t / 1000)?,
-                }),
+            let key = format!("auth:session_id:{session_id}");
+            match redis_conn.get::<'_, _, UserId>(key.to_owned()).await {
+                Ok(user_id) => {
+                    let user = state.users_manager.get_by_id(*user_id).await?;
+                    Some(SessionResponse {
+                        address: user.address,
+                        session_id: SessionId::from_str(session_id)?,
+                        user_id: user_id,
+                        expiration: redis_conn
+                            .pttl::<'_, _, usize>(key)
+                            .await
+                            .map(|t| t / 1000)?,
+                    })
+                }
                 Err(_) => None,
             }
         }

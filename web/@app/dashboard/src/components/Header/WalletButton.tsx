@@ -1,17 +1,16 @@
 import { joinPaths } from "solid-start/islands/server-router";
-import { api, base } from "~/root";
 import { setSession, login, useSession, logout } from "@web/components/providers/SessionProvider";
 import { useWallet, walletClientConnect } from "@web/components/providers/WalletProvider";
 import firstLastChars from "@web/utils/firstLastChars";
 import { createEffect, untrack } from "solid-js";
 
-export default function WalletButton() {
+export default function WalletButton(props: { base_url: string; api_url: string }) {
   const wallet = useWallet();
   const session = useSession();
 
   createEffect(async () => {
     if (wallet.walletClient && untrack(() => !session())) {
-      setSession(await login(api, wallet.walletClient));
+      setSession(await login(props.api_url, wallet.walletClient));
     }
   });
 
@@ -24,19 +23,19 @@ export default function WalletButton() {
         if (!wallet.walletClient) {
           await walletClientConnect();
         } else if (session()) {
-          setSession(await logout(api));
+          setSession(await logout(props.api_url));
         } else {
-          setSession(await login(api, wallet.walletClient));
+          setSession(await login(props.api_url, wallet.walletClient));
         }
       }}
     >
       {!session() ? (
-        <img src={joinPaths(base, "gfx/wallet.svg")} alt="wallet" width="22px" class="m-auto" />
+        <img src={joinPaths(props.base_url, "gfx/wallet.svg")} alt="wallet" width="22px" class="m-auto" />
       ) : (
-        <img src={joinPaths(base, "gfx/user.svg")} alt="user" width="16px" class="m-auto" />
+        <img src={joinPaths(props.base_url, "gfx/user.svg")} alt="user" width="16px" class="m-auto" />
       )}
-      <div class="text-ellipsis text-wallet font-semibold">
-        {!wallet.walletClient && !session() ? "CONNECT WALLET" : !session() ? "LOGIN" : firstLastChars(session()?.user_id ?? "", 6, 6)}
+      <div class="text-wallet text-ellipsis font-semibold">
+        {!wallet.walletClient && !session() ? "CONNECT WALLET" : !session() ? "LOGIN" : firstLastChars(session()?.address ?? "", 6, 6)}
       </div>
     </div>
   );

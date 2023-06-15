@@ -4,7 +4,7 @@ use database::managers::{
     candlesticks::{CandlesticksManager, CandlesticksNotificationManager},
     orders::{OrdersManager, OrdersNotificationManager},
     trades::{TradesManager, TradesNotificationManager},
-    users::UsersManager,
+    users::{UsersManager, UsersNotificationManager},
     valuts::{ValutsManager, ValutsNotificationManager},
 };
 use engine_base::engine_client::EngineClient;
@@ -30,6 +30,7 @@ pub struct AppState {
     pub database: PgPool,
     pub session_store: redis::Client,
     pub users_manager: UsersManager,
+    pub users_notification_manager: UsersNotificationManager,
     pub assets_manager: AssetsManager,
     pub assets_notification_manager: AssetsNotificationManager,
     pub valuts_manager: ValutsManager,

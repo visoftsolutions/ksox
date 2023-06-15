@@ -8,7 +8,7 @@ import { For, JSX, createEffect, createMemo, createSignal, onCleanup, onMount } 
 import { wallet, walletClientConnect } from "@web/components/providers/WalletProvider";
 import { AVAILABLE_CHAINS } from "@web/components/providers/WalletProvider/chains";
 import { joinPaths } from "solid-start/islands/server-router";
-import { base, projectId } from "~/root";
+import { base } from "~/root";
 
 export default function Crowdsale() {
   const crowdsale = useCrowdsale();

@@ -8,9 +8,9 @@ import { Valut } from "@web/types/valut";
 import subscribeEvents from "@web/utils/subscribeEvents";
 import params from "@web/utils/params";
 import { formatTemplate } from "@web/utils/precision";
-import { ValidateSignatureResponse } from "@web/components/providers/SessionProvider/models";
+import { SessionResponse } from "@web/components/providers/SessionProvider/models";
 
-export default function CreateAssetInfo(asset?: Asset, session?: ValidateSignatureResponse, precision?: number) {
+export default function CreateAssetInfo(asset?: Asset, session?: SessionResponse, precision?: number) {
   return () => (
     <Show when={asset && precision}>
       <AssetInfo asset={asset} precision={precision} session={session} />
@@ -18,7 +18,7 @@ export default function CreateAssetInfo(asset?: Asset, session?: ValidateSignatu
   );
 }
 
-export function AssetInfo(props: { session?: ValidateSignatureResponse; asset?: Asset; precision?: number }) {
+export function AssetInfo(props: { session?: SessionResponse; asset?: Asset; precision?: number }) {
   const [balance, setBalance] = createSignal<Fraction | undefined>(undefined);
 
   let eventsource: EventSource | undefined;

@@ -1,8 +1,11 @@
 {
   "name": "@web/components",
+  "version": "1.0.0",
+  "description": "",
+  "private": "true",
   "scripts": {
     "prettier": "prettier -w .",
-    "lint": "eslint . --ext .tsx --config packages/eslint/.eslintrc.json",
+    "lint": "eslint . --ext .tsx",
     "update": "npx npm-check-updates -u"
   },
   "type": "module",
@@ -13,18 +16,18 @@
     "solid-start-node": "^0.2.26",
     "typescript": "^5.1.3",
     "vite": "^4.3.9",
-    "vite-plugin-pwa": "^0.16.3"
+    "vite-plugin-pwa": "^0.16.4"
   },
   "dependencies": {
     "@solidjs/meta": "^0.28.5",
     "@solidjs/router": "^0.8.2",
-    "@wagmi/core": "^1.1.1",
-    "@web3modal/ethereum": "^2.4.5",
-    "@web3modal/html": "^2.4.5",
+    "@wagmi/core": "^1.2.0",
+    "@web3modal/ethereum": "^2.4.6",
+    "@web3modal/html": "^2.4.6",
     "solid-js": "^1.7.6",
     "solid-start": "^0.2.26",
     "undici": "^5.22.1",
-    "viem": "^1.0.2"
+    "viem": "^1.0.7"
   },
   "engines": {
     "node": ">=16"
