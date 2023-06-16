@@ -12,4 +12,5 @@ spec:
     - pay.ksox.finance
     - dashboard.ksox.finance
   issuerRef:
+    # name: ksox-finance-issuer-selfsigned
     name: ksox-finance-issuer

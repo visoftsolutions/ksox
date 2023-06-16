@@ -87,6 +87,16 @@ Install OpenEBS
 kubectl apply -f https://openebs.github.io/charts/openebs-operator.yaml
 ```
 
+To deploy app via scaffold do
+```shell
+skaffold run
+```
+
+Inject routes to /etc/hosts for dns resolution
+```shell
+./minikube-inject-hosts.sh
+```
+
 To deploy application do
 ```shell
 skaffold --kubeconfig ~/.kube/prod.conf --default-repo registry.internal.visoft.solutions run
