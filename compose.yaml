@@ -112,6 +112,7 @@ services:
       - exchange
       - exchange-landing
       - processor
+      - dashboard
       # - processor-landing
     ports:
       - 0.0.0.0:80:80

@@ -4,7 +4,7 @@ export default function Buttons() {
   const crowdsale = useCrowdsale();
   return (
     <div class="grid grid-cols-2 grid-rows-2 gap-6 max-md:grid-cols-1 max-md:grid-rows-3">
-      <a href="/app" class="col-start-1 col-end-2 row-start-1 row-end-2 max-md:col-start-1 max-md:col-end-2 max-md:row-start-1 max-md:row-end-2">
+      <a href="https://app.ksox.finance" class="col-start-1 col-end-2 row-start-1 row-end-2 max-md:col-start-1 max-md:col-end-2 max-md:row-start-1 max-md:row-end-2">
         <div class="rounded-full bg-primary p-[11px_32px] text-center font-lexend text-hero-button font-medium text-text-1 hover:bg-text-1 hover:text-buttonbg_new md:p-[16px_40px]">
           Launch App
         </div>

@@ -7,7 +7,8 @@ spec:
   dnsNames:
     - ksox.finance
     - www.ksox.finance
-    - test-blockchain.ksox.finance
+    # - test-blockchain.ksox.finance
+    - app.ksox.finance
     - pay.ksox.finance
     - dashboard.ksox.finance
   issuerRef:

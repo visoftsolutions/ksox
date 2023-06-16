@@ -43,19 +43,17 @@ kind: Ingress
 metadata:
   name: web-exchange-ingress
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
-    nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
 spec:
   tls:
     - hosts:
-        - ksox.finance
-        - www.ksox.finance
+        - app.ksox.finance
       secretName: ksox-finance-tls
   rules:
-    - host: www.ksox.finance
+    - host: app.ksox.finance
       http:
         paths:
-          - path: /app(/|$)(.*)
+          - path: /(.*)
             pathType: Prefix
             backend:
               service:

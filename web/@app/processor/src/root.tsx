@@ -6,7 +6,7 @@ import { Nav, NavProvider, setNav } from "~/components/providers/NavProvider";
 import { WalletProvider } from "@web/components/providers/WalletProvider";
 
 export const base = import.meta.env.BASE_URL;
-export const api = joinPaths(base, "/app/api");
+export const api = joinPaths(base, "/api");
 export const projectId = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID;
 export const alchemyId = import.meta.env.VITE_ALCHEMY_API_KEY;
 

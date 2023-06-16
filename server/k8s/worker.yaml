@@ -66,18 +66,38 @@ metadata:
   name: server-worker-ingress
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
-    nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
 spec:
   tls:
     - hosts:
-        - ksox.finance
-        - www.ksox.finance
+        - app.ksox.finance
+        - pay.ksox.finance
+        - dashboard.ksox.finance
       secretName: ksox-finance-tls
   rules:
-  - host: www.ksox.finance
+  - host: app.ksox.finance
     http:
       paths:
-      - path: /app/api(/|$)(.*)
+      - path: /api(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: server-worker-service
+            port:
+              number: 80
+  - host: pay.ksox.finance
+    http:
+      paths:
+      - path: /api(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: server-worker-service
+            port:
+              number: 80
+  - host: dashboard.ksox.finance
+    http:
+      paths:
+      - path: /api(/|$)(.*)
         pathType: Prefix
         backend:
           service:
