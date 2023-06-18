@@ -15,22 +15,24 @@ export default function NotificationsManager(props: INotificationManager & { chi
   // used for adding notifications, adding interface might change once we have a backend
   const pushNotification = (notification: INotification) => {
     notification.id = Number(Math.random() * 1000000);
-    setNotifications([...notifications(), notification]);
+    setNotifications([...notifications(), {...notification, timer: timer}]);
     setTimeout(() => {
       const index = notifications().findIndex((i) => i.id === notification.id);
       if (index !== -1) {
         notifications().splice(index, 1);
+        // setNotifications(notifications().splice(index, 1));
       }
     }, timer * 1000);
   };
+  // store, list, linked hashmap
 
   const goToSite = (url: string) => {window.location.assign(url);};
 
   // demo
   onMount(() => {
-    pushNotification({ text: "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Error, tempora voluptatem facere vel at doloremque veniam totam quam ipsam accusamus cum officiis asperiores, quas sequi aut! Doloribus aperiam quos et.", timer: timer });
-    setTimeout(() => {pushNotification({ text: "Hello world test test test test test", timer: timer, imgPath: "gfx/placeholderBadge3.png", onAction: () => {console.log('test')} });}, 2000);
-    setTimeout(() => {pushNotification({ text: "Hello world test test test test test", timer: timer, imgPath: "gfx/placeholderBadge3.png", type: "big", onAction: () => {goToSite("https://github.com/Fifus17/Travel-Agency-App/blob/master/README.md")} });}, 4000);
+    pushNotification({ text: "Small notification test. Clicking on it resolves in no action, and the cursor doesn't become a pointer."});
+    setTimeout(() => {pushNotification({ text: "Medium notification test. Click on the notification to console.log()", imgPath: "gfx/placeholderBadge3.png", onAction: () => {console.log('test')} });}, 2000);
+    setTimeout(() => {pushNotification({ text: "Big notification test. Click on the notification to go to some test link.", imgPath: "gfx/placeholderBadge2.png", type: "big", onAction: () => {goToSite("https://github.com/Fifus17/Travel-Agency-App/blob/master/README.md")} });}, 4000);
   });
 
   return (

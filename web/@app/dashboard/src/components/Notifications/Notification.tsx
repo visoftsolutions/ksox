@@ -6,7 +6,7 @@ import CustomNotification from "./CustomNotification";
 
 export interface INotification {
   id?: number;
-  timer: number;
+  timer?: number;
   text: string;
   imgPath?: string;
   onAction?: () => void;
