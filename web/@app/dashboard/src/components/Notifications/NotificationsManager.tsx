@@ -1,0 +1,53 @@
+import { For, JSX, createSignal, onMount } from "solid-js";
+import { INotification } from "./Notification";
+import MyNotification from "./Notification";
+
+export interface INotificationManager {
+  timer?: number; // time after which the notification will disappear
+}
+
+/* Wrapper component that should wrap the App component. Used for managing notificitations i.e. pushing a new one */
+
+export default function NotificationsManager(props: INotificationManager & { children?: JSX.Element }) {
+  const { timer = 8 } = props;
+  const [notifications, setNotifications] = createSignal<INotification[]>([]);
+
+  // used for adding notifications, adding interface might change once we have a backend
+  const pushNotification = (notification: INotification) => {
+    notification.id = Number(Math.random() * 1000000);
+    setNotifications([...notifications(), notification]);
+    console.log(notifications());
+    setTimeout(() => {
+      const index = notifications().findIndex((i) => i.id === notification.id);
+      if (index !== -1) {
+        notifications().splice(index, 1);
+      }
+      console.log(notifications());
+    }, timer * 1000);
+  };
+
+  // test
+  onMount(() => {
+    pushNotification({ text: "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Error, tempora voluptatem facere vel at doloremque veniam totam quam ipsam accusamus cum officiis asperiores, quas sequi aut! Doloribus aperiam quos et.", timer: timer });
+    setTimeout(() => {pushNotification({ text: "Hello world test test test test test", timer: timer, imgPath: "gfx/placeholderBadge3.png" });}, 2000);
+  });
+
+  return (
+    <div class="h-screen w-screen">
+      {/* Content wrapper */}
+      {/* Content */}
+      <div>{props.children}</div>
+      {/* Overlay */}
+      <div class="absolute top-0 z-10 grid h-screen w-screen grid-cols-5 grid-rows-5">
+        {/* Notifications container */}
+        <div class="col-span-1 row-start-5 flex flex-col-reverse">{/* Showing notifications */}
+        <For each={notifications()}>
+        {(item, index) => (
+          <MyNotification {...item} />
+        )}
+      </For>
+        </div>
+      </div>
+    </div>
+  );
+}
