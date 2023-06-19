@@ -52,7 +52,7 @@ build:
       dockerfile: dashboard.dockerfile
 manifests:
   rawYaml:
-    - ./k8s/*
+    # - ./k8s/*
     # - ./blockchain/k8s/*
     - ./postgres/k8s/*
     - ./redis/k8s/*

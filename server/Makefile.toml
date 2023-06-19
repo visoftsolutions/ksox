@@ -34,13 +34,13 @@ dependencies = [
 ]
 
 [tasks.delete_postgres]
-script = "docker compose rm -vsf postgres"
+script = "sudo docker compose rm -vsf postgres"
 
 [tasks.run_postgres]
-script = "docker compose up --wait postgres"
+script = "sudo docker compose up --wait postgres"
 
 [tasks.stop_postgres]
-script = "docker compose stop postgres"
+script = "sudo docker compose stop postgres"
 
 [tasks.default]
 alias = "total"

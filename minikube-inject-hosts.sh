@@ -36,4 +36,3 @@ echo "$ingresses" | while read -r host; do
 done
 
 echo "Ingress hosts removed from /etc/hosts."
-

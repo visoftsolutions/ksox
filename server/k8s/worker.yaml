@@ -65,6 +65,7 @@ kind: Ingress
 metadata:
   name: server-worker-ingress
   annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   tls:
@@ -78,7 +79,7 @@ spec:
     http:
       paths:
       - path: /api(/|$)(.*)
-        pathType: Prefix
+        pathType: ImplementationSpecific
         backend:
           service:
             name: server-worker-service
@@ -88,7 +89,7 @@ spec:
     http:
       paths:
       - path: /api(/|$)(.*)
-        pathType: Prefix
+        pathType: ImplementationSpecific
         backend:
           service:
             name: server-worker-service
@@ -98,7 +99,7 @@ spec:
     http:
       paths:
       - path: /api(/|$)(.*)
-        pathType: Prefix
+        pathType: ImplementationSpecific
         backend:
           service:
             name: server-worker-service

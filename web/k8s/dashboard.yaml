@@ -43,6 +43,7 @@ kind: Ingress
 metadata:
   name: web-dashboard-ingress
   annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$1
 spec:
   tls:
@@ -54,7 +55,7 @@ spec:
       http:
         paths:
           - path: /(.*)
-            pathType: Prefix
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: web-dashboard-service
