@@ -1,4 +1,4 @@
-dist
-.solid
+artifacts
+cache
 node_modules
-.unlighthouse
+typechain-types

@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prettier": "prettier -w .",
+    "lint": "eslint . --ext .tsx --config packages/eslint/.eslintrc.cjs",
+    "update": "npx npm-check-updates -ws -u --root"
   },
   "author": "",
   "license": "ISC",
