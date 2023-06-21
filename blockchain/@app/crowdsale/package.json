@@ -1,0 +1,16 @@
+{
+  "name": "@app/crowdsale",
+  "scripts": {
+    "prettier": "prettier -w .",
+    "lint": "eslint .",
+    "update": "npx npm-check-updates -u"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^2.0.2",
+    "hardhat": "^2.14.1"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9.0",
+    "dotenv": "^16.1.4"
+  }
+}

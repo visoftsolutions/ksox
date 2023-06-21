@@ -1,22 +1,18 @@
 {
-  "name": "hardhat-project",
+  "name": "web",
+  "version": "1.0.0",
+  "description": "",
+  "private": "true",
+  "type": "module",
   "scripts": {
-    "update": "npx npm-check-updates -u"
+    "prettier": "prettier -w .",
+    "lint": "eslint . --ext .tsx --config packages/eslint/.eslintrc.cjs",
+    "update": "npx npm-check-updates -ws -u --root"
   },
-  "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "^2.0.2",
-    "hardhat": "^2.14.1"
-  },
-  "dependencies": {
-    "@openzeppelin/contracts": "^4.9.0",
-    "@uniswap/sdk": "^3.0.3",
-    "@uniswap/sdk-core": "^3.2.3",
-    "@uniswap/v2-core": "^1.0.1",
-    "@uniswap/v2-periphery": "^1.1.0-beta.0",
-    "@uniswap/v3-core": "^1.0.1",
-    "@uniswap/v3-periphery": "^1.4.3",
-    "@uniswap/v3-sdk": "^3.9.0",
-    "dotenv": "^16.1.4",
-    "solady": "^0.0.99"
-  }
+  "author": "",
+  "license": "ISC",
+  "workspaces": [
+    "@app/*",
+    "packages/*"
+  ]
 }
