@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
 
-const ETHEREUM_UNISWAP_V3_FACTORY_ADDRESS ="0x1F98431c8aD98523631AE4a59f267346ea31F984";
+const ETHEREUM_UNISWAP_V3_FACTORY_ADDRESS = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 const ETHEREUM_USDC_ADDRESS = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
 const ETHEREUM_GRT_ADDRESS = "0xc944E90C64B2c07662A292be6244BDf05Cda44a7";
 const ETHEREUM_WETH_ADDRESS = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
@@ -21,12 +21,15 @@ async function main() {
     ETHEREUM_USDC_ADDRESS,
     ETHEREUM_WETH_ADDRESS,
     tokenTicket.address,
-    10n, 10n,
+    10n,
+    10n,
     10n ** 18n,
-    3, 2,
+    3,
+    2,
     [ETHEREUM_GRT_ADDRESS],
-    10, 100
-    );
+    10,
+    100
+  );
   await phase.deployed();
   console.log(`Phase deployed with address ${phase.address}`);
 

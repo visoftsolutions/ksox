@@ -6,12 +6,7 @@ const ALCHEMY_API_KEY = dotenvConfig().parsed?.ALCHEMY_API_KEY;
 
 const config: HardhatUserConfig = {
   solidity: {
-    compilers: [
-      { version: "0.8.18" },
-      { version: "0.7.6" },
-      { version: "0.6.6" },
-      { version: "0.5.16" },
-    ],
+    compilers: [{ version: "0.8.18" }, { version: "0.7.6" }, { version: "0.6.6" }, { version: "0.5.16" }],
   },
   networks: {
     hardhat: {

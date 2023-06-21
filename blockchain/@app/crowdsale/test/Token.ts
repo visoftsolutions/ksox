@@ -18,14 +18,14 @@ describe("Token", function () {
 
   describe("Deployment", function () {
     it("Should set the right totalSupply", async function () {
-        const { token } = await loadFixture(deployToken);
-  
-        expect(await token.totalSupply()).to.equal(100n * 10n**18n);
-      });
+      const { token } = await loadFixture(deployToken);
+
+      expect(await token.totalSupply()).to.equal(100n * 10n ** 18n);
+    });
     it("Should set the right balance", async function () {
       const { token, owner } = await loadFixture(deployToken);
 
-      expect(await token.balanceOf(owner.address)).to.equal(100n * 10n**18n);
+      expect(await token.balanceOf(owner.address)).to.equal(100n * 10n ** 18n);
     });
   });
 });

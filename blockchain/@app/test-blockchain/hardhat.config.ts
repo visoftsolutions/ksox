@@ -13,8 +13,8 @@ const config: HardhatUserConfig = {
         blockNumber: 17228270,
       },
       chainId: 31337,
-    }
-  }
+    },
+  },
 };
 
 export default config;

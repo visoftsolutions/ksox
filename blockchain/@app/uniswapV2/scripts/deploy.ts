@@ -43,16 +43,18 @@ async function main() {
   await wbtcToken.approve(uniswapV2Router.address, ethers.constants.MaxUint256);
   await wethToken.approve(uniswapV2Router.address, ethers.constants.MaxUint256);
 
-  console.log(await uniswapV2Router.addLiquidity(
-    usdcToken.address,
-    usdtToken.address,
-    ethers.utils.parseEther("10000000"),
-    ethers.utils.parseEther("10000000"),
-    0,
-    0,
-    owner.address,
-    Math.floor(Date.now() / 1000) + 60 * 10
-  ));
+  console.log(
+    await uniswapV2Router.addLiquidity(
+      usdcToken.address,
+      usdtToken.address,
+      ethers.utils.parseEther("10000000"),
+      ethers.utils.parseEther("10000000"),
+      0,
+      0,
+      owner.address,
+      Math.floor(Date.now() / 1000) + 60 * 10
+    )
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere
