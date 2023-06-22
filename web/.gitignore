@@ -1,2 +1,26 @@
-node_modules
-.unlighthouse
+# Dependency directories
+node_modules/
+
+# Build output
+.solid/
+dist/
+build/
+out/
+
+# Logs
+logs/
+*.log
+
+# Environment variables
+.env
+
+# Editor and IDE files
+.vscode/
+.idea/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Additional project-specific directories
+.unlighthouse/

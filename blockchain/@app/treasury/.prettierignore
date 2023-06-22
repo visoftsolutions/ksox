@@ -1,4 +1,15 @@
-artifacts
-cache
+# Files
+.git
+.gitignore
+.DS_Store
+
+# Directories
 node_modules
+
+# Hardhat files
+cache
+artifacts
+coverage
+coverage.json
+typechain
 typechain-types

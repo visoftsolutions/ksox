@@ -1,11 +1,38 @@
-node_modules
-.env
-coverage
-coverage.json
-typechain
-typechain-types
-
 # Hardhat files
 cache
 artifacts
 
+# Dependency directories
+node_modules/
+
+# Build output
+artifacts/
+
+# Local development environment
+.env
+
+# Editor and IDE files
+.vscode/
+.idea/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+
+# Code coverage report
+coverage.json
+
+# Ethereum network artifacts
+network/
+
+# Ignore Solidity compiler artifacts
+cache/
+
+# TypeChain generated files
+typechain/
+
+# TypeChain types
+typechain-types/

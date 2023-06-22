@@ -1,14 +1,16 @@
+# Files
+.git
+.gitignore
+.DS_Store
+
+# Directories
 node_modules
-coverage
-coverage.json
-typechain
-typechain-types
+k8s
 
 # Hardhat files
 cache
 artifacts
-
-k8s
-
-.gitignore
-.dockerignore
+coverage
+coverage.json
+typechain
+typechain-types

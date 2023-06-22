@@ -1,6 +1,12 @@
-dist
-.solid
-k8s
-node_modules
-.unlighthouse
+# Files
+.git
 .gitignore
+.DS_Store
+
+# Directories
+node_modules
+dist
+build
+k8s
+.solid
+.unlighthouse

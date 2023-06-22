@@ -1,4 +1,11 @@
-dist
-.solid
+# Files
+.git
+.gitignore
+.DS_Store
+
+# Directories
 node_modules
+dist
+build
+.solid
 .unlighthouse

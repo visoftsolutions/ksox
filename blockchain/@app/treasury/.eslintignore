@@ -1,4 +1,15 @@
-dist
-.solid
+# Files
+.git
+.gitignore
+.DS_Store
+
+# Directories
 node_modules
-.unlighthouse
+
+# Hardhat files
+cache
+artifacts
+coverage
+coverage.json
+typechain
+typechain-types
