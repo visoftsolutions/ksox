@@ -1,4 +1,4 @@
-import { JSX, createEffect, createSignal } from "solid-js";
+import { Accessor, JSX, Signal, createEffect, createSignal } from "solid-js";
 import SmallNotification from "./SmallNotification";
 import MediumNotification from "./MediumNotification";
 import BigNotification from "./BigNotification";
@@ -12,6 +12,8 @@ export interface INotification {
   onAction?: () => void;
   type?: "small" | "medium" | "big" | "custom";
   custom?: JSX.Element;
+  notifications?: Accessor<INotification[]>;
+  setNotifications?: (notifications: INotification[]) => void;
 }
 
 
