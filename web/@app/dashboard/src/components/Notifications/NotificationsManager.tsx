@@ -55,8 +55,8 @@ export default function NotificationsManager(props: INotificationManager & { chi
         text: "bagno",
         custom: (
           <div>
-            <h1>bagno</h1>
-            <button>bagno</button>
+            <h1 class="a font-black m-3">bagno</h1>
+            <button class="bg-gray-1 rounded-md p-4 m-4">bagno</button>
           </div>
         ),
       });
