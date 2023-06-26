@@ -2,15 +2,12 @@ use std::{io, ops::Deref, str::FromStr};
 
 use chrono::{DateTime, Utc};
 use ethereum_types::Address;
-use fraction::Fraction;
 use serde::{Deserialize, Serialize};
 use sqlx::{
     postgres::{PgArgumentBuffer, PgRow, PgValueRef},
     types::Uuid,
     Decode, Encode, FromRow, Postgres, Row,
 };
-
-use crate::database::managers::valuts::ValutsManager;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
@@ -41,54 +38,6 @@ impl FromRow<'_, PgRow> for User {
             phone: row.try_get("phone")?,
             email: row.try_get("email")?,
         })
-    }
-}
-
-use thiserror::Error;
-
-#[derive(Error, Debug)]
-pub enum MintError {
-    #[error(transparent)]
-    Sqlx(#[from] sqlx::Error),
-}
-
-#[derive(Error, Debug)]
-pub enum BurnError {
-    #[error("insufficient balance")]
-    InsufficientBalance,
-
-    #[error(transparent)]
-    Sqlx(#[from] sqlx::Error),
-}
-
-impl User {
-    pub async fn mint(
-        &self,
-        valuts_manager: &ValutsManager,
-        asset_id: Uuid,
-        amount: Fraction,
-    ) -> Result<(), MintError> {
-        let mut valut = valuts_manager
-            .get_or_create_for_user_asset(self.id, asset_id)
-            .await?;
-        valut.balance += amount;
-        valuts_manager.update(valut).await?;
-        Ok(())
-    }
-
-    pub async fn burn(
-        &self,
-        valuts_manager: &ValutsManager,
-        asset_id: Uuid,
-        amount: Fraction,
-    ) -> Result<(), BurnError> {
-        let mut valut = valuts_manager.get_for_user_asset(self.id, asset_id).await?;
-        valut.balance -= amount;
-        if valut.balance < Fraction::from(0) {
-            return Err(BurnError::InsufficientBalance);
-        }
-        valuts_manager.update(valut).await?;
-        Ok(())
     }
 }
 

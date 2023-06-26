@@ -31,29 +31,33 @@ CREATE TABLE valuts (
 ALTER TABLE "valuts" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 ALTER TABLE "valuts" ADD FOREIGN KEY ("asset_id") REFERENCES "assets" ("id");
 
-CREATE TABLE "mints" (
+CREATE TABLE "deposits" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "user_id" uuid NOT NULL,
   "asset_id" uuid NOT NULL,
-  "amount" fraction NOT NULL
+  "tx_hash" CHAR(66) UNIQUE NOT NULL,
+  "amount" fraction NOT NULL,
+  "confirmations" fraction NOT NULL
 );
 
-ALTER TABLE "mints" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-ALTER TABLE "mints" ADD FOREIGN KEY ("asset_id") REFERENCES "assets" ("id");
+ALTER TABLE "deposits" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
+ALTER TABLE "deposits" ADD FOREIGN KEY ("asset_id") REFERENCES "assets" ("id");
 
-CREATE TABLE "burns" (
+CREATE TABLE "withdraws" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "user_id" uuid NOT NULL,
   "asset_id" uuid NOT NULL,
-  "amount" fraction NOT NULL
+  "tx_hash" CHAR(66) UNIQUE NOT NULL,
+  "amount" fraction NOT NULL,
+  "confirmations" fraction NOT NULL
 );
 
-ALTER TABLE "burns" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-ALTER TABLE "burns" ADD FOREIGN KEY ("asset_id") REFERENCES "assets" ("id");
+ALTER TABLE "withdraws" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
+ALTER TABLE "withdraws" ADD FOREIGN KEY ("asset_id") REFERENCES "assets" ("id");
 
 CREATE TABLE "transfers" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
@@ -169,3 +173,10 @@ CREATE OR REPLACE TRIGGER spot_candlesticks_update_last_modification_at
 AFTER INSERT OR UPDATE ON "spot"."candlesticks"
 FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"SpotCandlesticksChanged"');
 
+CREATE OR REPLACE TRIGGER deposits_update_last_modification_at
+AFTER INSERT OR UPDATE ON "deposits"
+FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"DepositsChanged"');
+
+CREATE OR REPLACE TRIGGER withdraws_update_last_modification_at
+AFTER INSERT OR UPDATE ON "withdraws"
+FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"WithdrawsChanged"');

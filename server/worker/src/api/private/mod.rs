@@ -1,9 +1,7 @@
 pub mod active;
 pub mod balance;
-pub mod burn;
 pub mod cancel;
 pub mod engagement;
-pub mod mint;
 pub mod orders;
 pub mod submit;
 pub mod trades;
@@ -28,8 +26,6 @@ use crate::{
 
 pub fn router(app_state: &AppState) -> Router {
     Router::new()
-        .route("/mint", post(mint::root))
-        .route("/burn", post(burn::root))
         .route("/cancel", delete(cancel::root))
         .route("/submit", post(submit::root))
         .route("/transfer", post(transfer::root))

@@ -13,6 +13,9 @@ const config: HardhatUserConfig = {
         blockNumber: 17228270,
       },
       chainId: 31337,
+      mining: {
+        interval: 1000,
+      }
     },
   },
 };

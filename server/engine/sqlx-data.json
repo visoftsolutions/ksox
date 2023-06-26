@@ -1,25 +1,5 @@
 {
   "db": "PostgreSQL",
-  "0819488f3216cb3b3597a06ca84f74f2c269471ba074c2130b298ca35cb9ef04": {
-    "describe": {
-      "columns": [
-        {
-          "name": "last_modification_at",
-          "ordinal": 0,
-          "type_info": "Timestamptz"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                last_modification_at\n            FROM mints\n            WHERE user_id = $1\n            ORDER BY last_modification_at DESC\n            LIMIT 1 \n            "
-  },
   "1dab2f69d30555af88f8d624d92f7fbe9e9557b898c81681a9517c7f09bac443": {
     "describe": {
       "columns": [
@@ -435,36 +415,6 @@
     },
     "query": "\n            SELECT\n                id,\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\"\n            FROM assets\n            WHERE assets.id = $1\n            "
   },
-  "4b0f9a88e4b771e21c206379f232ec00dfba5837a651b9d8ec9bdf240f54d750": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Uuid",
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        ]
-      }
-    },
-    "query": "\n            INSERT INTO \n                mints (user_id, asset_id, amount)\n            VALUES\n                ($1, $2, $3::fraction)\n            "
-  },
   "546a280a66dcc9b3645f3ea5f3835d1fc0d033280b835084f49ca849d88b54a2": {
     "describe": {
       "columns": [
@@ -553,36 +503,6 @@
     },
     "query": "\n            INSERT INTO valuts\n                (user_id, asset_id, balance, last_modification_at, created_at)\n            VALUES ($1, $2, (0,1)::fraction, $3, $4)\n            RETURNING id, balance as \"balance: Fraction\"\n            "
   },
-  "6217e1aff70c38888f60d8215d3a822586dcf0b3fedc16968159bc6bd1a0fe93": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Uuid",
-          "Uuid",
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        ]
-      }
-    },
-    "query": "\n            INSERT INTO \n                burns (user_id, asset_id, amount)\n            VALUES\n                ($1, $2, $3::fraction)\n            "
-  },
   "9b0c54af6809ffedb0c186ea3f051cec55a4484aa02f03d508c717cb838412d8": {
     "describe": {
       "columns": [],
@@ -667,26 +587,6 @@
       }
     },
     "query": "\n            INSERT INTO spot.orders\n                (maker_id, is_active, quote_asset_id, base_asset_id, price, quote_asset_volume, quote_asset_volume_left, maker_fee, maker_presentation, last_modification_at, created_at)\n            VALUES\n                ($1, true, $2, $3, $4::fraction, $5::fraction, $6::fraction, $7::fraction, $8, $9, $10)\n            "
-  },
-  "cef228d625efe4cfa2f4e42dacb053c9924446facb287c7c1b6fc8bd1482e1ef": {
-    "describe": {
-      "columns": [
-        {
-          "name": "last_modification_at",
-          "ordinal": 0,
-          "type_info": "Timestamptz"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                last_modification_at\n            FROM burns\n            WHERE user_id = $1\n            ORDER BY last_modification_at DESC\n            LIMIT 1 \n            "
   },
   "fda66bc0d3d96c049855150664d337d1db5eb5072f0382e343d334f1c7ea8ddb": {
     "describe": {

@@ -1451,72 +1451,6 @@
     },
     "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                quote_asset_id,\n                base_asset_id,\n                kind as \"kind: CandlestickType\",\n                topen,\n                tclose,\n                open as \"open: Fraction\",\n                high as \"high: Fraction\",\n                low as \"low: Fraction\",\n                close as \"close: Fraction\",\n                span,\n                taker_quote_volume as \"taker_quote_volume: Fraction\",\n                taker_base_volume as \"taker_base_volume: Fraction\",\n                maker_quote_volume as \"maker_quote_volume: Fraction\",\n                maker_base_volume as \"maker_base_volume: Fraction\"\n            FROM spot.candlesticks\n            WHERE spot.candlesticks.quote_asset_id = $1 AND spot.candlesticks.base_asset_id = $2\n            AND spot.candlesticks.topen = $3 AND spot.candlesticks.tclose = $4\n            "
   },
-  "95b5e0f972c42fe00553f53c76f113a9707dc2e6c2b326dbf16d32b7e5644c0b": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "created_at",
-          "ordinal": 1,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "last_modification_at",
-          "ordinal": 2,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "user_id",
-          "ordinal": 3,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "asset_id",
-          "ordinal": 4,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "amount: Fraction",
-          "ordinal": 5,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Uuid"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                user_id,\n                asset_id,\n                amount as \"amount: Fraction\"\n            FROM mints\n            WHERE user_id = $1\n            ORDER BY last_modification_at DESC\n            LIMIT 1 \n            "
-  },
   "95d305c479a5e502088ae9a9a7b60b9af036a287fa0302c00834551b39b77071": {
     "describe": {
       "columns": [
@@ -2898,38 +2832,6 @@
       }
     },
     "query": "\n            SELECT\n                spot.trades.id,\n                spot.trades.created_at,\n                spot.trades.last_modification_at,\n                spot.trades.quote_asset_id,\n                spot.trades.base_asset_id,\n                spot.trades.taker_id,\n                spot.trades.taker_presentation,\n                spot.orders.maker_id,\n                spot.orders.maker_presentation,\n                spot.trades.price as \"price: Fraction\",\n                spot.trades.taker_quote_volume as \"taker_quote_volume: Fraction\",\n                spot.trades.taker_base_volume as \"taker_base_volume: Fraction\",\n                spot.trades.maker_quote_volume as \"maker_quote_volume: Fraction\",\n                spot.trades.maker_base_volume as \"maker_base_volume: Fraction\"\n            FROM spot.trades\n            JOIN spot.orders ON spot.orders.id = spot.trades.order_id\n            WHERE ((spot.trades.quote_asset_id = $1 AND spot.trades.base_asset_id = $2) OR (spot.trades.quote_asset_id = $2 AND spot.trades.base_asset_id = $1)) AND spot.trades.created_at >= $3\n            ORDER BY spot.trades.created_at\n            "
-  },
-  "bff57e0f041de4f3ec1ae4ea4633c352c7bd3bcaf9dfa5c8a912cebc31ef0c14": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Timestamptz",
-          "Timestamptz",
-          "Uuid",
-          "Uuid",
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        ]
-      }
-    },
-    "query": "\n            INSERT INTO \n                mints (created_at, last_modification_at, user_id, asset_id, amount)\n            VALUES\n                ($1, $2, $3, $4, $5::fraction)\n            "
   },
   "c8088a200b8354ffb1f224dbdfc2662b4b3a83bcd8144f136f9e92e6bc9f6539": {
     "describe": {

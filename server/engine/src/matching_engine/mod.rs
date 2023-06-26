@@ -1,5 +1,4 @@
 use base::engine_server::Engine;
-use chrono::Duration;
 use fraction::Fraction;
 use sqlx::PgPool;
 use tonic::{Request, Response, Status};
@@ -20,23 +19,11 @@ pub mod tests;
 pub struct MatchingEngine {
     accuracy: Fraction,
     database: PgPool,
-    mint_timeout: Duration,
-    burn_timeout: Duration,
 }
 
 impl MatchingEngine {
-    pub fn new(
-        database: PgPool,
-        accuracy: Fraction,
-        mint_timeout: Duration,
-        burn_timeout: Duration,
-    ) -> Self {
-        Self {
-            accuracy,
-            database,
-            mint_timeout,
-            burn_timeout,
-        }
+    pub fn new(database: PgPool, accuracy: Fraction) -> Self {
+        Self { accuracy, database }
     }
 }
 
@@ -114,7 +101,7 @@ impl Engine for MatchingEngine {
             .await
             .map_err(|e| Status::aborted(e.to_string()))?;
         Ok(Response::new(
-            match mint::mint(request.into_inner().try_into()?, &mut t, self.mint_timeout).await {
+            match mint::mint(request.into_inner().try_into()?, &mut t).await {
                 Ok(r) => {
                     t.commit()
                         .await
@@ -142,7 +129,7 @@ impl Engine for MatchingEngine {
             .await
             .map_err(|e| Status::aborted(e.to_string()))?;
         Ok(Response::new(
-            match burn::burn(request.into_inner().try_into()?, &mut t, self.burn_timeout).await {
+            match burn::burn(request.into_inner().try_into()?, &mut t).await {
                 Ok(r) => {
                     t.commit()
                         .await
