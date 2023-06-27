@@ -1,18 +1,20 @@
-use sqlx::{Transaction, Postgres, postgres::PgQueryResult};
+use sqlx::{postgres::PgQueryResult, Postgres, Transaction};
 
-use super::projections::{FlowInsert, Flow};
+use super::projections::{Flow, FlowInsert};
 
 pub mod deposits;
 pub mod withdraws;
 
 pub trait FlowManager {
     async fn insert<'t, 'p>(
+        &self,
         pool: &'t mut Transaction<'p, Postgres>,
-        deposit: FlowInsert,
+        flow: FlowInsert,
     ) -> sqlx::Result<Flow>;
 
     async fn update<'t, 'p>(
+        &self,
         pool: &'t mut Transaction<'p, Postgres>,
-        deposit: Flow,
+        flow: Flow,
     ) -> sqlx::Result<PgQueryResult>;
 }

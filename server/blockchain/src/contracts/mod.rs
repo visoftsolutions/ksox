@@ -9,7 +9,7 @@ use ethers::{
 };
 use tokio_stream::{Stream, StreamExt};
 
-pub fn block_confirmations<'provider>(
+pub fn block_confirmations_stream<'provider>(
     ws_provider: &'provider Provider<Ws>,
     block_hash: H256,
 ) -> Pin<Box<dyn Stream<Item = Result<usize, ProviderError>> + Send + 'provider>> {
@@ -18,29 +18,47 @@ pub fn block_confirmations<'provider>(
             let observed_block = ws_provider.get_block(block_hash).await?
                 .ok_or(ProviderError::CustomError("block not found".to_string()))?;
 
-            if let (Some(current_block_number), Some(observed_block_number)) = (current_block.number, observed_block.number) {
-                yield (current_block_number - observed_block_number).as_usize();
-            }
+            yield confirmations(&current_block,&observed_block).await?;
         }
     })
 }
 
-pub fn tx_confirmations<'provider>(
+pub fn tx_confirmations_stream<'provider>(
     ws_provider: &'provider Provider<Ws>,
     tx_hash: H256,
 ) -> Pin<Box<dyn Stream<Item = Result<usize, ProviderError>> + Send + 'provider>> {
     Box::pin(try_stream! {
         while let Some(current_block) =  ws_provider.subscribe_blocks().await?.next().await {
-            let transaction = ws_provider.get_transaction(tx_hash).await?
-                .ok_or(ProviderError::CustomError("transaction not found".to_string()))?;
-
-            let observed_block = ws_provider.get_block(
-                transaction.block_hash.ok_or(ProviderError::CustomError("transaction not in block".to_string()))?
-            ).await?.ok_or(ProviderError::CustomError("block not found".to_string()))?;
-
-            if let (Some(current_block_number), Some(observed_block_number)) = (current_block.number, observed_block.number) {
-                yield (current_block_number - observed_block_number).as_usize();
-            }
+            let observed_block = transaction_block(ws_provider, tx_hash).await?;
+            yield confirmations(&current_block,&observed_block).await?;
         }
     })
+}
+
+pub async fn transaction_block<'provider>(
+    ws_provider: &'provider Provider<Ws>,
+    tx_hash: H256,
+) -> Result<Block<H256>, ProviderError> {
+    let transaction_block_hash = ws_provider
+        .get_transaction(tx_hash)
+        .await?
+        .and_then(|f| f.block_hash)
+        .ok_or_else(|| ProviderError::CustomError("transaction not found".to_string()))?;
+    Ok(ws_provider
+        .get_block(transaction_block_hash)
+        .await?
+        .ok_or_else(|| ProviderError::CustomError("block not found".to_string()))?)
+}
+
+pub async fn confirmations(
+    block: &Block<H256>,
+    tx_block: &Block<H256>,
+) -> Result<usize, ProviderError> {
+    if let (Some(block_number), Some(transaction_block_number)) = (block.number, tx_block.number) {
+        Ok((block_number - transaction_block_number).as_usize())
+    } else {
+        Err(ProviderError::CustomError(
+            "could not get block number".to_string(),
+        ))
+    }
 }

@@ -1,2 +1,1 @@
-pub struct SubmissionQueue {
-}
+pub struct SubmissionQueue {}

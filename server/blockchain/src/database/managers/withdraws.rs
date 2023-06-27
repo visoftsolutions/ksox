@@ -2,19 +2,16 @@ use chrono::Utc;
 use fraction::Fraction;
 use sqlx::{postgres::PgQueryResult, Postgres, Transaction};
 
-use crate::database::projections::{
-    withdraw::{Withdraw, WithdrawInsert},
-    TxAddress, FlowInsert, Flow,
-};
-
 use super::FlowManager;
+use crate::database::projections::{Flow, FlowInsert, TxAddress};
 
 #[derive(Debug, Clone)]
 pub struct WithdrawsManager {}
 impl FlowManager for WithdrawsManager {
     async fn insert<'t, 'p>(
+        &self,
         pool: &'t mut Transaction<'p, Postgres>,
-        withdraw: FlowInsert,
+        flow: FlowInsert,
     ) -> sqlx::Result<Flow> {
         let now = Utc::now();
         sqlx::query_as!(
@@ -28,19 +25,20 @@ impl FlowManager for WithdrawsManager {
             "#,
             now,
             now,
-            withdraw.user_id,
-            withdraw.asset_id,
-            withdraw.tx_hash.to_string() as _,
-            withdraw.amount.to_tuple_string() as _,
-            withdraw.confirmations.to_tuple_string() as _,
+            flow.user_id,
+            flow.asset_id,
+            flow.tx_hash.to_string() as _,
+            flow.amount.to_tuple_string() as _,
+            flow.confirmations.to_tuple_string() as _,
         )
         .fetch_one(pool)
         .await
     }
 
     async fn update<'t, 'p>(
+        &self,
         pool: &'t mut Transaction<'p, Postgres>,
-        withdraw: Flow,
+        flow: Flow,
     ) -> sqlx::Result<PgQueryResult> {
         let now = Utc::now();
         sqlx::query!(
@@ -53,8 +51,8 @@ impl FlowManager for WithdrawsManager {
             WHERE
                 id = $1
             "#,
-            withdraw.id,
-            withdraw.confirmations.to_tuple_string() as _,
+            flow.id,
+            flow.confirmations.to_tuple_string() as _,
             now
         )
         .execute(pool)

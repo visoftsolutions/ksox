@@ -23,7 +23,7 @@ use sqlx::{
 };
 
 #[derive(
-    Debug, Clone, PartialEq, PartialOrd, NumOps, One, Zero, Num, Ord, Eq, Default, ToPrimitive, Hash
+    Debug, Clone, PartialEq, PartialOrd, NumOps, One, Zero, Num, Ord, Eq, Default, ToPrimitive, Hash,
 )]
 pub struct Fraction(pub BigRational);
 
@@ -65,6 +65,11 @@ impl Fraction {
             return None;
         }
         Some(Self(BigRational::new_raw(data.0, data.1)))
+    }
+
+    pub fn minimal_step(&self) -> Self {
+        let (_, denom) = self.0.clone().into();
+        Self::from((BigInt::one(), denom))
     }
 }
 
