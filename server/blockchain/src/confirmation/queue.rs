@@ -14,10 +14,7 @@ use sqlx::PgPool;
 
 use crate::{
     contracts::{confirmations, transaction_block},
-    database::{
-        managers::{deposits::DepositsManager, FlowManager},
-        projections::{deposit::Deposit, Flow},
-    },
+    database::{managers::FlowManager, projections::Flow},
 };
 
 #[derive(Clone)]

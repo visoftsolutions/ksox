@@ -27,6 +27,18 @@ impl TryFrom<base::MintRequest> for MintRequest {
     }
 }
 
+impl TryInto<base::MintRequest> for MintRequest {
+    type Error = Status;
+    fn try_into(self) -> Result<base::MintRequest, Self::Error> {
+        Ok(base::MintRequest { 
+            user_id: self.user_id.to_string(),
+            asset_id: self.asset_id.to_string(),
+            amount: serde_json::to_string(&self.amount)
+                .map_err(|e| Status::invalid_argument(e.to_string()))?,
+        })
+    }
+}
+
 pub struct MintResponse {}
 
 impl TryFrom<Result<MintResponse, MintError>> for base::MintResponse {

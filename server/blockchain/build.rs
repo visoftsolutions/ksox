@@ -9,5 +9,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Abigen::new("Treasury", abi_source)?
         .generate()?
         .write_to_file(out_file)?;
+
+    tonic_build::configure()
+        .build_server(false)
+        .build_client(true)
+        .compile(&["../engine/proto/base.proto"], &["../engine/proto"])?;
+
     Ok(())
 }
