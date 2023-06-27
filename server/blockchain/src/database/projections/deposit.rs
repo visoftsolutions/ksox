@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use super::TxAddress;
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 pub struct Deposit {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,

@@ -10,7 +10,7 @@ use sqlx::{
     Decode, Encode, Postgres,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct TxAddress(pub Secret);
 
 impl FromStr for TxAddress {
@@ -69,4 +69,29 @@ impl Encode<'_, Postgres> for TxAddress {
     {
         self.encode_by_ref(buf)
     }
+}
+
+use chrono::{DateTime, Utc};
+use fraction::Fraction;
+use uuid::Uuid;
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
+pub struct Flow {
+    pub id: Uuid,
+    pub created_at: DateTime<Utc>,
+    pub last_modification_at: DateTime<Utc>,
+    pub user_id: Uuid,
+    pub asset_id: Uuid,
+    pub tx_hash: TxAddress,
+    pub amount: Fraction,
+    pub confirmations: Fraction,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct FlowInsert {
+    pub user_id: Uuid,
+    pub asset_id: Uuid,
+    pub tx_hash: TxAddress,
+    pub amount: Fraction,
+    pub confirmations: Fraction,
 }

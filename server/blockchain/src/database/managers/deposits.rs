@@ -4,20 +4,22 @@ use sqlx::{postgres::PgQueryResult, Postgres, Transaction};
 
 use crate::database::projections::{
     deposit::{Deposit, DepositInsert},
-    TxAddress,
+    TxAddress, FlowInsert, Flow,
 };
+
+use super::FlowManager;
 
 #[derive(Debug, Clone)]
 pub struct DepositsManager {}
 
-impl DepositsManager {
-    pub async fn insert<'t, 'p>(
+impl FlowManager for DepositsManager {
+    async fn insert<'t, 'p>(
         pool: &'t mut Transaction<'p, Postgres>,
-        deposit: DepositInsert,
-    ) -> sqlx::Result<Deposit> {
+        deposit: FlowInsert,
+    ) -> sqlx::Result<Flow> {
         let now = Utc::now();
         sqlx::query_as!(
-            Deposit,
+            Flow,
             r#"
             INSERT INTO deposits
                 (created_at, last_modification_at, user_id, asset_id, tx_hash, amount, confirmations)
@@ -37,9 +39,9 @@ impl DepositsManager {
         .await
     }
 
-    pub async fn update<'t, 'p>(
+    async fn update<'t, 'p>(
         pool: &'t mut Transaction<'p, Postgres>,
-        deposit: Deposit,
+        deposit: Flow,
     ) -> sqlx::Result<PgQueryResult> {
         let now = Utc::now();
         sqlx::query!(

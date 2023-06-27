@@ -23,7 +23,7 @@ use sqlx::{
 };
 
 #[derive(
-    Debug, Clone, PartialEq, PartialOrd, NumOps, One, Zero, Num, Ord, Eq, Default, ToPrimitive,
+    Debug, Clone, PartialEq, PartialOrd, NumOps, One, Zero, Num, Ord, Eq, Default, ToPrimitive, Hash
 )]
 pub struct Fraction(pub BigRational);
 

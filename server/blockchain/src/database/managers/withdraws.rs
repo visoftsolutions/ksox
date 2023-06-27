@@ -4,19 +4,21 @@ use sqlx::{postgres::PgQueryResult, Postgres, Transaction};
 
 use crate::database::projections::{
     withdraw::{Withdraw, WithdrawInsert},
-    TxAddress,
+    TxAddress, FlowInsert, Flow,
 };
+
+use super::FlowManager;
 
 #[derive(Debug, Clone)]
 pub struct WithdrawsManager {}
-impl WithdrawsManager {
-    pub async fn insert<'t, 'p>(
+impl FlowManager for WithdrawsManager {
+    async fn insert<'t, 'p>(
         pool: &'t mut Transaction<'p, Postgres>,
-        withdraw: WithdrawInsert,
-    ) -> sqlx::Result<Withdraw> {
+        withdraw: FlowInsert,
+    ) -> sqlx::Result<Flow> {
         let now = Utc::now();
         sqlx::query_as!(
-            Withdraw,
+            Flow,
             r#"
             INSERT INTO withdraws
                 (created_at, last_modification_at, user_id, asset_id, tx_hash, amount, confirmations)
@@ -36,9 +38,9 @@ impl WithdrawsManager {
         .await
     }
 
-    pub async fn update<'t, 'p>(
+    async fn update<'t, 'p>(
         pool: &'t mut Transaction<'p, Postgres>,
-        withdraw: Withdraw,
+        withdraw: Flow,
     ) -> sqlx::Result<PgQueryResult> {
         let now = Utc::now();
         sqlx::query!(
