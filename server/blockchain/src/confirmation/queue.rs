@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, collections::HashSet};
+use std::cmp::Ordering;
 
 use ethereum_types::H256;
 use ethers::{

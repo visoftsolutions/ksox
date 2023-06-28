@@ -1,4 +1,3 @@
-pub mod abigen;
 pub mod treasury;
 use std::pin::Pin;
 

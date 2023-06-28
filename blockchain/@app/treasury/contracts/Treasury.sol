@@ -56,4 +56,17 @@ contract Treasury is Ownable {
         _balances[tokenAddress][userAddress] = value;
         emit SetBalance(tokenAddress, userAddress, value);
     }
+
+    struct BalanceUpdate {
+        address tokenAddress;
+        address userAddress;
+        uint256 value;
+    }
+
+    function setBalances(BalanceUpdate[] memory updates) external onlyOwner {
+        for (uint256 i = 0; i < updates.length; i++) {
+            _balances[updates[i].tokenAddress][updates[i].userAddress] = updates[i].value;
+            emit SetBalance(updates[i].tokenAddress, updates[i].userAddress, updates[i].value);
+        }
+    }
 }

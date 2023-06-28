@@ -41,7 +41,7 @@ impl FromRow<'_, PgRow> for User {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub struct EvmAddress(pub Address);
 
 impl FromStr for EvmAddress {

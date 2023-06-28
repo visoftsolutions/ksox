@@ -1,14 +1,18 @@
 pub mod deposit;
+pub mod valut;
 pub mod withdraw;
 
 use std::{io, ops::Deref, str::FromStr};
 
+use chrono::{DateTime, Utc};
 use ethereum_types::Secret;
+use fraction::Fraction;
 use serde::{Deserialize, Serialize};
 use sqlx::{
     postgres::{PgArgumentBuffer, PgValueRef},
     Decode, Encode, Postgres,
 };
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct TxAddress(pub Secret);
@@ -70,10 +74,6 @@ impl Encode<'_, Postgres> for TxAddress {
         self.encode_by_ref(buf)
     }
 }
-
-use chrono::{DateTime, Utc};
-use fraction::Fraction;
-use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 pub struct Flow {

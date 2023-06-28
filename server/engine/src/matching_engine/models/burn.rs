@@ -30,7 +30,7 @@ impl TryFrom<base::BurnRequest> for BurnRequest {
 impl TryInto<base::BurnRequest> for BurnRequest {
     type Error = Status;
     fn try_into(self) -> Result<base::BurnRequest, Self::Error> {
-        Ok(base::BurnRequest { 
+        Ok(base::BurnRequest {
             user_id: self.user_id.to_string(),
             asset_id: self.asset_id.to_string(),
             amount: serde_json::to_string(&self.amount)

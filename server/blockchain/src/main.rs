@@ -1,10 +1,11 @@
 #![feature(async_fn_in_trait)]
+#![feature(const_trait_impl)]
 
 pub mod confirmation;
 pub mod contracts;
 pub mod database;
-pub mod submission;
 pub mod models;
+pub mod submission;
 
 use engine_base::engine_client::EngineClient;
 use sqlx::postgres::PgPoolOptions;

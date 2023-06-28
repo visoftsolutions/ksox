@@ -3,6 +3,7 @@ use sqlx::{postgres::PgQueryResult, Postgres, Transaction};
 use super::projections::{Flow, FlowInsert};
 
 pub mod deposits;
+pub mod valuts;
 pub mod withdraws;
 
 pub trait FlowManager {

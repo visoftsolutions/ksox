@@ -1,6 +1,6 @@
 use std::{
     fmt::{self, Display},
-    ops::{AddAssign, Neg, SubAssign},
+    ops::{AddAssign, Deref, Neg, SubAssign},
     str::FromStr,
 };
 
@@ -84,6 +84,13 @@ impl Inv for Fraction {
     type Output = Self;
     fn inv(self) -> Self::Output {
         Fraction(self.0.inv())
+    }
+}
+
+impl Deref for Fraction {
+    type Target = BigRational;
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
