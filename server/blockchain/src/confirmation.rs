@@ -62,10 +62,9 @@ where
             .fold(
                 (vec![], vec![]),
                 |(mut ready, mut not_ready), (mut f, block)| async move {
-                    let block_confirmations = f.flow.confirmations.minimal_step().0.denom().clone();
                     if let Ok(Some(confirmations)) = confirmations(block, &f.tx_block)
                         .await
-                        .map(|e| Fraction::from_raw((e.into(), block_confirmations)))
+                        .map(|e| Fraction::from_raw((e.into(), f.flow.confirmations.denom().clone())))
                     {
                         match confirmations.cmp(&Fraction::one()) {
                             Ordering::Equal | Ordering::Greater => {
@@ -94,11 +93,10 @@ where
             .fold(
                 (vec![], vec![]),
                 |(mut confirmed, mut not_confirmed), (mut f, provider, block)| async move {
-                    let block_confirmations = f.flow.confirmations.minimal_step().0.denom().clone();
                     if let Ok(Some(confirmations)) = transaction_block(provider, *f.flow.tx_hash)
                         .and_then(|tx_block| async move { confirmations(block, &tx_block).await })
                         .await
-                        .map(|e| Fraction::from_raw((e.into(), block_confirmations)))
+                        .map(|e| Fraction::from_raw((e.into(), f.flow.confirmations.denom().clone())))
                     {
                         match confirmations.cmp(&Fraction::one()) {
                             Ordering::Equal | Ordering::Greater => {

@@ -1,5 +1,3 @@
-use std::hash::Hash;
-
 use chrono::{DateTime, Utc};
 use fraction::Fraction;
 use serde::{Deserialize, Serialize};

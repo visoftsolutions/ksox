@@ -26,6 +26,8 @@ pub enum NotificationManagerEvent {
     SpotCandlesticksChanged,
     TransfersChanged,
     EngagementBadgesChanged,
+    DepositsChanged,
+    WithdrawsChanged,
 }
 
 pub struct NotificationManager {}
@@ -227,6 +229,26 @@ impl NotificationManager {
                                                 tracing::error!("Error: {}", err);
                                             }
                                         }
+                                    },
+                                    Ok(NotificationManagerEvent::DepositsChanged) => {
+                                        // match candlesticks_manager.get_modified(candlesticks_last_modification_at).await {
+                                        //     Ok(_elements) => {
+
+                                        //     },
+                                        //     Err(err) => {
+                                        //         tracing::error!("Error: {}", err);
+                                        //     }
+                                        // }
+                                    },
+                                    Ok(NotificationManagerEvent::WithdrawsChanged) => {
+                                        // match candlesticks_manager.get_modified(candlesticks_last_modification_at).await {
+                                        //     Ok(_elements) => {
+
+                                        //     },
+                                        //     Err(err) => {
+                                        //         tracing::error!("Error: {}", err);
+                                        //     }
+                                        // }
                                     },
                                     Err(err) => {
                                         tracing::error!("Error: {}", err);

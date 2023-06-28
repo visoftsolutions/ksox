@@ -66,10 +66,13 @@ impl Fraction {
         }
         Some(Self(BigRational::new_raw(data.0, data.1)))
     }
+    
+    pub fn numer(&self) -> &BigInt {
+        self.0.numer()
+    }
 
-    pub fn minimal_step(&self) -> Self {
-        let (_, denom) = self.0.clone().into();
-        Self::from((BigInt::one(), denom))
+    pub fn denom(&self) -> &BigInt {
+        self.0.denom()
     }
 }
 

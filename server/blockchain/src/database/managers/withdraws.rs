@@ -3,8 +3,8 @@ use fraction::Fraction;
 use sqlx::{postgres::PgQueryResult, Postgres, Transaction};
 
 use super::FlowManager;
-use crate::database::projections::{Flow, FlowInsert, TxAddress};
-
+use crate::database::projections::{Flow, FlowInsert};
+use worker::database::projections::user::TxAddress;
 #[derive(Debug, Clone)]
 pub struct WithdrawsManager {}
 impl FlowManager for WithdrawsManager {

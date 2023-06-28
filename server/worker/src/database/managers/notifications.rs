@@ -29,6 +29,8 @@ pub enum NotificationManagerPredicateInput {
     TransfersChanged(projections::transfer::Transfer),
     UsersChanged(projections::user::User),
     EngagementBadgesChanged(projections::badge::Badge),
+    DepositsChanged(projections::deposit::Deposit),
+    WithdrawsChanged(projections::withdraw::Withdraw),
 }
 
 #[derive(Debug, Clone)]
@@ -41,6 +43,8 @@ pub enum NotificationManagerOutput {
     TransfersChanged(Vec<projections::transfer::Transfer>),
     UsersChanged(Vec<projections::user::User>),
     EngagementBadgesChanged(Vec<projections::badge::Badge>),
+    DepositsChanged(Vec<projections::deposit::Deposit>),
+    WithdrawsChanged(Vec<projections::withdraw::Withdraw>),
 }
 
 pub struct NotificationManagerEntry {
@@ -341,6 +345,12 @@ impl NotificationManager {
                                                 tracing::error!("Error: {}", err);
                                             }
                                         }
+                                    },
+                                    Ok(NotificationManagerEvent::DepositsChanged) => {
+                                        
+                                    },
+                                    Ok(NotificationManagerEvent::WithdrawsChanged) => {
+                                        
                                     },
                                     Err(err) => {
                                         tracing::error!("Error: {}", err);
