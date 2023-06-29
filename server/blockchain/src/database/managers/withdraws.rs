@@ -1,10 +1,10 @@
 use chrono::Utc;
+use evm::txhash::TxHash;
 use fraction::Fraction;
 use sqlx::{postgres::PgQueryResult, Postgres, Transaction};
 
 use super::FlowManager;
 use crate::database::projections::{Flow, FlowInsert};
-use worker::database::projections::user::TxAddress;
 #[derive(Debug, Clone)]
 pub struct WithdrawsManager {}
 impl FlowManager for WithdrawsManager {
@@ -21,7 +21,7 @@ impl FlowManager for WithdrawsManager {
                 (created_at, last_modification_at, user_id, asset_id, tx_hash, amount, confirmations)
             VALUES
                 ($1, $2, $3, $4, $5, $6::fraction, $7::fraction)
-            RETURNING id, created_at, last_modification_at, user_id, asset_id, tx_hash as "tx_hash: TxAddress", amount as "amount: Fraction", confirmations as "confirmations: Fraction"
+            RETURNING id, created_at, last_modification_at, user_id, asset_id, tx_hash as "tx_hash: TxHash", amount as "amount: Fraction", confirmations as "confirmations: Fraction"
             "#,
             now,
             now,

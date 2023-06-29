@@ -13,7 +13,8 @@ chrono = { version = "0.4.23", features = ["serde"] }
 engagement = { path = "../engagement" }
 ethereum-types = "0.14.1"
 ethers-core = "2.0.0"
-fraction = { path = "../fraction" }
+evm = { path = "../types/evm" }
+fraction = { path = "../types/fraction" }
 futures = "0.3.28"
 headers = "0.3.8"
 hyper = { version = "0.14.26", features = ["full"] }
@@ -22,7 +23,7 @@ num-bigint = { version = "0.4.3" }
 ordered-float = { version = "3.4.0", features = ["serde"] }
 predicates = "3.0.2"
 prefix-hex = "0.7.0"
-pricelevel = { path = "../pricelevel" }
+pricelevel = { path = "../types/pricelevel" }
 prost = "0.11.6"
 rand = "0.8.5"
 redis = { version = "0.22.2", features = ["tokio-comp"] }

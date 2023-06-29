@@ -12,7 +12,7 @@ use std::io;
 use contracts::treasury::Treasury;
 use database::managers::notification::NotificationManager;
 use engine_base::engine_client::EngineClient;
-use ethers::providers::{Provider, Http, Ws};
+use ethers::providers::{Http, Provider, Ws};
 use sqlx::postgres::PgPoolOptions;
 
 pub mod engine_base {
@@ -36,7 +36,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         NotificationManager::start(database, "notifications").await?;
 
     let treasury = Treasury::new(
-        prefix_hex::decode::<[u8;20]>(std::env::var("TREASURY_ADDRESS")?).map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err.to_string()))?,
-        std::sync::Arc::new(ws_provider));
+        prefix_hex::decode::<[u8; 20]>(std::env::var("TREASURY_ADDRESS")?)
+            .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err.to_string()))?,
+        std::sync::Arc::new(ws_provider),
+    );
     Ok(())
 }

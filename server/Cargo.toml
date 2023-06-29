@@ -1,3 +1,11 @@
 [workspace]
 
-members = ["blockchain", "engagement", "engine", "fraction", "pricelevel", "worker"]
+members = [
+    "blockchain",
+    "engagement",
+    "engine",
+    "types/evm",
+    "types/fraction",
+    "types/pricelevel",
+    "worker",
+]

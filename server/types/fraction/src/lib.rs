@@ -66,7 +66,7 @@ impl Fraction {
         }
         Some(Self(BigRational::new_raw(data.0, data.1)))
     }
-    
+
     pub fn numer(&self) -> &BigInt {
         self.0.numer()
     }

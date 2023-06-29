@@ -1,14 +1,56 @@
-use std::{cmp::max};
+use std::{cmp::max, collections};
 
 use chrono::Utc;
-use engagement::database::managers::notifications::NotificationManagerEvent;
+use serde::Deserialize;
 use sqlx::{postgres::PgListener, PgPool};
-use tokio::{select, sync::{oneshot, broadcast}};
+use tokio::{
+    select,
+    sync::{mpsc, oneshot},
+};
 use tokio_stream::StreamExt;
-
-use crate::database::projections::valut::Valut;
+use uuid::Uuid;
 
 use super::valuts::ValutsManager;
+use crate::database::projections::{self};
+
+#[derive(Debug, Clone, Deserialize)]
+pub enum NotificationManagerEvent {
+    Valuts,
+}
+
+#[derive(Debug, Clone)]
+pub enum NotificationManagerPredicateInput {
+    Valuts(projections::valut::Valut),
+}
+
+#[derive(Debug, Clone)]
+pub enum NotificationManagerOutput {
+    Valuts(Vec<projections::valut::Valut>),
+}
+
+pub struct NotificationManagerEntry {
+    id: uuid::Uuid,
+    sender: mpsc::Sender<NotificationManagerOutput>,
+}
+impl NotificationManagerEntry {
+    pub fn new(sender: mpsc::Sender<NotificationManagerOutput>) -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            sender,
+        }
+    }
+}
+impl PartialEq for NotificationManagerEntry {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+impl Eq for NotificationManagerEntry {}
+impl std::hash::Hash for NotificationManagerEntry {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
+}
 
 pub struct NotificationManager {}
 
@@ -20,10 +62,10 @@ impl NotificationManager {
         let mut listener = PgListener::connect_with(&database).await?;
         listener.listen(trigger_name).await?;
         let mut stream = listener.into_stream();
+        let mut set = collections::HashMap::<Uuid, NotificationManagerEntry>::new();
+        let (tx, mut rx) = mpsc::channel::<NotificationManagerEntry>(100);
         let (shutdown_tx, mut shutdown_rx) = oneshot::channel();
-        let (broadcast, _) = broadcast::channel(100);
-        let broadcast_clone = broadcast.to_owned();
-        
+
         let join_handle = tokio::spawn(async move {
             let valuts_manager = ValutsManager::new(database.clone());
             let mut valuts_last_modification_at = Utc::now();
@@ -33,18 +75,32 @@ impl NotificationManager {
                     _ = &mut shutdown_rx => {
                         break;
                     },
+                    set_entry = rx.recv() => {
+                        match set_entry {
+                            Some(set_entry) => {
+                                set.insert(set_entry.id, set_entry);
+                            },
+                            None => {
+                                break;
+                            }
+                        }
+                    },
                     Some(element) = stream.next() => {
                         match element {
                             Ok(value) => {
                                 match serde_json::from_str::<NotificationManagerEvent>(value.payload()) {
-                                    Ok(NotificationManagerEvent::SpotValutsChanged) => {
+                                    Ok(NotificationManagerEvent::Valuts) => {
                                         match valuts_manager.get_modified(valuts_last_modification_at).await {
                                             Ok(elements) => {
-                                                if broadcast.receiver_count() != 0 {
-                                                    if let Err(err) = broadcast.send(elements.clone()) {
-                                                        tracing::error!("Error: {}", err);
+                                                let mut set_entry_to_remove_ids = Vec::new();
+                                                for set_entry in set.values() {
+                                                    if let Err(err) = set_entry.sender.send(NotificationManagerOutput::Valuts(elements.clone())).await {
+                                                        set_entry_to_remove_ids.push(set_entry.id);
+                                                        tracing::info!("{}", err);
                                                     }
                                                 }
+                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+
                                                 valuts_last_modification_at = max(
                                                     valuts_last_modification_at,
                                                     elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(valuts_last_modification_at)
@@ -55,15 +111,6 @@ impl NotificationManager {
                                             }
                                         }
                                     },
-                                    Ok(NotificationManagerEvent::SpotAssetsChanged) => {},
-                                    Ok(NotificationManagerEvent::SpotOrdersChanged) => {},
-                                    Ok(NotificationManagerEvent::SpotTradesChanged) => {},
-                                    Ok(NotificationManagerEvent::SpotCandlesticksChanged) => {},
-                                    Ok(NotificationManagerEvent::TransfersChanged) => {},
-                                    Ok(NotificationManagerEvent::EngagementBadgesChanged) => {},
-                                    Ok(NotificationManagerEvent::UsersChanged) => {},
-                                    Ok(NotificationManagerEvent::DepositsChanged) => {},
-                                    Ok(NotificationManagerEvent::WithdrawsChanged) => {},
                                     Err(err) => {
                                         tracing::error!("Error: {}", err);
                                     }
@@ -79,8 +126,8 @@ impl NotificationManager {
         });
 
         Ok(NotificationManagerController {
+            tx,
             shutdown_tx,
-            broadcast: broadcast_clone,
             join_handle,
         })
     }
@@ -88,11 +135,10 @@ impl NotificationManager {
 
 #[derive(Debug)]
 pub struct NotificationManagerController {
+    tx: mpsc::Sender<NotificationManagerEntry>,
     shutdown_tx: oneshot::Sender<()>,
-    broadcast: broadcast::Sender<Vec<Valut>>,
     join_handle: tokio::task::JoinHandle<()>,
 }
-
 impl NotificationManagerController {
     pub async fn shutdown(self) -> Result<(), tokio::task::JoinError> {
         if self.shutdown_tx.send(()).is_err() {
@@ -106,7 +152,31 @@ impl NotificationManagerController {
         self.join_handle.is_finished()
     }
 
-    pub async fn subscribe_to(&self) -> broadcast::Receiver<Vec<Valut>> {
-        self.broadcast.subscribe()
+    pub fn get_subscriber(&self) -> NotificationManagerSubscriber {
+        NotificationManagerSubscriber {
+            tx: self.tx.clone(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct NotificationManagerSubscriber {
+    tx: mpsc::Sender<NotificationManagerEntry>,
+}
+impl NotificationManagerSubscriber {
+    pub async fn subscribe_to(
+        &self,
+    ) -> Result<
+        mpsc::Receiver<NotificationManagerOutput>,
+        mpsc::error::SendError<NotificationManagerEntry>,
+    > {
+        let (tx, rx) = mpsc::channel(100);
+        let set_entry = NotificationManagerEntry::new(tx);
+        if let Err(err) = self.tx.send(set_entry).await {
+            tracing::error!("Error: {}", err);
+            Err(err)
+        } else {
+            Ok(rx)
+        }
     }
 }

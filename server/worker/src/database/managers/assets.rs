@@ -82,7 +82,7 @@ impl AssetsNotificationManager {
     ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Vec<Trade>> + Send>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
-                NotificationManagerPredicateInput::SpotTradesChanged(trade) => {
+                NotificationManagerPredicateInput::SpotTrades(trade) => {
                     (trade.quote_asset_id == quote_asset_id && trade.base_asset_id == base_asset_id)
                         || (trade.quote_asset_id == base_asset_id
                             && trade.base_asset_id == quote_asset_id)
@@ -98,7 +98,7 @@ impl AssetsNotificationManager {
         {
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
-                    if let NotificationManagerOutput::SpotTradesChanged(trades) = notification {
+                    if let NotificationManagerOutput::SpotTrades(trades) = notification {
                         yield trades;
                     }
                 }

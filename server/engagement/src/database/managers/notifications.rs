@@ -18,16 +18,10 @@ use crate::{
 
 #[derive(Debug, Clone, Deserialize)]
 pub enum NotificationManagerEvent {
-    UsersChanged,
-    SpotValutsChanged,
-    SpotAssetsChanged,
-    SpotOrdersChanged,
-    SpotTradesChanged,
-    SpotCandlesticksChanged,
-    TransfersChanged,
-    EngagementBadgesChanged,
-    DepositsChanged,
-    WithdrawsChanged,
+    Users,
+    Valuts,
+    SpotTrades,
+    Transfers,
 }
 
 pub struct NotificationManager {}
@@ -69,7 +63,7 @@ impl NotificationManager {
                         match element {
                             Ok(value) => {
                                 match serde_json::from_str::<NotificationManagerEvent>(value.payload()) {
-                                    Ok(NotificationManagerEvent::SpotValutsChanged) => {
+                                    Ok(NotificationManagerEvent::Valuts) => {
                                         match valuts_manager.get_modified(valuts_last_modification_at).await {
                                             Ok(elements) => {
                                                 let users: HashSet<Uuid> = elements.iter().cloned().map(|e| e.user_id).collect();
@@ -105,27 +99,7 @@ impl NotificationManager {
                                             }
                                         }
                                     },
-                                    Ok(NotificationManagerEvent::SpotAssetsChanged) => {
-                                        // match assets_manager.get_modified(assets_last_modification_at).await {
-                                        //     Ok(_elements) => {
-
-                                        //     },
-                                        //     Err(err) => {
-                                        //         tracing::error!("Error: {}", err);
-                                        //     }
-                                        // }
-                                    },
-                                    Ok(NotificationManagerEvent::SpotOrdersChanged) => {
-                                        // match orders_manager.get_modified(orders_last_modification_at).await {
-                                        //     Ok(_elements) => {
-
-                                        //     },
-                                        //     Err(err) => {
-                                        //         tracing::error!("Error: {}", err);
-                                        //     }
-                                        // }
-                                    },
-                                    Ok(NotificationManagerEvent::SpotTradesChanged) => {
+                                    Ok(NotificationManagerEvent::SpotTrades) => {
                                         match trades_manager.get_modified(trades_last_modification_at).await {
                                             Ok(elements) => {
                                                 let users: HashSet<Uuid> = elements.iter().cloned().map(|e| e.maker_id).collect();
@@ -161,17 +135,7 @@ impl NotificationManager {
                                             }
                                         }
                                     },
-                                    Ok(NotificationManagerEvent::SpotCandlesticksChanged) => {
-                                        // match candlesticks_manager.get_modified(candlesticks_last_modification_at).await {
-                                        //     Ok(_elements) => {
-
-                                        //     },
-                                        //     Err(err) => {
-                                        //         tracing::error!("Error: {}", err);
-                                        //     }
-                                        // }
-                                    },
-                                    Ok(NotificationManagerEvent::TransfersChanged) => {
+                                    Ok(NotificationManagerEvent::Transfers) => {
                                         match transfers_manager.get_modified(transfers_last_modification_at).await {
                                             Ok(elements) => {
                                                 let users: HashSet<Uuid> = elements.iter().cloned().map(|e| e.maker_id).collect();
@@ -207,17 +171,7 @@ impl NotificationManager {
                                             }
                                         }
                                     },
-                                    Ok(NotificationManagerEvent::EngagementBadgesChanged) => {
-                                        // match badges_manager.get_modified(badges_last_modification_at).await {
-                                        //     Ok(_elements) => {
-
-                                        //     },
-                                        //     Err(err) => {
-                                        //         tracing::error!("Error: {}", err);
-                                        //     }
-                                        // }
-                                    },
-                                    Ok(NotificationManagerEvent::UsersChanged) => {
+                                    Ok(NotificationManagerEvent::Users) => {
                                         match users_manager.get_modified(users_last_modification_at).await {
                                             Ok(elements) => {
                                                 users_last_modification_at = max(
@@ -229,26 +183,6 @@ impl NotificationManager {
                                                 tracing::error!("Error: {}", err);
                                             }
                                         }
-                                    },
-                                    Ok(NotificationManagerEvent::DepositsChanged) => {
-                                        // match candlesticks_manager.get_modified(candlesticks_last_modification_at).await {
-                                        //     Ok(_elements) => {
-
-                                        //     },
-                                        //     Err(err) => {
-                                        //         tracing::error!("Error: {}", err);
-                                        //     }
-                                        // }
-                                    },
-                                    Ok(NotificationManagerEvent::WithdrawsChanged) => {
-                                        // match candlesticks_manager.get_modified(candlesticks_last_modification_at).await {
-                                        //     Ok(_elements) => {
-
-                                        //     },
-                                        //     Err(err) => {
-                                        //         tracing::error!("Error: {}", err);
-                                        //     }
-                                        // }
                                     },
                                     Err(err) => {
                                         tracing::error!("Error: {}", err);

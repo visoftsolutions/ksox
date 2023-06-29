@@ -3,9 +3,9 @@ use sqlx::{postgres::PgQueryResult, Postgres, Transaction};
 use super::projections::{Flow, FlowInsert};
 
 pub mod deposits;
+pub mod notification;
 pub mod valuts;
 pub mod withdraws;
-pub mod notification;
 
 pub trait FlowManager {
     async fn insert<'t, 'p>(

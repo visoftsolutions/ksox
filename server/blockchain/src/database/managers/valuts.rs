@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
+use evm::address::Address;
 use fraction::Fraction;
 use sqlx::PgPool;
 use uuid::Uuid;
-use worker::database::projections::user::EvmAddress;
 
 use crate::database::projections::valut::Valut;
 
@@ -27,8 +27,8 @@ impl ValutsManager {
                 valuts.id,
                 valuts.created_at,
                 valuts.last_modification_at,
-                users.address as "user_address: EvmAddress",
-                assets.address as "asset_address: EvmAddress",
+                users.address as "user_address: Address",
+                assets.address as "asset_address: Address",
                 assets.decimals as "decimals: Fraction",
                 valuts.balance as "balance: Fraction"
             FROM valuts
@@ -51,8 +51,8 @@ impl ValutsManager {
                 valuts.id,
                 valuts.created_at,
                 valuts.last_modification_at,
-                users.address as "user_address: EvmAddress",
-                assets.address as "asset_address: EvmAddress",
+                users.address as "user_address: Address",
+                assets.address as "asset_address: Address",
                 assets.decimals as "decimals: Fraction",
                 valuts.balance as "balance: Fraction"
             FROM valuts

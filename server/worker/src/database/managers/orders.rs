@@ -219,9 +219,7 @@ impl OrdersNotificationManager {
     ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Vec<Order>> + Send>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
-                NotificationManagerPredicateInput::SpotOrdersChanged(order) => {
-                    order.maker_id == user_id
-                }
+                NotificationManagerPredicateInput::SpotOrders(order) => order.maker_id == user_id,
                 _ => false,
             }
         });
@@ -233,7 +231,7 @@ impl OrdersNotificationManager {
         {
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
-                    if let NotificationManagerOutput::SpotOrdersChanged(order) = notification {
+                    if let NotificationManagerOutput::SpotOrders(order) = notification {
                         yield order;
                     }
                 }
@@ -253,12 +251,12 @@ impl OrdersNotificationManager {
     ) -> io::Result<Pin<Box<dyn Stream<Item = io::Result<Vec<PriceLevel>>> + Send + '_>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
-                NotificationManagerPredicateInput::SpotOrdersChanged(order) => {
+                NotificationManagerPredicateInput::SpotOrders(order) => {
                     (order.quote_asset_id == quote_asset_id && order.base_asset_id == base_asset_id)
                         || (order.quote_asset_id == base_asset_id
                             && order.base_asset_id == quote_asset_id)
                 }
-                NotificationManagerPredicateInput::SpotTradesChanged(trade) => {
+                NotificationManagerPredicateInput::SpotTrades(trade) => {
                     (trade.quote_asset_id == quote_asset_id && trade.base_asset_id == base_asset_id)
                         || (trade.quote_asset_id == base_asset_id
                             && trade.base_asset_id == quote_asset_id)
@@ -275,7 +273,7 @@ impl OrdersNotificationManager {
             let orders_manager = self.orders_manager.clone();
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
-                    if let NotificationManagerOutput::SpotOrdersChanged(_) = notification {
+                    if let NotificationManagerOutput::SpotOrders(_) = notification {
                         yield orders_manager.get_orderbook(quote_asset_id, base_asset_id, precision.clone()).take(limit).try_collect::<Vec<PriceLevel>>().await;
                     }
                 }
@@ -298,12 +296,12 @@ impl OrdersNotificationManager {
     ) -> io::Result<Pin<Box<dyn Stream<Item = io::Result<Vec<PriceLevel>>> + Send + '_>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
-                NotificationManagerPredicateInput::SpotOrdersChanged(order) => {
+                NotificationManagerPredicateInput::SpotOrders(order) => {
                     (order.quote_asset_id == quote_asset_id && order.base_asset_id == base_asset_id)
                         || (order.quote_asset_id == base_asset_id
                             && order.base_asset_id == quote_asset_id)
                 }
-                NotificationManagerPredicateInput::SpotTradesChanged(trade) => {
+                NotificationManagerPredicateInput::SpotTrades(trade) => {
                     (trade.quote_asset_id == quote_asset_id && trade.base_asset_id == base_asset_id)
                         || (trade.quote_asset_id == base_asset_id
                             && trade.base_asset_id == quote_asset_id)
@@ -320,7 +318,7 @@ impl OrdersNotificationManager {
             let orders_manager = self.orders_manager.clone();
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
-                    if let NotificationManagerOutput::SpotOrdersChanged(_) = notification {
+                    if let NotificationManagerOutput::SpotOrders(_) = notification {
                         yield orders_manager.get_orderbook_opposite(quote_asset_id, base_asset_id, precision.clone()).take(limit).try_collect::<Vec<PriceLevel>>().await;
                     }
                 }

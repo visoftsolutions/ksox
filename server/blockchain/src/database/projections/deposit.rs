@@ -1,10 +1,8 @@
 use chrono::{DateTime, Utc};
+use evm::txhash::TxHash;
 use fraction::Fraction;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-
-use super::TxAddress;
-
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 pub struct Deposit {
     pub id: Uuid,
@@ -12,7 +10,7 @@ pub struct Deposit {
     pub last_modification_at: DateTime<Utc>,
     pub user_id: Uuid,
     pub asset_id: Uuid,
-    pub tx_hash: TxAddress,
+    pub tx_hash: TxHash,
     pub amount: Fraction,
     pub confirmations: Fraction,
 }
@@ -21,7 +19,7 @@ pub struct Deposit {
 pub struct DepositInsert {
     pub user_id: Uuid,
     pub asset_id: Uuid,
-    pub tx_hash: TxAddress,
+    pub tx_hash: TxHash,
     pub amount: Fraction,
     pub confirmations: Fraction,
 }

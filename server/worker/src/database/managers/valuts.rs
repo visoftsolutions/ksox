@@ -129,9 +129,7 @@ impl ValutsNotificationManager {
     ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Vec<Valut>> + Send>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
-                NotificationManagerPredicateInput::SpotValutsChanged(valut) => {
-                    valut.user_id == user_id
-                }
+                NotificationManagerPredicateInput::Valuts(valut) => valut.user_id == user_id,
                 _ => false,
             }
         });
@@ -143,7 +141,7 @@ impl ValutsNotificationManager {
         {
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
-                    if let NotificationManagerOutput::SpotValutsChanged(valuts) = notification {
+                    if let NotificationManagerOutput::Valuts(valuts) = notification {
                         yield valuts;
                     }
                 }
@@ -161,7 +159,7 @@ impl ValutsNotificationManager {
     ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Vec<Valut>> + Send>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
-                NotificationManagerPredicateInput::SpotValutsChanged(valut) => {
+                NotificationManagerPredicateInput::Valuts(valut) => {
                     valut.user_id == user_id && valut.asset_id == asset_id
                 }
                 _ => false,
@@ -175,7 +173,7 @@ impl ValutsNotificationManager {
         {
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
-                    if let NotificationManagerOutput::SpotValutsChanged(valuts) = notification {
+                    if let NotificationManagerOutput::Valuts(valuts) = notification {
                         yield valuts;
                     }
                 }

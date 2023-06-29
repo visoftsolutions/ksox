@@ -1,12 +1,11 @@
 pub mod deposit;
 pub mod valut;
 pub mod withdraw;
-
 use chrono::{DateTime, Utc};
+use evm::txhash::TxHash;
 use fraction::Fraction;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use worker::database::projections::user::TxAddress;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 pub struct Flow {
@@ -15,7 +14,7 @@ pub struct Flow {
     pub last_modification_at: DateTime<Utc>,
     pub user_id: Uuid,
     pub asset_id: Uuid,
-    pub tx_hash: TxAddress,
+    pub tx_hash: TxHash,
     pub amount: Fraction,
     pub confirmations: Fraction,
 }
@@ -24,7 +23,7 @@ pub struct Flow {
 pub struct FlowInsert {
     pub user_id: Uuid,
     pub asset_id: Uuid,
-    pub tx_hash: TxAddress,
+    pub tx_hash: TxHash,
     pub amount: Fraction,
     pub confirmations: Fraction,
 }
