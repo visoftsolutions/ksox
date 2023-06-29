@@ -10,34 +10,48 @@ use futures::{
     stream::{self, StreamExt},
     TryFutureExt,
 };
+use num_bigint::BigInt;
+use num_traits::Zero;
 use sqlx::PgPool;
 
 use crate::{
     contracts::{confirmations, transaction_block},
-    database::{managers::FlowManager, projections::Flow},
+    database::managers::FlowManager,
 };
-
 #[derive(Clone)]
-pub struct ConfirmationQueueEntry {
-    flow: Flow,
+pub struct ConfirmationQueueEntry<E> {
+    entity: E,
+    tx_hash: H256,
     tx_block: Block<H256>,
+    confirmations: Fraction,
 }
 
-pub struct ConfirmationQueue<T>
-where
-    T: FlowManager,
-{
-    database: PgPool,
-    manager: T,
-    provider: Provider<Ws>,
-    entries: Vec<ConfirmationQueueEntry>,
+impl<E> ConfirmationQueueEntry<E> {
+    pub fn new(entity: E, tx_hash: H256, tx_block: Block<H256>) -> Self {
+        Self {
+            entity,
+            tx_hash,
+            tx_block,
+            confirmations: Fraction::from((BigInt::zero(), BigInt::from(1000))),
+        }
+    }
 }
 
-impl<T> ConfirmationQueue<T>
+pub struct ConfirmationQueue<'a, Manager, E>
 where
-    T: FlowManager,
+    Manager: FlowManager,
 {
-    pub fn new(database: PgPool, manager: T, provider: Provider<Ws>) -> Self {
+    database: &'a PgPool,
+    manager: &'a Manager,
+    provider: &'a Provider<Ws>,
+    entries: Vec<ConfirmationQueueEntry<E>>,
+}
+
+impl<'a, Manager, E> ConfirmationQueue<'a, Manager, E>
+where
+    Manager: FlowManager,
+{
+    pub fn new(database: &'a PgPool, manager: &'a Manager, provider: &'a Provider<Ws>) -> Self {
         Self {
             database,
             manager,
@@ -46,34 +60,37 @@ where
         }
     }
 
-    pub async fn insert(&mut self, flow: Flow) -> Result<(), ProviderError> {
-        Ok(self.entries.push(ConfirmationQueueEntry {
-            tx_block: transaction_block(&self.provider, *flow.tx_hash).await?,
-            flow,
-        }))
+    pub async fn insert(&mut self, entity: E, tx_hash: H256) -> Result<(), ProviderError> {
+        Ok(self.entries.push(ConfirmationQueueEntry::new(
+            entity,
+            tx_hash.clone(),
+            transaction_block(&self.provider, tx_hash).await?,
+        )))
     }
 
     async fn eval_ready(
-        entries: Vec<ConfirmationQueueEntry>,
+        entries: Vec<ConfirmationQueueEntry<E>>,
         block: &Block<H256>,
-    ) -> (Vec<ConfirmationQueueEntry>, Vec<ConfirmationQueueEntry>) {
+    ) -> (
+        Vec<ConfirmationQueueEntry<E>>,
+        Vec<ConfirmationQueueEntry<E>>,
+    ) {
         stream::iter(entries.into_iter())
             .map(|f| (f, block))
             .fold(
                 (vec![], vec![]),
                 |(mut ready, mut not_ready), (mut f, block)| async move {
-                    if let Ok(Some(confirmations)) =
-                        confirmations(block, &f.tx_block).await.map(|e| {
-                            Fraction::from_raw((e.into(), f.flow.confirmations.denom().clone()))
-                        })
+                    if let Ok(Some(confirmations)) = confirmations(block, &f.tx_block)
+                        .await
+                        .map(|e| Fraction::from_raw((e.into(), f.confirmations.denom().clone())))
                     {
                         match confirmations.cmp(&Fraction::one()) {
                             Ordering::Equal | Ordering::Greater => {
-                                f.flow.confirmations = confirmations;
+                                f.confirmations = confirmations;
                                 ready.push(f);
                             }
                             Ordering::Less => {
-                                f.flow.confirmations = confirmations;
+                                f.confirmations = confirmations;
                                 not_ready.push(f);
                             }
                         }
@@ -85,29 +102,30 @@ where
     }
 
     async fn eval_confirmed(
-        entries: Vec<ConfirmationQueueEntry>,
+        entries: Vec<ConfirmationQueueEntry<E>>,
         provider: &Provider<Ws>,
         block: &Block<H256>,
-    ) -> (Vec<ConfirmationQueueEntry>, Vec<ConfirmationQueueEntry>) {
+    ) -> (
+        Vec<ConfirmationQueueEntry<E>>,
+        Vec<ConfirmationQueueEntry<E>>,
+    ) {
         stream::iter(entries.into_iter())
             .map(|f| (f, provider, block))
             .fold(
                 (vec![], vec![]),
                 |(mut confirmed, mut not_confirmed), (mut f, provider, block)| async move {
-                    if let Ok(Some(confirmations)) = transaction_block(provider, *f.flow.tx_hash)
+                    if let Ok(Some(confirmations)) = transaction_block(provider, f.tx_hash)
                         .and_then(|tx_block| async move { confirmations(block, &tx_block).await })
                         .await
-                        .map(|e| {
-                            Fraction::from_raw((e.into(), f.flow.confirmations.denom().clone()))
-                        })
+                        .map(|e| Fraction::from_raw((e.into(), f.confirmations.denom().clone())))
                     {
                         match confirmations.cmp(&Fraction::one()) {
                             Ordering::Equal | Ordering::Greater => {
-                                f.flow.confirmations = confirmations;
+                                f.confirmations = confirmations;
                                 confirmed.push(f);
                             }
                             Ordering::Less => {
-                                f.flow.confirmations = confirmations;
+                                f.confirmations = confirmations;
                                 not_confirmed.push(f);
                             }
                         }
@@ -118,38 +136,13 @@ where
             .await
     }
 
-    pub async fn confirmation_step(&mut self, block: Block<H256>) -> sqlx::Result<Vec<Flow>> {
-        let mut t = self.database.begin().await?;
+    pub async fn confirmation_step(&mut self, block: Block<H256>) -> sqlx::Result<Vec<E>> {
+        let (ready, mut not_ready) =
+            Self::eval_ready(self.entries.drain(0..).collect(), &block).await;
+        let (confirmed, not_confirmed) = Self::eval_confirmed(ready, &self.provider, &block).await;
+        not_ready.extend(not_confirmed.into_iter());
+        self.entries.extend(not_ready);
 
-        let f: sqlx::Result<(Vec<_>, Vec<_>)> = async {
-            let (ready, mut not_ready) = Self::eval_ready(self.entries.to_owned(), &block).await;
-            let (confirmed, not_confirmed) =
-                Self::eval_confirmed(ready, &self.provider, &block).await;
-            not_ready.extend(not_confirmed.into_iter());
-
-            // update in db
-            for entry in not_ready.clone().into_iter().map(|f| f.flow) {
-                self.manager.update(&mut t, entry).await?;
-            }
-
-            for entry in confirmed.clone().into_iter().map(|f| f.flow) {
-                self.manager.update(&mut t, entry).await?;
-            }
-
-            Ok((confirmed, not_ready))
-        }
-        .await;
-
-        match f {
-            Ok((confirmed, not_ready)) => {
-                t.commit().await?;
-                self.entries = not_ready;
-                Ok(confirmed.into_iter().map(|f| f.flow).collect())
-            }
-            Err(e) => {
-                t.rollback().await?;
-                Err(e)
-            }
-        }
+        Ok(confirmed.into_iter().map(|f| f.entity).collect())
     }
 }

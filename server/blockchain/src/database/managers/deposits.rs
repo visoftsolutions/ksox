@@ -8,6 +8,12 @@ use crate::database::projections::{Flow, FlowInsert};
 #[derive(Debug, Clone)]
 pub struct DepositsManager {}
 
+impl DepositsManager {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
 impl FlowManager for DepositsManager {
     async fn insert<'t, 'p>(
         &self,

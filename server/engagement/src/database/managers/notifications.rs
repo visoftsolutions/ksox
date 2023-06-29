@@ -39,18 +39,11 @@ impl NotificationManager {
         let join_handle = tokio::spawn(async move {
             let valuts_manager = managers::valuts::ValutsManager::new(database.clone());
             let mut valuts_last_modification_at = Utc::now();
-            // let assets_manager = managers::assets::AssetsManager::new(database.clone());
-            // let mut assets_last_modification_at = Utc::now();
-            // let orders_manager = managers::orders::OrdersManager::new(database.clone());
-            // let mut orders_last_modification_at = Utc::now();
             let trades_manager = managers::trades::TradesManager::new(database.clone());
             let mut trades_last_modification_at = Utc::now();
-            // let candlesticks_manager = managers::candlesticks::CandlesticksManager::new(database.clone());
-            // let mut candlesticks_last_modification_at = Utc::now();
             let transfers_manager = managers::transfers::TransfersManager::new(database.clone());
             let mut transfers_last_modification_at = Utc::now();
             let badges_manager = managers::badges::BadgesManager::new(database.clone());
-            // let mut badges_last_modification_at = Utc::now();
             let users_manager = managers::users::UsersManager::new(database.clone());
             let mut users_last_modification_at = Utc::now();
 

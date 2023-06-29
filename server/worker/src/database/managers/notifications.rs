@@ -150,9 +150,8 @@ impl NotificationManager {
                                                         .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Valuts(e.clone()))).collect();
 
                                                     if !result.is_empty() {
-                                                        if let Err(err) = set_entry.sender.send(NotificationManagerOutput::Valuts(result)).await {
+                                                        if set_entry.sender.send(NotificationManagerOutput::Valuts(result)).await.is_err() {
                                                             set_entry_to_remove_ids.push(set_entry.id);
-                                                            tracing::info!("{}", err);
                                                         }
                                                     }
                                                 }
@@ -177,9 +176,8 @@ impl NotificationManager {
                                                         .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Assets(e.clone()))).collect();
 
                                                     if !result.is_empty() {
-                                                        if let Err(err) = set_entry.sender.send(NotificationManagerOutput::Assets(result)).await {
+                                                        if set_entry.sender.send(NotificationManagerOutput::Assets(result)).await.is_err() {
                                                             set_entry_to_remove_ids.push(set_entry.id);
-                                                            tracing::info!("{}", err);
                                                         }
                                                     }
                                                 }
@@ -204,9 +202,8 @@ impl NotificationManager {
                                                         .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotOrders(e.clone()))).collect();
 
                                                     if !result.is_empty() {
-                                                        if let Err(err) = set_entry.sender.send(NotificationManagerOutput::SpotOrders(result)).await {
+                                                        if  set_entry.sender.send(NotificationManagerOutput::SpotOrders(result)).await.is_err() {
                                                             set_entry_to_remove_ids.push(set_entry.id);
-                                                            tracing::info!("{}", err);
                                                         }
                                                     }
                                                 }
@@ -231,9 +228,8 @@ impl NotificationManager {
                                                         .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotTrades(e.clone()))).collect();
 
                                                     if !result.is_empty() {
-                                                        if let Err(err) = set_entry.sender.send(NotificationManagerOutput::SpotTrades(result)).await {
+                                                        if set_entry.sender.send(NotificationManagerOutput::SpotTrades(result)).await.is_err() {
                                                             set_entry_to_remove_ids.push(set_entry.id);
-                                                            tracing::info!("{}", err);
                                                         }
                                                     }
                                                 }
@@ -258,9 +254,8 @@ impl NotificationManager {
                                                         .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotCandlesticks(e.clone()))).collect();
 
                                                     if !result.is_empty() {
-                                                        if let Err(err) = set_entry.sender.send(NotificationManagerOutput::SpotCandlesticks(result)).await {
+                                                        if set_entry.sender.send(NotificationManagerOutput::SpotCandlesticks(result)).await.is_err() {
                                                             set_entry_to_remove_ids.push(set_entry.id);
-                                                            tracing::info!("{}", err);
                                                         }
                                                     }
                                                 }
@@ -286,9 +281,8 @@ impl NotificationManager {
                                                         .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Transfers(e.clone()))).collect();
 
                                                     if !result.is_empty() {
-                                                        if let Err(err) = set_entry.sender.send(NotificationManagerOutput::Transfers(result)).await {
+                                                        if set_entry.sender.send(NotificationManagerOutput::Transfers(result)).await.is_err() {
                                                             set_entry_to_remove_ids.push(set_entry.id);
-                                                            tracing::info!("{}", err);
                                                         }
                                                     }
                                                 }
@@ -314,9 +308,8 @@ impl NotificationManager {
                                                         .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::EngagementBadges(e.clone()))).collect();
 
                                                     if !result.is_empty() {
-                                                        if let Err(err) = set_entry.sender.send(NotificationManagerOutput::EngagementBadges(result)).await {
+                                                        if set_entry.sender.send(NotificationManagerOutput::EngagementBadges(result)).await.is_err() {
                                                             set_entry_to_remove_ids.push(set_entry.id);
-                                                            tracing::info!("{}", err);
                                                         }
                                                     }
                                                 }
@@ -342,9 +335,8 @@ impl NotificationManager {
                                                         .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Users(e.clone()))).collect();
 
                                                     if !result.is_empty() {
-                                                        if let Err(err) = set_entry.sender.send(NotificationManagerOutput::Users(result)).await {
+                                                        if set_entry.sender.send(NotificationManagerOutput::Users(result)).await.is_err() {
                                                             set_entry_to_remove_ids.push(set_entry.id);
-                                                            tracing::info!("{}", err);
                                                         }
                                                     }
                                                 }
@@ -401,10 +393,6 @@ impl NotificationManagerController {
         }
         self.join_handle.await?;
         Ok(())
-    }
-
-    pub fn is_finished(&self) -> bool {
-        self.join_handle.is_finished()
     }
 
     pub fn get_subscriber(&self) -> NotificationManagerSubscriber {

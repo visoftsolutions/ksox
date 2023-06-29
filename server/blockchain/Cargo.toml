@@ -13,6 +13,10 @@ ethers = { version = "2.0.7", features = ["legacy-ws", "ws", "rustls", "openssl"
 evm = { path = "../types/evm" }
 fraction = { path = "../types/fraction" }
 futures = "0.3.28"
+num-bigint = { version = "0.4.3", features = ["serde", "arbitrary", "quickcheck"] }
+num-derive = "0.3.3"
+num-rational = { version = "0.4.1", features = ["serde"] }
+num-traits = "0.2.15"
 prefix-hex = "0.7.0"
 prost = "0.11.6"
 serde = { version = "1.0.159", features = ["derive"] }

@@ -13,6 +13,7 @@ use contracts::treasury::Treasury;
 use database::managers::notification::NotificationManager;
 use engine_base::engine_client::EngineClient;
 use ethers::providers::{Http, Provider, Ws};
+use models::BlockchainManager;
 use sqlx::postgres::PgPoolOptions;
 
 pub mod engine_base {
@@ -28,17 +29,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .connect(std::env::var("DATABASE_URL")?.as_str())
         .await?;
     let engine_client = EngineClient::connect(std::env::var("ENGINE_URL")?).await?;
-
-    let http_provider = Provider::<Http>::try_from(std::env::var("HTTP_PROVIDER_URL")?)?;
-    let ws_provider = Provider::<Ws>::connect(std::env::var("WS_PROVIDER_URL")?).await?;
-
+    let provider = Provider::<Ws>::connect(std::env::var("WS_PROVIDER_URL")?).await?;
     let notification_manager_controller =
-        NotificationManager::start(database, "notifications").await?;
-
+        NotificationManager::start(database.clone(), "notifications").await?;
     let treasury = Treasury::new(
         prefix_hex::decode::<[u8; 20]>(std::env::var("TREASURY_ADDRESS")?)
             .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err.to_string()))?,
-        std::sync::Arc::new(ws_provider),
+        std::sync::Arc::new(provider.clone()),
     );
+
+    let blockchain_manager_controller = BlockchainManager::new(
+        database,
+        provider,
+        treasury,
+        engine_client,
+        notification_manager_controller
+            .get_subscriber()
+            .subscribe_to()
+            .await?,
+    )
+    .start();
+
     Ok(())
 }

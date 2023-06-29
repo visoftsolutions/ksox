@@ -28,6 +28,7 @@ pub enum NotificationManagerOutput {
     Valuts(Vec<projections::valut::Valut>),
 }
 
+#[derive(Debug)]
 pub struct NotificationManagerEntry {
     id: uuid::Uuid,
     sender: mpsc::Sender<NotificationManagerOutput>,
@@ -94,9 +95,8 @@ impl NotificationManager {
                                             Ok(elements) => {
                                                 let mut set_entry_to_remove_ids = Vec::new();
                                                 for set_entry in set.values() {
-                                                    if let Err(err) = set_entry.sender.send(NotificationManagerOutput::Valuts(elements.clone())).await {
+                                                    if set_entry.sender.send(NotificationManagerOutput::Valuts(elements.clone())).await.is_err() {
                                                         set_entry_to_remove_ids.push(set_entry.id);
-                                                        tracing::info!("{}", err);
                                                     }
                                                 }
                                                 set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
@@ -146,10 +146,6 @@ impl NotificationManagerController {
         }
         self.join_handle.await?;
         Ok(())
-    }
-
-    pub fn is_finished(&self) -> bool {
-        self.join_handle.is_finished()
     }
 
     pub fn get_subscriber(&self) -> NotificationManagerSubscriber {

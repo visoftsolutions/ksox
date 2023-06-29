@@ -7,6 +7,13 @@ use super::FlowManager;
 use crate::database::projections::{Flow, FlowInsert};
 #[derive(Debug, Clone)]
 pub struct WithdrawsManager {}
+
+impl WithdrawsManager {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
 impl FlowManager for WithdrawsManager {
     async fn insert<'t, 'p>(
         &self,
