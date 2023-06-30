@@ -61,11 +61,13 @@ dependencies = [
 dependencies = [
     "delete_postgres",
     "run_postgres",
+    "clean",
     "fmt",
     "sort",
     { name = "sqlx", path = "engagement" },
     { name = "sqlx", path = "engine" },
     { name = "sqlx", path = "worker" },
+    { name = "sqlx", path = "blockchain" },
     "build",
     "check",
     "clippy",
