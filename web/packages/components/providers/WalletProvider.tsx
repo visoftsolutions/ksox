@@ -81,7 +81,6 @@ export const walletClientConnect = async () => {
       autoConnect: true,
       connectors: w3mConnectors({
         projectId: wallet.walletConnectProjectId,
-        version: 1,
         chains,
       }),
       publicClient,
