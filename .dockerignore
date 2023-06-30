@@ -1,6 +1,6 @@
 
 # kubernetes manifests
-k8s
+**/k8s
 
 # Ignores
-.dockerignore
+**/.dockerignore

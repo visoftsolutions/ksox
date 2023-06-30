@@ -26,31 +26,31 @@ spec:
         app: postgres-database
     spec:
       volumes:
-      - name: postgres-pv-storage
-        persistentVolumeClaim:
-          claimName: postgres-pv-claim
+        - name: postgres-pv-storage
+          persistentVolumeClaim:
+            claimName: postgres-pv-claim
       containers:
-      - name: postgres-database
-        image: postgres-database
-        ports:
-        - containerPort: 5432
-        volumeMounts:
-        - mountPath: "/var/lib/postgresql/data"
-          name: postgres-pv-storage
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "500m"
-          limits:
-            memory: "256Mi"
-            cpu: "1000m"
-        env:
-        - name: POSTGRES_USER
-          value: ksoxuser
-        - name: POSTGRES_PASSWORD
-          value: ksoxuserp4ssword
-        - name: POSTGRES_DB
-          value: ksox
+        - name: postgres-database
+          image: postgres-database
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: "/var/lib/postgresql/data"
+              name: postgres-pv-storage
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1024Mi"
+              cpu: "1000m"
+          env:
+            - name: POSTGRES_USER
+              value: ksoxuser
+            - name: POSTGRES_PASSWORD
+              value: ksoxuserp4ssword
+            - name: POSTGRES_DB
+              value: ksox
 ---
 apiVersion: v1
 kind: Service
