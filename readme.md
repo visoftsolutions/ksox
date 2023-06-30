@@ -65,6 +65,10 @@ cargo +nightly udeps
 ## update package.json
 npx npm-check-updates -u
 
+## update Rust crates
+cargo install cargo-edit
+cargo upgrade
+
 ## run code in kubernetes
 make sure you have minikube, docker and skaffold installed
 make sure you are in a docker group

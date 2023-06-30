@@ -1,6 +1,4 @@
 #![allow(dead_code)]
-#![feature(option_get_or_insert_default)]
-#![feature(let_chains)]
 
 mod api;
 mod cache;

@@ -130,7 +130,7 @@ pub async fn session_info(
                     Some(SessionResponse {
                         address: user.address,
                         session_id: SessionId::from_str(session_id)?,
-                        user_id: user_id,
+                        user_id,
                         expiration: redis_conn
                             .pttl::<'_, _, usize>(key)
                             .await

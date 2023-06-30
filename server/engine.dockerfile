@@ -1,13 +1,12 @@
 FROM rust:slim-bullseye AS chef
 # We only pay the installation cost once,
 # it will be cached from the second build onwards
-RUN rustup toolchain install nightly
-RUN rustup default nightly
+RUN rustup default stable
 RUN apt-get update
 RUN apt-get install -y libssl-dev pkg-config
 RUN apt-get install -y protobuf-compiler
 RUN apt-get autoremove
-RUN cargo install cargo-chef 
+RUN cargo install cargo-chef
 WORKDIR /app
 
 FROM chef AS planner

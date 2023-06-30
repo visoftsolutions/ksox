@@ -69,5 +69,5 @@ dependencies = [
     "check",
     "clippy",
     "test",
-    "udeps",
+    # "udeps",
 ]
