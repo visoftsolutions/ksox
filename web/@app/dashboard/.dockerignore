@@ -1,7 +1,0 @@
-dist
-.solid
-k8s
-node_modules
-.unlighthouse
-.gitignore
-
