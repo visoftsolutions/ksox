@@ -36,6 +36,8 @@ cargo install sqlx-cli
 cargo install cargo-make
 cargo install cargo-udeps
 cargo install cargo-sort
+cargo install cargo-edit
+cargo install cargo-upgrades
 rustup toolchain install nightly
 sudo apt-get install protobuf-compiler
 ```
