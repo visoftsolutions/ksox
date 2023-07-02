@@ -33,7 +33,7 @@ services:
     depends_on:
       - postgres
       - redis
-  
+
   engagement:
     container_name: ksox-engagement
     hostname: ksox-engagement
@@ -92,7 +92,7 @@ services:
       dockerfile: ./processor.dockerfile
     depends_on:
       - worker
-  
+
   dashboard:
     container_name: web-dashboard
     hostname: web-dashboard

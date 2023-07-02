@@ -62,9 +62,9 @@ spec:
             scheme: https
             statusCode: 301
     - matches:
-      - path:
-          type: PathPrefix
-          value: /
+        - path:
+            type: PathPrefix
+            value: /
       backendRefs:
-      - name: web-exchange-landing-service
-        port: 80
+        - name: web-exchange-landing-service
+          port: 80

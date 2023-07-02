@@ -34,7 +34,7 @@ export default function WalletButton(props: { base_url: string; api_url: string 
       ) : (
         <img src={joinPaths(props.base_url, "gfx/user.svg")} alt="user" width="16px" class="m-auto" />
       )}
-      <div class="text-wallet text-ellipsis font-semibold">
+      <div class="text-ellipsis text-wallet font-semibold">
         {!wallet.walletClient && !session() ? "CONNECT WALLET" : !session() ? "LOGIN" : firstLastChars(session()?.address ?? "", 6, 6)}
       </div>
     </div>

@@ -11,20 +11,19 @@ import { createStore } from "solid-js/store";
 
 interface ProfileStore {
   name?: string;
-  address?: string
-  badges: Badge[] 
+  address?: string;
+  badges: Badge[];
 }
-
 
 export default function CreateProfile(session?: SessionResponse) {
   return () => (
     <Show when={session}>
-      <Profile session={session!}/>
+      <Profile session={session!} />
     </Show>
   );
 }
 
-export function Profile(props: {session: SessionResponse}) {
+export function Profile(props: { session: SessionResponse }) {
   const [profile, setProfile] = createStore<ProfileStore>({
     name: undefined,
     address: undefined,
@@ -35,20 +34,14 @@ export function Profile(props: {session: SessionResponse}) {
   let eventsourceBadges: EventSource | undefined;
 
   onMount(async () => {
-    eventsourceUser = await subscribeEvents(
-      `${api}/private/user`, params({}), params({}),
-      (data) => {
-        let user = User.parse(data)
-        setProfile({name: user.name ?? undefined, address: user.address});
-      }
-    );
+    eventsourceUser = await subscribeEvents(`${api}/private/user`, params({}), params({}), (data) => {
+      let user = User.parse(data);
+      setProfile({ name: user.name ?? undefined, address: user.address });
+    });
 
-    eventsourceBadges = await subscribeEvents(
-      `${api}/private/engagement/badges/received`, params({}), params({}),
-      (data) => {
-        setProfile("badges", (prev) => [...prev, ...Badge.array().parse(data)]);
-      }
-    );
+    eventsourceBadges = await subscribeEvents(`${api}/private/engagement/badges/received`, params({}), params({}), (data) => {
+      setProfile("badges", (prev) => [...prev, ...Badge.array().parse(data)]);
+    });
   });
 
   onCleanup(async () => {
@@ -58,11 +51,7 @@ export function Profile(props: {session: SessionResponse}) {
 
   return (
     <div class="grid grid-cols-[auto_1fr] items-center justify-center gap-6 bg-gray-2 p-2">
-      <img
-        src={joinPaths(base, "gfx/user.svg")}
-        alt="profile photo"
-        class="m-2 h-16 w-16 rounded-full md:m-4 md:h-28 md:w-28"
-      />
+      <img src={joinPaths(base, "gfx/user.svg")} alt="profile photo" class="m-2 h-16 w-16 rounded-full md:m-4 md:h-28 md:w-28" />
       <div class="grid grid-rows-[auto_auto_auto] gap-1">
         <p class="text-xl font-extrabold md:text-3xl">{profile.name}</p>
         <div class="grid grid-cols-[minmax(0px,auto)_auto] items-center justify-start gap-3">
