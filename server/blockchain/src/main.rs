@@ -1,7 +1,3 @@
-#![feature(async_fn_in_trait)]
-#![feature(const_trait_impl)]
-#![feature(result_option_inspect)]
-
 pub mod confirmation;
 pub mod contracts;
 pub mod database;

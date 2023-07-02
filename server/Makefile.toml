@@ -26,6 +26,7 @@ script = "cargo test --release"
 [tasks.clean]
 script = "cargo clean"
 dependencies = [
+    { name = "clean", path = "blockchain" },
     { name = "clean", path = "engagement" },
     { name = "clean", path = "engine" },
     { name = "clean", path = "worker" },
@@ -72,5 +73,5 @@ dependencies = [
     "check",
     "clippy",
     "test",
-    "udeps",
+    # "udeps",
 ]

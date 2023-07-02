@@ -132,3 +132,8 @@ To remove application do
 ```shell
 skaffold --kubeconfig ~/.kube/prod.conf --default-repo registry.internal.visoft.solutions delete
 ```
+
+# cargo udeps fix in stable
+```
+export RUSTC_BOOTSTRAP=1
+```

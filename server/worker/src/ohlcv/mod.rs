@@ -154,33 +154,35 @@ impl OhlcvEngine {
                 .get_last_for_asset_pair(quote_asset_id, base_asset_id)
                 .await?;
 
-            if let Some(last_trade) = last_trade && reference_point <= last_trade.created_at {
-                let last_topen = match kind {
-                    CandlestickType::Interval => {
-                        last_trade.created_at - Duration::microseconds((last_trade.created_at.timestamp_micros() - reference_point.timestamp_micros()).saturating_abs() % span)
-                    }
-                    CandlestickType::Tick => {
-                        // TODO code it
-                        last_trade.created_at
-                    }
-                };
+            if let Some(last_trade) = last_trade {
+                if reference_point <= last_trade.created_at {
+                    let last_topen = match kind {
+                        CandlestickType::Interval => {
+                            last_trade.created_at - Duration::microseconds((last_trade.created_at.timestamp_micros() - reference_point.timestamp_micros()).saturating_abs() % span)
+                        }
+                        CandlestickType::Tick => {
+                            // TODO code it
+                            last_trade.created_at
+                        }
+                    };
 
-                let mut last_candle_trades = self.trades_manager.get_after_for_asset_pair(quote_asset_id, base_asset_id, last_topen)
-                .map(|trade| {
-                    match trade {
-                        Ok(trade) => {
-                            if trade.is_opposite(quote_asset_id, base_asset_id) {
-                                Ok(trade.inverse())
-                            } else {
-                                Ok(trade)
-                            }
-                        },
-                        Err(err) => Err(err)
-                    }
-                });
+                    let mut last_candle_trades = self.trades_manager.get_after_for_asset_pair(quote_asset_id, base_asset_id, last_topen)
+                    .map(|trade| {
+                        match trade {
+                            Ok(trade) => {
+                                if trade.is_opposite(quote_asset_id, base_asset_id) {
+                                    Ok(trade.inverse())
+                                } else {
+                                    Ok(trade)
+                                }
+                            },
+                            Err(err) => Err(err)
+                        }
+                    });
 
-                while let Some(trade) = last_candle_trades.next().await {
-                    self.update(&mut candlestick, trade?.into(), kind.to_owned(),reference_point.to_owned(), span)?;
+                    while let Some(trade) = last_candle_trades.next().await {
+                        self.update(&mut candlestick, trade?.into(), kind.to_owned(),reference_point.to_owned(), span)?;
+                    }
                 }
             };
 
