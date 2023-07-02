@@ -35,8 +35,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
@@ -44,9 +50,18 @@
           }
         }
       ],
-      "nullable": [false, false, false, false, false, false],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
       "parameters": {
-        "Left": ["Uuid"]
+        "Left": [
+          "Uuid"
+        ]
       }
     },
     "query": "\n            SELECT\n                id,\n                is_active,\n                maker_id,\n                quote_asset_id,\n                base_asset_id,\n                quote_asset_volume_left as \"quote_asset_volume_left: Fraction\"\n            FROM spot.orders\n            WHERE spot.orders.id = $1\n            "
@@ -63,8 +78,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
@@ -81,7 +102,11 @@
       "columns": [],
       "nullable": [],
       "parameters": {
-        "Left": ["Uuid", "Bool", "Timestamptz"]
+        "Left": [
+          "Uuid",
+          "Bool",
+          "Timestamptz"
+        ]
       }
     },
     "query": "\n            UPDATE \n                spot.orders \n            SET\n                is_active = $2,\n                last_modification_at = $3\n            WHERE\n                id = $1\n            "
@@ -101,8 +126,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
@@ -116,8 +147,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
@@ -131,8 +168,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
@@ -140,7 +183,12 @@
           }
         }
       ],
-      "nullable": [false, false, false, false],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
       "parameters": {
         "Left": [
           "Uuid",
@@ -149,8 +197,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
@@ -176,8 +230,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
@@ -187,8 +247,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
@@ -198,8 +264,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
@@ -209,8 +281,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
@@ -220,8 +298,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
@@ -249,8 +333,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
@@ -276,8 +366,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
@@ -291,8 +387,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
@@ -300,9 +402,15 @@
           }
         }
       ],
-      "nullable": [false, false, false],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
       "parameters": {
-        "Left": ["Uuid"]
+        "Left": [
+          "Uuid"
+        ]
       }
     },
     "query": "\n            SELECT\n                id,\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\"\n            FROM assets\n            WHERE assets.id = $1\n            "
@@ -322,8 +430,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
@@ -331,9 +445,15 @@
           }
         }
       ],
-      "nullable": [false, false],
+      "nullable": [
+        false,
+        false
+      ],
       "parameters": {
-        "Left": ["Uuid", "Uuid"]
+        "Left": [
+          "Uuid",
+          "Uuid"
+        ]
       }
     },
     "query": "\n            SELECT\n                id,\n                balance as \"balance: Fraction\"\n            FROM valuts\n            WHERE user_id = $1\n            AND asset_id = $2\n            "
@@ -353,8 +473,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
@@ -362,9 +488,17 @@
           }
         }
       ],
-      "nullable": [false, false],
+      "nullable": [
+        false,
+        false
+      ],
       "parameters": {
-        "Left": ["Uuid", "Uuid", "Timestamptz", "Timestamptz"]
+        "Left": [
+          "Uuid",
+          "Uuid",
+          "Timestamptz",
+          "Timestamptz"
+        ]
       }
     },
     "query": "\n            INSERT INTO valuts\n                (user_id, asset_id, balance, last_modification_at, created_at)\n            VALUES ($1, $2, (0,1)::fraction, $3, $4)\n            RETURNING id, balance as \"balance: Fraction\"\n            "
@@ -382,8 +516,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
@@ -393,8 +533,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
@@ -404,8 +550,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
@@ -415,8 +567,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
@@ -441,8 +599,14 @@
             "Custom": {
               "kind": {
                 "Composite": [
-                  ["numer", "Numeric"],
-                  ["denom", "Numeric"]
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
                 ]
               },
               "name": "fraction"
