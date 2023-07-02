@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: server-engine-deployment
+  namespace: prod-ksox-finance
   labels:
     app: server-engine
 spec:
@@ -42,6 +43,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: server-engine-service
+  namespace: prod-ksox-finance
 spec:
   selector:
     app: server-engine

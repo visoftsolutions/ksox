@@ -1,5 +1,47 @@
 {
   "db": "PostgreSQL",
+  "090de36fab72a298c0c4d41d4f5792d02eacc327896dc8c59e555bc275c3e66e": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "decimals: Fraction",
+          "ordinal": 1,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Bpchar"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                decimals as \"decimals: Fraction\"\n            FROM assets\n            WHERE address = $1\n            "
+  },
   "0ea5b4f916f957f2804ecd8c6191e4c86692fa53ee5b713e396810e08113954f": {
     "describe": {
       "columns": [
@@ -131,6 +173,26 @@
       }
     },
     "query": "\n            INSERT INTO withdraws\n                (created_at, last_modification_at, user_id, asset_id, tx_hash, amount, confirmations)\n            VALUES\n                ($1, $2, $3, $4, $5, $6::fraction, $7::fraction)\n            RETURNING id, created_at, last_modification_at, user_id, asset_id, tx_hash as \"tx_hash: TxHash\", amount as \"amount: Fraction\", confirmations as \"confirmations: Fraction\"\n            "
+  },
+  "2792052dcb5c916921881ec91f5341cfc26273c1a9240520cad4eed2cd6fc40a": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Bpchar"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                id\n            FROM users\n            WHERE address = $1\n            "
   },
   "63ab0e7577b06975b0c1c3f0f94a7e2946c8e890d9ba7544764ac8738efae33c": {
     "describe": {

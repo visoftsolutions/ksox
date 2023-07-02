@@ -74,6 +74,14 @@ impl Fraction {
     pub fn denom(&self) -> &BigInt {
         self.0.denom()
     }
+
+    pub fn from_bytes_le(bytes: &[u8]) -> Self {
+        Self::from(BigInt::from_bytes_le(Sign::Plus, bytes))
+    }
+
+    pub fn from_bytes_be(bytes: &[u8]) -> Self {
+        Self::from(BigInt::from_bytes_be(Sign::Plus, bytes))
+    }
 }
 
 impl Neg for Fraction {
@@ -142,6 +150,12 @@ impl From<(BigInt, BigInt)> for Fraction {
 impl From<usize> for Fraction {
     fn from(value: usize) -> Self {
         Self(BigRational::from_integer(value.into()))
+    }
+}
+
+impl From<BigInt> for Fraction {
+    fn from(value: BigInt) -> Self {
+        Self(BigRational::from(value))
     }
 }
 

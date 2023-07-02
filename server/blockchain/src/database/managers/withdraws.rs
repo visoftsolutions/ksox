@@ -1,28 +1,26 @@
 use chrono::Utc;
 use evm::txhash::TxHash;
 use fraction::Fraction;
-use sqlx::{postgres::PgQueryResult, Postgres, Transaction};
+use sqlx::{postgres::PgQueryResult, PgPool};
 
-use super::FlowManager;
-use crate::database::projections::{Flow, FlowInsert};
+use crate::database::projections::withdraw::{Withdraw, WithdrawInsert};
+
 #[derive(Debug, Clone)]
-pub struct WithdrawsManager {}
+pub struct WithdrawsManager {
+    database: PgPool,
+}
 
 impl WithdrawsManager {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(database: PgPool) -> Self {
+        Self { database }
     }
 }
 
-impl FlowManager for WithdrawsManager {
-    async fn insert<'t, 'p>(
-        &self,
-        pool: &'t mut Transaction<'p, Postgres>,
-        flow: FlowInsert,
-    ) -> sqlx::Result<Flow> {
+impl WithdrawsManager {
+    pub async fn insert<'t, 'p>(&self, withdraw: WithdrawInsert) -> sqlx::Result<Withdraw> {
         let now = Utc::now();
         sqlx::query_as!(
-            Flow,
+            Withdraw,
             r#"
             INSERT INTO withdraws
                 (created_at, last_modification_at, user_id, asset_id, tx_hash, amount, confirmations)
@@ -32,21 +30,17 @@ impl FlowManager for WithdrawsManager {
             "#,
             now,
             now,
-            flow.user_id,
-            flow.asset_id,
-            flow.tx_hash.to_string() as _,
-            flow.amount.to_tuple_string() as _,
-            flow.confirmations.to_tuple_string() as _,
+            withdraw.user_id,
+            withdraw.asset_id,
+            withdraw.tx_hash.to_string() as _,
+            withdraw.amount.to_tuple_string() as _,
+            withdraw.confirmations.to_tuple_string() as _,
         )
-        .fetch_one(pool)
+        .fetch_one(&self.database)
         .await
     }
 
-    async fn update<'t, 'p>(
-        &self,
-        pool: &'t mut Transaction<'p, Postgres>,
-        flow: Flow,
-    ) -> sqlx::Result<PgQueryResult> {
+    pub async fn update<'t, 'p>(&self, withdraw: Withdraw) -> sqlx::Result<PgQueryResult> {
         let now = Utc::now();
         sqlx::query!(
             r#"
@@ -58,11 +52,11 @@ impl FlowManager for WithdrawsManager {
             WHERE
                 id = $1
             "#,
-            flow.id,
-            flow.confirmations.to_tuple_string() as _,
+            withdraw.id,
+            withdraw.confirmations.to_tuple_string() as _,
             now
         )
-        .execute(pool)
+        .execute(&self.database)
         .await
     }
 }

@@ -1,60 +1,42 @@
-use std::cmp::Ordering;
-
 use ethereum_types::H256;
 use ethers::{
     providers::{Provider, ProviderError, Ws},
     types::Block,
 };
-use fraction::{num_traits::One, Fraction};
 use futures::{
     stream::{self, StreamExt},
     TryFutureExt,
 };
-use num_bigint::BigInt;
-use num_traits::Zero;
-use sqlx::PgPool;
 
 use crate::{
     contracts::{confirmations, transaction_block},
-    database::managers::FlowManager,
+    database::projections::Confirmable,
 };
 #[derive(Clone)]
-pub struct ConfirmationQueueEntry<E> {
+pub struct ConfirmationQueueEntry<E: Confirmable> {
     entity: E,
     tx_hash: H256,
     tx_block: Block<H256>,
-    confirmations: Fraction,
 }
 
-impl<E> ConfirmationQueueEntry<E> {
+impl<E: Confirmable> ConfirmationQueueEntry<E> {
     pub fn new(entity: E, tx_hash: H256, tx_block: Block<H256>) -> Self {
         Self {
             entity,
             tx_hash,
             tx_block,
-            confirmations: Fraction::from((BigInt::zero(), BigInt::from(1000))),
         }
     }
 }
 
-pub struct ConfirmationQueue<'a, Manager, E>
-where
-    Manager: FlowManager,
-{
-    database: &'a PgPool,
-    manager: &'a Manager,
+pub struct ConfirmationQueue<'a, E: Confirmable> {
     provider: &'a Provider<Ws>,
     entries: Vec<ConfirmationQueueEntry<E>>,
 }
 
-impl<'a, Manager, E> ConfirmationQueue<'a, Manager, E>
-where
-    Manager: FlowManager,
-{
-    pub fn new(database: &'a PgPool, manager: &'a Manager, provider: &'a Provider<Ws>) -> Self {
+impl<'a, E: Confirmable> ConfirmationQueue<'a, E> {
+    pub fn new(provider: &'a Provider<Ws>) -> Self {
         Self {
-            database,
-            manager,
             provider,
             entries: Vec::new(),
         }
@@ -80,19 +62,12 @@ where
             .fold(
                 (vec![], vec![]),
                 |(mut ready, mut not_ready), (mut f, block)| async move {
-                    if let Ok(Some(confirmations)) = confirmations(block, &f.tx_block)
-                        .await
-                        .map(|e| Fraction::from_raw((e.into(), f.confirmations.denom().clone())))
-                    {
-                        match confirmations.cmp(&Fraction::one()) {
-                            Ordering::Equal | Ordering::Greater => {
-                                f.confirmations = confirmations;
-                                ready.push(f);
-                            }
-                            Ordering::Less => {
-                                f.confirmations = confirmations;
-                                not_ready.push(f);
-                            }
+                    if let Ok(confirmations) = confirmations(block, &f.tx_block).await {
+                        f.entity.set(confirmations);
+                        if f.entity.is_confirmed() {
+                            ready.push(f);
+                        } else {
+                            not_ready.push(f);
                         }
                     }
                     (ready, not_ready)
@@ -114,20 +89,15 @@ where
             .fold(
                 (vec![], vec![]),
                 |(mut confirmed, mut not_confirmed), (mut f, provider, block)| async move {
-                    if let Ok(Some(confirmations)) = transaction_block(provider, f.tx_hash)
+                    if let Ok(confirmations) = transaction_block(provider, f.tx_hash)
                         .and_then(|tx_block| async move { confirmations(block, &tx_block).await })
                         .await
-                        .map(|e| Fraction::from_raw((e.into(), f.confirmations.denom().clone())))
                     {
-                        match confirmations.cmp(&Fraction::one()) {
-                            Ordering::Equal | Ordering::Greater => {
-                                f.confirmations = confirmations;
-                                confirmed.push(f);
-                            }
-                            Ordering::Less => {
-                                f.confirmations = confirmations;
-                                not_confirmed.push(f);
-                            }
+                        f.entity.set(confirmations);
+                        if f.entity.is_confirmed() {
+                            confirmed.push(f);
+                        } else {
+                            not_confirmed.push(f);
                         }
                     }
                     (confirmed, not_confirmed)
@@ -136,7 +106,7 @@ where
             .await
     }
 
-    pub async fn confirmation_step(&mut self, block: Block<H256>) -> sqlx::Result<Vec<E>> {
+    pub async fn confirmation_step(&mut self, block: &Block<H256>) -> sqlx::Result<Vec<E>> {
         let (ready, mut not_ready) =
             Self::eval_ready(self.entries.drain(0..).collect(), &block).await;
         let (confirmed, not_confirmed) = Self::eval_confirmed(ready, &self.provider, &block).await;

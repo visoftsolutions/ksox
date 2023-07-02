@@ -31,6 +31,12 @@ impl From<TxHash> for ethereum_types::H256 {
     }
 }
 
+impl From<ethereum_types::H256> for TxHash {
+    fn from(val: ethereum_types::H256) -> Self {
+        Self(val)
+    }
+}
+
 impl Deref for TxHash {
     type Target = ethereum_types::Secret;
 

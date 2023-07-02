@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: web-processor-deployment
+  namespace: prod-ksox-finance
   labels:
     app: web-processor
 spec:
@@ -30,6 +31,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: web-processor-service
+  namespace: prod-ksox-finance
 spec:
   selector:
     app: web-processor
@@ -38,26 +40,27 @@ spec:
       port: 80
       targetPort: 80
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
 metadata:
-  name: web-processor-ingress
-  annotations:
-    nginx.ingress.kubernetes.io/use-regex: "true"
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
+  name: web-exchange-route
+  namespace: prod-ksox-finance
 spec:
-  tls:
-    - hosts:
-        - pay.ksox.finance
-      secretName: ksox-finance-tls
+  parentRefs:
+    - name: prod-gateway
+      namespace: prod
+  hostnames:
+    - pay.ksox.finance
   rules:
-    - host: pay.ksox.finance
-      http:
-        paths:
-          - path: /(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: web-processor-service
-                port:
-                  number: 80
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+    - matches:
+      - path:
+          type: PathPrefix
+          value: /
+      backendRefs:
+      - name: web-processor-service
+        port: 80

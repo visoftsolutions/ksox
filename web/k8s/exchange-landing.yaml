@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: web-exchange-landing-deployment
+  namespace: prod-ksox-finance
   labels:
     app: web-exchange-landing
 spec:
@@ -30,6 +31,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: web-exchange-landing-service
+  namespace: prod-ksox-finance
 spec:
   selector:
     app: web-exchange-landing
@@ -38,28 +40,31 @@ spec:
       port: 80
       targetPort: 80
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
 metadata:
-  name: web-exchange-landing-ingress
-  annotations:
-    nginx.ingress.kubernetes.io/use-regex: "true"
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
-    nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
+  name: web-exchange-landing-route
+  namespace: prod-ksox-finance
 spec:
-  tls:
-    - hosts:
-        - ksox.finance
-        - www.ksox.finance
-      secretName: ksox-finance-tls
+  parentRefs:
+    - name: prod-gateway
+      namespace: prod
+  hostnames:
+    - ksox.finance
+    - www.ksox.finance
   rules:
-    - host: www.ksox.finance
-      http:
-        paths:
-          - path: /(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: web-exchange-landing-service
-                port:
-                  number: 80
+    - filters:
+        - type: URLRewrite
+          urlRewrite:
+            hostname: www.ksox.finance
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+    - matches:
+      - path:
+          type: PathPrefix
+          value: /
+      backendRefs:
+      - name: web-exchange-landing-service
+        port: 80

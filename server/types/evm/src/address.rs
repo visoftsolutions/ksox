@@ -3,7 +3,7 @@ use std::{io, ops::Deref, str::FromStr};
 use serde::{Deserialize, Serialize};
 use sqlx::{
     postgres::{PgArgumentBuffer, PgValueRef},
-    Decode, Encode, Postgres,
+    Decode, Encode, Postgres, Type, TypeInfo,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
@@ -31,11 +31,26 @@ impl From<Address> for ethereum_types::H160 {
     }
 }
 
+impl From<ethereum_types::H160> for Address {
+    fn from(val: ethereum_types::H160) -> Self {
+        Self(val)
+    }
+}
+
 impl Deref for Address {
     type Target = ethereum_types::Address;
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl Type<Postgres> for Address {
+    fn type_info() -> <Postgres as sqlx::Database>::TypeInfo {
+        sqlx::postgres::PgTypeInfo::with_name("CHAR[]")
+    }
+    fn compatible(ty: &<Postgres as sqlx::Database>::TypeInfo) -> bool {
+        ty.name() == "CHAR[]"
     }
 }
 

@@ -1,5 +1,6 @@
 #![feature(async_fn_in_trait)]
 #![feature(const_trait_impl)]
+#![feature(result_option_inspect)]
 
 pub mod confirmation;
 pub mod contracts;
@@ -12,7 +13,7 @@ use std::io;
 use contracts::treasury::Treasury;
 use database::managers::notification::NotificationManager;
 use engine_base::engine_client::EngineClient;
-use ethers::providers::{Http, Provider, Ws};
+use ethers::providers::{Provider, Ws};
 use models::BlockchainManager;
 use sqlx::postgres::PgPoolOptions;
 

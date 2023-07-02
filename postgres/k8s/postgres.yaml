@@ -2,6 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-pv-claim
+  namespace: prod-ksox-finance
 spec:
   storageClassName: openebs-hostpath
   accessModes:
@@ -14,6 +15,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres-deployment
+  namespace: prod-ksox-finance
   labels:
     app: postgres-database
 spec:
@@ -56,6 +58,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres-service
+  namespace: prod-ksox-finance
 spec:
   selector:
     app: postgres-database
