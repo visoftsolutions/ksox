@@ -57,14 +57,10 @@ spec:
         - type: URLRewrite
           urlRewrite:
             hostname: www.ksox.finance
-        - type: RequestRedirect
-          requestRedirect:
-            scheme: https
-            statusCode: 301
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
+        # - type: RequestRedirect
+        #   requestRedirect:
+        #     scheme: https
+        #     statusCode: 301
       backendRefs:
         - name: web-exchange-landing-service
           port: 80

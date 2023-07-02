@@ -2,6 +2,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: prod-ksox-finance-cert
+  namespace: prod
 spec:
   secretName: prod-ksox-finance-tls
   dnsNames:
@@ -17,6 +18,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: prod-ksox-exchange-cert
+  namespace: prod
 spec:
   secretName: prod-ksox-exchange-tls
   dnsNames:

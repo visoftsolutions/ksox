@@ -100,16 +100,12 @@ spec:
         - path:
             type: PathPrefix
             value: /api
-    - filters:
+      filters:
         - type: URLRewrite
           urlRewrite:
             path:
               type: ReplacePrefixMatch
               replacePrefixMatch: /
-        - type: RequestRedirect
-          requestRedirect:
-            scheme: https
-            statusCode: 301
       backendRefs:
         - name: server-worker-service
           port: 80

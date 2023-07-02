@@ -52,15 +52,6 @@ spec:
   hostnames:
     - pay.ksox.finance
   rules:
-    - filters:
-        - type: RequestRedirect
-          requestRedirect:
-            scheme: https
-            statusCode: 301
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      backendRefs:
-        - name: web-processor-service
-          port: 80
+    - backendRefs:
+      - name: web-processor-service
+        port: 80

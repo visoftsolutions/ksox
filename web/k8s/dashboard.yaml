@@ -52,15 +52,7 @@ spec:
   hostnames:
     - dashboard.ksox.finance
   rules:
-    - filters:
-        - type: RequestRedirect
-          requestRedirect:
-            scheme: https
-            statusCode: 301
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      backendRefs:
-        - name: web-dashboard-service
-          port: 80
+    - backendRefs:
+      - name: web-dashboard-service
+        port: 80
+      
