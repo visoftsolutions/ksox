@@ -1,7 +1,7 @@
 use chrono::Utc;
 use evm::txhash::TxHash;
 use fraction::Fraction;
-use sqlx::{postgres::PgQueryResult, PgPool};
+use sqlx::{postgres::PgQueryResult, PgPool, Postgres, Transaction};
 
 use crate::database::projections::deposit::{Deposit, DepositInsert};
 
@@ -17,7 +17,7 @@ impl DepositsManager {
 }
 
 impl DepositsManager {
-    pub async fn insert<'t, 'p>(&self, deposit: DepositInsert) -> sqlx::Result<Deposit> {
+    pub async fn insert(&self, deposit: DepositInsert) -> sqlx::Result<Deposit> {
         let now = Utc::now();
         sqlx::query_as!(
             Deposit,
@@ -40,7 +40,11 @@ impl DepositsManager {
         .await
     }
 
-    pub async fn update<'t, 'p>(&self, deposit: Deposit) -> sqlx::Result<PgQueryResult> {
+    pub async fn update<'t, 'p>(
+        &self,
+        pool: &'t mut Transaction<'p, Postgres>,
+        deposit: Deposit,
+    ) -> sqlx::Result<PgQueryResult> {
         let now = Utc::now();
         sqlx::query!(
             r#"
@@ -56,7 +60,7 @@ impl DepositsManager {
             deposit.confirmations.to_tuple_string() as _,
             now
         )
-        .execute(&self.database)
+        .execute(pool)
         .await
     }
 }

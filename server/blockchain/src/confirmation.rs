@@ -13,13 +13,13 @@ use crate::{
     database::projections::Confirmable,
 };
 #[derive(Clone)]
-pub struct ConfirmationQueueEntry<E: Confirmable> {
+pub struct ConfirmationQueueEntry<E: Confirmable + Clone> {
     entity: E,
     tx_hash: H256,
     tx_block: Block<H256>,
 }
 
-impl<E: Confirmable> ConfirmationQueueEntry<E> {
+impl<E: Confirmable + Clone> ConfirmationQueueEntry<E> {
     pub fn new(entity: E, tx_hash: H256, tx_block: Block<H256>) -> Self {
         Self {
             entity,
@@ -29,12 +29,12 @@ impl<E: Confirmable> ConfirmationQueueEntry<E> {
     }
 }
 
-pub struct ConfirmationQueue<'a, E: Confirmable> {
+pub struct ConfirmationQueue<'a, E: Confirmable + Clone> {
     provider: &'a Provider<Ws>,
     entries: Vec<ConfirmationQueueEntry<E>>,
 }
 
-impl<'a, E: Confirmable> ConfirmationQueue<'a, E> {
+impl<'a, E: Confirmable + Clone> ConfirmationQueue<'a, E> {
     pub fn new(provider: &'a Provider<Ws>) -> Self {
         Self {
             provider,
@@ -106,13 +106,19 @@ impl<'a, E: Confirmable> ConfirmationQueue<'a, E> {
             .await
     }
 
-    pub async fn confirmation_step(&mut self, block: &Block<H256>) -> sqlx::Result<Vec<E>> {
+    pub async fn confirmation_step(
+        &mut self,
+        block: &Block<H256>,
+    ) -> sqlx::Result<(Vec<E>, Vec<E>)> {
         let (ready, mut not_ready) =
             Self::eval_ready(self.entries.drain(0..).collect(), &block).await;
         let (confirmed, not_confirmed) = Self::eval_confirmed(ready, &self.provider, &block).await;
         not_ready.extend(not_confirmed.into_iter());
-        self.entries.extend(not_ready);
+        self.entries.extend(not_ready.clone());
 
-        Ok(confirmed.into_iter().map(|f| f.entity).collect())
+        Ok((
+            confirmed.into_iter().map(|f| f.entity).collect(),
+            not_ready.into_iter().map(|f| f.entity).collect(),
+        ))
     }
 }

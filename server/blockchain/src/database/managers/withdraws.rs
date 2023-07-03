@@ -1,7 +1,7 @@
 use chrono::Utc;
 use evm::txhash::TxHash;
 use fraction::Fraction;
-use sqlx::{postgres::PgQueryResult, PgPool};
+use sqlx::{postgres::PgQueryResult, PgPool, Postgres, Transaction};
 
 use crate::database::projections::withdraw::{Withdraw, WithdrawInsert};
 
@@ -40,7 +40,11 @@ impl WithdrawsManager {
         .await
     }
 
-    pub async fn update<'t, 'p>(&self, withdraw: Withdraw) -> sqlx::Result<PgQueryResult> {
+    pub async fn update<'t, 'p>(
+        &self,
+        pool: &'t mut Transaction<'p, Postgres>,
+        withdraw: Withdraw,
+    ) -> sqlx::Result<PgQueryResult> {
         let now = Utc::now();
         sqlx::query!(
             r#"
@@ -56,7 +60,7 @@ impl WithdrawsManager {
             withdraw.confirmations.to_tuple_string() as _,
             now
         )
-        .execute(&self.database)
+        .execute(pool)
         .await
     }
 }

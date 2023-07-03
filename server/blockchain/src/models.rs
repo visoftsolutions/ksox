@@ -1,19 +1,24 @@
+use std::pin::Pin;
+
 pub use engine::matching_engine::models::{burn, mint};
 use ethers::{
     prelude::*,
     providers::{Provider, Ws},
 };
+use evm::txhash::TxHash;
 use fraction::Fraction;
+use futures::{Future, TryFutureExt};
 use sqlx::PgPool;
 use tokio::{
     select,
     sync::{mpsc, oneshot},
+    task::JoinError,
 };
 use tonic::{transport::Channel, Status};
 
 use crate::{
     confirmation::ConfirmationQueue,
-    contracts::treasury::{Treasury, TreasuryEvents},
+    contracts::treasury::{DepositFilter, Treasury, TreasuryEvents, WithdrawFilter},
     database::{
         managers::{
             assets::AssetsManager, deposits::DepositsManager,
@@ -56,7 +61,11 @@ impl BlockchainManager {
     pub async fn start(
         mut self,
     ) -> Result<BlockchainManagerController, ContractError<Provider<Ws>>> {
-        let (shutdown_tx, mut shutdown_rx) = oneshot::channel::<()>();
+        let (shutdown_tx_confirmation, mut shutdown_rx_confirmation) = oneshot::channel::<()>();
+        let (insert_deposit_event_tx, mut insert_deposit_event_rx) =
+            mpsc::channel::<(DepositFilter, TxHash)>(100);
+        let (insert_withdraw_event_tx, mut insert_withdraw_event_rx) =
+            mpsc::channel::<(WithdrawFilter, TxHash)>(100);
         let join_handle_confirmation: tokio::task::JoinHandle<Result<(), BlockchainManagerError>> =
             tokio::spawn(async move {
                 let contract_events = self.contract.events();
@@ -70,56 +79,133 @@ impl BlockchainManager {
                 let mut deposits_queue = ConfirmationQueue::<Deposit>::new(&self.provider);
                 let mut withdraws_queue = ConfirmationQueue::<Withdraw>::new(&self.provider);
 
+                let deposit_event_to_insert = |event: DepositFilter,
+                                               tx_hash: TxHash|
+                 -> Pin<
+                    Box<dyn Future<Output = Result<DepositInsert, sqlx::Error>> + Send>,
+                > {
+                    let asset = assets_manager.get_by_address(event.token_address.into());
+                    let user = users_manager.get_by_address(event.user_address.into());
+                    Box::pin(async move {
+                        let asset = asset.await?;
+                        let user = user.await?;
+                        let mut bytes = [0_u8; 32];
+                        event.amount.to_little_endian(&mut bytes);
+                        Ok(DepositInsert {
+                            user_id: user.id,
+                            asset_id: asset.id,
+                            amount: Fraction::from_bytes_le(&bytes) / asset.decimals,
+                            tx_hash: tx_hash.into(),
+                            confirmations: Fraction::default(),
+                        })
+                    })
+                };
+
+                let withdraw_event_to_insert = |event: WithdrawFilter,
+                                                tx_hash: TxHash|
+                 -> Pin<
+                    Box<dyn Future<Output = Result<WithdrawInsert, sqlx::Error>> + Send>,
+                > {
+                    let asset = assets_manager.get_by_address(event.token_address.into());
+                    let user = users_manager.get_by_address(event.user_address.into());
+                    Box::pin(async move {
+                        let asset = asset.await?;
+                        let user = user.await?;
+                        let mut bytes = [0_u8; 32];
+                        event.amount.to_little_endian(&mut bytes);
+                        Ok(WithdrawInsert {
+                            user_id: user.id,
+                            asset_id: asset.id,
+                            amount: Fraction::from_bytes_le(&bytes) / asset.decimals,
+                            tx_hash,
+                            confirmations: Fraction::default(),
+                        })
+                    })
+                };
+
                 loop {
                     select! {
-                        _ = &mut shutdown_rx => {
+                        _ = &mut shutdown_rx_confirmation => {
                             break;
                         },
-                        Some(log) = events_stream.next() => {
-                            let (event, meta) = log?;
-                            match event {
-                                TreasuryEvents::DepositFilter(event) => {
-                                    let asset = assets_manager.get_by_address(event.token_address.into()).await?;
-                                    let mut bytes = [0_u8; 32];
-                                    event.amount.to_little_endian(&mut bytes);
-                                    deposits_queue.insert(deposits_manager.insert(DepositInsert {
-                                        user_id: users_manager.get_by_address(event.user_address.into()).await?.id,
-                                        asset_id: asset.id,
-                                        amount: Fraction::from_bytes_le(&bytes) / asset.decimals,
-                                        tx_hash: meta.transaction_hash.into(),
-                                        confirmations: Fraction::default()
-                                    }).await?, meta.transaction_hash).await?;
-                                }
-                                TreasuryEvents::WithdrawFilter(event) => {
-                                    let asset = assets_manager.get_by_address(event.token_address.into()).await?;
-                                    let mut bytes = [0_u8; 32];
-                                    event.amount.to_little_endian(&mut bytes);
-                                    withdraws_queue.insert(withdraws_manager.insert(WithdrawInsert {
-                                        user_id: users_manager.get_by_address(event.user_address.into()).await?.id,
-                                        asset_id: asset.id,
-                                        amount: Fraction::from_bytes_le(&bytes) / asset.decimals,
-                                        tx_hash: meta.transaction_hash.into(),
-                                        confirmations: Fraction::default()
-                                    }).await?, meta.transaction_hash).await?;
-                                }
-                                _ => (),
+                        Some((event, tx_hash)) = insert_deposit_event_rx.recv() => {
+                            if let Err(err) = async {
+                                let insert = deposit_event_to_insert(event, tx_hash.clone()).await?;
+                                let deposit = deposits_manager.insert(insert).await?;
+                                Ok::<(), BlockchainManagerError>(deposits_queue.insert(deposit, *tx_hash).await?)
+                            }.await {
+                                tracing::error!("{err}");
+                            }
+                        },
+                        Some((event, tx_hash)) = insert_withdraw_event_rx.recv() => {
+                            if let Err(err) = async {
+                                let insert = withdraw_event_to_insert(event, tx_hash.clone()).await?;
+                                let deposit = withdraws_manager.insert(insert).await?;
+                                Ok::<(), BlockchainManagerError>(withdraws_queue.insert(deposit, *tx_hash).await?)
+                            }.await {
+                                tracing::error!("{err}");
+                            }
+                        },
+                        Some(Ok((event, meta))) = events_stream.next() => {
+                            if let Err(err) = async {
+                                Ok::<(), BlockchainManagerError>(
+                                    match event {
+                                        TreasuryEvents::DepositFilter(event) => {
+                                            let insert = deposit_event_to_insert(event, meta.transaction_hash.into()).await?;
+                                            let deposit = deposits_manager.insert(insert).await?;
+                                            deposits_queue.insert(deposit, meta.transaction_hash).await?;
+                                        }
+                                        TreasuryEvents::WithdrawFilter(event) => {
+                                            let insert = withdraw_event_to_insert(event, meta.transaction_hash.into()).await?;
+                                            let withdraw = withdraws_manager.insert(insert).await?;
+                                            withdraws_queue.insert(withdraw, meta.transaction_hash).await?;
+                                        }
+                                        _ => (),
+                                    }
+                                )
+                            }.await {
+                                tracing::error!("{err}");
                             }
                         },
                         Some(block) = blocks_stream.next() => {
-                            for deposit in deposits_queue.confirmation_step(&block).await?.into_iter() {
-                                self.engine_client.mint(TryInto::<MintRequest>::try_into(deposit)?).await?;
+                            if let Err(err) = async {
+                                let mut t = self.database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
+                                let (confirmed_deposit, not_confirmed_deposits) = deposits_queue.confirmation_step(&block).await?;
+                                let (confirmed_withdraw, not_confirmed_withdraw) = withdraws_queue.confirmation_step(&block).await?;
+
+                                for deposit in not_confirmed_deposits.into_iter() {
+                                    deposits_manager.update(&mut t, deposit).await?;
+                                }
+                                for deposit in confirmed_deposit.iter().cloned() {
+                                    deposits_manager.update(&mut t, deposit).await?;
+                                }
+                                for withdraw in not_confirmed_withdraw.into_iter() {
+                                    withdraws_manager.update(&mut t, withdraw).await?;
+                                }
+                                for withdraw in confirmed_withdraw.iter().cloned() {
+                                    withdraws_manager.update(&mut t, withdraw).await?;
+                                }
+
+
+                                for deposit in confirmed_deposit.into_iter() {
+                                    self.engine_client.mint(TryInto::<MintRequest>::try_into(deposit)?).await?;
+                                }
+                                for withdraw in confirmed_withdraw.into_iter() {
+                                    self.engine_client.burn(TryInto::<BurnRequest>::try_into(withdraw)?).await?;
+                                }
+
+                                Ok::<(), BlockchainManagerError>(t.commit().await?)
+                            }.await {
+                                tracing::error!("{err}");
                             }
 
-                            for withdraw in withdraws_queue.confirmation_step(&block).await?.into_iter() {
-                                self.engine_client.burn(TryInto::<BurnRequest>::try_into(withdraw)?).await?;
-                            }
                         }
                     }
                 }
 
                 Ok(())
             });
-        // monitor changes on valuts  trigger is
+        // monitor changes on valuts
         todo!()
     }
 }
@@ -143,15 +229,22 @@ pub enum BlockchainManagerError {
 
 #[derive(Debug)]
 pub struct BlockchainManagerController {
-    shutdown_tx: oneshot::Sender<()>,
-    join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>>,
+    shutdown_tx_confirmation: oneshot::Sender<()>,
+    join_handle_confirmation: tokio::task::JoinHandle<Result<(), BlockchainManagerError>>,
+    shutdown_tx_submission: oneshot::Sender<()>,
+    join_handle_submission: tokio::task::JoinHandle<Result<(), BlockchainManagerError>>,
 }
 impl BlockchainManagerController {
-    pub async fn shutdown(self) -> Result<(), tokio::task::JoinError> {
-        if self.shutdown_tx.send(()).is_err() {
+    pub async fn shutdown(self) -> Result<Result<(), BlockchainManagerError>, JoinError> {
+        if self.shutdown_tx_confirmation.send(()).is_err() {
             tracing::error!("Error: shutdown");
         }
-        self.join_handle.await?;
-        Ok(())
+        if self.shutdown_tx_submission.send(()).is_err() {
+            tracing::error!("Error: shutdown");
+        }
+        Ok(self
+            .join_handle_confirmation
+            .and_then(|_| async move { self.join_handle_submission.await })
+            .await?)
     }
 }
