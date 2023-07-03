@@ -1,4 +1,6 @@
-minikube start --cpus 4 --memory 8192 --addons=metallb
+#!/usr/bin/env bash
+
+minikube start --cpus 8 --memory 8192 --addons=metallb
 
 kubectl apply -f - <<EOF
 apiVersion: v1
@@ -33,14 +35,9 @@ helm install istiod istiod \
 
 kubectl label namespace default istio-injection=enabled
 
-helm install openebs openebs \
-    --atomic \
-    --create-namespace \
-    --repo https://openebs.github.io/charts \
-    --namespace openebs \
-    --wait
-
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
+
+kubectl wait pod --all -A --for condition=Ready --timeout=1h
 
 kubectl apply -f - <<EOF
 apiVersion: v1

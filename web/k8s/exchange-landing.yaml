@@ -21,11 +21,11 @@ spec:
             - containerPort: 80
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "500m"
+              memory: 200Mi
+              cpu: 200m
             limits:
-              memory: "256Mi"
-              cpu: "1000m"
+              memory: 1000Mi
+              cpu: 1000m
 ---
 apiVersion: v1
 kind: Service
@@ -50,17 +50,12 @@ spec:
     - name: prod-gateway
       namespace: prod
   hostnames:
-    - ksox.finance
     - www.ksox.finance
   rules:
-    # - filters:
-    #     - type: URLRewrite
-    #       urlRewrite:
-    #         hostname: www.ksox.finance
-        # - type: RequestRedirect
-        #   requestRedirect:
-        #     scheme: https
-        #     statusCode: 301
+    - filters:
+       - type: URLRewrite
+          urlRewrite:
+            hostname: www.ksox.finance
       backendRefs:
         - name: web-exchange-landing-service
           port: 80

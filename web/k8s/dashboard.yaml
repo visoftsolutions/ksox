@@ -21,11 +21,11 @@ spec:
             - containerPort: 80
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "500m"
+              memory: 200Mi
+              cpu: 200m
             limits:
-              memory: "256Mi"
-              cpu: "1000m"
+              memory: 1000Mi
+              cpu: 1000m
 ---
 apiVersion: v1
 kind: Service
@@ -53,6 +53,5 @@ spec:
     - dashboard.ksox.finance
   rules:
     - backendRefs:
-      - name: web-dashboard-service
-        port: 80
-      
+        - name: web-dashboard-service
+          port: 80
