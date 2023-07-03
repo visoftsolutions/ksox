@@ -14,7 +14,7 @@ cleanup() {
 trap cleanup INT
 
 # Get all Ingress resources from Minikube
-dns=$(kubectl get certificate -n default -o jsonpath='{range .items[*]}{.spec.dnsNames[*]}{"\n"}{end}')
+dns=$(kubectl get certificate -n prod -o jsonpath='{range .items[*]}{.spec.dnsNames[*]}{"\n"}{end}')
 ip=$(kubectl get gateway prod-gateway -n prod -o jsonpath='{.spec.addresses[0].value}')
 
 # Remove duplicates from Ingress hosts

@@ -53,10 +53,10 @@ spec:
     - ksox.finance
     - www.ksox.finance
   rules:
-    - filters:
-        - type: URLRewrite
-          urlRewrite:
-            hostname: www.ksox.finance
+    # - filters:
+    #     - type: URLRewrite
+    #       urlRewrite:
+    #         hostname: www.ksox.finance
         # - type: RequestRedirect
         #   requestRedirect:
         #     scheme: https
