@@ -56,7 +56,7 @@ spec:
   gatewayClassName: istio
   addresses:
     - type: IPAddress
-      value: 192.168.49.105
+      value: 192.168.49.100
   listeners:
     - name: http
       port: 80

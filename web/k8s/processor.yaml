@@ -43,7 +43,7 @@ spec:
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
 metadata:
-  name: web-exchange-route
+  name: web-processor-route
   namespace: prod-ksox-finance
 spec:
   parentRefs:
