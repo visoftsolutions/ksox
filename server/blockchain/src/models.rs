@@ -1,8 +1,7 @@
-use std::{collections::HashSet, pin::Pin};
+use std::{pin::Pin};
 
 pub use engine::matching_engine::models::{burn, mint};
 use ethers::{
-    etherscan::contract,
     prelude::*,
     providers::{Provider, Ws},
 };
@@ -16,13 +15,12 @@ use tokio::{
     task::JoinError,
 };
 use tonic::{transport::Channel, Status};
-use uuid::Uuid;
 
 use crate::{
     confirmation::{ConfirmationQueue, ConfirmationQueueError},
     contracts::{
         block_distance, current_block,
-        treasury::{BalanceUpdate, DepositFilter, Treasury, TreasuryEvents, WithdrawFilter},
+        treasury::{DepositFilter, Treasury, TreasuryEvents, WithdrawFilter},
     },
     database::{
         managers::{
