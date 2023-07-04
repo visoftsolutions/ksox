@@ -20,7 +20,6 @@ pub mod engine_base {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
-    let BLOCK_CONFIRMATIONS: usize = std::env::var("BLOCK_CONFIRMATIONS")?.parse()?;
     let database = PgPoolOptions::new()
         .max_connections(10)
         .connect(std::env::var("DATABASE_URL")?.as_str())
@@ -35,20 +34,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::sync::Arc::new(provider.clone()),
     );
 
-    let blockchain_manager = BlockchainManager::new(
-        database,
-        provider,
-        treasury,
-        engine_client,
-        notification_manager_controller
-            .get_subscriber()
-            .subscribe_to()
-            .await?,
-    );
+    let blockchain_manager = BlockchainManager::new(database, provider, treasury);
 
-    let confirmation_controller = blockchain_manager.start_confirmation().await;
+    let confirmation_controller = blockchain_manager.start_confirmation(engine_client).await;
+
+    let submission_controller = blockchain_manager
+        .start_submission(
+            notification_manager_controller
+                .get_subscriber()
+                .subscribe_to()
+                .await?,
+        )
+        .await;
 
     if let Err(err) = confirmation_controller.shutdown().await? {
+        tracing::error!("{err}");
+    }
+
+    if let Err(err) = submission_controller.shutdown().await? {
         tracing::error!("{err}");
     }
 

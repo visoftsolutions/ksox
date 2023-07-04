@@ -1,4 +1,4 @@
-use std::pin::Pin;
+use std::{pin::Pin, collections::HashSet};
 
 pub use engine::matching_engine::models::{burn, mint};
 use ethers::{
@@ -15,10 +15,11 @@ use tokio::{
     task::JoinError,
 };
 use tonic::{transport::Channel, Status};
+use uuid::Uuid;
 
 use crate::{
     confirmation::ConfirmationQueue,
-    contracts::treasury::{DepositFilter, Treasury, TreasuryEvents, WithdrawFilter},
+    contracts::{treasury::{DepositFilter, Treasury, TreasuryEvents, WithdrawFilter}, current_block, block_distance},
     database::{
         managers::{
             assets::AssetsManager, deposits::DepositsManager,
@@ -37,29 +38,20 @@ pub struct BlockchainManager {
     database: PgPool,
     provider: Provider<Ws>,
     contract: Treasury<Provider<Ws>>,
-    engine_client: EngineClient<Channel>,
-    notifications: mpsc::Receiver<NotificationManagerOutput>,
 }
 
 impl BlockchainManager {
-    pub fn new(
-        database: PgPool,
-        provider: Provider<Ws>,
-        contract: Treasury<Provider<Ws>>,
-        engine_client: EngineClient<Channel>,
-        notifications: mpsc::Receiver<NotificationManagerOutput>,
-    ) -> Self {
+    pub fn new(database: PgPool, provider: Provider<Ws>, contract: Treasury<Provider<Ws>>) -> Self {
         Self {
             database,
             provider,
             contract,
-            engine_client,
-            notifications,
         }
     }
 
     pub async fn start_confirmation(
         &self,
+        mut engine_client: EngineClient<Channel>,
     ) -> ConfirmationManagerController {
         let (shutdown_tx, mut shutdown_rx) = oneshot::channel::<()>();
         let (insert_deposit_event_tx, mut insert_deposit_event_rx) =
@@ -74,7 +66,6 @@ impl BlockchainManager {
         let withdraws_manager = WithdrawsManager::new(self.database.to_owned());
         let users_manager = UsersManager::new(self.database.to_owned());
         let assets_manager = AssetsManager::new(self.database.to_owned());
-        let mut engine_client = self.engine_client.to_owned();
         let join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>> = tokio::spawn(
             async move {
                 let mut blocks_stream = provider.subscribe_blocks().await?;
@@ -210,9 +201,82 @@ impl BlockchainManager {
 
     pub async fn start_submission(
         &self,
+        mut notifications: mpsc::Receiver<NotificationManagerOutput>,
     ) -> SubmissionManagerController {
+        let (shutdown_tx, mut shutdown_rx) = oneshot::channel::<()>();
+        let (set_changes_threshold_tx, mut set_changes_threshold_rx) = mpsc::channel::<usize>(100);
+        let (set_blocks_threshold_tx, mut set_blocks_threshold_rx) = mpsc::channel::<usize>(100);
+        let (push_tx, mut push_rx) = mpsc::channel::<()>(100);
 
-        todo!()
+        let database = self.database.to_owned();
+        let provider = self.provider.to_owned();
+        let join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>> =
+            tokio::spawn(async move {
+                let mut state = HashSet::<Uuid>::new();
+                let mut changes_threshold = 100;
+                let mut blocks_threshold = 10;
+                let mut last_block = current_block(&provider).await?;
+                let mut blocks_stream = provider.subscribe_blocks().await?;
+
+                let blockchain_set_balances = |state: &mut HashSet<Uuid>| -> Pin<Box<dyn Future<Output = Result<(), BlockchainManagerError>> + Send>> {
+                    todo!()
+                };
+
+                loop {
+                    select! {
+                        _ = &mut shutdown_rx => {
+                            break;
+                        },
+                        Some(threshold) = set_changes_threshold_rx.recv() => {
+                            changes_threshold = threshold;
+                        }
+                        Some(threshold) = set_blocks_threshold_rx.recv() => {
+                            blocks_threshold = threshold;
+                        }
+                        Some(_) = push_rx.recv() => {
+                            if let Err(err) = async {
+                                blockchain_set_balances(&mut state).await?;
+                                Ok::<(), BlockchainManagerError>(())
+                            }.await {
+                                tracing::error!("{err}")
+                            }
+                        }
+                        Some(NotificationManagerOutput::Valuts(valuts)) = notifications.recv() => {
+                            if let Err(err) = async {
+                                for id in valuts.into_iter().map(|f| f.id) {
+                                    state.insert(id);
+                                }
+    
+                                if state.len() >= changes_threshold{
+                                    blockchain_set_balances(&mut state).await?;
+                                }
+                                Ok::<(), BlockchainManagerError>(())
+                            }.await {
+                                tracing::error!("{err}")
+                            }
+                        }
+                        Some(block) = blocks_stream.next() => {
+                            if let Err(err) = async {
+                                if block_distance(&last_block, &block).await? >= blocks_threshold {
+                                    blockchain_set_balances(&mut state).await?;   
+                                    last_block = block;
+                                }
+                                Ok::<(), BlockchainManagerError>(())
+                            }.await {
+                                tracing::error!("{err}");
+                            }
+                        }
+                    }
+                }
+                Ok(())
+            });
+        SubmissionManagerController {
+            shutdown_tx,
+            join_handle,
+            set_changes_threshold_tx,
+            set_blocks_threshold_tx,
+            push_tx,
+        }
     }
 }
 
@@ -250,6 +314,9 @@ impl ConfirmationManagerController {
 pub struct SubmissionManagerController {
     shutdown_tx: oneshot::Sender<()>,
     join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>>,
+    set_changes_threshold_tx: mpsc::Sender<usize>,
+    set_blocks_threshold_tx: mpsc::Sender<usize>,
+    push_tx: mpsc::Sender<()>,
 }
 impl SubmissionManagerController {
     pub async fn shutdown(self) -> Result<Result<(), BlockchainManagerError>, JoinError> {
@@ -257,6 +324,18 @@ impl SubmissionManagerController {
             tracing::error!("Error: shutdown");
         }
         Ok(self.join_handle.await?)
+    }
+
+    pub async fn set_changes_threshold(&self, threshold: usize) -> Result<(), mpsc::error::SendError<usize>> {
+        self.set_changes_threshold_tx.send(threshold).await
+    }
+
+    pub async fn set_blocks_threshold(&self, threshold: usize) -> Result<(), mpsc::error::SendError<usize>> {
+        self.set_blocks_threshold_tx.send(threshold).await
+    }
+
+    pub async fn push(&self) -> Result<(), mpsc::error::SendError<()>> {
+        self.push_tx.send(()).await
     }
 }
 

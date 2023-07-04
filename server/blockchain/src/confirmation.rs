@@ -9,7 +9,7 @@ use futures::{
 };
 
 use crate::{
-    contracts::{confirmations, transaction_block},
+    contracts::{block_distance, transaction_block},
     database::projections::Confirmable,
 };
 #[derive(Clone)]
@@ -62,7 +62,7 @@ impl<'a, E: Confirmable + Clone> ConfirmationQueue<'a, E> {
             .fold(
                 (vec![], vec![]),
                 |(mut ready, mut not_ready), (mut f, block)| async move {
-                    if let Ok(confirmations) = confirmations(block, &f.tx_block).await {
+                    if let Ok(confirmations) = block_distance(block, &f.tx_block).await {
                         f.entity.set(confirmations);
                         if f.entity.is_confirmed() {
                             ready.push(f);
@@ -90,7 +90,7 @@ impl<'a, E: Confirmable + Clone> ConfirmationQueue<'a, E> {
                 (vec![], vec![]),
                 |(mut confirmed, mut not_confirmed), (mut f, provider, block)| async move {
                     if let Ok(confirmations) = transaction_block(provider, f.tx_hash)
-                        .and_then(|tx_block| async move { confirmations(block, &tx_block).await })
+                        .and_then(|tx_block| async move { block_distance(block, &tx_block).await })
                         .await
                     {
                         f.entity.set(confirmations);
