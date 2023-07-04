@@ -7,6 +7,7 @@ use futures::{
     stream::{self, StreamExt},
     TryFutureExt,
 };
+use thiserror::Error;
 
 use crate::{
     contracts::{block_distance, transaction_block},
@@ -42,7 +43,7 @@ impl<'a, E: Confirmable + Clone> ConfirmationQueue<'a, E> {
         }
     }
 
-    pub async fn insert(&mut self, entity: E, tx_hash: H256) -> Result<(), ProviderError> {
+    pub async fn insert(&mut self, entity: E, tx_hash: H256) -> Result<(), ConfirmationQueueError> {
         Ok(self.entries.push(ConfirmationQueueEntry::new(
             entity,
             tx_hash.clone(),
@@ -106,19 +107,22 @@ impl<'a, E: Confirmable + Clone> ConfirmationQueue<'a, E> {
             .await
     }
 
-    pub async fn confirmation_step(
-        &mut self,
-        block: &Block<H256>,
-    ) -> sqlx::Result<(Vec<E>, Vec<E>)> {
+    pub async fn confirmation_step(&mut self, block: &Block<H256>) -> (Vec<E>, Vec<E>) {
         let (ready, mut not_ready) =
             Self::eval_ready(self.entries.drain(0..).collect(), &block).await;
         let (confirmed, not_confirmed) = Self::eval_confirmed(ready, &self.provider, &block).await;
         not_ready.extend(not_confirmed.into_iter());
         self.entries.extend(not_ready.clone());
 
-        Ok((
+        (
             confirmed.into_iter().map(|f| f.entity).collect(),
             not_ready.into_iter().map(|f| f.entity).collect(),
-        ))
+        )
     }
+}
+
+#[derive(Error, Debug)]
+pub enum ConfirmationQueueError {
+    #[error(transparent)]
+    ProviderError(#[from] ProviderError),
 }

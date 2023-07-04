@@ -27,7 +27,10 @@ pub async fn current_block<'provider>(
     ws_provider: &'provider Provider<Ws>,
 ) -> Result<Block<H256>, ProviderError> {
     let block_number = ws_provider.get_block_number().await?;
-    Ok(ws_provider.get_block(block_number).await?.ok_or(ProviderError::CustomError("block not found".to_string()))?)
+    Ok(ws_provider
+        .get_block(block_number)
+        .await?
+        .ok_or(ProviderError::CustomError("block not found".to_string()))?)
 }
 
 pub async fn block_distance(

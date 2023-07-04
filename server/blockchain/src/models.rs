@@ -1,7 +1,8 @@
-use std::{pin::Pin, collections::HashSet};
+use std::{collections::HashSet, pin::Pin};
 
 pub use engine::matching_engine::models::{burn, mint};
 use ethers::{
+    etherscan::contract,
     prelude::*,
     providers::{Provider, Ws},
 };
@@ -18,12 +19,15 @@ use tonic::{transport::Channel, Status};
 use uuid::Uuid;
 
 use crate::{
-    confirmation::ConfirmationQueue,
-    contracts::{treasury::{DepositFilter, Treasury, TreasuryEvents, WithdrawFilter}, current_block, block_distance},
+    confirmation::{ConfirmationQueue, ConfirmationQueueError},
+    contracts::{
+        block_distance, current_block,
+        treasury::{BalanceUpdate, DepositFilter, Treasury, TreasuryEvents, WithdrawFilter},
+    },
     database::{
         managers::{
             assets::AssetsManager, deposits::DepositsManager,
-            notification::NotificationManagerOutput, users::UsersManager,
+            notification::NotificationManagerOutput, users::UsersManager, valuts::ValutsManager,
             withdraws::WithdrawsManager,
         },
         projections::{
@@ -32,6 +36,7 @@ use crate::{
         },
     },
     engine_base::{engine_client::EngineClient, BurnRequest, MintRequest},
+    submission::{SubmissionQueue, SubmissionQueueError},
 };
 
 pub struct BlockchainManager {
@@ -161,8 +166,8 @@ impl BlockchainManager {
                         Some(block) = blocks_stream.next() => {
                             if let Err(err) = async {
                                 let mut t = database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
-                                let (confirmed_deposit, not_confirmed_deposits) = deposits_queue.confirmation_step(&block).await?;
-                                let (confirmed_withdraw, not_confirmed_withdraw) = withdraws_queue.confirmation_step(&block).await?;
+                                let (confirmed_deposit, not_confirmed_deposits) = deposits_queue.confirmation_step(&block).await;
+                                let (confirmed_withdraw, not_confirmed_withdraw) = withdraws_queue.confirmation_step(&block).await;
                                 for deposit in not_confirmed_deposits.into_iter() {
                                     deposits_manager.update(&mut t, deposit).await?;
                                 }
@@ -208,19 +213,16 @@ impl BlockchainManager {
         let (set_blocks_threshold_tx, mut set_blocks_threshold_rx) = mpsc::channel::<usize>(100);
         let (push_tx, mut push_rx) = mpsc::channel::<()>(100);
 
-        let database = self.database.to_owned();
+        let contract = self.contract.to_owned();
+        let valuts_manager = ValutsManager::new(self.database.to_owned());
         let provider = self.provider.to_owned();
         let join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>> =
             tokio::spawn(async move {
-                let mut state = HashSet::<Uuid>::new();
-                let mut changes_threshold = 100;
+                let mut submission_queue = SubmissionQueue::new(&valuts_manager, &contract);
+                let mut changes_threshold = 10;
                 let mut blocks_threshold = 10;
                 let mut last_block = current_block(&provider).await?;
                 let mut blocks_stream = provider.subscribe_blocks().await?;
-
-                let blockchain_set_balances = |state: &mut HashSet<Uuid>| -> Pin<Box<dyn Future<Output = Result<(), BlockchainManagerError>> + Send>> {
-                    todo!()
-                };
 
                 loop {
                     select! {
@@ -235,7 +237,7 @@ impl BlockchainManager {
                         }
                         Some(_) = push_rx.recv() => {
                             if let Err(err) = async {
-                                blockchain_set_balances(&mut state).await?;
+                                submission_queue.submit().await?;
                                 Ok::<(), BlockchainManagerError>(())
                             }.await {
                                 tracing::error!("{err}")
@@ -244,11 +246,10 @@ impl BlockchainManager {
                         Some(NotificationManagerOutput::Valuts(valuts)) = notifications.recv() => {
                             if let Err(err) = async {
                                 for id in valuts.into_iter().map(|f| f.id) {
-                                    state.insert(id);
+                                    submission_queue.enqueue(id);
                                 }
-    
-                                if state.len() >= changes_threshold{
-                                    blockchain_set_balances(&mut state).await?;
+                                if submission_queue.size() >= changes_threshold{
+                                    submission_queue.submit().await?;
                                 }
                                 Ok::<(), BlockchainManagerError>(())
                             }.await {
@@ -258,7 +259,7 @@ impl BlockchainManager {
                         Some(block) = blocks_stream.next() => {
                             if let Err(err) = async {
                                 if block_distance(&last_block, &block).await? >= blocks_threshold {
-                                    blockchain_set_balances(&mut state).await?;   
+                                    submission_queue.submit().await?;
                                     last_block = block;
                                 }
                                 Ok::<(), BlockchainManagerError>(())
@@ -326,11 +327,17 @@ impl SubmissionManagerController {
         Ok(self.join_handle.await?)
     }
 
-    pub async fn set_changes_threshold(&self, threshold: usize) -> Result<(), mpsc::error::SendError<usize>> {
+    pub async fn set_changes_threshold(
+        &self,
+        threshold: usize,
+    ) -> Result<(), mpsc::error::SendError<usize>> {
         self.set_changes_threshold_tx.send(threshold).await
     }
 
-    pub async fn set_blocks_threshold(&self, threshold: usize) -> Result<(), mpsc::error::SendError<usize>> {
+    pub async fn set_blocks_threshold(
+        &self,
+        threshold: usize,
+    ) -> Result<(), mpsc::error::SendError<usize>> {
         self.set_blocks_threshold_tx.send(threshold).await
     }
 
@@ -354,4 +361,10 @@ pub enum BlockchainManagerError {
 
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),
+
+    #[error(transparent)]
+    SubmissionQueueError(#[from] SubmissionQueueError),
+
+    #[error(transparent)]
+    ConfirmationQueueError(#[from] ConfirmationQueueError),
 }
