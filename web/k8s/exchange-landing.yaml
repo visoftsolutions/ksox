@@ -54,5 +54,5 @@ spec:
     - www.ksox.finance
   rules:
     - backendRefs:
-      - name: web-exchange-landing-service
-        port: 80
+        - name: web-exchange-landing-service
+          port: 80
