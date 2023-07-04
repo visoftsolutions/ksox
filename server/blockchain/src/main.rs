@@ -35,7 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::sync::Arc::new(provider.clone()),
     );
 
-    let blockchain_manager_controller = BlockchainManager::new(
+    let blockchain_manager = BlockchainManager::new(
         database,
         provider,
         treasury,
@@ -44,8 +44,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .get_subscriber()
             .subscribe_to()
             .await?,
-    )
-    .start();
+    );
+
+    let confirmation_controller = blockchain_manager.start_confirmation().await;
+
+    if let Err(err) = confirmation_controller.shutdown().await? {
+        tracing::error!("{err}");
+    }
 
     Ok(())
 }

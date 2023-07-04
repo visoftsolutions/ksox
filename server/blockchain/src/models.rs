@@ -7,7 +7,7 @@ use ethers::{
 };
 use evm::txhash::TxHash;
 use fraction::Fraction;
-use futures::{Future, TryFutureExt};
+use futures::Future;
 use sqlx::PgPool;
 use tokio::{
     select,
@@ -58,27 +58,29 @@ impl BlockchainManager {
         }
     }
 
-    pub async fn start(
-        mut self,
-    ) -> Result<BlockchainManagerController, ContractError<Provider<Ws>>> {
-        let (shutdown_tx_confirmation, mut shutdown_rx_confirmation) = oneshot::channel::<()>();
+    pub async fn start_confirmation(
+        &self,
+    ) -> ConfirmationManagerController {
+        let (shutdown_tx, mut shutdown_rx) = oneshot::channel::<()>();
         let (insert_deposit_event_tx, mut insert_deposit_event_rx) =
             mpsc::channel::<(DepositFilter, TxHash)>(100);
         let (insert_withdraw_event_tx, mut insert_withdraw_event_rx) =
             mpsc::channel::<(WithdrawFilter, TxHash)>(100);
-        let join_handle_confirmation: tokio::task::JoinHandle<Result<(), BlockchainManagerError>> =
-            tokio::spawn(async move {
-                let contract_events = self.contract.events();
-                let deposits_manager = DepositsManager::new(self.database.to_owned());
-                let withdraws_manager = WithdrawsManager::new(self.database.to_owned());
-                let users_manager = UsersManager::new(self.database.to_owned());
-                let assets_manager = AssetsManager::new(self.database.to_owned());
-                let mut blocks_stream = self.provider.subscribe_blocks().await?;
+
+        let database = self.database.to_owned();
+        let provider = self.provider.to_owned();
+        let contract_events = self.contract.events();
+        let deposits_manager = DepositsManager::new(self.database.to_owned());
+        let withdraws_manager = WithdrawsManager::new(self.database.to_owned());
+        let users_manager = UsersManager::new(self.database.to_owned());
+        let assets_manager = AssetsManager::new(self.database.to_owned());
+        let mut engine_client = self.engine_client.to_owned();
+        let join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>> = tokio::spawn(
+            async move {
+                let mut blocks_stream = provider.subscribe_blocks().await?;
                 let mut events_stream = contract_events.stream_with_meta().await?;
-
-                let mut deposits_queue = ConfirmationQueue::<Deposit>::new(&self.provider);
-                let mut withdraws_queue = ConfirmationQueue::<Withdraw>::new(&self.provider);
-
+                let mut deposits_queue = ConfirmationQueue::<Deposit>::new(&provider);
+                let mut withdraws_queue = ConfirmationQueue::<Withdraw>::new(&provider);
                 let deposit_event_to_insert = |event: DepositFilter,
                                                tx_hash: TxHash|
                  -> Pin<
@@ -100,7 +102,6 @@ impl BlockchainManager {
                         })
                     })
                 };
-
                 let withdraw_event_to_insert = |event: WithdrawFilter,
                                                 tx_hash: TxHash|
                  -> Pin<
@@ -122,10 +123,9 @@ impl BlockchainManager {
                         })
                     })
                 };
-
                 loop {
                     select! {
-                        _ = &mut shutdown_rx_confirmation => {
+                        _ = &mut shutdown_rx => {
                             break;
                         },
                         Some((event, tx_hash)) = insert_deposit_event_rx.recv() => {
@@ -169,10 +169,9 @@ impl BlockchainManager {
                         },
                         Some(block) = blocks_stream.next() => {
                             if let Err(err) = async {
-                                let mut t = self.database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
+                                let mut t = database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
                                 let (confirmed_deposit, not_confirmed_deposits) = deposits_queue.confirmation_step(&block).await?;
                                 let (confirmed_withdraw, not_confirmed_withdraw) = withdraws_queue.confirmation_step(&block).await?;
-
                                 for deposit in not_confirmed_deposits.into_iter() {
                                     deposits_manager.update(&mut t, deposit).await?;
                                 }
@@ -185,28 +184,79 @@ impl BlockchainManager {
                                 for withdraw in confirmed_withdraw.iter().cloned() {
                                     withdraws_manager.update(&mut t, withdraw).await?;
                                 }
-
-
                                 for deposit in confirmed_deposit.into_iter() {
-                                    self.engine_client.mint(TryInto::<MintRequest>::try_into(deposit)?).await?;
+                                    engine_client.mint(TryInto::<MintRequest>::try_into(deposit)?).await?;
                                 }
                                 for withdraw in confirmed_withdraw.into_iter() {
-                                    self.engine_client.burn(TryInto::<BurnRequest>::try_into(withdraw)?).await?;
+                                    engine_client.burn(TryInto::<BurnRequest>::try_into(withdraw)?).await?;
                                 }
-
                                 Ok::<(), BlockchainManagerError>(t.commit().await?)
                             }.await {
                                 tracing::error!("{err}");
                             }
-
                         }
                     }
                 }
-
                 Ok(())
-            });
-        // monitor changes on valuts
+            },
+        );
+        ConfirmationManagerController {
+            shutdown_tx,
+            join_handle,
+            insert_deposit_event_tx,
+            insert_withdraw_event_tx,
+        }
+    }
+
+    pub async fn start_submission(
+        &self,
+    ) -> SubmissionManagerController {
+
         todo!()
+    }
+}
+
+#[derive(Debug)]
+pub struct ConfirmationManagerController {
+    shutdown_tx: oneshot::Sender<()>,
+    insert_deposit_event_tx: mpsc::Sender<(DepositFilter, TxHash)>,
+    insert_withdraw_event_tx: mpsc::Sender<(WithdrawFilter, TxHash)>,
+    join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>>,
+}
+impl ConfirmationManagerController {
+    pub async fn shutdown(self) -> Result<Result<(), BlockchainManagerError>, JoinError> {
+        if self.shutdown_tx.send(()).is_err() {
+            tracing::error!("Error: shutdown");
+        }
+        Ok(self.join_handle.await?)
+    }
+
+    pub async fn submit_deposit_event(
+        &self,
+        event: (DepositFilter, TxHash),
+    ) -> Result<(), mpsc::error::SendError<(DepositFilter, TxHash)>> {
+        self.insert_deposit_event_tx.send(event).await
+    }
+
+    pub async fn submit_withdraw_event(
+        &self,
+        event: (WithdrawFilter, TxHash),
+    ) -> Result<(), mpsc::error::SendError<(WithdrawFilter, TxHash)>> {
+        self.insert_withdraw_event_tx.send(event).await
+    }
+}
+
+#[derive(Debug)]
+pub struct SubmissionManagerController {
+    shutdown_tx: oneshot::Sender<()>,
+    join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>>,
+}
+impl SubmissionManagerController {
+    pub async fn shutdown(self) -> Result<Result<(), BlockchainManagerError>, JoinError> {
+        if self.shutdown_tx.send(()).is_err() {
+            tracing::error!("Error: shutdown");
+        }
+        Ok(self.join_handle.await?)
     }
 }
 
@@ -225,26 +275,4 @@ pub enum BlockchainManagerError {
 
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),
-}
-
-#[derive(Debug)]
-pub struct BlockchainManagerController {
-    shutdown_tx_confirmation: oneshot::Sender<()>,
-    join_handle_confirmation: tokio::task::JoinHandle<Result<(), BlockchainManagerError>>,
-    shutdown_tx_submission: oneshot::Sender<()>,
-    join_handle_submission: tokio::task::JoinHandle<Result<(), BlockchainManagerError>>,
-}
-impl BlockchainManagerController {
-    pub async fn shutdown(self) -> Result<Result<(), BlockchainManagerError>, JoinError> {
-        if self.shutdown_tx_confirmation.send(()).is_err() {
-            tracing::error!("Error: shutdown");
-        }
-        if self.shutdown_tx_submission.send(()).is_err() {
-            tracing::error!("Error: shutdown");
-        }
-        Ok(self
-            .join_handle_confirmation
-            .and_then(|_| async move { self.join_handle_submission.await })
-            .await?)
-    }
 }
