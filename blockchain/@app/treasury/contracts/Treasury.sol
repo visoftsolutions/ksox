@@ -8,6 +8,12 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract Treasury is Ownable {
     mapping(address => mapping(address => uint256)) private _balances;
 
+    struct BalanceUpdate {
+        address tokenAddress;
+        address userAddress;
+        uint256 value;
+    }
+
     event Deposit(
         address indexed tokenAddress,
         address indexed userAddress,
@@ -18,10 +24,8 @@ contract Treasury is Ownable {
         address indexed userAddress,
         uint256 amount
     );
-    event SetBalance(
-        address indexed tokenAddress,
-        address indexed userAddress,
-        uint256 value
+    event SetBalances(
+        BalanceUpdate[] indexed updates
     );
 
     constructor() {}
@@ -52,21 +56,14 @@ contract Treasury is Ownable {
         emit Withdraw(tokenAddress, userAddress, amount);
     }
 
-    function setBalance(address tokenAddress, address userAddress, uint256 value) external onlyOwner {
-        _balances[tokenAddress][userAddress] = value;
-        emit SetBalance(tokenAddress, userAddress, value);
-    }
-
-    struct BalanceUpdate {
-        address tokenAddress;
-        address userAddress;
-        uint256 value;
+    function _setBalance(BalanceUpdate memory update) internal {
+        _balances[update.tokenAddress][update.userAddress] = update.value;
     }
 
     function setBalances(BalanceUpdate[] memory updates) external onlyOwner {
         for (uint256 i = 0; i < updates.length; i++) {
-            _balances[updates[i].tokenAddress][updates[i].userAddress] = updates[i].value;
-            emit SetBalance(updates[i].tokenAddress, updates[i].userAddress, updates[i].value);
+           _setBalance(updates[i]);
         }
+        emit SetBalances(updates);
     }
 }
