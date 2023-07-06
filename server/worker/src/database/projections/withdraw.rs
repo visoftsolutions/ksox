@@ -3,6 +3,7 @@ use evm::txhash::TxHash;
 use fraction::Fraction;
 use serde::{Deserialize, Serialize};
 use sqlx::types::Uuid;
+
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct Withdraw {
     pub id: Uuid,
@@ -10,7 +11,7 @@ pub struct Withdraw {
     pub last_modification_at: DateTime<Utc>,
     pub user_id: Uuid,
     pub asset_id: Uuid,
-    pub txhash: TxHash,
+    pub tx_hash: TxHash,
     pub amount: Fraction,
     pub confirmations: Fraction,
 }

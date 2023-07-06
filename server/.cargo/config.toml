@@ -1,7 +1,6 @@
 [env]
 REDIS_URL="redis://localhost/"
 DATABASE_URL="postgresql://ksoxuser:ksoxuserp4ssword@localhost/ksox"
-SQLX_OFFLINE="true"
 TESTS_CASES="10000"
 TESTS_FRACTION_BYTES="2"
 ENGINE_FRACTION_ACCURACY="1/10000"

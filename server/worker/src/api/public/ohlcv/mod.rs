@@ -39,7 +39,6 @@ pub async fn root(
     let ohlcv_engine = OhlcvEngine::new(
         state.trades_manager,
         state.trades_notification_manager,
-        state.orders_manager,
         state.candlesticks_manager,
     );
     Ok(Json(

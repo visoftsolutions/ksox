@@ -30,12 +30,6 @@ pub struct Response {
     description: String,
 }
 
-impl Response {
-    pub fn new(name: String, description: String) -> Self {
-        Self { name, description }
-    }
-}
-
 pub async fn root(
     State(state): State<AppState>,
     user_id: UserId,

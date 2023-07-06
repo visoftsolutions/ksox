@@ -23,12 +23,14 @@ use crate::{
         assets::{AssetsManager, AssetsNotificationManager},
         badges::{BadgesManager, BadgesNotificationManager},
         candlesticks::{CandlesticksManager, CandlesticksNotificationManager},
+        deposits::{DepositsManager, DepositsNotificationManager},
         notifications::NotificationManager,
         orders::{OrdersManager, OrdersNotificationManager},
         trades::{TradesManager, TradesNotificationManager},
         transfers::{TransfersManager, TransfersNotificationManager},
         users::{UsersManager, UsersNotificationManager},
         valuts::{ValutsManager, ValutsNotificationManager},
+        withdraws::{WithdrawsManager, WithdrawsNotificationManager},
     },
     models::AppState,
     recognition::{asset_pair::AssetPairRecognition, user::UserRecognition},
@@ -80,6 +82,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         ),
         badges_manager: BadgesManager::new(database.clone()),
         badges_notification_manager: BadgesNotificationManager::new(
+            notification_manager_controller.get_subscriber(),
+        ),
+        deposits_manager: DepositsManager::new(database.clone()),
+        deposits_notification_manager: DepositsNotificationManager::new(
+            notification_manager_controller.get_subscriber(),
+        ),
+        withdraws_manager: WithdrawsManager::new(database.clone()),
+        withdraws_notification_manager: WithdrawsNotificationManager::new(
             notification_manager_controller.get_subscriber(),
         ),
         assets_pair_recognition: AssetPairRecognition::new(

@@ -1,6 +1,7 @@
 pub mod active;
 pub mod balance;
 pub mod cancel;
+pub mod deposits;
 pub mod engagement;
 pub mod orders;
 pub mod submit;
@@ -8,6 +9,7 @@ pub mod trades;
 pub mod transfer;
 pub mod transfers;
 pub mod user;
+pub mod withdraws;
 
 use axum::{
     extract::State,
@@ -46,6 +48,8 @@ pub fn router(app_state: &AppState) -> Router {
         .nest("/trades", trades::router(app_state))
         .nest("/transfers", transfers::router(app_state))
         .nest("/engagement", engagement::router(app_state))
+        .nest("/deposits", deposits::router(app_state))
+        .nest("/withdraws", withdraws::router(app_state))
 }
 
 pub async fn root(State(_state): State<AppState>, user_id: UserId) -> String {

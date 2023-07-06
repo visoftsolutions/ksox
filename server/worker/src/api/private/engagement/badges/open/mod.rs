@@ -44,16 +44,6 @@ pub struct Response {
     progress: Fraction,
 }
 
-impl Response {
-    pub fn new(name: String, description: String, progress: Fraction) -> Self {
-        Self {
-            name,
-            description,
-            progress,
-        }
-    }
-}
-
 pub async fn root(
     State(state): State<AppState>,
     user_id: UserId,

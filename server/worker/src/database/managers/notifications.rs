@@ -14,8 +14,8 @@ use uuid::Uuid;
 use crate::database::{
     managers,
     projections::{
-        self, asset::Asset, badge::Badge, candlestick::Candlestick, order::Order, trade::Trade,
-        transfer::Transfer, user::User, valut::Valut,
+        self, asset::Asset, badge::Badge, candlestick::Candlestick, deposit::Deposit, order::Order,
+        trade::Trade, transfer::Transfer, user::User, valut::Valut, withdraw::Withdraw,
     },
 };
 
@@ -121,6 +121,10 @@ impl NotificationManager {
             let mut badges_last_modification_at = Utc::now();
             let users_manager = managers::users::UsersManager::new(database.clone());
             let mut users_last_modification_at = Utc::now();
+            let deposits_manager = managers::deposits::DepositsManager::new(database.clone());
+            let mut deposits_last_modification_at = Utc::now();
+            let withdraws_manager = managers::withdraws::WithdrawsManager::new(database.clone());
+            let mut withdraws_last_modification_at = Utc::now();
 
             loop {
                 select! {
@@ -353,10 +357,56 @@ impl NotificationManager {
                                         }
                                     },
                                     Ok(NotificationManagerEvent::Deposits) => {
+                                        match deposits_manager.get_modified(deposits_last_modification_at).await {
+                                            Ok(elements) => {
+                                                let mut set_entry_to_remove_ids = Vec::new();
+                                                for set_entry in set.values() {
+                                                    let result: Vec<Deposit> = elements.iter().cloned()
+                                                        .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Deposits(e.clone()))).collect();
 
+                                                    if !result.is_empty() {
+                                                        if set_entry.sender.send(NotificationManagerOutput::Deposits(result)).await.is_err() {
+                                                            set_entry_to_remove_ids.push(set_entry.id);
+                                                        }
+                                                    }
+                                                }
+                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+
+                                                deposits_last_modification_at = max(
+                                                    deposits_last_modification_at,
+                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(deposits_last_modification_at)
+                                                );
+                                            },
+                                            Err(err) => {
+                                                tracing::error!("Error: {}", err);
+                                            }
+                                        }
                                     },
                                     Ok(NotificationManagerEvent::Withdraws) => {
+                                        match withdraws_manager.get_modified(withdraws_last_modification_at).await {
+                                            Ok(elements) => {
+                                                let mut set_entry_to_remove_ids = Vec::new();
+                                                for set_entry in set.values() {
+                                                    let result: Vec<Withdraw> = elements.iter().cloned()
+                                                        .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Withdraws(e.clone()))).collect();
 
+                                                    if !result.is_empty() {
+                                                        if set_entry.sender.send(NotificationManagerOutput::Withdraws(result)).await.is_err() {
+                                                            set_entry_to_remove_ids.push(set_entry.id);
+                                                        }
+                                                    }
+                                                }
+                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+
+                                                withdraws_last_modification_at = max(
+                                                    withdraws_last_modification_at,
+                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(withdraws_last_modification_at)
+                                                );
+                                            },
+                                            Err(err) => {
+                                                tracing::error!("Error: {}", err);
+                                            }
+                                        }
                                     },
                                     Err(err) => {
                                         tracing::error!("Error: {}", err);

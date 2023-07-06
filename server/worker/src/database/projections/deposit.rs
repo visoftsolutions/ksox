@@ -11,7 +11,7 @@ pub struct Deposit {
     pub last_modification_at: DateTime<Utc>,
     pub user_id: Uuid,
     pub asset_id: Uuid,
-    pub txhash: TxHash,
+    pub tx_hash: TxHash,
     pub amount: Fraction,
     pub confirmations: Fraction,
 }
