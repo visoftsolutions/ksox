@@ -1,4 +1,4 @@
-use std::{pin::Pin};
+use std::pin::Pin;
 
 pub use engine::matching_engine::models::{burn, mint};
 use ethers::{
