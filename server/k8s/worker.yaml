@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: server-worker-deployment
-  namespace: prod-ksox-finance
+  namespace: ksox-finance
   labels:
     app: server-worker
 spec:
@@ -24,8 +24,8 @@ spec:
               memory: 200Mi
               cpu: 200m
             limits:
-              memory: 1000Mi
-              cpu: 1000m
+              memory: 500Mi
+              cpu: 500m
           env:
             - name: DATABASE_URL
               value: postgresql://ksoxuser:ksoxuserp4ssword@postgres-service/ksox
@@ -73,7 +73,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: server-worker-service
-  namespace: prod-ksox-finance
+  namespace: ksox-finance
 spec:
   selector:
     app: server-worker
@@ -82,30 +82,50 @@ spec:
       port: 80
       targetPort: 80
 ---
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: HTTPRoute
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
-  name: server-worker-route
-  namespace: prod-ksox-finance
+  name: server-worker-ingress
+  namespace: ksox-finance
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
-  parentRefs:
-    - name: prod-gateway
-      namespace: prod
-  hostnames:
-    - app.ksox.finance
-    - pay.ksox.finance
-    - dashboard.ksox.finance
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - app.ksox.finance
+        - pay.ksox.finance
+        - dashboard.ksox.finance
+      secretName: ksox-finance-tls
   rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /api
-      filters:
-        - type: URLRewrite
-          urlRewrite:
-            path:
-              type: ReplacePrefixMatch
-              replacePrefixMatch: " "
-      backendRefs:
-        - name: server-worker-service
-          port: 80
+    - host: app.ksox.finance
+      http:
+        paths:
+          - path: /api(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: server-worker-service
+                port:
+                  number: 80
+    - host: pay.ksox.finance
+      http:
+        paths:
+          - path: /api(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: server-worker-service
+                port:
+                  number: 80
+    - host: dashboard.ksox.finance
+      http:
+        paths:
+          - path: /api(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: server-worker-service
+                port:
+                  number: 80

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: web-dashboard-deployment
-  namespace: prod-ksox-finance
+  namespace: ksox-finance
   labels:
     app: web-dashboard
 spec:
@@ -24,14 +24,14 @@ spec:
               memory: 200Mi
               cpu: 200m
             limits:
-              memory: 1000Mi
-              cpu: 1000m
+              memory: 500Mi
+              cpu: 500m
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: web-dashboard-service
-  namespace: prod-ksox-finance
+  namespace: ksox-finance
 spec:
   selector:
     app: web-dashboard
@@ -40,18 +40,28 @@ spec:
       port: 80
       targetPort: 80
 ---
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: HTTPRoute
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
-  name: web-dashboard-route
-  namespace: prod-ksox-finance
+  name: web-dashboard-ingress
+  namespace: ksox-finance
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
 spec:
-  parentRefs:
-    - name: prod-gateway
-      namespace: prod
-  hostnames:
-    - dashboard.ksox.finance
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - dashboard.ksox.finance
+      secretName: ksox-finance-tls
   rules:
-    - backendRefs:
-        - name: web-dashboard-service
-          port: 80
+    - host: dashboard.ksox.finance
+      http:
+        paths:
+          - path: /(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: web-dashboard-service
+                port:
+                  number: 80

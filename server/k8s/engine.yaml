@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: server-engine-deployment
-  namespace: prod-ksox-finance
+  namespace: ksox-finance
   labels:
     app: server-engine
 spec:
@@ -21,11 +21,11 @@ spec:
             - containerPort: 80
           resources:
             requests:
+              memory: 200Mi
+              cpu: 200m
+            limits:
               memory: 500Mi
               cpu: 500m
-            limits:
-              memory: 1000Mi
-              cpu: 1000m
           env:
             - name: DATABASE_URL
               value: postgresql://ksoxuser:ksoxuserp4ssword@postgres-service/ksox
@@ -53,7 +53,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: server-engine-service
-  namespace: prod-ksox-finance
+  namespace: ksox-finance
 spec:
   selector:
     app: server-engine

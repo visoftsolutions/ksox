@@ -1,21 +1,21 @@
-# apiVersion: v1
-# kind: PersistentVolumeClaim
-# metadata:
-#   name: redis-pv-claim
-#   namespace: prod-ksox-finance
-# spec:
-#   storageClassName: openebs-hostpath
-#   accessModes:
-#     - ReadWriteOnce
-#   resources:
-#     requests:
-#       storage: 256Gi
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pv-claim
+  namespace: ksox-finance
+spec:
+  storageClassName: local-fast
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 256Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis-deployment
-  namespace: prod-ksox-finance
+  namespace: ksox-finance
   labels:
     app: redis-database
 spec:
@@ -27,31 +27,31 @@ spec:
       labels:
         app: redis-database
     spec:
-      # volumes:
-      #   - name: redis-pv-storage
-      #     persistentVolumeClaim:
-      #       claimName: redis-pv-claim
+      volumes:
+        - name: redis-pv-storage
+          persistentVolumeClaim:
+            claimName: redis-pv-claim
       containers:
         - name: redis-database
           image: redis-database
           ports:
             - containerPort: 6379
-          # volumeMounts:
-          #   - mountPath: "/data"
-          #     name: redis-pv-storage
+          volumeMounts:
+            - mountPath: "/data"
+              name: redis-pv-storage
           resources:
             requests:
+              memory: 300Mi
+              cpu: 300m
+            limits:
               memory: 500Mi
               cpu: 500m
-            limits:
-              memory: 1000Mi
-              cpu: 1000m
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: redis-service
-  namespace: prod-ksox-finance
+  namespace: ksox-finance
 spec:
   selector:
     app: redis-database
