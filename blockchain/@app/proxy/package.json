@@ -1,0 +1,24 @@
+{
+  "name": "@app/proxy",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "prettier": "prettier -w .",
+    "lint": "eslint .",
+    "update": "npx npm-check-updates -u"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.0.3",
+    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+    "@openzeppelin/hardhat-upgrades": "^2.0.0",
+    "ethers": "^6.6.2",
+    "hardhat": "^2.16.1"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9.2",
+    "@openzeppelin/contracts-upgradeable": "^4.9.2",
+    "dotenv": "^16.3.1"
+  }
+}
