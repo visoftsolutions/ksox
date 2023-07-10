@@ -50,7 +50,7 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /$1
     nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
 spec:
-  ingressClassName: nginx
+  ingressClassName: ingress-nginx
   tls:
     - hosts:
         - ksox.finance

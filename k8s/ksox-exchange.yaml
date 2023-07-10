@@ -12,7 +12,7 @@ spec:
     solvers:
       - http01:
           ingress:
-            ingressClassName: nginx
+            ingressClassName: ingress-nginx
         selector:
           dnsZones:
             - ksox.exchange
@@ -38,7 +38,7 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/permanent-redirect: https://www.ksox.finance
 spec:
-  ingressClassName: nginx
+  ingressClassName: ingress-nginx
   tls:
     - hosts:
         - ksox.exchange

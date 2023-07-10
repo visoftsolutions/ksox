@@ -4,7 +4,7 @@ metadata:
   name: postgres-pv-claim
   namespace: ksox-finance
 spec:
-  storageClassName: local-fast
+  storageClassName: openebs-hostpath
   accessModes:
     - ReadWriteOnce
   resources:
