@@ -20,9 +20,9 @@ services:
       - 6379:6379
       - 8001:8001
 
-  engine:
-    container_name: ksox-engine
-    hostname: ksox-engine
+  server-engine:
+    container_name: ksox-server-engine
+    hostname: ksox-server-engine
     build:
       context: server
       dockerfile: ./engine.dockerfile
@@ -34,9 +34,9 @@ services:
       - postgres
       - redis
 
-  engagement:
-    container_name: ksox-engagement
-    hostname: ksox-engagement
+  server-engagement:
+    container_name: ksox-server-engagement
+    hostname: ksox-server-engagement
     build:
       context: server
       dockerfile: ./engagement.dockerfile
@@ -48,59 +48,74 @@ services:
       - postgres
       - redis
 
-  worker:
-    container_name: ksox-worker
-    hostname: ksox-worker
+  server-worker:
+    container_name: ksox-server-worker
+    hostname: ksox-server-worker
     build:
       context: server
       dockerfile: ./worker.dockerfile
     environment:
       - DATABASE_URL=postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox
-      - ENGINE_URL=http://ksox-engine/
+      - ENGINE_URL=http://ksox-server-engine/
       - REDIS_URL=redis://ksox-redis/
       - WORKER_FRACTION_ACCURACY=1/10000
     depends_on:
       - postgres
       - redis
-      - engine
-    ports:
-      - 7979:80
+      - server-engine
+  
+  server-blockchain:
+    container_name: ksox-server-blockchain
+    hostname: ksox-server-blockchain
+    build:
+      context: server
+      dockerfile: ./blockchain.dockerfile
+    environment:
+      - DATABASE_URL=postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox
+      - ENGINE_URL=http://ksox-server-engine/
+      - RUST_BACKTRACE=full
+      - WS_PROVIDER_URL=wss://eth-sepolia.g.alchemy.com/v2/-koG9fJPMpiL7ywoOZyGtWlLZ_JymCb2
+      - TREASURY_ADDRESS=0x2b3aB71608b357B28233b010253E0a0DEBE2bF11
+    depends_on:
+      - postgres
+      - redis
+      - server-engine
 
-  exchange:
-    container_name: web-exchange
-    hostname: web-exchange
+  web-exchange:
+    container_name: ksox-web-exchange
+    hostname: ksox-web-exchange
     build:
       context: web
       dockerfile: ./exchange.dockerfile
     depends_on:
-      - worker
+      - server-worker
 
-  exchange-landing:
-    container_name: web-exchange-landing
-    hostname: web-exchange-landing
+  web-exchange-landing:
+    container_name: ksox-web-exchange-landing
+    hostname: ksox-web-exchange-landing
     build:
       context: web
       dockerfile: ./exchange-landing.dockerfile
     depends_on:
-      - worker
+      - server-worker
 
-  processor:
-    container_name: web-processor
-    hostname: web-processor
+  web-processor:
+    container_name: ksox-web-processor
+    hostname: ksox-web-processor
     build:
       context: web
       dockerfile: ./processor.dockerfile
     depends_on:
-      - worker
+      - server-worker
 
-  dashboard:
-    container_name: web-dashboard
-    hostname: web-dashboard
+  web-dashboard:
+    container_name: ksox-web-dashboard
+    hostname: ksox-web-dashboard
     build:
       context: web
       dockerfile: ./dashboard.dockerfile
     depends_on:
-      - worker
+      - server-worker
 
   proxy:
     container_name: ksox-proxy
@@ -108,11 +123,11 @@ services:
     build:
       context: proxy
     depends_on:
-      - worker
-      - exchange
-      - exchange-landing
-      - processor
-      - dashboard
+      - server-worker
+      - web-exchange
+      - web-exchange-landing
+      - web-processor
+      - web-dashboard
       # - processor-landing
     ports:
       - 0.0.0.0:80:80

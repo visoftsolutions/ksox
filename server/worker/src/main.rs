@@ -45,7 +45,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
 
     let notification_manager_controller =
-        NotificationManager::start(database.clone(), "notifications").await?;
+        NotificationManager::start(database.clone(), "worker").await?;
 
     let app_state = AppState {
         accuracy: std::env::var("WORKER_FRACTION_ACCURACY")?.parse()?,

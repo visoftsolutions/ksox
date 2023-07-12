@@ -5,6 +5,7 @@ use futures::StreamExt;
 use predicates::prelude::*;
 use serde::Deserialize;
 use sqlx::{postgres::PgListener, PgPool};
+use thiserror::Error;
 use tokio::{
     select,
     sync::{mpsc, oneshot},
@@ -142,282 +143,195 @@ impl NotificationManager {
                         }
                     },
                     Some(element) = stream.next() => {
-                        match element {
-                            Ok(value) => {
-                                match serde_json::from_str::<NotificationManagerEvent>(value.payload()) {
-                                    Ok(NotificationManagerEvent::Valuts) => {
-                                        match valuts_manager.get_modified(valuts_last_modification_at).await {
-                                            Ok(elements) => {
-                                                let mut set_entry_to_remove_ids = Vec::new();
-                                                for set_entry in set.values() {
-                                                    let result: Vec<Valut> = elements.iter().cloned()
-                                                        .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Valuts(e.clone()))).collect();
-
-                                                    if !result.is_empty() {
-                                                        if set_entry.sender.send(NotificationManagerOutput::Valuts(result)).await.is_err() {
-                                                            set_entry_to_remove_ids.push(set_entry.id);
-                                                        }
-                                                    }
-                                                }
-                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
-
-                                                valuts_last_modification_at = max(
-                                                    valuts_last_modification_at,
-                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(valuts_last_modification_at)
-                                                );
-                                            },
-                                            Err(err) => {
-                                                tracing::error!("Error: {}", err);
-                                            }
-                                        }
-                                    },
-                                    Ok(NotificationManagerEvent::Assets) => {
-                                        match assets_manager.get_modified(assets_last_modification_at).await {
-                                            Ok(elements) => {
-                                                let mut set_entry_to_remove_ids = Vec::new();
-                                                for set_entry in set.values() {
-                                                    let result: Vec<Asset> = elements.iter().cloned()
-                                                        .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Assets(e.clone()))).collect();
-
-                                                    if !result.is_empty() {
-                                                        if set_entry.sender.send(NotificationManagerOutput::Assets(result)).await.is_err() {
-                                                            set_entry_to_remove_ids.push(set_entry.id);
-                                                        }
-                                                    }
-                                                }
-                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
-
-                                                assets_last_modification_at = max(
-                                                    assets_last_modification_at,
-                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(assets_last_modification_at)
-                                                );
-                                            },
-                                            Err(err) => {
-                                                tracing::error!("Error: {}", err);
-                                            }
-                                        }
-                                    },
-                                    Ok(NotificationManagerEvent::SpotOrders) => {
-                                        match orders_manager.get_modified(orders_last_modification_at).await {
-                                            Ok(elements) => {
-                                                let mut set_entry_to_remove_ids = Vec::new();
-                                                for set_entry in set.values() {
-                                                    let result: Vec<Order> = elements.iter().cloned()
-                                                        .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotOrders(e.clone()))).collect();
-
-                                                    if !result.is_empty() {
-                                                        if  set_entry.sender.send(NotificationManagerOutput::SpotOrders(result)).await.is_err() {
-                                                            set_entry_to_remove_ids.push(set_entry.id);
-                                                        }
-                                                    }
-                                                }
-                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
-
-                                                orders_last_modification_at = max(
-                                                    orders_last_modification_at,
-                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(orders_last_modification_at)
-                                                );
-                                            },
-                                            Err(err) => {
-                                                tracing::error!("Error: {}", err);
-                                            }
-                                        }
-                                    },
-                                    Ok(NotificationManagerEvent::SpotTrades) => {
-                                        match trades_manager.get_modified(trades_last_modification_at).await {
-                                            Ok(elements) => {
-                                                let mut set_entry_to_remove_ids = Vec::new();
-                                                for set_entry in set.values() {
-                                                    let result: Vec<Trade> = elements.iter().cloned()
-                                                        .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotTrades(e.clone()))).collect();
-
-                                                    if !result.is_empty() {
-                                                        if set_entry.sender.send(NotificationManagerOutput::SpotTrades(result)).await.is_err() {
-                                                            set_entry_to_remove_ids.push(set_entry.id);
-                                                        }
-                                                    }
-                                                }
-                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
-
-                                                trades_last_modification_at = max(
-                                                    trades_last_modification_at,
-                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(trades_last_modification_at)
-                                                );
-                                            },
-                                            Err(err) => {
-                                                tracing::error!("Error: {}", err);
-                                            }
-                                        }
-                                    },
-                                    Ok(NotificationManagerEvent::SpotCandlesticks) => {
-                                        match candlesticks_manager.get_modified(candlesticks_last_modification_at).await {
-                                            Ok(elements) => {
-                                                let mut set_entry_to_remove_ids = Vec::new();
-                                                for set_entry in set.values() {
-                                                    let result: Vec<Candlestick> = elements.iter().cloned()
-                                                        .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotCandlesticks(e.clone()))).collect();
-
-                                                    if !result.is_empty() {
-                                                        if set_entry.sender.send(NotificationManagerOutput::SpotCandlesticks(result)).await.is_err() {
-                                                            set_entry_to_remove_ids.push(set_entry.id);
-                                                        }
-                                                    }
-                                                }
-                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
-
-                                                candlesticks_last_modification_at = max(
-                                                    candlesticks_last_modification_at,
-                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(candlesticks_last_modification_at)
-                                                );
-
-                                            },
-                                            Err(err) => {
-                                                tracing::error!("Error: {}", err);
-                                            }
-                                        }
-                                    },
-                                    Ok(NotificationManagerEvent::Transfers) => {
-                                        match transfers_manager.get_modified(transfers_last_modification_at).await {
-                                            Ok(elements) => {
-                                                let mut set_entry_to_remove_ids = Vec::new();
-                                                for set_entry in set.values() {
-                                                    let result: Vec<Transfer> = elements.iter().cloned()
-                                                        .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Transfers(e.clone()))).collect();
-
-                                                    if !result.is_empty() {
-                                                        if set_entry.sender.send(NotificationManagerOutput::Transfers(result)).await.is_err() {
-                                                            set_entry_to_remove_ids.push(set_entry.id);
-                                                        }
-                                                    }
-                                                }
-                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
-
-                                                transfers_last_modification_at = max(
-                                                    transfers_last_modification_at,
-                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(transfers_last_modification_at)
-                                                );
-
-                                            },
-                                            Err(err) => {
-                                                tracing::error!("Error: {}", err);
-                                            }
-                                        }
-                                    },
-                                    Ok(NotificationManagerEvent::EngagementBadges) => {
-                                        match badges_manager.get_modified(badges_last_modification_at).await {
-                                            Ok(elements) => {
-                                                let mut set_entry_to_remove_ids = Vec::new();
-                                                for set_entry in set.values() {
-                                                    let result: Vec<Badge> = elements.iter().cloned()
-                                                        .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::EngagementBadges(e.clone()))).collect();
-
-                                                    if !result.is_empty() {
-                                                        if set_entry.sender.send(NotificationManagerOutput::EngagementBadges(result)).await.is_err() {
-                                                            set_entry_to_remove_ids.push(set_entry.id);
-                                                        }
-                                                    }
-                                                }
-                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
-
-                                                badges_last_modification_at = max(
-                                                    badges_last_modification_at,
-                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(badges_last_modification_at)
-                                                );
-
-                                            },
-                                            Err(err) => {
-                                                tracing::error!("Error: {}", err);
+                        if let Err(err) = async {
+                            match serde_json::from_str::<NotificationManagerEvent>(element?.payload())? {
+                                NotificationManagerEvent::Valuts => {
+                                    let elements = valuts_manager.get_modified(valuts_last_modification_at).await?;
+                                    let mut set_entry_to_remove_ids = Vec::new();
+                                    for set_entry in set.values() {
+                                        let result: Vec<_> = elements.iter().cloned()
+                                            .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Valuts(e.clone()))).collect();
+                                        if !result.is_empty() {
+                                            if set_entry.sender.send(NotificationManagerOutput::Valuts(result)).await.is_err() {
+                                                set_entry_to_remove_ids.push(set_entry.id);
                                             }
                                         }
                                     }
-                                    Ok(NotificationManagerEvent::Users) => {
-                                        match users_manager.get_modified(users_last_modification_at).await {
-                                            Ok(elements) => {
-                                                let mut set_entry_to_remove_ids = Vec::new();
-                                                for set_entry in set.values() {
-                                                    let result: Vec<User> = elements.iter().cloned()
-                                                        .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Users(e.clone()))).collect();
-
-                                                    if !result.is_empty() {
-                                                        if set_entry.sender.send(NotificationManagerOutput::Users(result)).await.is_err() {
-                                                            set_entry_to_remove_ids.push(set_entry.id);
-                                                        }
-                                                    }
-                                                }
-                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
-
-                                                users_last_modification_at = max(
-                                                    users_last_modification_at,
-                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(users_last_modification_at)
-                                                );
-                                            },
-                                            Err(err) => {
-                                                tracing::error!("Error: {}", err);
+                                    set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+                                    valuts_last_modification_at = max(
+                                        valuts_last_modification_at,
+                                        elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(valuts_last_modification_at)
+                                    );
+                                },
+                                NotificationManagerEvent::Assets => {
+                                    let elements = assets_manager.get_modified(assets_last_modification_at).await?;
+                                    let mut set_entry_to_remove_ids = Vec::new();
+                                    for set_entry in set.values() {
+                                        let result: Vec<_> = elements.iter().cloned()
+                                            .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Assets(e.clone()))).collect();
+                                        if !result.is_empty() {
+                                            if set_entry.sender.send(NotificationManagerOutput::Assets(result)).await.is_err() {
+                                                set_entry_to_remove_ids.push(set_entry.id);
                                             }
                                         }
-                                    },
-                                    Ok(NotificationManagerEvent::Deposits) => {
-                                        match deposits_manager.get_modified(deposits_last_modification_at).await {
-                                            Ok(elements) => {
-                                                let mut set_entry_to_remove_ids = Vec::new();
-                                                for set_entry in set.values() {
-                                                    let result: Vec<Deposit> = elements.iter().cloned()
-                                                        .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Deposits(e.clone()))).collect();
-
-                                                    if !result.is_empty() {
-                                                        if set_entry.sender.send(NotificationManagerOutput::Deposits(result)).await.is_err() {
-                                                            set_entry_to_remove_ids.push(set_entry.id);
-                                                        }
-                                                    }
-                                                }
-                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
-
-                                                deposits_last_modification_at = max(
-                                                    deposits_last_modification_at,
-                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(deposits_last_modification_at)
-                                                );
-                                            },
-                                            Err(err) => {
-                                                tracing::error!("Error: {}", err);
-                                            }
-                                        }
-                                    },
-                                    Ok(NotificationManagerEvent::Withdraws) => {
-                                        match withdraws_manager.get_modified(withdraws_last_modification_at).await {
-                                            Ok(elements) => {
-                                                let mut set_entry_to_remove_ids = Vec::new();
-                                                for set_entry in set.values() {
-                                                    let result: Vec<Withdraw> = elements.iter().cloned()
-                                                        .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Withdraws(e.clone()))).collect();
-
-                                                    if !result.is_empty() {
-                                                        if set_entry.sender.send(NotificationManagerOutput::Withdraws(result)).await.is_err() {
-                                                            set_entry_to_remove_ids.push(set_entry.id);
-                                                        }
-                                                    }
-                                                }
-                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
-
-                                                withdraws_last_modification_at = max(
-                                                    withdraws_last_modification_at,
-                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(withdraws_last_modification_at)
-                                                );
-                                            },
-                                            Err(err) => {
-                                                tracing::error!("Error: {}", err);
-                                            }
-                                        }
-                                    },
-                                    Err(err) => {
-                                        tracing::error!("Error: {}", err);
                                     }
-                                }
-                            },
-                            Err(err) => {
-                                tracing::error!("Error: {}", err);
+                                    set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+                                    assets_last_modification_at = max(
+                                        assets_last_modification_at,
+                                        elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(assets_last_modification_at)
+                                    );
+                                },
+                                NotificationManagerEvent::SpotOrders => {
+                                    let elements = orders_manager.get_modified(orders_last_modification_at).await?;
+                                    let mut set_entry_to_remove_ids = Vec::new();
+                                    for set_entry in set.values() {
+                                        let result: Vec<_> = elements.iter().cloned()
+                                            .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotOrders(e.clone()))).collect();
+                                        if !result.is_empty() {
+                                            if set_entry.sender.send(NotificationManagerOutput::SpotOrders(result)).await.is_err() {
+                                                set_entry_to_remove_ids.push(set_entry.id);
+                                            }
+                                        }
+                                    }
+                                    set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+                                    orders_last_modification_at = max(
+                                        orders_last_modification_at,
+                                        elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(orders_last_modification_at)
+                                    );
+                                },
+                                NotificationManagerEvent::SpotTrades => {
+                                    let elements = trades_manager.get_modified(trades_last_modification_at).await?;
+                                    let mut set_entry_to_remove_ids = Vec::new();
+                                    for set_entry in set.values() {
+                                        let result: Vec<_> = elements.iter().cloned()
+                                            .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotTrades(e.clone()))).collect();
+                                        if !result.is_empty() {
+                                            if set_entry.sender.send(NotificationManagerOutput::SpotTrades(result)).await.is_err() {
+                                                set_entry_to_remove_ids.push(set_entry.id);
+                                            }
+                                        }
+                                    }
+                                    set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+                                    trades_last_modification_at = max(
+                                        trades_last_modification_at,
+                                        elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(trades_last_modification_at)
+                                    );
+                                },
+                                NotificationManagerEvent::SpotCandlesticks => {
+                                    let elements = candlesticks_manager.get_modified(candlesticks_last_modification_at).await?;
+                                    let mut set_entry_to_remove_ids = Vec::new();
+                                    for set_entry in set.values() {
+                                        let result: Vec<_> = elements.iter().cloned()
+                                            .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotCandlesticks(e.clone()))).collect();
+                                        if !result.is_empty() {
+                                            if set_entry.sender.send(NotificationManagerOutput::SpotCandlesticks(result)).await.is_err() {
+                                                set_entry_to_remove_ids.push(set_entry.id);
+                                            }
+                                        }
+                                    }
+                                    set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+                                    candlesticks_last_modification_at = max(
+                                        candlesticks_last_modification_at,
+                                        elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(candlesticks_last_modification_at)
+                                    );
+                                },
+                                NotificationManagerEvent::Transfers => {
+                                    let elements = transfers_manager.get_modified(transfers_last_modification_at).await?;
+                                    let mut set_entry_to_remove_ids = Vec::new();
+                                    for set_entry in set.values() {
+                                        let result: Vec<_> = elements.iter().cloned()
+                                            .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Transfers(e.clone()))).collect();
+                                        if !result.is_empty() {
+                                            if set_entry.sender.send(NotificationManagerOutput::Transfers(result)).await.is_err() {
+                                                set_entry_to_remove_ids.push(set_entry.id);
+                                            }
+                                        }
+                                    }
+                                    set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+                                    transfers_last_modification_at = max(
+                                        transfers_last_modification_at,
+                                        elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(transfers_last_modification_at)
+                                    );
+                                },
+                                NotificationManagerEvent::EngagementBadges => {
+                                    let elements = badges_manager.get_modified(badges_last_modification_at).await?;
+                                    let mut set_entry_to_remove_ids = Vec::new();
+                                    for set_entry in set.values() {
+                                        let result: Vec<_> = elements.iter().cloned()
+                                            .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::EngagementBadges(e.clone()))).collect();
+                                        if !result.is_empty() {
+                                            if set_entry.sender.send(NotificationManagerOutput::EngagementBadges(result)).await.is_err() {
+                                                set_entry_to_remove_ids.push(set_entry.id);
+                                            }
+                                        }
+                                    }
+                                    set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+                                    badges_last_modification_at = max(
+                                        badges_last_modification_at,
+                                        elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(badges_last_modification_at)
+                                    );
+                                },
+                                NotificationManagerEvent::Users => {
+                                    let elements = users_manager.get_modified(users_last_modification_at).await?;
+                                    let mut set_entry_to_remove_ids = Vec::new();
+                                    for set_entry in set.values() {
+                                        let result: Vec<_> = elements.iter().cloned()
+                                            .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Users(e.clone()))).collect();
+                                        if !result.is_empty() {
+                                            if set_entry.sender.send(NotificationManagerOutput::Users(result)).await.is_err() {
+                                                set_entry_to_remove_ids.push(set_entry.id);
+                                            }
+                                        }
+                                    }
+                                    set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+                                    users_last_modification_at = max(
+                                        users_last_modification_at,
+                                        elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(users_last_modification_at)
+                                    );
+                                },
+                                NotificationManagerEvent::Deposits => {
+                                    let elements = deposits_manager.get_modified(deposits_last_modification_at).await?;
+                                    let mut set_entry_to_remove_ids = Vec::new();
+                                    for set_entry in set.values() {
+                                        let result: Vec<_> = elements.iter().cloned()
+                                            .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Deposits(e.clone()))).collect();
+                                        if !result.is_empty() {
+                                            if set_entry.sender.send(NotificationManagerOutput::Deposits(result)).await.is_err() {
+                                                set_entry_to_remove_ids.push(set_entry.id);
+                                            }
+                                        }
+                                    }
+                                    set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+                                    deposits_last_modification_at = max(
+                                        deposits_last_modification_at,
+                                        elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(deposits_last_modification_at)
+                                    );
+                                },
+                                NotificationManagerEvent::Withdraws => {
+                                    let elements = withdraws_manager.get_modified(withdraws_last_modification_at).await?;
+                                    let mut set_entry_to_remove_ids = Vec::new();
+                                    for set_entry in set.values() {
+                                        let result: Vec<_> = elements.iter().cloned()
+                                            .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Withdraws(e.clone()))).collect();
+                                        if !result.is_empty() {
+                                            if set_entry.sender.send(NotificationManagerOutput::Withdraws(result)).await.is_err() {
+                                                set_entry_to_remove_ids.push(set_entry.id);
+                                            }
+                                        }
+                                    }
+                                    set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+                                    withdraws_last_modification_at = max(
+                                        withdraws_last_modification_at,
+                                        elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(withdraws_last_modification_at)
+                                    );
+                                },
                             }
+
+                            Ok::<(), NotificationManagerError>(())
+                        }.await {
+                            tracing::error!("{err}");
                         }
-                    },
+                    }
                 }
             }
         });
@@ -428,6 +342,15 @@ impl NotificationManager {
             join_handle,
         })
     }
+}
+
+#[derive(Error, Debug)]
+pub enum NotificationManagerError {
+    #[error(transparent)]
+    Sqlx(#[from] sqlx::Error),
+
+    #[error(transparent)]
+    Serde(#[from] serde_json::Error),
 }
 
 #[derive(Debug)]

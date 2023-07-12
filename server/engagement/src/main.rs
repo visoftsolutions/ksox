@@ -26,7 +26,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
 
     let notification_manager_controller =
-        NotificationManager::start(database, "notifications").await?;
+        NotificationManager::start(database, "engagement").await?;
 
     let engagement = EngagementEngine::default();
 

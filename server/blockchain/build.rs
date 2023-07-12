@@ -10,6 +10,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .write_to_file(out_file)?;
 
     tonic_build::configure()
+        .build_server(true)
+        .build_client(false)
+        .compile(&["proto/base.proto"], &["proto"])?;
+
+    tonic_build::configure()
         .build_server(false)
         .build_client(true)
         .compile(&["../engine/proto/base.proto"], &["../engine/proto"])?;

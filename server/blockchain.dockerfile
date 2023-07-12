@@ -7,7 +7,7 @@ RUN apt-get update
 RUN apt-get install -y libssl-dev pkg-config
 RUN apt-get install -y protobuf-compiler
 RUN apt-get autoremove
-RUN cargo install cargo-chef 
+RUN cargo install cargo-chef  
 WORKDIR /app
 
 FROM chef AS planner
@@ -27,5 +27,5 @@ RUN cargo build --release
 # We do not need the Rust toolchain to run the binary!
 FROM chef AS runtime
 WORKDIR /app
-COPY --from=builder /app/target/release/engine /usr/local/bin
-ENTRYPOINT [ "/usr/local/bin/engine" ]
+COPY --from=builder /app/target/release/blockchain /usr/local/bin
+ENTRYPOINT [ "/usr/local/bin/blockchain" ]

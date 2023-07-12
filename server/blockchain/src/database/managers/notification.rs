@@ -3,6 +3,7 @@ use std::{cmp::max, collections};
 use chrono::Utc;
 use serde::Deserialize;
 use sqlx::{postgres::PgListener, PgPool};
+use thiserror::Error;
 use tokio::{
     select,
     sync::{mpsc, oneshot},
@@ -87,38 +88,28 @@ impl NotificationManager {
                         }
                     },
                     Some(element) = stream.next() => {
-                        match element {
-                            Ok(value) => {
-                                match serde_json::from_str::<NotificationManagerEvent>(value.payload()) {
-                                    Ok(NotificationManagerEvent::Valuts) => {
-                                        match valuts_manager.get_modified(valuts_last_modification_at).await {
-                                            Ok(elements) => {
-                                                let mut set_entry_to_remove_ids = Vec::new();
-                                                for set_entry in set.values() {
-                                                    if set_entry.sender.send(NotificationManagerOutput::Valuts(elements.clone())).await.is_err() {
-                                                        set_entry_to_remove_ids.push(set_entry.id);
-                                                    }
-                                                }
-                                                set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
-
-                                                valuts_last_modification_at = max(
-                                                    valuts_last_modification_at,
-                                                    elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(valuts_last_modification_at)
-                                                );
-                                            },
-                                            Err(err) => {
-                                                tracing::error!("Error: {}", err);
-                                            }
+                        if let Err(err) = async {
+                            match serde_json::from_str::<NotificationManagerEvent>(element?.payload())? {
+                                NotificationManagerEvent::Valuts => {
+                                    let elements = valuts_manager.get_modified(valuts_last_modification_at).await?;
+                                    let mut set_entry_to_remove_ids = Vec::new();
+                                    for set_entry in set.values() {
+                                        if set_entry.sender.send(NotificationManagerOutput::Valuts(elements.clone())).await.is_err() {
+                                            set_entry_to_remove_ids.push(set_entry.id);
                                         }
-                                    },
-                                    Err(err) => {
-                                        tracing::error!("Error: {}", err);
                                     }
-                                }
-                            },
-                            Err(err) => {
-                                tracing::error!("Error: {}", err);
+                                    set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
+
+                                    valuts_last_modification_at = max(
+                                        valuts_last_modification_at,
+                                        elements.into_iter().map(|e| e.last_modification_at).max().unwrap_or(valuts_last_modification_at)
+                                    );
+                                },
                             }
+
+                            Ok::<(), NotificationManagerError>(())
+                        }.await {
+                            tracing::error!("{err}");
                         }
                     },
                 }
@@ -131,6 +122,15 @@ impl NotificationManager {
             join_handle,
         })
     }
+}
+
+#[derive(Error, Debug)]
+pub enum NotificationManagerError {
+    #[error(transparent)]
+    Sqlx(#[from] sqlx::Error),
+
+    #[error(transparent)]
+    Serde(#[from] serde_json::Error),
 }
 
 #[derive(Debug)]
