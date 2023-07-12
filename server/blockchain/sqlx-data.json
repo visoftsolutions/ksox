@@ -174,6 +174,27 @@
     },
     "query": "\n            INSERT INTO withdraws\n                (created_at, last_modification_at, user_id, asset_id, tx_hash, amount, confirmations)\n            VALUES\n                ($1, $2, $3, $4, $5, $6::fraction, $7::fraction)\n            RETURNING id, created_at, last_modification_at, user_id, asset_id, tx_hash as \"tx_hash: TxHash\", amount as \"amount: Fraction\", confirmations as \"confirmations: Fraction\"\n            "
   },
+  "277b3cf67c6f2c1941800e8dc85eb50c88c451f312cd84e9356626877f5637b2": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Timestamptz",
+          "Bpchar"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO \n                users\n                (last_modification_at, address) VALUES ($1, $2)\n                RETURNING id\n            "
+  },
   "2792052dcb5c916921881ec91f5341cfc26273c1a9240520cad4eed2cd6fc40a": {
     "describe": {
       "columns": [

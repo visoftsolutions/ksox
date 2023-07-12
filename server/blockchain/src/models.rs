@@ -7,7 +7,7 @@ use ethers::{
 };
 use evm::txhash::TxHash;
 use fraction::Fraction;
-use futures::Future;
+use futures::{Future};
 use sqlx::PgPool;
 use tokio::{
     select,
@@ -81,7 +81,7 @@ impl BlockchainManager {
                     Box<dyn Future<Output = Result<DepositInsert, sqlx::Error>> + Send>,
                 > {
                     let asset = assets_manager.get_by_address(event.token_address.into());
-                    let user = users_manager.get_by_address(event.user_address.into());
+                    let user = users_manager.get_or_create_by_address(event.user_address.into());
                     Box::pin(async move {
                         let asset = asset.await?;
                         let user = user.await?;
@@ -109,7 +109,7 @@ impl BlockchainManager {
                         let mut bytes = [0_u8; 32];
                         event.amount.to_little_endian(&mut bytes);
                         Ok(WithdrawInsert {
-                            user_id: user.id,
+                            user_id: user.ok_or(sqlx::Error::RowNotFound)?.id,
                             asset_id: asset.id,
                             amount: Fraction::from_bytes_le(&bytes) / asset.decimals,
                             tx_hash,

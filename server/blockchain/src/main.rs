@@ -54,14 +54,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let confirmation_controller = blockchain_manager.start_confirmation(engine_client).await;
 
-    let submission_controller = blockchain_manager
-        .start_submission(
-            notification_manager_controller
-                .get_subscriber()
-                .subscribe_to()
-                .await?,
-        )
-        .await;
+    // let submission_controller = blockchain_manager
+    //     .start_submission(
+    //         notification_manager_controller
+    //             .get_subscriber()
+    //             .subscribe_to()
+    //             .await?,
+    //     )
+    //     .await;
 
     let engagement = BlockchainEngine::default();
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));
@@ -77,9 +77,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         tracing::error!("{err}");
     }
 
-    if let Err(err) = submission_controller.shutdown().await? {
-        tracing::error!("{err}");
-    }
+    // if let Err(err) = submission_controller.shutdown().await? {
+    //     tracing::error!("{err}");
+    // }
 
     Ok(())
 }

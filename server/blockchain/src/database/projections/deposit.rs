@@ -21,7 +21,7 @@ pub struct Deposit {
 
 impl Confirmable for Deposit {
     fn set(&mut self, confirmations: usize) {
-        self.confirmations = Fraction::from(confirmations)
+        self.confirmations = Fraction::from(confirmations) / Fraction::from(10)
     }
     fn is_confirmed(&self) -> bool {
         self.confirmations >= Fraction::one()

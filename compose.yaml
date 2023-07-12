@@ -75,7 +75,7 @@ services:
       - ENGINE_URL=http://ksox-server-engine/
       - RUST_BACKTRACE=full
       - WS_PROVIDER_URL=wss://eth-sepolia.g.alchemy.com/v2/-koG9fJPMpiL7ywoOZyGtWlLZ_JymCb2
-      - TREASURY_ADDRESS=0x2b3aB71608b357B28233b010253E0a0DEBE2bF11
+      - TREASURY_ADDRESS=0x8C7419dA64d29BE79a4a7933cC7cd92Fc31972A0
     depends_on:
       - postgres
       - redis

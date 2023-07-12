@@ -1,3 +1,4 @@
+ use chrono::Utc;
 use evm::address::Address;
 use sqlx::{postgres::PgPool, Result};
 
@@ -13,7 +14,24 @@ impl UsersManager {
         Self { database }
     }
 
-    pub async fn get_by_address(&self, address: Address) -> Result<User> {
+    async fn insert_with_address(&self, address: Address) -> Result<User> {
+        let now = Utc::now();
+        sqlx::query_as!(
+            User,
+            r#"
+            INSERT INTO 
+                users
+                (last_modification_at, address) VALUES ($1, $2)
+                RETURNING id
+            "#,
+            now,
+            &address.to_string()
+        )
+        .fetch_one(&self.database)
+        .await
+    }
+
+    pub async fn get_by_address(&self, address: Address) -> Result<Option<User>> {
         sqlx::query_as!(
             User,
             r#"
@@ -24,7 +42,17 @@ impl UsersManager {
             "#,
             address.to_string()
         )
-        .fetch_one(&self.database)
+        .fetch_optional(&self.database)
         .await
+    }
+
+    pub async fn get_or_create_by_address(&self, address: Address) -> Result<User> {
+        match self.get_by_address(address.clone()).await? {
+            Some(user) => Ok(user),
+            None => {
+                self.insert_with_address(address).await
+            }
+        }
+
     }
 }

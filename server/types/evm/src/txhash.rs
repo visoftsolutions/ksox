@@ -47,7 +47,7 @@ impl Deref for TxHash {
 
 impl Decode<'_, Postgres> for TxHash {
     fn decode(value: PgValueRef) -> std::result::Result<Self, sqlx::error::BoxDynError> {
-        let bytes: [u8; 20] =
+        let bytes: [u8; 32] =
             prefix_hex::decode(value.as_str()?).map_err(|error| error.to_string())?;
         Ok(TxHash(ethereum_types::Secret::from_slice(&bytes)))
     }

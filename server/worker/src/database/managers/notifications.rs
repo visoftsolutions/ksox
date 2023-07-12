@@ -15,8 +15,7 @@ use uuid::Uuid;
 use crate::database::{
     managers,
     projections::{
-        self, asset::Asset, badge::Badge, candlestick::Candlestick, deposit::Deposit, order::Order,
-        trade::Trade, transfer::Transfer, user::User, valut::Valut, withdraw::Withdraw,
+        self
     },
 };
 
