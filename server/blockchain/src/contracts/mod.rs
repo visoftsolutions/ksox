@@ -38,7 +38,9 @@ pub async fn block_distance(
     block_rhs: &Block<H256>,
 ) -> Result<usize, ProviderError> {
     if let (Some(block_lhs_number), Some(block_rhs_number)) = (block_lhs.number, block_rhs.number) {
-        Ok((block_lhs_number.abs_diff(block_rhs_number)).try_into().map_err(|e: &str| ProviderError::CustomError(e.to_string()))?)
+        Ok((block_lhs_number.abs_diff(block_rhs_number))
+            .try_into()
+            .map_err(|e: &str| ProviderError::CustomError(e.to_string()))?)
     } else {
         Err(ProviderError::CustomError(
             "could not get block number".to_string(),

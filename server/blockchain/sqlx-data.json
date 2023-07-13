@@ -1,6 +1,6 @@
 {
   "db": "PostgreSQL",
-  "090de36fab72a298c0c4d41d4f5792d02eacc327896dc8c59e555bc275c3e66e": {
+  "01f1f49b51d876bb0ae2a6332809299c8adaedc617959d447d996b1107a6e5c5": {
     "describe": {
       "columns": [
         {
@@ -9,25 +9,9 @@
           "type_info": "Uuid"
         },
         {
-          "name": "decimals: Fraction",
+          "name": "address: Address",
           "ordinal": 1,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
+          "type_info": "Bpchar"
         }
       ],
       "nullable": [
@@ -36,11 +20,11 @@
       ],
       "parameters": {
         "Left": [
-          "Bpchar"
+          "Uuid"
         ]
       }
     },
-    "query": "\n            SELECT\n                id,\n                decimals as \"decimals: Fraction\"\n            FROM assets\n            WHERE address = $1\n            "
+    "query": "\n            SELECT\n                id,\n                address as \"address: Address\"\n            FROM users\n            WHERE id = $1\n            "
   },
   "0ea5b4f916f957f2804ecd8c6191e4c86692fa53ee5b713e396810e08113954f": {
     "describe": {
@@ -174,47 +158,6 @@
     },
     "query": "\n            INSERT INTO withdraws\n                (created_at, last_modification_at, user_id, asset_id, tx_hash, amount, confirmations)\n            VALUES\n                ($1, $2, $3, $4, $5, $6::fraction, $7::fraction)\n            RETURNING id, created_at, last_modification_at, user_id, asset_id, tx_hash as \"tx_hash: TxHash\", amount as \"amount: Fraction\", confirmations as \"confirmations: Fraction\"\n            "
   },
-  "277b3cf67c6f2c1941800e8dc85eb50c88c451f312cd84e9356626877f5637b2": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Timestamptz",
-          "Bpchar"
-        ]
-      }
-    },
-    "query": "\n            INSERT INTO \n                users\n                (last_modification_at, address) VALUES ($1, $2)\n                RETURNING id\n            "
-  },
-  "2792052dcb5c916921881ec91f5341cfc26273c1a9240520cad4eed2cd6fc40a": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Bpchar"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                id\n            FROM users\n            WHERE address = $1\n            "
-  },
   "63ab0e7577b06975b0c1c3f0f94a7e2946c8e890d9ba7544764ac8738efae33c": {
     "describe": {
       "columns": [],
@@ -244,6 +187,54 @@
       }
     },
     "query": "\n            UPDATE \n                withdraws\n            SET\n                confirmations = $2::fraction,\n                last_modification_at = $3\n            WHERE\n                id = $1\n            "
+  },
+  "698e804df9978dc62cecf076cc55cc32db2b8dfb0d69586f84c527e93bbb51a1": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "address: Address",
+          "ordinal": 1,
+          "type_info": "Bpchar"
+        },
+        {
+          "name": "decimals: Fraction",
+          "ordinal": 2,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                address as \"address: Address\",\n                decimals as \"decimals: Fraction\"\n            FROM assets\n            WHERE id = $1\n            "
   },
   "a386c2e929884fdad050352e0f750dd27934e6aacfd3ed65c64151f61c4c9a9a": {
     "describe": {
@@ -421,6 +412,80 @@
     },
     "query": "\n            SELECT\n                valuts.id,\n                valuts.created_at,\n                valuts.last_modification_at,\n                users.address as \"user_address: Address\",\n                assets.address as \"asset_address: Address\",\n                assets.decimals as \"decimals: Fraction\",\n                valuts.balance as \"balance: Fraction\"\n            FROM valuts\n            JOIN users ON valuts.user_id = users.id\n            JOIN assets ON valuts.asset_id = assets.id\n            WHERE valuts.last_modification_at > $1\n            ORDER BY valuts.last_modification_at ASC\n            "
   },
+  "bdd462f29574f8f75208510be6031770b6b7201129e97425a59dcba78c6591d0": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "address: Address",
+          "ordinal": 1,
+          "type_info": "Bpchar"
+        },
+        {
+          "name": "decimals: Fraction",
+          "ordinal": 2,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Bpchar"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                address as \"address: Address\",\n                decimals as \"decimals: Fraction\"\n            FROM assets\n            WHERE address = $1\n            "
+  },
+  "ce035cfa3bf021cf9228ea6d2134ddc0ccde517f31cf5569254b4991f45a204b": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "address: Address",
+          "ordinal": 1,
+          "type_info": "Bpchar"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Bpchar"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                address as \"address: Address\"\n            FROM users\n            WHERE address = $1\n            "
+  },
   "cfb80a2aa165d55fa38f2b853faa12373299e4c0d9d8967a0ee793e6907e4c1d": {
     "describe": {
       "columns": [
@@ -582,5 +647,32 @@
       }
     },
     "query": "\n            UPDATE \n                deposits\n            SET\n                confirmations = $2::fraction,\n                last_modification_at = $3\n            WHERE\n                id = $1\n            "
+  },
+  "fc7a49c56ec7f4dee220b92401282a2377f986c25cb45cffb2e81b984cf41bfe": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "address: Address",
+          "ordinal": 1,
+          "type_info": "Bpchar"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Timestamptz",
+          "Bpchar"
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO \n                users\n                (last_modification_at, address) VALUES ($1, $2)\n                RETURNING id, address as \"address: Address\"\n            "
   }
 }

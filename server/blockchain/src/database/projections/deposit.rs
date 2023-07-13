@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use evm::txhash::TxHash;
 use fraction::{num_traits::One, Fraction};
+use num_bigint::BigInt;
 use serde::{Deserialize, Serialize};
 use tonic::Status;
 use uuid::Uuid;
@@ -21,7 +22,8 @@ pub struct Deposit {
 
 impl Confirmable for Deposit {
     fn set(&mut self, confirmations: usize) {
-        self.confirmations = Fraction::from(confirmations) / Fraction::from(10)
+        self.confirmations =
+            Fraction::from_raw((BigInt::from(confirmations), BigInt::from(10))).unwrap_or_default()
     }
     fn is_confirmed(&self) -> bool {
         self.confirmations >= Fraction::one()

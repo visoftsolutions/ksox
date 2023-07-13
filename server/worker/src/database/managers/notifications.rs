@@ -14,9 +14,7 @@ use uuid::Uuid;
 
 use crate::database::{
     managers,
-    projections::{
-        self
-    },
+    projections::{self},
 };
 
 #[derive(Debug, Clone, Deserialize)]

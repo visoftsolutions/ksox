@@ -2,8 +2,9 @@ use std::collections::HashSet;
 
 use ethereum_types::U256;
 use ethers::{
-    prelude::ContractError,
+    prelude::{k256::ecdsa::SigningKey, ContractError, SignerMiddleware},
     providers::{Provider, Ws},
+    signers::Wallet,
 };
 use thiserror::Error;
 use uuid::Uuid;
@@ -16,11 +17,14 @@ use crate::{
 pub struct SubmissionQueue<'a> {
     entries: HashSet<Uuid>,
     valuts_manager: &'a ValutsManager,
-    contract: &'a Treasury<Provider<Ws>>,
+    contract: &'a Treasury<SignerMiddleware<Provider<Ws>, Wallet<SigningKey>>>,
 }
 
 impl<'a> SubmissionQueue<'a> {
-    pub fn new(valuts_manager: &'a ValutsManager, contract: &'a Treasury<Provider<Ws>>) -> Self {
+    pub fn new(
+        valuts_manager: &'a ValutsManager,
+        contract: &'a Treasury<SignerMiddleware<Provider<Ws>, Wallet<SigningKey>>>,
+    ) -> Self {
         Self {
             entries: HashSet::new(),
             valuts_manager,
@@ -71,5 +75,5 @@ pub enum SubmissionQueueError {
     Sqlx(#[from] sqlx::Error),
 
     #[error(transparent)]
-    ContractError(#[from] ContractError<Provider<Ws>>),
+    ContractError(#[from] ContractError<SignerMiddleware<Provider<Ws>, Wallet<SigningKey>>>),
 }

@@ -1,23 +1,18 @@
 use chrono::Utc;
 use evm::txhash::TxHash;
 use fraction::Fraction;
-use sqlx::{postgres::PgQueryResult, PgPool, Postgres, Transaction};
+use sqlx::{postgres::PgQueryResult, Postgres, Transaction};
 
 use crate::database::projections::deposit::{Deposit, DepositInsert};
 
 #[derive(Debug, Clone)]
-pub struct DepositsManager {
-    database: PgPool,
-}
+pub struct DepositsManager {}
 
 impl DepositsManager {
-    pub fn new(database: PgPool) -> Self {
-        Self { database }
-    }
-}
-
-impl DepositsManager {
-    pub async fn insert(&self, deposit: DepositInsert) -> sqlx::Result<Deposit> {
+    pub async fn insert<'t, 'p>(
+        pool: &'t mut Transaction<'p, Postgres>,
+        deposit: DepositInsert,
+    ) -> sqlx::Result<Deposit> {
         let now = Utc::now();
         sqlx::query_as!(
             Deposit,
@@ -36,12 +31,11 @@ impl DepositsManager {
             deposit.amount.to_tuple_string() as _,
             deposit.confirmations.to_tuple_string() as _,
         )
-        .fetch_one(&self.database)
+        .fetch_one(pool)
         .await
     }
 
     pub async fn update<'t, 'p>(
-        &self,
         pool: &'t mut Transaction<'p, Postgres>,
         deposit: Deposit,
     ) -> sqlx::Result<PgQueryResult> {

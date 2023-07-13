@@ -1,5 +1,14 @@
 syntax = "proto3";
 package server.blockchain.base;
 
+message WithdrawRequest {
+    string user_id = 1;
+    string asset_id = 2;
+    string amount = 3;
+}
+
+message WithdrawResponse {}
+
 service Blockchain {
+    rpc Withdraw(WithdrawRequest) returns (WithdrawResponse) {}
 }
