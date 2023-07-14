@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: server-worker-deployment
+  namespace: ksox-finance
   labels:
     app: server-worker
 spec:
@@ -20,11 +21,11 @@ spec:
             - containerPort: 80
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "100m"
+              memory: 200Mi
+              cpu: 200m
             limits:
-              memory: "1024Mi"
-              cpu: "1000m"
+              memory: 500Mi
+              cpu: 500m
           env:
             - name: DATABASE_URL
               value: postgresql://ksoxuser:ksoxuserp4ssword@postgres-service/ksox
@@ -41,7 +42,7 @@ spec:
             [
               "sh",
               "-c",
-              "until nc -z postgres-service 5432; do echo waiting for postgres; sleep 1; done;",
+              "until nc -z postgres-service 5432; do echo waiting for postgres; sleep 1.$((RANDOM % 100)); done;",
             ]
         - name: wait-for-redis
           image: busybox
@@ -49,7 +50,7 @@ spec:
             [
               "sh",
               "-c",
-              "until nc -z redis-service 6379; do echo waiting for redis; sleep 1; done;",
+              "until nc -z redis-service 6379; do echo waiting for redis; sleep 1.$((RANDOM % 100)); done;",
             ]
         - name: wait-for-engine
           image: busybox
@@ -57,7 +58,7 @@ spec:
             [
               "sh",
               "-c",
-              "until nc -z server-engine-service 80; do echo waiting for engine; sleep 1; done;",
+              "until nc -z server-engine-service 80; do echo waiting for engine; sleep 1.$((RANDOM % 100)); done;",
             ]
         - name: wait-for-engagement
           image: busybox
@@ -65,13 +66,14 @@ spec:
             [
               "sh",
               "-c",
-              "until nc -z server-engagement-service 80; do echo waiting for engagement; sleep 1; done;",
+              "until nc -z server-engagement-service 80; do echo waiting for engagement; sleep 1.$((RANDOM % 100)); done;",
             ]
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: server-worker-service
+  namespace: ksox-finance
 spec:
   selector:
     app: server-worker
@@ -84,10 +86,12 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: server-worker-ingress
+  namespace: ksox-finance
   annotations:
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
+  ingressClassName: ingress-nginx
   tls:
     - hosts:
         - app.ksox.finance

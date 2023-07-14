@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: server-engagement-deployment
+  namespace: ksox-finance
   labels:
     app: server-engagement
 spec:
@@ -20,11 +21,11 @@ spec:
             - containerPort: 80
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "100m"
+              memory: 200Mi
+              cpu: 200m
             limits:
-              memory: "1024Mi"
-              cpu: "1000m"
+              memory: 400Mi
+              cpu: 400m
           env:
             - name: DATABASE_URL
               value: postgresql://ksoxuser:ksoxuserp4ssword@postgres-service/ksox
@@ -37,7 +38,7 @@ spec:
             [
               "sh",
               "-c",
-              "until nc -z postgres-service 5432; do echo waiting for postgres; sleep 1; done;",
+              "until nc -z postgres-service 5432; do echo waiting for postgres; sleep 1.$((RANDOM % 100)); done;",
             ]
         - name: wait-for-redis
           image: busybox
@@ -45,13 +46,14 @@ spec:
             [
               "sh",
               "-c",
-              "until nc -z redis-service 6379; do echo waiting for redis; sleep 1; done;",
+              "until nc -z redis-service 6379; do echo waiting for redis; sleep 1.$((RANDOM % 100)); done;",
             ]
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: server-engagement-service
+  namespace: ksox-finance
 spec:
   selector:
     app: server-engagement

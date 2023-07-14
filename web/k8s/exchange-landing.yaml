@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: web-exchange-landing-deployment
+  namespace: ksox-finance
   labels:
     app: web-exchange-landing
 spec:
@@ -20,16 +21,17 @@ spec:
             - containerPort: 80
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "100m"
+              memory: 200Mi
+              cpu: 200m
             limits:
-              memory: "1024Mi"
-              cpu: "1000m"
+              memory: 500Mi
+              cpu: 500m
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: web-exchange-landing-service
+  namespace: ksox-finance
 spec:
   selector:
     app: web-exchange-landing
@@ -42,11 +44,13 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: web-exchange-landing-ingress
+  namespace: ksox-finance
   annotations:
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$1
     nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
 spec:
+  ingressClassName: ingress-nginx
   tls:
     - hosts:
         - ksox.finance

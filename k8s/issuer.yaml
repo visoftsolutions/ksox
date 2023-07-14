@@ -1,7 +1,8 @@
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: ksox-finance-issuer
+  name: ksox-finance-letsencrypt-http01
+  namespace: ksox-finance
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
@@ -9,16 +10,9 @@ spec:
     privateKeySecretRef:
       name: ksox-finance-issuer-account-key
     solvers:
-    - http01:
-        ingress:
-          ingressClassName: ingress-nginx
-      selector:
-        dnsZones:
-        - ksox.finance
-# ---
-# apiVersion: cert-manager.io/v1
-# kind: Issuer
-# metadata:
-#   name: ksox-finance-issuer-selfsigned
-# spec:
-#   selfSigned: {}
+      - http01:
+          ingress:
+            ingressClassName: ingress-nginx
+        selector:
+          dnsZones:
+            - ksox.finance

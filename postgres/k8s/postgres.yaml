@@ -2,18 +2,20 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-pv-claim
+  namespace: ksox-finance
 spec:
   storageClassName: openebs-hostpath
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 256Gi
+      storage: 512Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres-deployment
+  namespace: ksox-finance
   labels:
     app: postgres-database
 spec:
@@ -39,11 +41,11 @@ spec:
               name: postgres-pv-storage
           resources:
             requests:
-              memory: "512Mi"
-              cpu: "500m"
+              memory: 300Mi
+              cpu: 300m
             limits:
-              memory: "1024Mi"
-              cpu: "1000m"
+              memory: 500Mi
+              cpu: 500m
           env:
             - name: POSTGRES_USER
               value: ksoxuser
@@ -56,6 +58,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres-service
+  namespace: ksox-finance
 spec:
   selector:
     app: postgres-database
