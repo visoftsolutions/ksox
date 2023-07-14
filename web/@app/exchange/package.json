@@ -28,7 +28,6 @@
     "numerable": "^0.3.15",
     "solid-js": "^1.7.7",
     "solid-start": "^0.2.26",
-    "tailwind-merge": "^1.13.2",
     "undici": "^5.22.1",
     "viem": "^1.2.6",
     "zod": "^3.21.4"
