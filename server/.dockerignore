@@ -6,13 +6,6 @@
 # MSVC Windows builds of rustc generate these, which store debugging information
 **/*.pdb
 
-# Cargo
-**/Cargo.lock
-
-# Envs
-**/.env
-**/.cargo
-
 # Node.js
 **/node_modules/
 **/npm-debug.log
@@ -21,7 +14,6 @@
 
 # Hardhat
 **/artifacts/
-**/cache/
 **/typechain-types/
 
 # Solid.js
