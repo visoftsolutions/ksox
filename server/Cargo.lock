@@ -2106,6 +2106,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "infinity"
+version = "0.1.0"
+dependencies = [
+ "fraction",
+ "num-bigint",
+ "num-derive",
+ "num-rational",
+ "num-traits",
+ "proptest",
+ "seq-macro",
+ "serde",
+]
+
+[[package]]
 name = "inout"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"

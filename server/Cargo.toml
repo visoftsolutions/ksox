@@ -6,6 +6,7 @@ members = [
     "engine",
     "types/evm",
     "types/fraction",
+    "types/infinity",
     "types/pricelevel",
     "worker",
 ]
