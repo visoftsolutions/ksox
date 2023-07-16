@@ -8,5 +8,6 @@ members = [
     "types/fraction",
     "types/infinity",
     "types/pricelevel",
+    "types/value",
     "worker",
 ]

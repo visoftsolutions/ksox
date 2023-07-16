@@ -70,11 +70,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         provider: provider.to_owned(),
         contract: treasury.to_owned().into(),
     }
-    .start(engine_client)
+    .start(engine_client.to_owned())
     .await;
 
     let valuts_controller = ValutsBlockchainManager {
-        database,
+        database: database.to_owned(),
         provider,
         contract: treasury.to_owned().into(),
     }
@@ -88,6 +88,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let engagement = BlockchainEngine {
         contract: treasury.into(),
+        database: database.to_owned(),
         deposits_controller,
         withdraws_controller,
         valuts_controller,

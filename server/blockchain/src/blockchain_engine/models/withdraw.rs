@@ -4,7 +4,7 @@ use thiserror::Error;
 use tonic::Status;
 use uuid::Uuid;
 
-use crate::base;
+use crate::{base, blockchain_engine::withdraws::models::WithdrawEvent};
 
 pub struct WithdrawRequest {
     pub user_id: Uuid,
@@ -23,6 +23,16 @@ impl TryFrom<base::WithdrawRequest> for WithdrawRequest {
             amount: serde_json::from_str(&value.amount)
                 .map_err(|e| Status::invalid_argument(e.to_string()))?,
         })
+    }
+}
+
+impl Into<WithdrawEvent> for WithdrawRequest {
+    fn into(self) -> WithdrawEvent {
+        WithdrawEvent {
+            user_id: self.user_id,
+            asset_id: self.asset_id,
+            amount: self.amount,
+        }
     }
 }
 

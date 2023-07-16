@@ -3,167 +3,296 @@ use std::{
     ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign},
 };
 
-use fraction::Fraction;
-use num_bigint::BigInt;
 use num_derive::ToPrimitive;
 pub use num_traits;
-use num_traits::{Inv, Zero};
+use num_traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub};
+use proptest::{
+    prelude::{any, Arbitrary},
+    strategy::{BoxedStrategy, Strategy},
+};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, ToPrimitive, Serialize, Deserialize)]
+#[derive(Debug, Clone, ToPrimitive, Serialize, Deserialize)]
 pub enum Infinity {
     Positive,
     Negative,
-    Zero,
 }
 
 impl Neg for Infinity {
     type Output = Self;
-    fn neg(self) -> Self {
+    fn neg(self) -> Self::Output {
         match self {
-            Infinity::Positive => Infinity::Negative,
-            Infinity::Negative => Infinity::Positive,
-            Infinity::Zero => Infinity::Zero,
+            Self::Positive => Self::Negative,
+            Self::Negative => Self::Positive,
         }
     }
 }
 
-impl Inv for Infinity {
-    type Output = Fraction;
-    fn inv(self) -> Self::Output {
-        Fraction::from(BigInt::from(0))
-    }
-}
-
-impl AddAssign<Fraction> for Infinity {
-    fn add_assign(&mut self, _rhs: Fraction) {}
-}
-
-impl SubAssign<Fraction> for Infinity {
-    fn sub_assign(&mut self, _rhs: Fraction) {}
-}
-
-impl Add<Fraction> for Infinity {
+impl Add for Infinity {
     type Output = Infinity;
-    fn add(self, _rhs: Fraction) -> Self::Output {
-        self
-    }
-}
-
-impl Sub<Fraction> for Infinity {
-    type Output = Infinity;
-    fn sub(self, _rhs: Fraction) -> Self::Output {
-        self
-    }
-}
-
-impl Mul<Fraction> for Infinity {
-    type Output = Infinity;
-    fn mul(self, rhs: Fraction) -> Self::Output {
-        match rhs.cmp(&Fraction::zero()) {
-            Ordering::Equal => Infinity::Zero,
-            Ordering::Greater => self,
-            Ordering::Less => self.neg(),
+    fn add(self, other: Self) -> Self::Output {
+        match (self, other) {
+            (Self::Positive, Self::Positive) => Self::Positive,
+            (Self::Negative, Self::Negative) => Self::Negative,
+            _ => panic!("Invalid addition between infinities"),
         }
     }
 }
 
-impl Div<Fraction> for Infinity {
-    type Output = Infinity;
-    fn div(self, rhs: Fraction) -> Self::Output {
-        match rhs.cmp(&Fraction::zero()) {
-            Ordering::Equal => Infinity::Zero,
-            Ordering::Greater => self,
-            Ordering::Less => self.neg(),
+impl Sub for Infinity {
+    type Output = Self;
+    fn sub(self, other: Self) -> Self::Output {
+        match (self, other) {
+            (Self::Positive, Self::Negative) => Self::Positive,
+            (Self::Negative, Self::Positive) => Self::Negative,
+            _ => panic!("Invalid subtraction between infinities"),
         }
     }
 }
 
-impl PartialEq<Fraction> for Infinity {
-    fn eq(&self, _other: &Fraction) -> bool {
-        false
-    }
-
-    fn ne(&self, _other: &Fraction) -> bool {
-        true
-    }
-}
-
-impl PartialOrd<Fraction> for Infinity {
-    fn ge(&self, other: &Fraction) -> bool {
-        match self {
-            Infinity::Positive => true,
-            Infinity::Negative => false,
-            Infinity::Zero => other.ge(&Fraction::zero()),
-        }
-    }
-    fn gt(&self, other: &Fraction) -> bool {
-        match self {
-            Infinity::Positive => true,
-            Infinity::Negative => false,
-            Infinity::Zero => other.gt(&Fraction::zero()),
-        }
-    }
-    fn le(&self, other: &Fraction) -> bool {
-        match self {
-            Infinity::Positive => false,
-            Infinity::Negative => true,
-            Infinity::Zero => other.le(&Fraction::zero()),
-        }
-    }
-    fn lt(&self, other: &Fraction) -> bool {
-        match self {
-            Infinity::Positive => false,
-            Infinity::Negative => true,
-            Infinity::Zero => other.lt(&Fraction::zero()),
-        }
-    }
-    fn partial_cmp(&self, other: &Fraction) -> Option<Ordering> {
-        if other.denom().is_zero() {
-            None
-        } else {
-            match self {
-                Infinity::Positive => Some(Ordering::Greater),
-                Infinity::Negative => Some(Ordering::Less),
-                Infinity::Zero => Fraction::zero().partial_cmp(other),
-            }
+impl Mul for Infinity {
+    type Output = Self;
+    fn mul(self, other: Self) -> Self::Output {
+        match (self, other) {
+            (Self::Positive, Self::Positive) => Self::Positive,
+            (Self::Negative, Self::Negative) => Self::Positive,
+            (Self::Positive, Self::Negative) => Self::Negative,
+            (Self::Negative, Self::Positive) => Self::Negative,
         }
     }
 }
+
+impl Div for Infinity {
+    type Output = Self;
+    fn div(self, other: Self) -> Self::Output {
+        match (self, other) {
+            (Self::Positive, Self::Positive) => Self::Positive,
+            (Self::Negative, Self::Negative) => Self::Positive,
+            (Self::Positive, Self::Negative) => Self::Negative,
+            (Self::Negative, Self::Positive) => Self::Negative,
+        }
+    }
+}
+
+impl AddAssign for Infinity {
+    fn add_assign(&mut self, other: Self) {
+        match (&self, other) {
+            (Self::Positive, Self::Positive) => *self = Self::Positive,
+            (Self::Negative, Self::Negative) => *self = Self::Negative,
+            _ => panic!("Invalid addition assignment between infinities"),
+        }
+    }
+}
+
+impl SubAssign for Infinity {
+    fn sub_assign(&mut self, other: Self) {
+        match (&self, other) {
+            (Self::Positive, Self::Negative) => *self = Self::Positive,
+            (Self::Negative, Self::Positive) => *self = Self::Negative,
+            _ => panic!("Invalid subtraction assignment between infinities"),
+        }
+    }
+}
+
+impl PartialEq for Infinity {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Positive, Self::Positive) => true,
+            (Self::Negative, Self::Negative) => true,
+            _ => false,
+        }
+    }
+}
+
+impl PartialOrd for Infinity {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        match (self, other) {
+            (Self::Positive, Self::Positive) => Some(Ordering::Equal),
+            (Self::Negative, Self::Negative) => Some(Ordering::Equal),
+            (Self::Negative, Self::Positive) => Some(Ordering::Less),
+            (Self::Positive, Self::Negative) => Some(Ordering::Greater),
+        }
+    }
+}
+
+impl CheckedAdd for Infinity {
+    fn checked_add(&self, v: &Self) -> Option<Self> {
+        match (self, v) {
+            (Self::Positive, Self::Positive) => Some(Self::Positive),
+            (Self::Negative, Self::Negative) => Some(Self::Negative),
+            _ => None,
+        }
+    }
+}
+
+impl CheckedSub for Infinity {
+    fn checked_sub(&self, v: &Self) -> Option<Self> {
+        match (self, v) {
+            (Self::Positive, Self::Negative) => Some(Self::Positive),
+            (Self::Negative, Self::Positive) => Some(Self::Negative),
+            _ => None,
+        }
+    }
+}
+
+impl CheckedMul for Infinity {
+    fn checked_mul(&self, v: &Self) -> Option<Self> {
+        match (self, v) {
+            (Self::Positive, Self::Positive) => Some(Self::Positive),
+            (Self::Negative, Self::Negative) => Some(Self::Positive),
+            (Self::Positive, Self::Negative) => Some(Self::Negative),
+            (Self::Negative, Self::Positive) => Some(Self::Negative),
+        }
+    }
+}
+
+impl CheckedDiv for Infinity {
+    fn checked_div(&self, v: &Self) -> Option<Self> {
+        match (self, v) {
+            (Self::Positive, Self::Positive) => Some(Self::Positive),
+            (Self::Negative, Self::Negative) => Some(Self::Positive),
+            (Self::Positive, Self::Negative) => Some(Self::Negative),
+            (Self::Negative, Self::Positive) => Some(Self::Negative),
+        }
+    }
+}
+
+impl Arbitrary for Infinity {
+    type Parameters = ();
+    type Strategy = BoxedStrategy<Self>;
+
+    fn arbitrary() -> Self::Strategy {
+        any::<bool>()
+            .prop_map(|f| match f {
+                true => Infinity::Positive,
+                false => Infinity::Negative,
+            })
+            .boxed()
+    }
+
+    fn arbitrary_with(_args: Self::Parameters) -> Self::Strategy {
+        Self::arbitrary()
+    }
+}
+
+// impl Add<Fraction> for Infinity {
+//     type Output = Infinity;
+//     fn add(self, _rhs: Fraction) -> Self::Output {
+//         self
+//     }
+// }
+
+// impl Sub<Fraction> for Infinity {
+//     type Output = Infinity;
+//     fn sub(self, _rhs: Fraction) -> Self::Output {
+//         self
+//     }
+// }
+
+// impl Mul<Fraction> for Infinity {
+//     type Output = Infinity;
+//     fn mul(self, rhs: Fraction) -> Self::Output {
+//         match rhs.cmp(&Fraction::zero()) {
+//             Ordering::Equal => Infinity::Zero,
+//             Ordering::Greater => self,
+//             Ordering::Less => self.neg(),
+//         }
+//     }
+// }
+
+// impl Div<Fraction> for Infinity {
+//     type Output = Infinity;
+//     fn div(self, rhs: Fraction) -> Self::Output {
+//         match rhs.cmp(&Fraction::zero()) {
+//             Ordering::Equal => Infinity::Zero,
+//             Ordering::Greater => self,
+//             Ordering::Less => self.neg(),
+//         }
+//     }
+// }
+
+// impl PartialEq<Fraction> for Infinity {
+//     fn eq(&self, _other: &Fraction) -> bool {
+//         false
+//     }
+
+//     fn ne(&self, _other: &Fraction) -> bool {
+//         true
+//     }
+// }
+
+// impl PartialOrd<Fraction> for Infinity {
+//     fn ge(&self, other: &Fraction) -> bool {
+//         match self {
+//             Infinity::Positive => true,
+//             Infinity::Negative => false,
+//             Infinity::Zero => other.ge(&Fraction::zero()),
+//         }
+//     }
+//     fn gt(&self, other: &Fraction) -> bool {
+//         match self {
+//             Infinity::Positive => true,
+//             Infinity::Negative => false,
+//             Infinity::Zero => other.gt(&Fraction::zero()),
+//         }
+//     }
+//     fn le(&self, other: &Fraction) -> bool {
+//         match self {
+//             Infinity::Positive => false,
+//             Infinity::Negative => true,
+//             Infinity::Zero => other.le(&Fraction::zero()),
+//         }
+//     }
+//     fn lt(&self, other: &Fraction) -> bool {
+//         match self {
+//             Infinity::Positive => false,
+//             Infinity::Negative => true,
+//             Infinity::Zero => other.lt(&Fraction::zero()),
+//         }
+//     }
+//     fn partial_cmp(&self, other: &Fraction) -> Option<Ordering> {
+//         if other.denom().is_zero() {
+//             None
+//         } else {
+//             match self {
+//                 Infinity::Positive => Some(Ordering::Greater),
+//                 Infinity::Negative => Some(Ordering::Less),
+//                 Infinity::Zero => Fraction::zero().partial_cmp(other),
+//             }
+//         }
+//     }
+// }
 
 #[cfg(test)]
 mod tests {
+    use num_traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub};
     use proptest::{prelude::*, proptest};
     use seq_macro::seq;
 
     use crate::Infinity;
-
-    use super::Fraction;
 
     seq!(N in 0..10 {
     proptest! {
         #![proptest_config(ProptestConfig::with_cases(std::env::var("TESTS_CASES").unwrap().parse().unwrap()))]
 
         #[test]
-        fn positive_infinity_always_greater~N(fraction in any_with::<Fraction>(std::env::var("TESTS_FRACTION_BYTES").unwrap().parse().unwrap())) {
-            assert!(Infinity::Positive > fraction);
+        fn checked_add~N(inf1 in any::<Infinity>(), inf2 in any::<Infinity>()) {
+            inf1.checked_add(&inf2);
         }
 
         #[test]
-        fn negative_infinity_always_smaller~N(fraction in any_with::<Fraction>(std::env::var("TESTS_FRACTION_BYTES").unwrap().parse().unwrap())) {
-            assert!(Infinity::Negative < fraction);
+        fn checked_sub~N(inf1 in any::<Infinity>(), inf2 in any::<Infinity>()) {
+            inf1.checked_sub(&inf2);
         }
 
         #[test]
-        fn infinity_remains_on_addition~N(fraction in any_with::<Fraction>(std::env::var("TESTS_FRACTION_BYTES").unwrap().parse().unwrap())) {
-            assert_eq!(Infinity::Positive + fraction.to_owned(), Infinity::Positive);
-            assert_eq!(Infinity::Negative + fraction.to_owned(), Infinity::Negative);
+        fn checked_mul~N(inf1 in any::<Infinity>(), inf2 in any::<Infinity>()) {
+            inf1.checked_mul(&inf2);
         }
 
         #[test]
-        fn infinity_remains_on_subtraction~N(fraction in any_with::<Fraction>(std::env::var("TESTS_FRACTION_BYTES").unwrap().parse().unwrap())) {
-            assert_eq!(Infinity::Positive - fraction.to_owned(), Infinity::Positive);
-            assert_eq!(Infinity::Negative - fraction.to_owned(), Infinity::Negative);
+        fn checked_div~N(inf1 in any::<Infinity>(), inf2 in any::<Infinity>()) {
+            inf1.checked_div(&inf2);
         }
     }
     });

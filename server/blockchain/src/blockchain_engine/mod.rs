@@ -8,22 +8,27 @@ use ethers::{
     providers::{Provider, Ws},
     signers::Wallet,
 };
-use tonic::{Request, Response, Status};
+use sqlx::PgPool;
+use thiserror::Error;
+use tonic::{transport::Channel, Request, Response, Status};
 
 use crate::{
     base::{self, blockchain_server::Blockchain},
     blockchain_engine::models::withdraw::WithdrawRequest,
     contracts::treasury::Treasury,
+    engine_base::engine_client::EngineClient,
 };
 
 use self::{
-    deposits::DepositsBlockchainManagerController, valuts::ValutsBlockchainManagerController,
-    withdraws::WithdrawsBlockchainManagerController,
+    deposits::DepositsBlockchainManagerController,
+    valuts::ValutsBlockchainManagerController,
+    withdraws::{models::WithdrawEvent, WithdrawsBlockchainManagerController},
 };
 
 #[derive(Debug)]
 pub struct BlockchainEngine {
     pub contract: Treasury<SignerMiddleware<Provider<Ws>, Wallet<SigningKey>>>,
+    pub database: PgPool,
     pub deposits_controller: DepositsBlockchainManagerController,
     pub withdraws_controller: WithdrawsBlockchainManagerController,
     pub valuts_controller: ValutsBlockchainManagerController,
@@ -35,7 +40,28 @@ impl Blockchain for BlockchainEngine {
         &self,
         request: Request<base::WithdrawRequest>,
     ) -> Result<Response<base::WithdrawResponse>, Status> {
+        let mut t = self
+            .database
+            .begin()
+            .await
+            .map_err(|e| Status::aborted(e.to_string()))?;
         let request: WithdrawRequest = request.into_inner().try_into()?;
-        todo!()
+        let event: WithdrawEvent = request.into();
+        let filter = event
+            .to_filter(&mut t)
+            .await
+            .map_err(|e| Status::aborted(e.to_string()))?;
+
+        self.contract
+            .withdraw(filter.token_address, filter.user_address, filter.amount)
+            .await
+            .map_err(|e| Status::aborted(e.to_string()))?;
+        Ok(Response::new(base::WithdrawResponse {}))
     }
+}
+
+#[derive(Error, Debug)]
+pub enum BlockchainEngineError {
+    #[error(transparent)]
+    Tonic(#[from] tonic::Status),
 }
