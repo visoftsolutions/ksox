@@ -2,6 +2,7 @@ use fraction::num_traits::Zero;
 use proptest::prelude::{any, any_with, Arbitrary};
 use proptest::prop_oneof;
 use proptest::strategy::{BoxedStrategy, Strategy};
+use thiserror::Error;
 use std::cmp::Ordering;
 use std::ops::{Add, Div, Mul, Sub};
 
@@ -13,6 +14,22 @@ use num_traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub};
 pub enum Value {
     Finite(Fraction),
     Infinite(Infinity),
+}
+
+impl Value {
+    pub fn is_finite(&self) -> bool {
+        match *self {
+            Self::Finite(_) => true,
+            _ => false
+        }
+    }
+
+    pub fn is_infinite(&self) -> bool {
+        match *self {
+            Self::Infinite(_) => true,
+            _ => false
+        }
+    }
 }
 
 impl Add for Value {
@@ -321,6 +338,36 @@ impl Arbitrary for Value {
         .boxed()
     }
 }
+
+impl TryInto<Fraction> for Value {
+    type Error = ValueError;
+    fn try_into(self) -> Result<Fraction, Self::Error> {
+        match self {
+            Self::Finite(f) => Ok(f),
+            Self::Infinite(_) => Err(ValueError::ValueInfinite)
+        }
+    }
+}
+
+impl TryInto<Infinity> for Value {
+    type Error = ValueError;
+    fn try_into(self) -> Result<Infinity, Self::Error> {
+        match self {
+            Self::Finite(_) => Err(ValueError::ValueFinite),
+            Self::Infinite(f) => Ok(f)
+        }
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum ValueError {
+    #[error("value is infinite")]
+    ValueInfinite,
+
+    #[error("value is finite")]
+    ValueFinite,
+}
+
 
 #[cfg(test)]
 mod tests {

@@ -14,3 +14,4 @@ num-traits = "0.2.15"
 proptest = "1.2.0"
 seq-macro = "0.3.3"
 serde = { version = "1.0.164", features = ["derive"] }
+thiserror = "1.0.40"

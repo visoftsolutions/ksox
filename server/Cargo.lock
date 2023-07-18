@@ -4691,6 +4691,7 @@ dependencies = [
  "proptest",
  "seq-macro",
  "serde",
+ "thiserror",
 ]
 
 [[package]]
