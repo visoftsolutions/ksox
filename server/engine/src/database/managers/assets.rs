@@ -17,6 +17,7 @@ impl AssetsManager {
             r#"
             SELECT
                 id,
+                decimals as "decimals: Fraction",
                 maker_fee as "maker_fee: Fraction",
                 taker_fee as "taker_fee: Fraction"
             FROM assets

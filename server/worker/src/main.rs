@@ -48,7 +48,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         NotificationManager::start(database.clone(), "worker").await?;
 
     let app_state = AppState {
-        accuracy: std::env::var("WORKER_FRACTION_ACCURACY")?.parse()?,
         database: database.clone(),
         session_store: get_client()?,
         users_manager: UsersManager::new(database.clone()),

@@ -17,13 +17,12 @@ pub mod transfer;
 pub mod tests;
 
 pub struct MatchingEngine {
-    accuracy: Fraction,
     database: PgPool,
 }
 
 impl MatchingEngine {
-    pub fn new(database: PgPool, accuracy: Fraction) -> Self {
-        Self { accuracy, database }
+    pub fn new(database: PgPool) -> Self {
+        Self { database }
     }
 }
 
@@ -39,13 +38,7 @@ impl Engine for MatchingEngine {
             .await
             .map_err(|e| Status::aborted(e.to_string()))?;
         Ok(Response::new(
-            match submit::submit(
-                request.into_inner().try_into()?,
-                &mut t,
-                self.accuracy.clone(),
-            )
-            .await
-            {
+            match submit::submit(request.into_inner().try_into()?, &mut t).await {
                 Ok(r) => {
                     t.commit()
                         .await

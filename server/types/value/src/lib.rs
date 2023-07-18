@@ -2,9 +2,9 @@ use fraction::num_traits::Zero;
 use proptest::prelude::{any, any_with, Arbitrary};
 use proptest::prop_oneof;
 use proptest::strategy::{BoxedStrategy, Strategy};
-use thiserror::Error;
 use std::cmp::Ordering;
 use std::ops::{Add, Div, Mul, Sub};
+use thiserror::Error;
 
 use fraction::Fraction;
 use infinity::Infinity;
@@ -20,14 +20,14 @@ impl Value {
     pub fn is_finite(&self) -> bool {
         match *self {
             Self::Finite(_) => true,
-            _ => false
+            _ => false,
         }
     }
 
     pub fn is_infinite(&self) -> bool {
         match *self {
             Self::Infinite(_) => true,
-            _ => false
+            _ => false,
         }
     }
 }
@@ -344,7 +344,7 @@ impl TryInto<Fraction> for Value {
     fn try_into(self) -> Result<Fraction, Self::Error> {
         match self {
             Self::Finite(f) => Ok(f),
-            Self::Infinite(_) => Err(ValueError::ValueInfinite)
+            Self::Infinite(_) => Err(ValueError::ValueInfinite),
         }
     }
 }
@@ -354,7 +354,7 @@ impl TryInto<Infinity> for Value {
     fn try_into(self) -> Result<Infinity, Self::Error> {
         match self {
             Self::Finite(_) => Err(ValueError::ValueFinite),
-            Self::Infinite(f) => Ok(f)
+            Self::Infinite(f) => Ok(f),
         }
     }
 }
@@ -367,7 +367,6 @@ pub enum ValueError {
     #[error("value is finite")]
     ValueFinite,
 }
-
 
 #[cfg(test)]
 mod tests {

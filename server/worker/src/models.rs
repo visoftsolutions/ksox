@@ -28,7 +28,6 @@ use crate::{
 
 #[derive(Clone)]
 pub struct AppState {
-    pub accuracy: Fraction,
     pub database: PgPool,
     pub session_store: redis::Client,
     pub users_manager: UsersManager,

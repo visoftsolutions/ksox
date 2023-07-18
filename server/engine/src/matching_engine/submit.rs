@@ -13,7 +13,6 @@ use crate::database::managers::{AssetsManager, OrdersManager, TradesManager, Val
 pub async fn submit<'t, 'p>(
     request: SubmitRequest,
     transaction: &'t mut Transaction<'p, Postgres>,
-    accuracy: Fraction,
 ) -> Result<SubmitResponse, SubmitRequestError> {
     let quote_asset = AssetsManager::get_by_id(transaction, request.quote_asset_id)
         .await?
@@ -47,7 +46,6 @@ pub async fn submit<'t, 'p>(
         quote_asset,
         base_asset,
         matching_orders,
-        accuracy,
         request.presentation,
     )
     .await?;
