@@ -351,6 +351,7 @@ impl Arbitrary for Fraction {
 
 #[cfg(test)]
 mod tests {
+    use num_traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub};
     use proptest::{prelude::*, proptest};
     use seq_macro::seq;
 
@@ -364,5 +365,31 @@ mod tests {
             assert_eq!(fraction, serde_json::from_str(&serde_json::to_string(&fraction).unwrap()).unwrap());
         }
     }
+    });
+
+    seq!(N in 0..10 {
+        proptest! {
+            #![proptest_config(ProptestConfig::with_cases(std::env::var("TESTS_CASES").unwrap().parse().unwrap()))]
+
+            #[test]
+            fn checked_add~N(f1 in any::<Fraction>(), f2 in any::<Fraction>()) {
+                f1.checked_add(&f2);
+            }
+
+            #[test]
+            fn checked_sub~N(f1 in any::<Fraction>(), f2 in any::<Fraction>()) {
+                f1.checked_sub(&f2);
+            }
+
+            #[test]
+            fn checked_mul~N(f1 in any::<Fraction>(), f2 in any::<Fraction>()) {
+                f1.checked_mul(&f2);
+            }
+
+            #[test]
+            fn checked_div~N(f1 in any::<Fraction>(), f2 in any::<Fraction>()) {
+                f1.checked_div(&f2);
+            }
+        }
     });
 }

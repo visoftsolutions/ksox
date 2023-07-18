@@ -105,6 +105,38 @@ impl PartialEq for Infinity {
 }
 
 impl PartialOrd for Infinity {
+    fn ge(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Positive, Self::Positive) => true,
+            (Self::Negative, Self::Negative) => true,
+            (Self::Negative, Self::Positive) => false,
+            (Self::Positive, Self::Negative) => true,
+        }
+    }
+    fn gt(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Positive, Self::Positive) => false,
+            (Self::Negative, Self::Negative) => false,
+            (Self::Negative, Self::Positive) => false,
+            (Self::Positive, Self::Negative) => true,
+        }
+    }
+    fn le(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Positive, Self::Positive) => true,
+            (Self::Negative, Self::Negative) => true,
+            (Self::Negative, Self::Positive) => true,
+            (Self::Positive, Self::Negative) => false,
+        }
+    }
+    fn lt(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Positive, Self::Positive) => false,
+            (Self::Negative, Self::Negative) => false,
+            (Self::Negative, Self::Positive) => true,
+            (Self::Positive, Self::Negative) => false,
+        }
+    }
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match (self, other) {
             (Self::Positive, Self::Positive) => Some(Ordering::Equal),
@@ -158,7 +190,7 @@ impl CheckedDiv for Infinity {
 }
 
 impl Arbitrary for Infinity {
-    type Parameters = ();
+    type Parameters = usize;
     type Strategy = BoxedStrategy<Self>;
 
     fn arbitrary() -> Self::Strategy {
@@ -174,94 +206,6 @@ impl Arbitrary for Infinity {
         Self::arbitrary()
     }
 }
-
-// impl Add<Fraction> for Infinity {
-//     type Output = Infinity;
-//     fn add(self, _rhs: Fraction) -> Self::Output {
-//         self
-//     }
-// }
-
-// impl Sub<Fraction> for Infinity {
-//     type Output = Infinity;
-//     fn sub(self, _rhs: Fraction) -> Self::Output {
-//         self
-//     }
-// }
-
-// impl Mul<Fraction> for Infinity {
-//     type Output = Infinity;
-//     fn mul(self, rhs: Fraction) -> Self::Output {
-//         match rhs.cmp(&Fraction::zero()) {
-//             Ordering::Equal => Infinity::Zero,
-//             Ordering::Greater => self,
-//             Ordering::Less => self.neg(),
-//         }
-//     }
-// }
-
-// impl Div<Fraction> for Infinity {
-//     type Output = Infinity;
-//     fn div(self, rhs: Fraction) -> Self::Output {
-//         match rhs.cmp(&Fraction::zero()) {
-//             Ordering::Equal => Infinity::Zero,
-//             Ordering::Greater => self,
-//             Ordering::Less => self.neg(),
-//         }
-//     }
-// }
-
-// impl PartialEq<Fraction> for Infinity {
-//     fn eq(&self, _other: &Fraction) -> bool {
-//         false
-//     }
-
-//     fn ne(&self, _other: &Fraction) -> bool {
-//         true
-//     }
-// }
-
-// impl PartialOrd<Fraction> for Infinity {
-//     fn ge(&self, other: &Fraction) -> bool {
-//         match self {
-//             Infinity::Positive => true,
-//             Infinity::Negative => false,
-//             Infinity::Zero => other.ge(&Fraction::zero()),
-//         }
-//     }
-//     fn gt(&self, other: &Fraction) -> bool {
-//         match self {
-//             Infinity::Positive => true,
-//             Infinity::Negative => false,
-//             Infinity::Zero => other.gt(&Fraction::zero()),
-//         }
-//     }
-//     fn le(&self, other: &Fraction) -> bool {
-//         match self {
-//             Infinity::Positive => false,
-//             Infinity::Negative => true,
-//             Infinity::Zero => other.le(&Fraction::zero()),
-//         }
-//     }
-//     fn lt(&self, other: &Fraction) -> bool {
-//         match self {
-//             Infinity::Positive => false,
-//             Infinity::Negative => true,
-//             Infinity::Zero => other.lt(&Fraction::zero()),
-//         }
-//     }
-//     fn partial_cmp(&self, other: &Fraction) -> Option<Ordering> {
-//         if other.denom().is_zero() {
-//             None
-//         } else {
-//             match self {
-//                 Infinity::Positive => Some(Ordering::Greater),
-//                 Infinity::Negative => Some(Ordering::Less),
-//                 Infinity::Zero => Fraction::zero().partial_cmp(other),
-//             }
-//         }
-//     }
-// }
 
 #[cfg(test)]
 mod tests {
