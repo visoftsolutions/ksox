@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
-use fraction::Fraction;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use value::Value;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Valut {
@@ -10,5 +10,5 @@ pub struct Valut {
     pub last_modification_at: DateTime<Utc>,
     pub user_id: Uuid,
     pub asset_id: Uuid,
-    pub balance: Fraction,
+    pub balance: Value,
 }

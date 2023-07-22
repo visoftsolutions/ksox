@@ -1,6 +1,6 @@
 use fraction::Fraction;
 use num_bigint::BigInt;
-use proptest::{prelude::any, prop_compose};
+use proptest::prop_compose;
 use uuid::Uuid;
 
 use super::arb_fraction::arb_fraction_not_bigger_than_one;

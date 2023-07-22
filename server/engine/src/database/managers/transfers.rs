@@ -35,7 +35,6 @@ impl TransfersManager {
         pool: &'t mut Transaction<'p, Postgres>,
         id: Uuid,
     ) -> sqlx::Result<Transfer> {
-        let now = Utc::now();
         sqlx::query_as!(
             Transfer,
             r#"

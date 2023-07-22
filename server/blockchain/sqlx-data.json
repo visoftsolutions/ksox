@@ -288,23 +288,7 @@
         {
           "name": "balance: Fraction",
           "ordinal": 6,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
+          "type_info": "Text"
         }
       ],
       "nullable": [
@@ -376,23 +360,7 @@
         {
           "name": "balance: Fraction",
           "ordinal": 6,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
+          "type_info": "Text"
         }
       ],
       "nullable": [

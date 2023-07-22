@@ -63,5 +63,13 @@ pub async fn revert_transfer<'t, 'p>(
     request: RevertTransferRequest,
     transaction: &'t mut Transaction<'p, Postgres>,
 ) -> Result<RevertTransferResponse, RevertTransferError> {
+    let trans = TransfersManager::get_by_id(transaction, request.id).await?;
+    let request = TransferRequest {
+        maker_id: trans.taker_id,
+        taker_id: trans.maker_id,
+        asset_id: trans.asset_id,
+        amount: trans.amount,
+    };
+    let _response = transfer(request, transaction).await?;
     Ok(RevertTransferResponse {})
 }

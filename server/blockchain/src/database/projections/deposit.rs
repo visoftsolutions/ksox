@@ -30,11 +30,12 @@ impl Confirmable for Deposit {
     }
 }
 
-impl TryInto<engine_base::MintRequest> for Deposit {
+impl TryInto<engine_base::TransferRequest> for Deposit {
     type Error = Status;
-    fn try_into(self) -> Result<engine_base::MintRequest, Self::Error> {
-        Ok(engine_base::MintRequest {
-            user_id: self.user_id.to_string(),
+    fn try_into(self) -> Result<engine_base::TransferRequest, Self::Error> {
+        Ok(engine_base::TransferRequest {
+            maker_id: Uuid::from_bytes([0x00; 16]).to_string(),
+            taker_id: self.user_id.to_string(),
             asset_id: self.asset_id.to_string(),
             amount: serde_json::to_string(&self.amount)
                 .map_err(|e| Status::invalid_argument(e.to_string()))?,

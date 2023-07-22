@@ -23,7 +23,7 @@ use crate::{
         managers::deposits::DepositsManager,
         projections::deposit::{Deposit, DepositInsert},
     },
-    engine_base::{engine_client::EngineClient, MintRequest},
+    engine_base::{engine_client::EngineClient, TransferRequest},
     models::BlockchainManagerError,
 };
 
@@ -109,7 +109,7 @@ impl DepositsBlockchainManager {
                                     DepositsManager::update(&mut t, deposit).await?;
                                 }
                                 for deposit in confirmed_deposit.into_iter() {
-                                    engine_client.mint(TryInto::<MintRequest>::try_into(deposit)?).await?;
+                                    engine_client.transfer(TryInto::<TransferRequest>::try_into(deposit)?).await?;
                                 }
                                 t.commit().await?;
                                 Ok::<(), BlockchainManagerError>(())

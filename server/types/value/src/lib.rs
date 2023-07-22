@@ -2,20 +2,20 @@ use fraction::num_traits::Zero;
 use proptest::prelude::{any, any_with, Arbitrary};
 use proptest::prop_oneof;
 use proptest::strategy::{BoxedStrategy, Strategy};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use sqlx::database::HasValueRef;
 use sqlx::postgres::PgArgumentBuffer;
+use sqlx::TypeInfo;
 use sqlx::{Database, Decode, Encode, Postgres, Type};
 use std::cmp::Ordering;
-use std::ops::{Add, Div, Mul, Sub, AddAssign};
+use std::ops::{Add, Div, Mul, Sub};
 use thiserror::Error;
-use sqlx::TypeInfo;
 
 use fraction::Fraction;
 use infinity::Infinity;
 use num_traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub};
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq)]
 pub enum Value {
     Finite(Fraction),
     Infinite(Infinity),
@@ -323,6 +323,51 @@ impl PartialOrd for Value {
     }
 }
 
+impl Ord for Value {
+    fn clamp(self, min: Self, max: Self) -> Self
+    where
+        Self: Sized,
+    {
+        match (self.partial_cmp(&min), self.partial_cmp(&max)) {
+            (Some(Ordering::Less), _) => min,
+            (_, Some(Ordering::Greater)) => max,
+            _ => self,
+        }
+    }
+    fn cmp(&self, other: &Self) -> Ordering {
+        match (self, other) {
+            (Value::Finite(lhs), Value::Finite(rhs)) => lhs.cmp(rhs),
+            (Value::Infinite(lhs), Value::Infinite(rhs)) => lhs.cmp(rhs),
+            (Value::Finite(_), Value::Infinite(rhs)) => match rhs {
+                Infinity::Positive => Ordering::Less,
+                Infinity::Negative => Ordering::Greater,
+            },
+            (Value::Infinite(lhs), Value::Finite(_)) => match lhs {
+                Infinity::Positive => Ordering::Greater,
+                Infinity::Negative => Ordering::Less,
+            },
+        }
+    }
+    fn max(self, other: Self) -> Self
+    where
+        Self: Sized,
+    {
+        match self.partial_cmp(&other) {
+            Some(Ordering::Less) | Some(Ordering::Equal) => other,
+            _ => self,
+        }
+    }
+    fn min(self, other: Self) -> Self
+    where
+        Self: Sized,
+    {
+        match self.partial_cmp(&other) {
+            Some(Ordering::Greater) | Some(Ordering::Equal) => other,
+            _ => self,
+        }
+    }
+}
+
 impl Arbitrary for Value {
     type Parameters = usize;
     type Strategy = BoxedStrategy<Self>;
@@ -382,7 +427,10 @@ impl Encode<'_, Postgres> for Value {
     }
 
     fn encode_by_ref(&self, buf: &mut PgArgumentBuffer) -> sqlx::encode::IsNull {
-        <String as Encode<Postgres>>::encode_by_ref(&serde_json::to_string(self).unwrap_or_default(), buf)
+        <String as Encode<Postgres>>::encode_by_ref(
+            &serde_json::to_string(self).unwrap_or_default(),
+            buf,
+        )
     }
 
     fn encode(

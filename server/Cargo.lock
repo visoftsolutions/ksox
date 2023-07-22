@@ -1057,6 +1057,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "uuid 1.4.0",
+ "value",
 ]
 
 [[package]]
@@ -5108,6 +5109,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "uuid 1.4.0",
+ "value",
 ]
 
 [[package]]

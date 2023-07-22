@@ -12,7 +12,7 @@ use proptest::{
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, ToPrimitive, Serialize, Deserialize)]
+#[derive(Debug, Clone, ToPrimitive, Serialize, Deserialize, Eq)]
 pub enum Infinity {
     Positive,
     Negative,
@@ -143,6 +143,44 @@ impl PartialOrd for Infinity {
             (Self::Negative, Self::Negative) => Some(Ordering::Equal),
             (Self::Negative, Self::Positive) => Some(Ordering::Less),
             (Self::Positive, Self::Negative) => Some(Ordering::Greater),
+        }
+    }
+}
+
+impl Ord for Infinity {
+    fn clamp(self, min: Self, max: Self) -> Self
+    where
+        Self: Sized,
+    {
+        match (self.cmp(&min), self.cmp(&max)) {
+            (Ordering::Less, _) => min,
+            (_, Ordering::Greater) => max,
+            _ => self,
+        }
+    }
+    fn cmp(&self, other: &Self) -> Ordering {
+        match (self, other) {
+            (Infinity::Positive, Infinity::Negative) => Ordering::Greater,
+            (Infinity::Negative, Infinity::Positive) => Ordering::Less,
+            _ => Ordering::Equal,
+        }
+    }
+    fn max(self, other: Self) -> Self
+    where
+        Self: Sized,
+    {
+        match self.cmp(&other) {
+            Ordering::Less => other,
+            _ => self,
+        }
+    }
+    fn min(self, other: Self) -> Self
+    where
+        Self: Sized,
+    {
+        match self.cmp(&other) {
+            Ordering::Greater => other,
+            _ => self,
         }
     }
 }

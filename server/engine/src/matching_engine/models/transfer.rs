@@ -111,4 +111,7 @@ pub enum RevertTransferError {
 
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),
+
+    #[error(transparent)]
+    TransferError(#[from] TransferError),
 }

@@ -10,13 +10,12 @@ use ethers::{
 };
 use sqlx::PgPool;
 use thiserror::Error;
-use tonic::{transport::Channel, Request, Response, Status};
+use tonic::{Request, Response, Status};
 
 use crate::{
     base::{self, blockchain_server::Blockchain},
     blockchain_engine::models::withdraw::WithdrawRequest,
     contracts::treasury::Treasury,
-    engine_base::engine_client::EngineClient,
 };
 
 use self::{

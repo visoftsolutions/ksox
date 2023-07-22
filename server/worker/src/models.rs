@@ -8,7 +8,6 @@ use database::managers::{
     valuts::{ValutsManager, ValutsNotificationManager},
 };
 use engine_base::engine_client::EngineClient;
-use fraction::Fraction;
 use sqlx::PgPool;
 use tonic::transport::Channel;
 

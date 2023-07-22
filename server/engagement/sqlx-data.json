@@ -365,17 +365,97 @@
     },
     "query": "\n            SELECT COALESCE(COUNT(*), 0) as count\n            FROM spot.trades\n            WHERE spot.trades.taker_id = $1\n            "
   },
-  "69630f327148d11cb3b566539f25a0fab9b022ebb6af0e7d1b53a5661ae6ed12": {
+  "54d36ae8a3354d67ae3e7cde3750384de1b73f0726bc85756fd57eb9081348ca": {
     "describe": {
       "columns": [
         {
-          "name": "count",
+          "name": "id",
           "ordinal": 0,
-          "type_info": "Int8"
+          "type_info": "Uuid"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "last_modification_at",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 3,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "asset_id",
+          "ordinal": 4,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "balance: Value",
+          "ordinal": 5,
+          "type_info": "Text"
         }
       ],
       "nullable": [
-        null
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Timestamptz"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                user_id,\n                asset_id,\n                balance as \"balance: Value\"\n            FROM valuts\n            WHERE last_modification_at > $1\n            ORDER BY last_modification_at ASC\n            "
+  },
+  "68c89eb62c40467c1f1b019b7261436401c5044197e06fdcbf8055a0eabc100b": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "last_modification_at",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 3,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "asset_id",
+          "ordinal": 4,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "balance: Value",
+          "ordinal": 5,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
       ],
       "parameters": {
         "Left": [
@@ -383,7 +463,7 @@
         ]
       }
     },
-    "query": "\n            SELECT COALESCE(COUNT(*), 0) as count\n            FROM valuts\n            WHERE valuts.user_id = $1 AND valuts.balance > (0,1)::fraction\n            "
+    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                user_id,\n                asset_id,\n                balance as \"balance: Value\"\n            FROM valuts\n            WHERE valuts.user_id = $1\n            "
   },
   "95d305c479a5e502088ae9a9a7b60b9af036a287fa0302c00834551b39b77071": {
     "describe": {
@@ -912,72 +992,6 @@
       }
     },
     "query": "\n            SELECT\n                engagement.badges.id,\n                engagement.badges.created_at,\n                engagement.badges.last_modification_at,\n                engagement.badges.user_id,\n                engagement.badges.badge_name as \"badge_name: BadgeName\"\n            FROM engagement.badges\n            WHERE engagement.badges.last_modification_at > $1\n            ORDER BY engagement.badges.last_modification_at ASC\n            "
-  },
-  "d1a58664fe1841f38dc016c6b902b310dbaf09b14c6d9dd9730f3b292c152997": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "created_at",
-          "ordinal": 1,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "last_modification_at",
-          "ordinal": 2,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "user_id",
-          "ordinal": 3,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "asset_id",
-          "ordinal": 4,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "balance: Fraction",
-          "ordinal": 5,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Timestamptz"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                user_id,\n                asset_id,\n                balance as \"balance: Fraction\"\n            FROM valuts\n            WHERE last_modification_at > $1\n            ORDER BY last_modification_at ASC\n            "
   },
   "f56ba4be8c098fd9ed17a4c77c02ab47d95ed532f2f9380e67a9e7861f9a33d2": {
     "describe": {

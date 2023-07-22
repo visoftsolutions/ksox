@@ -1,5 +1,4 @@
 use base::engine_server::Engine;
-use fraction::Fraction;
 use sqlx::PgPool;
 use tonic::{Request, Response, Status};
 

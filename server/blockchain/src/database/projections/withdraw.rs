@@ -28,11 +28,12 @@ impl Confirmable for Withdraw {
     }
 }
 
-impl TryInto<engine_base::BurnRequest> for Withdraw {
+impl TryInto<engine_base::TransferRequest> for Withdraw {
     type Error = Status;
-    fn try_into(self) -> Result<engine_base::BurnRequest, Self::Error> {
-        Ok(engine_base::BurnRequest {
-            user_id: self.user_id.to_string(),
+    fn try_into(self) -> Result<engine_base::TransferRequest, Self::Error> {
+        Ok(engine_base::TransferRequest {
+            maker_id: self.user_id.to_string(),
+            taker_id: Uuid::from_bytes([0x00; 16]).to_string(),
             asset_id: self.asset_id.to_string(),
             amount: serde_json::to_string(&self.amount)
                 .map_err(|e| Status::invalid_argument(e.to_string()))?,
