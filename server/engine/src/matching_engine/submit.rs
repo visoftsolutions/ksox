@@ -26,7 +26,7 @@ pub async fn submit<'t, 'p>(
         ValutsManager::get_or_create(transaction, request.user_id, request.quote_asset_id).await?;
 
     let request_quote_asset_volume = Value::Finite(request.quote_asset_volume.to_owned());
-    
+
     if taker_quote_asset_valut.balance < request_quote_asset_volume {
         return Err(SubmitRequestError::InsufficientBalance);
     }

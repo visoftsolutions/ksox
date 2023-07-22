@@ -2,7 +2,10 @@ use fraction::num_traits::{CheckedAdd, CheckedSub};
 use sqlx::{Postgres, Transaction};
 use value::Value;
 
-use super::models::transfer::{TransferError, TransferRequest, TransferResponse};
+use super::models::transfer::{
+    RevertTransferError, RevertTransferRequest, RevertTransferResponse, TransferError,
+    TransferRequest, TransferResponse,
+};
 use crate::database::{
     managers::{transfers::TransfersManager, AssetsManager, ValutsManager},
     projections::transfer::Transfer,
@@ -54,4 +57,11 @@ pub async fn transfer<'t, 'p>(
     ValutsManager::update(transaction, taker_asset_valut).await?;
 
     Ok(TransferResponse {})
+}
+
+pub async fn revert_transfer<'t, 'p>(
+    request: RevertTransferRequest,
+    transaction: &'t mut Transaction<'p, Postgres>,
+) -> Result<RevertTransferResponse, RevertTransferError> {
+    Ok(RevertTransferResponse {})
 }

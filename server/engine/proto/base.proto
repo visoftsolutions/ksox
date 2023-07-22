@@ -17,20 +17,6 @@ message CancelRequest {
 
 message CancelResponse {}
 
-message MintRequest {
-    string user_id = 2;
-    string asset_id = 3;
-    string amount = 4;
-}
-message MintResponse {}
-
-message BurnRequest {
-    string user_id = 2;
-    string asset_id = 3;
-    string amount = 4;
-}
-message BurnResponse {}
-
 message TransferRequest {
     string maker_id = 1;
     string taker_id = 2;
@@ -39,10 +25,14 @@ message TransferRequest {
 }
 message TransferResponse {}
 
+message RevertTransferRequest {
+    string id = 1;
+}
+message RevertTransferResponse {}
+
 service Engine {
     rpc Submit(SubmitRequest) returns (SubmitResponse) {}
     rpc Transfer(TransferRequest) returns (TransferResponse) {}
-    rpc Mint(MintRequest) returns (MintResponse) {}
-    rpc Burn(BurnRequest) returns (BurnResponse) {}
+    rpc RevertTransfer(RevertTransferRequest) returns (RevertTransferResponse) {}
     rpc Cancel(CancelRequest) returns (CancelResponse) {}
 }

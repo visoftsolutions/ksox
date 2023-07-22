@@ -1,4 +1,6 @@
+use fraction::Fraction;
 use sqlx::{postgres::PgQueryResult, types::chrono::Utc, Postgres, Transaction};
+use uuid::Uuid;
 
 use crate::database::projections::transfer::Transfer;
 
@@ -26,6 +28,28 @@ impl TransfersManager {
             element.amount.to_tuple_string() as _,
         )
         .execute(pool)
+        .await
+    }
+
+    pub async fn get_by_id<'t, 'p>(
+        pool: &'t mut Transaction<'p, Postgres>,
+        id: Uuid,
+    ) -> sqlx::Result<Transfer> {
+        let now = Utc::now();
+        sqlx::query_as!(
+            Transfer,
+            r#"
+            SELECT 
+                maker_id,
+                taker_id,
+                asset_id,
+                amount as "amount: Fraction"
+            FROM transfers
+            WHERE id = $1
+            "#,
+            id,
+        )
+        .fetch_one(pool)
         .await
     }
 }

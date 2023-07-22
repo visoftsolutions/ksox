@@ -1,8 +1,8 @@
 use fraction::Fraction;
+use num_traits::Zero;
 use sqlx::{postgres::PgQueryResult, types::chrono::Utc, Postgres, Transaction};
 use uuid::Uuid;
 use value::Value;
-use num_traits::Zero;
 
 use crate::database::projections::valut::Valut;
 

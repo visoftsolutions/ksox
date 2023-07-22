@@ -34,7 +34,8 @@ pub async fn matching_loop(
         return Err(MatchingLoopError::VolumeIsZero);
     }
 
-    let mut quote_asset_volume_left = quote_asset_volume.to_owned()
+    let mut quote_asset_volume_left = quote_asset_volume
+        .to_owned()
         .checked_floor_with_accuracy(&quote_asset.to_owned().decimals.inv())
         .ok_or(MatchingLoopError::CheckedFloorFailed)?;
 

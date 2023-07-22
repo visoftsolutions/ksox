@@ -1,4 +1,3 @@
-use fraction::Fraction;
 use serde::{Deserialize, Serialize};
 use sqlx::types::Uuid;
 use value::Value;

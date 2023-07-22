@@ -17,8 +17,12 @@ pub async fn cancel<'t, 'p>(
         return Err(CancelRequestError::OrderNotActive);
     }
 
-    let valut = ValutsManager::get_or_create(transaction, order.maker_id, order.quote_asset_id).await?;
-    valut.balance.checked_add(&Value::Finite(order.quote_asset_volume_left.to_owned())).ok_or(CancelRequestError::CheckedAddFailed)?;
+    let valut =
+        ValutsManager::get_or_create(transaction, order.maker_id, order.quote_asset_id).await?;
+    valut
+        .balance
+        .checked_add(&Value::Finite(order.quote_asset_volume_left.to_owned()))
+        .ok_or(CancelRequestError::CheckedAddFailed)?;
     order.is_active = false;
 
     ValutsManager::update(transaction, valut).await?;

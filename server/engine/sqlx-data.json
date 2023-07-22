@@ -351,7 +351,7 @@
     },
     "query": "\n            INSERT INTO transfers\n                (created_at, last_modification_at, maker_id, taker_id, asset_id, amount)\n            VALUES\n                ($1, $2, $3, $4, $5, $6::fraction)\n            "
   },
-  "546a280a66dcc9b3645f3ea5f3835d1fc0d033280b835084f49ca849d88b54a2": {
+  "561e63af125146ac3c8cfb83b2c61c448ac7a2cfcca1325f9933133edc71e8e7": {
     "describe": {
       "columns": [
         {
@@ -360,25 +360,9 @@
           "type_info": "Uuid"
         },
         {
-          "name": "balance: Fraction",
+          "name": "balance: Value",
           "ordinal": 1,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
+          "type_info": "Text"
         }
       ],
       "nullable": [
@@ -392,19 +376,43 @@
         ]
       }
     },
-    "query": "\n            SELECT\n                id,\n                balance as \"balance: Fraction\"\n            FROM valuts\n            WHERE user_id = $1\n            AND asset_id = $2\n            "
+    "query": "\n            SELECT\n                id,\n                balance as \"balance: Value\"\n            FROM valuts\n            WHERE user_id = $1\n            AND asset_id = $2\n            "
   },
-  "5fe8c5dd329634943a72d537189b09587ca747cf73ddb17e5352ac563a7f2a95": {
+  "71dfb5bd7c07c5074ed93687d2853ab56068c62434240fe61220d2afacd8408c": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Text",
+          "Timestamptz"
+        ]
+      }
+    },
+    "query": "\n            UPDATE \n                valuts \n            SET\n                balance = $2,\n                last_modification_at = $3\n            WHERE\n                id = $1\n            "
+  },
+  "94bcabe0008a867395e7ec4e1a99d92a6d0b51998a9ecf0d7138a642dd150e26": {
     "describe": {
       "columns": [
         {
-          "name": "id",
+          "name": "maker_id",
           "ordinal": 0,
           "type_info": "Uuid"
         },
         {
-          "name": "balance: Fraction",
+          "name": "taker_id",
           "ordinal": 1,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "asset_id",
+          "ordinal": 2,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "amount: Fraction",
+          "ordinal": 3,
           "type_info": {
             "Custom": {
               "kind": {
@@ -426,18 +434,17 @@
       ],
       "nullable": [
         false,
+        false,
+        false,
         false
       ],
       "parameters": {
         "Left": [
-          "Uuid",
-          "Uuid",
-          "Timestamptz",
-          "Timestamptz"
+          "Uuid"
         ]
       }
     },
-    "query": "\n            INSERT INTO valuts\n                (user_id, asset_id, balance, last_modification_at, created_at)\n            VALUES ($1, $2, (0,1)::fraction, $3, $4)\n            RETURNING id, balance as \"balance: Fraction\"\n            "
+    "query": "\n            SELECT \n                maker_id,\n                taker_id,\n                asset_id,\n                amount as \"amount: Fraction\"\n            FROM transfers\n            WHERE id = $1\n            "
   },
   "9b0c54af6809ffedb0c186ea3f051cec55a4484aa02f03d508c717cb838412d8": {
     "describe": {
@@ -610,34 +617,34 @@
     },
     "query": "\n            SELECT\n                id,\n                decimals as \"decimals: Fraction\",\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\"\n            FROM assets\n            WHERE assets.id = $1\n            "
   },
-  "fda66bc0d3d96c049855150664d337d1db5eb5072f0382e343d334f1c7ea8ddb": {
+  "e2b384665390c86352097e54703aa9f14ed2429c308beb7ec4bd40aae6cba610": {
     "describe": {
-      "columns": [],
-      "nullable": [],
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "balance: Value",
+          "ordinal": 1,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
       "parameters": {
         "Left": [
           "Uuid",
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          },
+          "Uuid",
+          "Text",
+          "Timestamptz",
           "Timestamptz"
         ]
       }
     },
-    "query": "\n            UPDATE \n                valuts \n            SET\n                balance = $2::fraction,\n                last_modification_at = $3\n            WHERE\n                id = $1\n            "
+    "query": "\n            INSERT INTO valuts\n                (user_id, asset_id, balance, last_modification_at, created_at)\n            VALUES ($1, $2, $3::text, $4, $5)\n            RETURNING id, balance as \"balance: Value\"\n            "
   }
 }
