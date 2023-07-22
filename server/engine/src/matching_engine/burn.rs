@@ -3,6 +3,7 @@ use fraction::{
     Fraction,
 };
 use sqlx::{Postgres, Transaction};
+use value::Value;
 
 use super::models::burn::{BurnError, BurnRequest, BurnResponse};
 use crate::database::managers::{AssetsManager, ValutsManager};
@@ -22,14 +23,16 @@ pub async fn burn<'t, 'p>(
     let mut asset_valut =
         ValutsManager::get_or_create(transaction, request.user_id, asset.id).await?;
 
-    if asset_valut.balance < request.amount {
+    let amount = Value::Finite(request.amount);
+
+    if asset_valut.balance < amount {
         return Err(BurnError::InsufficientBalance);
     }
 
     // burn
     asset_valut.balance = asset_valut
         .balance
-        .checked_sub(&request.amount)
+        .checked_sub(&amount)
         .ok_or(BurnError::CheckedSubFailed)?;
 
     ValutsManager::update(transaction, asset_valut).await?;

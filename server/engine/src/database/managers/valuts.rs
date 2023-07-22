@@ -1,6 +1,8 @@
 use fraction::Fraction;
 use sqlx::{postgres::PgQueryResult, types::chrono::Utc, Postgres, Transaction};
 use uuid::Uuid;
+use value::Value;
+use num_traits::Zero;
 
 use crate::database::projections::valut::Valut;
 
@@ -18,7 +20,7 @@ impl ValutsManager {
             r#"
             SELECT
                 id,
-                balance as "balance: Fraction"
+                balance as "balance: Value"
             FROM valuts
             WHERE user_id = $1
             AND asset_id = $2
@@ -36,16 +38,18 @@ impl ValutsManager {
         asset_id: Uuid,
     ) -> sqlx::Result<Valut> {
         let now = Utc::now();
+        let value = Value::Finite(Fraction::zero());
         sqlx::query_as!(
             Valut,
             r#"
             INSERT INTO valuts
                 (user_id, asset_id, balance, last_modification_at, created_at)
-            VALUES ($1, $2, (0,1)::fraction, $3, $4)
-            RETURNING id, balance as "balance: Fraction"
+            VALUES ($1, $2, $3::text, $4, $5)
+            RETURNING id, balance as "balance: Value"
             "#,
             user_id,
             asset_id,
+            serde_json::to_string(&value).unwrap_or_default(),
             now,
             now
         )
@@ -63,13 +67,13 @@ impl ValutsManager {
             UPDATE 
                 valuts 
             SET
-                balance = $2::fraction,
+                balance = $2,
                 last_modification_at = $3
             WHERE
                 id = $1
             "#,
             valut.id,
-            valut.balance.to_tuple_string() as _,
+            serde_json::to_string(&valut.balance).unwrap_or_default(),
             Utc::now()
         )
         .execute(pool)

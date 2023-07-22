@@ -26,7 +26,7 @@ CREATE TABLE valuts (
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "user_id" uuid NOT NULL,
   "asset_id" uuid NOT NULL,
-  "balance" fraction NOT NULL,
+  "balance" text NOT NULL,
   UNIQUE ("user_id", "asset_id")
 );
 

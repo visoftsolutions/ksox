@@ -3,6 +3,7 @@ use fraction::{
     Fraction,
 };
 use sqlx::{Postgres, Transaction};
+use value::Value;
 
 use super::{
     matching_loop::matching_loop,
@@ -24,7 +25,9 @@ pub async fn submit<'t, 'p>(
     let mut taker_quote_asset_valut =
         ValutsManager::get_or_create(transaction, request.user_id, request.quote_asset_id).await?;
 
-    if taker_quote_asset_valut.balance < request.quote_asset_volume {
+    let request_quote_asset_volume = Value::Finite(request.quote_asset_volume.to_owned());
+    
+    if taker_quote_asset_valut.balance < request_quote_asset_volume {
         return Err(SubmitRequestError::InsufficientBalance);
     }
 
@@ -54,7 +57,7 @@ pub async fn submit<'t, 'p>(
 
     taker_quote_asset_valut.balance = taker_quote_asset_valut
         .balance
-        .checked_sub(&request.quote_asset_volume)
+        .checked_sub(&request_quote_asset_volume)
         .ok_or(SubmitRequestError::CheckedSubFailed)?;
     ValutsManager::update(transaction, taker_quote_asset_valut).await?;
 
@@ -82,11 +85,11 @@ pub async fn submit<'t, 'p>(
         // apply changes
         taker_base_asset_valut.balance = taker_base_asset_valut
             .balance
-            .checked_add(&trade.taker_base_volume)
+            .checked_add(&Value::Finite(trade.taker_base_volume.to_owned()))
             .ok_or(SubmitRequestError::CheckedAddFailed)?;
         maker_base_asset_valut.balance = maker_base_asset_valut
             .balance
-            .checked_add(&trade.maker_base_volume)
+            .checked_add(&Value::Finite(trade.maker_base_volume.to_owned()))
             .ok_or(SubmitRequestError::CheckedAddFailed)?;
         maker_order.quote_asset_volume_left = maker_order
             .quote_asset_volume_left

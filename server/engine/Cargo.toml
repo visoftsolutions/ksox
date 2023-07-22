@@ -9,9 +9,11 @@ async-stream = "0.3.5"
 axum = { version = "0.6.18", features = ["http2", "tracing", "macros"] }
 chrono = { version = "0.4.26", features = ["serde"] }
 fraction = { path = "../types/fraction" }
+value = { path = "../types/value" }
 futures = "0.3.28"
 hyper = { version = "0.14.27", features = ["full"] }
 num-bigint = { version = "0.4.3" }
+num-traits = "0.2.15"
 proptest = "1.2.0"
 prost = "0.11.9"
 seq-macro = "0.3.3"

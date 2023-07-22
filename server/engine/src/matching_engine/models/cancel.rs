@@ -38,6 +38,9 @@ pub enum CancelRequestError {
     #[error("order not active")]
     OrderNotActive,
 
+    #[error("add fractions failed")]
+    CheckedAddFailed,
+
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),
 }

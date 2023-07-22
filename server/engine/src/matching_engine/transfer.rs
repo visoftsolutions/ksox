@@ -1,5 +1,6 @@
 use fraction::num_traits::{CheckedAdd, CheckedSub};
 use sqlx::{Postgres, Transaction};
+use value::Value;
 
 use super::models::transfer::{TransferError, TransferRequest, TransferResponse};
 use crate::database::{
@@ -25,18 +26,20 @@ pub async fn transfer<'t, 'p>(
     let mut taker_asset_valut =
         ValutsManager::get_or_create(transaction, request.taker_id, asset.id).await?;
 
-    if maker_asset_valut.balance < request.amount {
+    let amount = Value::Finite(request.amount.to_owned());
+
+    if maker_asset_valut.balance < amount {
         return Err(TransferError::InsufficientBalance);
     }
 
     // transfer
     maker_asset_valut.balance = maker_asset_valut
         .balance
-        .checked_sub(&request.amount)
+        .checked_sub(&amount)
         .ok_or(TransferError::CheckedSubFailed)?;
     taker_asset_valut.balance = taker_asset_valut
         .balance
-        .checked_add(&request.amount)
+        .checked_add(&amount)
         .ok_or(TransferError::CheckedAddFailed)?;
 
     let transfer = Transfer {

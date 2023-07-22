@@ -1070,6 +1070,7 @@ dependencies = [
  "futures",
  "hyper",
  "num-bigint",
+ "num-traits",
  "proptest",
  "prost",
  "seq-macro",
@@ -1085,6 +1086,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "uuid 1.4.0",
+ "value",
 ]
 
 [[package]]
@@ -4691,6 +4693,8 @@ dependencies = [
  "proptest",
  "seq-macro",
  "serde",
+ "serde_json",
+ "sqlx",
  "thiserror",
 ]
 

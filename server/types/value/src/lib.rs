@@ -2,15 +2,20 @@ use fraction::num_traits::Zero;
 use proptest::prelude::{any, any_with, Arbitrary};
 use proptest::prop_oneof;
 use proptest::strategy::{BoxedStrategy, Strategy};
+use serde::{Serialize, Deserialize};
+use sqlx::database::HasValueRef;
+use sqlx::postgres::PgArgumentBuffer;
+use sqlx::{Database, Decode, Encode, Postgres, Type};
 use std::cmp::Ordering;
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, Div, Mul, Sub, AddAssign};
 use thiserror::Error;
+use sqlx::TypeInfo;
 
 use fraction::Fraction;
 use infinity::Infinity;
 use num_traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Value {
     Finite(Fraction),
     Infinite(Infinity),
@@ -356,6 +361,47 @@ impl TryInto<Infinity> for Value {
             Self::Finite(_) => Err(ValueError::ValueFinite),
             Self::Infinite(f) => Ok(f),
         }
+    }
+}
+
+impl<'r, DB: Database> Decode<'r, DB> for Value
+where
+    &'r str: Decode<'r, DB>,
+{
+    fn decode(
+        value: <DB as HasValueRef<'r>>::ValueRef,
+    ) -> Result<Self, Box<dyn std::error::Error + 'static + Send + Sync>> {
+        let value = <&str as Decode<DB>>::decode(value)?;
+        Ok(serde_json::from_str(value)?)
+    }
+}
+
+impl Encode<'_, Postgres> for Value {
+    fn produces(&self) -> Option<<Postgres as sqlx::Database>::TypeInfo> {
+        Some(sqlx::postgres::PgTypeInfo::with_name("text"))
+    }
+
+    fn encode_by_ref(&self, buf: &mut PgArgumentBuffer) -> sqlx::encode::IsNull {
+        <String as Encode<Postgres>>::encode_by_ref(&serde_json::to_string(self).unwrap_or_default(), buf)
+    }
+
+    fn encode(
+        self,
+        buf: &mut <Postgres as sqlx::database::HasArguments<'_>>::ArgumentBuffer,
+    ) -> sqlx::encode::IsNull
+    where
+        Self: Sized,
+    {
+        self.encode_by_ref(buf)
+    }
+}
+
+impl Type<Postgres> for Value {
+    fn type_info() -> <Postgres as sqlx::Database>::TypeInfo {
+        sqlx::postgres::PgTypeInfo::with_name("value")
+    }
+    fn compatible(ty: &<Postgres as sqlx::Database>::TypeInfo) -> bool {
+        ty.name() == "value"
     }
 }
 
