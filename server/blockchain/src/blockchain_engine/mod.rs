@@ -1,5 +1,4 @@
 pub mod deposits;
-pub mod models;
 pub mod valuts;
 pub mod withdraws;
 
@@ -14,14 +13,13 @@ use tonic::{Request, Response, Status};
 
 use crate::{
     base::{self, blockchain_server::Blockchain},
-    blockchain_engine::models::withdraw::WithdrawRequest,
     contracts::treasury::Treasury,
 };
 
 use self::{
     deposits::DepositsBlockchainManagerController,
     valuts::ValutsBlockchainManagerController,
-    withdraws::{models::WithdrawEvent, WithdrawsBlockchainManagerController},
+    withdraws::{models::{WithdrawEvent, WithdrawRequest}, WithdrawsBlockchainManagerController},
 };
 
 #[derive(Debug)]
