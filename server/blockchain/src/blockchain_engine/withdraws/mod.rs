@@ -21,7 +21,7 @@ use crate::{
     models::BlockchainManagerError,
 };
 
-use self::models::WithdrawEvent;
+use self::models::{WithdrawEvent, WithdrawRequest};
 
 pub struct WithdrawsBlockchainManager {
     pub database: PgPool,
@@ -35,8 +35,8 @@ impl WithdrawsBlockchainManager {
         mut engine_client: EngineClient<Channel>,
     ) -> WithdrawsBlockchainManagerController {
         let (shutdown_tx, mut shutdown_rx) = oneshot::channel::<()>();
-        let (insert_withdraw_event_tx, mut insert_withdraw_event_rx) =
-            mpsc::channel::<(WithdrawEvent, TxHash)>(100);
+        let (insert_withdraw_request_tx, mut insert_withdraw_request_rx) =
+            mpsc::channel::<WithdrawRequest>(100);
 
         let database = self.database.to_owned();
         let provider = self.provider.to_owned();
@@ -51,7 +51,7 @@ impl WithdrawsBlockchainManager {
                         _ = &mut shutdown_rx => {
                             break;
                         },
-                        Some((event, tx_hash)) = insert_withdraw_event_rx.recv() => {
+                        Some(request) = insert_withdraw_request_rx.recv() => {
                             if let Err(err) = async {
                                 let mut t = database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
                                 t.commit().await?;
@@ -92,7 +92,7 @@ impl WithdrawsBlockchainManager {
         WithdrawsBlockchainManagerController {
             shutdown_tx,
             join_handle,
-            insert_withdraw_event_tx,
+            insert_withdraw_request_tx,
         }
     }
 }
@@ -100,7 +100,7 @@ impl WithdrawsBlockchainManager {
 #[derive(Debug)]
 pub struct WithdrawsBlockchainManagerController {
     shutdown_tx: oneshot::Sender<()>,
-    insert_withdraw_event_tx: mpsc::Sender<(WithdrawEvent, TxHash)>,
+    insert_withdraw_request_tx: mpsc::Sender<WithdrawRequest>,
     join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>>,
 }
 impl WithdrawsBlockchainManagerController {
@@ -111,10 +111,10 @@ impl WithdrawsBlockchainManagerController {
         Ok(self.join_handle.await?)
     }
 
-    pub async fn submit_withdraw_event(
+    pub async fn withdraw(
         &self,
-        event: (WithdrawEvent, TxHash),
-    ) -> Result<(), mpsc::error::SendError<(WithdrawEvent, TxHash)>> {
-        self.insert_withdraw_event_tx.send(event).await
+        request: WithdrawRequest,
+    ) -> Result<(), mpsc::error::SendError<WithdrawRequest>> {
+        self.insert_withdraw_request_tx.send(request).await
     }
 }

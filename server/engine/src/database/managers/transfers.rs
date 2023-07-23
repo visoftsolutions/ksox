@@ -1,7 +1,7 @@
 use fraction::Fraction;
-use sqlx::{postgres::PgQueryResult, types::chrono::Utc, Postgres, Transaction};
+use sqlx::{types::chrono::Utc, Postgres, Transaction};
 use uuid::Uuid;
-
+use crate::database::managers::Id;
 use crate::database::projections::transfer::Transfer;
 
 #[derive(Debug)]
@@ -11,14 +11,16 @@ impl TransfersManager {
     pub async fn insert<'t, 'p>(
         pool: &'t mut Transaction<'p, Postgres>,
         element: Transfer,
-    ) -> sqlx::Result<PgQueryResult> {
+    ) -> sqlx::Result<Uuid> {
         let now = Utc::now();
-        sqlx::query!(
+        sqlx::query_as!(
+            Id,
             r#"
             INSERT INTO transfers
                 (created_at, last_modification_at, maker_id, taker_id, asset_id, amount)
             VALUES
                 ($1, $2, $3, $4, $5, $6::fraction)
+            RETURNING id
             "#,
             now,
             now,
@@ -27,8 +29,8 @@ impl TransfersManager {
             element.asset_id,
             element.amount.to_tuple_string() as _,
         )
-        .execute(pool)
-        .await
+        .fetch_one(pool)
+        .await.map(|e| e.id)
     }
 
     pub async fn get_by_id<'t, 'p>(

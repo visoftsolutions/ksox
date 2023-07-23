@@ -37,28 +37,18 @@ impl Blockchain for BlockchainEngine {
         &self,
         request: Request<base::WithdrawRequest>,
     ) -> Result<Response<base::WithdrawResponse>, Status> {
-        let mut t = self
-            .database
-            .begin()
-            .await
-            .map_err(|e| Status::aborted(e.to_string()))?;
-        let request: WithdrawRequest = request.into_inner().try_into()?;
-        let event: WithdrawEvent = request.into();
-        let filter = event
-            .to_filter(&mut t)
-            .await
-            .map_err(|e| Status::aborted(e.to_string()))?;
-
-        self.contract
-            .withdraw(filter.token_address, filter.user_address, filter.amount)
-            .await
-            .map_err(|e| Status::aborted(e.to_string()))?;
+        self.withdraws_controller.withdraw(
+            request.into_inner().try_into()?
+        ).await.map_err(|e| Status::aborted(e.to_string()))?;
         Ok(Response::new(base::WithdrawResponse {}))
     }
 }
 
 #[derive(Error, Debug)]
 pub enum BlockchainEngineError {
+    // #[error(transparent)]
+    // Tonic(#[from] tonic::Status),
+
     #[error(transparent)]
-    Tonic(#[from] tonic::Status),
+    SendError(#[from] tonic::Status),
 }

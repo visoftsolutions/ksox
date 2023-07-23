@@ -16,7 +16,7 @@ pub async fn transfer<'t, 'p>(
     transaction: &'t mut Transaction<'p, Postgres>,
 ) -> Result<TransferResponse, TransferError> {
     if request.maker_id == request.taker_id {
-        return Ok(TransferResponse {});
+        return Err(TransferError::SameUser);
     }
 
     let asset = AssetsManager::get_by_id(transaction, request.asset_id)
@@ -52,11 +52,11 @@ pub async fn transfer<'t, 'p>(
         amount: request.amount,
     };
 
-    TransfersManager::insert(transaction, transfer).await?;
+    let id = TransfersManager::insert(transaction, transfer).await?;
     ValutsManager::update(transaction, maker_asset_valut).await?;
     ValutsManager::update(transaction, taker_asset_valut).await?;
 
-    Ok(TransferResponse {})
+    Ok(TransferResponse {id})
 }
 
 pub async fn revert_transfer<'t, 'p>(
@@ -70,6 +70,6 @@ pub async fn revert_transfer<'t, 'p>(
         asset_id: trans.asset_id,
         amount: trans.amount,
     };
-    let _response = transfer(request, transaction).await?;
-    Ok(RevertTransferResponse {})
+    let response = transfer(request, transaction).await?;
+    Ok(RevertTransferResponse {id: response.id})
 }

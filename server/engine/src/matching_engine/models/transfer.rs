@@ -30,13 +30,15 @@ impl TryFrom<base::TransferRequest> for TransferRequest {
     }
 }
 
-pub struct TransferResponse {}
+pub struct TransferResponse {
+    pub id: Uuid
+}
 
 impl TryFrom<Result<TransferResponse, TransferError>> for base::TransferResponse {
     type Error = Status;
     fn try_from(value: Result<TransferResponse, TransferError>) -> Result<Self, Self::Error> {
-        let _v = value.map_err(|e| Status::aborted(e.to_string()))?;
-        Ok(Self {})
+        let v = value.map_err(|e| Status::aborted(e.to_string()))?;
+        Ok(Self {id: v.id.to_string()})
     }
 }
 
@@ -60,6 +62,9 @@ pub enum TransferError {
     #[error("div fractions failed")]
     CheckedDivFailed,
 
+    #[error("maker_id taker_id the same")]
+    SameUser,
+
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),
 }
@@ -77,15 +82,17 @@ impl TryFrom<base::RevertTransferRequest> for RevertTransferRequest {
     }
 }
 
-pub struct RevertTransferResponse {}
+pub struct RevertTransferResponse {
+    pub id: Uuid
+}
 
 impl TryFrom<Result<RevertTransferResponse, RevertTransferError>> for base::RevertTransferResponse {
     type Error = Status;
     fn try_from(
         value: Result<RevertTransferResponse, RevertTransferError>,
     ) -> Result<Self, Self::Error> {
-        let _v = value.map_err(|e| Status::aborted(e.to_string()))?;
-        Ok(Self {})
+        let v = value.map_err(|e| Status::aborted(e.to_string()))?;
+        Ok(Self {id: v.id.to_string()})
     }
 }
 

@@ -23,12 +23,16 @@ message TransferRequest {
     string asset_id = 3;
     string amount = 4;
 }
-message TransferResponse {}
+message TransferResponse {
+    string id = 1;
+}
 
 message RevertTransferRequest {
     string id = 1;
 }
-message RevertTransferResponse {}
+message RevertTransferResponse {
+    string id = 1;
+}
 
 service Engine {
     rpc Submit(SubmitRequest) returns (SubmitResponse) {}

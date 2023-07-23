@@ -56,7 +56,8 @@ impl WithdrawEvent {
 }
 
 pub struct WithdrawRequest {
-    pub user_id: Uuid,
+    pub maker_id: Uuid,
+    pub taker_id: Uuid,
     pub asset_id: Uuid,
     pub amount: Fraction,
 }
@@ -65,7 +66,9 @@ impl TryFrom<base::WithdrawRequest> for WithdrawRequest {
     type Error = Status;
     fn try_from(value: base::WithdrawRequest) -> Result<Self, Self::Error> {
         Ok(Self {
-            user_id: Uuid::from_str(&value.user_id)
+            maker_id: Uuid::from_str(&value.maker_id)
+                .map_err(|e| Status::invalid_argument(e.to_string()))?,
+            taker_id: Uuid::from_str(&value.taker_id)
                 .map_err(|e| Status::invalid_argument(e.to_string()))?,
             asset_id: Uuid::from_str(&value.asset_id)
                 .map_err(|e| Status::invalid_argument(e.to_string()))?,
@@ -75,21 +78,12 @@ impl TryFrom<base::WithdrawRequest> for WithdrawRequest {
     }
 }
 
-impl Into<WithdrawEvent> for WithdrawRequest {
-    fn into(self) -> WithdrawEvent {
-        WithdrawEvent {
-            user_id: self.user_id,
-            asset_id: self.asset_id,
-            amount: self.amount,
-        }
-    }
-}
-
 impl TryInto<base::WithdrawRequest> for WithdrawRequest {
     type Error = Status;
     fn try_into(self) -> Result<base::WithdrawRequest, Self::Error> {
         Ok(base::WithdrawRequest {
-            user_id: self.user_id.to_string(),
+            maker_id: self.maker_id.to_string(),
+            taker_id: self.taker_id.to_string(),
             asset_id: self.asset_id.to_string(),
             amount: serde_json::to_string(&self.amount)
                 .map_err(|e| Status::invalid_argument(e.to_string()))?,
