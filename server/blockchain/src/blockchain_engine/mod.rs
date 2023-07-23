@@ -19,7 +19,10 @@ use crate::{
 use self::{
     deposits::DepositsBlockchainManagerController,
     valuts::ValutsBlockchainManagerController,
-    withdraws::{models::{WithdrawEvent, WithdrawRequest}, WithdrawsBlockchainManagerController},
+    withdraws::{
+        models::{WithdrawEvent, WithdrawRequest},
+        WithdrawsBlockchainManagerController,
+    },
 };
 
 #[derive(Debug)]
@@ -37,9 +40,10 @@ impl Blockchain for BlockchainEngine {
         &self,
         request: Request<base::WithdrawRequest>,
     ) -> Result<Response<base::WithdrawResponse>, Status> {
-        self.withdraws_controller.withdraw(
-            request.into_inner().try_into()?
-        ).await.map_err(|e| Status::aborted(e.to_string()))?;
+        self.withdraws_controller
+            .withdraw(request.into_inner().try_into()?)
+            .await
+            .map_err(|e| Status::aborted(e.to_string()))?;
         Ok(Response::new(base::WithdrawResponse {}))
     }
 }
@@ -48,7 +52,6 @@ impl Blockchain for BlockchainEngine {
 pub enum BlockchainEngineError {
     // #[error(transparent)]
     // Tonic(#[from] tonic::Status),
-
     #[error(transparent)]
     SendError(#[from] tonic::Status),
 }

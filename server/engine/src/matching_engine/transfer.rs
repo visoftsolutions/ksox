@@ -56,7 +56,7 @@ pub async fn transfer<'t, 'p>(
     ValutsManager::update(transaction, maker_asset_valut).await?;
     ValutsManager::update(transaction, taker_asset_valut).await?;
 
-    Ok(TransferResponse {id})
+    Ok(TransferResponse { id })
 }
 
 pub async fn revert_transfer<'t, 'p>(
@@ -71,5 +71,5 @@ pub async fn revert_transfer<'t, 'p>(
         amount: trans.amount,
     };
     let response = transfer(request, transaction).await?;
-    Ok(RevertTransferResponse {id: response.id})
+    Ok(RevertTransferResponse { id: response.id })
 }

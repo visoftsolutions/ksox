@@ -1,14 +1,16 @@
 use ethereum_types::U256;
 use fraction::Fraction;
 use sqlx::{Postgres, Transaction};
-use uuid::Uuid;
 use std::str::FromStr;
 use thiserror::Error;
 use tonic::Status;
+use uuid::Uuid;
 
 use crate::{
+    base,
     contracts::treasury::WithdrawFilter,
-    database::managers::{assets::AssetsManager, users::UsersManager}, base,
+    database::managers::{assets::AssetsManager, users::UsersManager},
+    engine_base,
 };
 
 pub struct WithdrawEvent {
@@ -55,6 +57,7 @@ impl WithdrawEvent {
     }
 }
 
+#[derive(Clone)]
 pub struct WithdrawRequest {
     pub maker_id: Uuid,
     pub taker_id: Uuid,
@@ -88,6 +91,35 @@ impl TryInto<base::WithdrawRequest> for WithdrawRequest {
             amount: serde_json::to_string(&self.amount)
                 .map_err(|e| Status::invalid_argument(e.to_string()))?,
         })
+    }
+}
+
+impl TryInto<engine_base::TransferRequest> for WithdrawRequest {
+    type Error = Status;
+    fn try_into(self) -> Result<engine_base::TransferRequest, Self::Error> {
+        Ok(engine_base::TransferRequest {
+            maker_id: self.maker_id.to_string(),
+            taker_id: Uuid::from_bytes([0x00; 16]).to_string(),
+            asset_id: self.asset_id.to_string(),
+            amount: serde_json::to_string(&self.amount)
+                .map_err(|e| Status::invalid_argument(e.to_string()))?,
+        })
+    }
+}
+
+impl Into<engine_base::RevertTransferRequest> for engine_base::TransferResponse {
+    fn into(self) -> engine_base::RevertTransferRequest {
+        engine_base::RevertTransferRequest { id: self.id }
+    }
+}
+
+impl Into<WithdrawEvent> for WithdrawRequest {
+    fn into(self) -> WithdrawEvent {
+        WithdrawEvent {
+            user_id: self.taker_id,
+            asset_id: self.asset_id,
+            amount: self.amount,
+        }
     }
 }
 

@@ -1,8 +1,8 @@
+use crate::database::managers::Id;
+use crate::database::projections::transfer::Transfer;
 use fraction::Fraction;
 use sqlx::{types::chrono::Utc, Postgres, Transaction};
 use uuid::Uuid;
-use crate::database::managers::Id;
-use crate::database::projections::transfer::Transfer;
 
 #[derive(Debug)]
 pub struct TransfersManager {}
@@ -30,7 +30,8 @@ impl TransfersManager {
             element.amount.to_tuple_string() as _,
         )
         .fetch_one(pool)
-        .await.map(|e| e.id)
+        .await
+        .map(|e| e.id)
     }
 
     pub async fn get_by_id<'t, 'p>(

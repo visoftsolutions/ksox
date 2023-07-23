@@ -5,7 +5,7 @@ use ethers::{
     providers::{Middleware, Provider, Ws},
     signers::Wallet,
 };
-use evm::txhash::TxHash;
+
 use sqlx::PgPool;
 use tokio::{
     select,
@@ -16,8 +16,8 @@ use tokio_stream::StreamExt;
 use tonic::{transport::Channel, Status};
 
 use crate::{
-    contracts::treasury::{Treasury, TreasuryEvents},
-    engine_base::engine_client::EngineClient,
+    contracts::treasury::{Treasury, TreasuryEvents, WithdrawFilter},
+    engine_base::{engine_client::EngineClient, RevertTransferRequest, TransferRequest},
     models::BlockchainManagerError,
 };
 
@@ -40,6 +40,7 @@ impl WithdrawsBlockchainManager {
 
         let database = self.database.to_owned();
         let provider = self.provider.to_owned();
+        let contract = self.contract.to_owned();
         let contract_events = self.contract.events();
         let join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>> = tokio::spawn(
             async move {
@@ -53,9 +54,19 @@ impl WithdrawsBlockchainManager {
                         },
                         Some(request) = insert_withdraw_request_rx.recv() => {
                             if let Err(err) = async {
-                                let mut t = database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
-                                t.commit().await?;
-                                Ok::<(), BlockchainManagerError>(())
+                                let response = engine_client.transfer(TryInto::<TransferRequest>::try_into(request.to_owned())?).await?.into_inner();
+                                if let Err(err) = async {
+                                    let mut t = database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
+                                    let event: WithdrawEvent = request.into();
+                                    let filter: WithdrawFilter = event.to_filter(&mut t).await?;
+                                    contract.withdraw(filter.token_address, filter.user_address, filter.amount).await?;
+                                    Ok::<(), BlockchainManagerError>(t.commit().await?)
+                                }.await {
+                                    engine_client.revert_transfer(Into::<RevertTransferRequest>::into(response)).await?;
+                                    Err(err)
+                                } else {
+                                    Ok(())
+                                }
                             }.await {
                                 tracing::error!("{err}");
                             }

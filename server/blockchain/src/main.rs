@@ -4,6 +4,7 @@ pub mod contracts;
 pub mod database;
 pub mod models;
 pub mod submission;
+pub mod timeout;
 
 mod shutdown_signal;
 use contracts::treasury::Treasury;

@@ -31,14 +31,16 @@ impl TryFrom<base::TransferRequest> for TransferRequest {
 }
 
 pub struct TransferResponse {
-    pub id: Uuid
+    pub id: Uuid,
 }
 
 impl TryFrom<Result<TransferResponse, TransferError>> for base::TransferResponse {
     type Error = Status;
     fn try_from(value: Result<TransferResponse, TransferError>) -> Result<Self, Self::Error> {
         let v = value.map_err(|e| Status::aborted(e.to_string()))?;
-        Ok(Self {id: v.id.to_string()})
+        Ok(Self {
+            id: v.id.to_string(),
+        })
     }
 }
 
@@ -83,7 +85,7 @@ impl TryFrom<base::RevertTransferRequest> for RevertTransferRequest {
 }
 
 pub struct RevertTransferResponse {
-    pub id: Uuid
+    pub id: Uuid,
 }
 
 impl TryFrom<Result<RevertTransferResponse, RevertTransferError>> for base::RevertTransferResponse {
@@ -92,7 +94,9 @@ impl TryFrom<Result<RevertTransferResponse, RevertTransferError>> for base::Reve
         value: Result<RevertTransferResponse, RevertTransferError>,
     ) -> Result<Self, Self::Error> {
         let v = value.map_err(|e| Status::aborted(e.to_string()))?;
-        Ok(Self {id: v.id.to_string()})
+        Ok(Self {
+            id: v.id.to_string(),
+        })
     }
 }
 
