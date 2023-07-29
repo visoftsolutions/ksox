@@ -44,11 +44,12 @@ impl<'a, E: Confirmable + Clone> ConfirmationQueue<'a, E> {
     }
 
     pub async fn insert(&mut self, entity: E, tx_hash: H256) -> Result<(), ConfirmationQueueError> {
-        Ok(self.entries.push(ConfirmationQueueEntry::new(
+        self.entries.push(ConfirmationQueueEntry::new(
             entity,
-            tx_hash.clone(),
-            transaction_block(&self.provider, tx_hash).await?,
-        )))
+            tx_hash,
+            transaction_block(self.provider, tx_hash).await?,
+        ));
+        Ok(())
     }
 
     async fn eval_ready(
@@ -109,8 +110,8 @@ impl<'a, E: Confirmable + Clone> ConfirmationQueue<'a, E> {
 
     pub async fn confirmation_step(&mut self, block: &Block<H256>) -> (Vec<E>, Vec<E>) {
         let (ready, mut not_ready) =
-            Self::eval_ready(self.entries.drain(0..).collect(), &block).await;
-        let (confirmed, not_confirmed) = Self::eval_confirmed(ready, &self.provider, &block).await;
+            Self::eval_ready(self.entries.drain(0..).collect(), block).await;
+        let (confirmed, not_confirmed) = Self::eval_confirmed(ready, self.provider, block).await;
         not_ready.extend(not_confirmed.into_iter());
         self.entries.extend(not_ready.clone());
 

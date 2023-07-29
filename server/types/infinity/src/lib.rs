@@ -96,11 +96,10 @@ impl SubAssign for Infinity {
 
 impl PartialEq for Infinity {
     fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Self::Positive, Self::Positive) => true,
-            (Self::Negative, Self::Negative) => true,
-            _ => false,
-        }
+        matches!(
+            (self, other),
+            (Self::Positive, Self::Positive) | (Self::Negative, Self::Negative)
+        )
     }
 }
 

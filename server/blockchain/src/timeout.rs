@@ -1,10 +1,4 @@
-use std::{
-    collections::HashSet,
-    hash::{Hash, Hasher},
-    pin::Pin,
-    task::Poll,
-    time::Duration,
-};
+use std::{pin::Pin, task::Poll, time::Duration};
 
 use futures::{Future, FutureExt};
 use linked_hash_map::LinkedHashMap;
@@ -14,12 +8,12 @@ use tokio_stream::Stream;
 use uuid::Uuid;
 
 pub struct TimeoutQueueEntry {
-    timer: Pin<Box<dyn Future<Output = ()>>>,
-    action: Option<Pin<Box<dyn Future<Output = ()>>>>,
+    timer: Pin<Box<dyn Future<Output = ()> + Send>>,
+    action: Option<Pin<Box<dyn Future<Output = ()> + Send>>>,
 }
 
 impl TimeoutQueueEntry {
-    pub fn new(timeout: Duration, action: Pin<Box<dyn Future<Output = ()>>>) -> Self {
+    pub fn new(timeout: Duration, action: Pin<Box<dyn Future<Output = ()> + Send>>) -> Self {
         Self {
             timer: Box::pin(sleep(timeout)),
             action: Some(action),
@@ -53,7 +47,7 @@ impl TimeoutQueue {
         }
     }
 
-    pub fn insert(&mut self, action: Pin<Box<dyn Future<Output = ()>>>) -> Uuid {
+    pub fn insert(&mut self, action: Pin<Box<dyn Future<Output = ()> + Send>>) -> Uuid {
         let id = Uuid::new_v4();
         self.entries
             .insert(id, TimeoutQueueEntry::new(self.timeout, action));
@@ -79,7 +73,7 @@ impl Stream for TimeoutQueue {
             None => Poll::Ready(None),
         };
 
-        if let Poll::Ready(_) = poll {
+        if poll.is_ready() {
             self.entries.pop_front();
         }
 

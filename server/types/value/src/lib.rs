@@ -23,17 +23,11 @@ pub enum Value {
 
 impl Value {
     pub fn is_finite(&self) -> bool {
-        match *self {
-            Self::Finite(_) => true,
-            _ => false,
-        }
+        matches!(*self, Self::Finite(_))
     }
 
     pub fn is_infinite(&self) -> bool {
-        match *self {
-            Self::Infinite(_) => true,
-            _ => false,
-        }
+        matches!(*self, Self::Infinite(_))
     }
 }
 
@@ -211,9 +205,9 @@ impl CheckedMul for Value {
 impl CheckedDiv for Value {
     fn checked_div(&self, v: &Self) -> Option<Self> {
         match (self, v) {
-            (Value::Finite(lhs), Value::Finite(rhs)) => lhs.checked_div(&rhs).map(Value::Finite),
+            (Value::Finite(lhs), Value::Finite(rhs)) => lhs.checked_div(rhs).map(Value::Finite),
             (Value::Infinite(lhs), Value::Infinite(rhs)) => {
-                lhs.checked_div(&rhs).map(Value::Infinite)
+                lhs.checked_div(rhs).map(Value::Infinite)
             }
             // handle cases when dividing finite by infinity
             (Value::Finite(_), Value::Infinite(_)) => Some(Value::Finite(Fraction::zero())),
@@ -239,13 +233,6 @@ impl PartialEq for Value {
             (Value::Finite(lhs), Value::Finite(rhs)) => lhs == rhs,
             (Value::Infinite(lhs), Value::Infinite(rhs)) => lhs == rhs,
             _ => false,
-        }
-    }
-    fn ne(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Value::Finite(lhs), Value::Finite(rhs)) => lhs != rhs,
-            (Value::Infinite(lhs), Value::Infinite(rhs)) => lhs != rhs,
-            _ => true,
         }
     }
 }

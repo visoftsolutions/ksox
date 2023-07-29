@@ -17,7 +17,8 @@ pub async fn root(
     user_id: UserId,
 ) -> Sse<impl Stream<Item = Result<Event, std::io::Error>>> {
     let stream = async_stream::stream! {
-        let mut stream = state.withdraws_notification_manager.subscribe_for_user(*user_id).await
+        let user = state.users_manager.get_by_id(*user_id).await.map_err(|err| Error::new(ErrorKind::BrokenPipe, err))?;
+        let mut stream = state.withdraws_notification_manager.subscribe_for_user(user.address).await
             .map_err(|err| Error::new(ErrorKind::BrokenPipe, err))?;
         while let Some(element) = stream.next().await {
             if !element.is_empty() {

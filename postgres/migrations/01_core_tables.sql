@@ -37,29 +37,31 @@ CREATE TABLE "deposits" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "user_id" uuid NOT NULL,
-  "asset_id" uuid NOT NULL,
+  "maker_address" CHAR(42) NOT NULL,
+  "taker_address" CHAR(42) NOT NULL,
+  "asset_address" CHAR(42) NOT NULL,
   "tx_hash" CHAR(66) UNIQUE NOT NULL,
   "amount" fraction NOT NULL,
   "confirmations" fraction NOT NULL
 );
 
-ALTER TABLE "deposits" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-ALTER TABLE "deposits" ADD FOREIGN KEY ("asset_id") REFERENCES "assets" ("id");
+ALTER TABLE "deposits" ADD FOREIGN KEY ("taker_address") REFERENCES "users" ("address");
+ALTER TABLE "deposits" ADD FOREIGN KEY ("asset_address") REFERENCES "assets" ("address");
 
 CREATE TABLE "withdraws" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "user_id" uuid NOT NULL,
-  "asset_id" uuid NOT NULL,
+  "maker_address" CHAR(42) NOT NULL,
+  "taker_address" CHAR(42) NOT NULL,
+  "asset_address" CHAR(42) NOT NULL,
   "tx_hash" CHAR(66) UNIQUE NOT NULL,
   "amount" fraction NOT NULL,
   "confirmations" fraction NOT NULL
 );
 
-ALTER TABLE "withdraws" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-ALTER TABLE "withdraws" ADD FOREIGN KEY ("asset_id") REFERENCES "assets" ("id");
+ALTER TABLE "withdraws" ADD FOREIGN KEY ("maker_address") REFERENCES "users" ("address");
+ALTER TABLE "withdraws" ADD FOREIGN KEY ("asset_address") REFERENCES "assets" ("address");
 
 CREATE TABLE "transfers" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),

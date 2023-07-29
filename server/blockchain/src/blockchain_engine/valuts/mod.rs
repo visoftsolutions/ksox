@@ -118,7 +118,7 @@ impl ValutsBlockchainManagerController {
         if self.shutdown_tx.send(()).is_err() {
             tracing::error!("Error: shutdown");
         }
-        Ok(self.join_handle.await?)
+        self.join_handle.await
     }
 
     pub async fn set_changes_threshold(

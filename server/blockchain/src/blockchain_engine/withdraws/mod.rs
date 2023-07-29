@@ -17,11 +17,13 @@ use tonic::{transport::Channel, Status};
 
 use crate::{
     contracts::treasury::{Treasury, TreasuryEvents, WithdrawFilter},
-    engine_base::{engine_client::EngineClient, RevertTransferRequest, TransferRequest},
+    database::{
+        managers::withdraws::WithdrawsManager,
+        projections::withdraw::{withdraw_to_transfer_request, WithdrawInsert},
+    },
+    engine_base::{engine_client::EngineClient, RevertTransferRequest},
     models::BlockchainManagerError,
 };
-
-use self::models::{WithdrawEvent, WithdrawRequest};
 
 pub struct WithdrawsBlockchainManager {
     pub database: PgPool,
@@ -35,8 +37,8 @@ impl WithdrawsBlockchainManager {
         mut engine_client: EngineClient<Channel>,
     ) -> WithdrawsBlockchainManagerController {
         let (shutdown_tx, mut shutdown_rx) = oneshot::channel::<()>();
-        let (insert_withdraw_request_tx, mut insert_withdraw_request_rx) =
-            mpsc::channel::<WithdrawRequest>(100);
+        let (insert_withdraw_event_tx, mut insert_withdraw_event_rx) =
+            mpsc::channel::<WithdrawInsert>(100);
 
         let database = self.database.to_owned();
         let provider = self.provider.to_owned();
@@ -46,26 +48,27 @@ impl WithdrawsBlockchainManager {
             async move {
                 let mut blocks_stream = provider.subscribe_blocks().await?;
                 let mut events_stream = contract_events.stream_with_meta().await?;
+                // let mut timeout_queue = TimeoutQueue::new(Duration::from_secs(3600));
 
                 loop {
                     select! {
                         _ = &mut shutdown_rx => {
                             break;
                         },
-                        Some(request) = insert_withdraw_request_rx.recv() => {
+                        Some(event) = insert_withdraw_event_rx.recv() => {
                             if let Err(err) = async {
-                                let response = engine_client.transfer(TryInto::<TransferRequest>::try_into(request.to_owned())?).await?.into_inner();
+                                let mut t = database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
+                                let withdraw = WithdrawsManager::insert(&mut t, &event).await?;
+                                let filter: WithdrawFilter = event.to_filter(&mut t).await?;
+                                let response = engine_client.transfer(withdraw_to_transfer_request(&mut t, withdraw).await?).await?.into_inner();
                                 if let Err(err) = async {
-                                    let mut t = database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
-                                    let event: WithdrawEvent = request.into();
-                                    let filter: WithdrawFilter = event.to_filter(&mut t).await?;
-                                    contract.withdraw(filter.token_address, filter.user_address, filter.amount).await?;
-                                    Ok::<(), BlockchainManagerError>(t.commit().await?)
+                                     contract.withdraw(filter.token_address, filter.user_address, filter.amount).await?;
+                                    Ok::<(), BlockchainManagerError>(())
                                 }.await {
                                     engine_client.revert_transfer(Into::<RevertTransferRequest>::into(response)).await?;
                                     Err(err)
                                 } else {
-                                    Ok(())
+                                    Ok(t.commit().await?)
                                 }
                             }.await {
                                 tracing::error!("{err}");
@@ -74,11 +77,8 @@ impl WithdrawsBlockchainManager {
                         Some(Ok((filter, meta))) = events_stream.next() => {
                             if let Err(err) = async {
                                 let mut t = database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
-                                match filter {
-                                    TreasuryEvents::WithdrawFilter(filter) => {
-                                        let event = WithdrawEvent::from_filter(&mut t,   filter).await?;
-                                    }
-                                    _ => (),
+                                if let TreasuryEvents::WithdrawFilter(filter) = filter {
+                                    let _event = WithdrawInsert::from_filter(&mut t, &filter, &meta).await?;
                                 };
                                 t.commit().await?;
                                 Ok::<(), BlockchainManagerError>(())
@@ -86,9 +86,9 @@ impl WithdrawsBlockchainManager {
                                 tracing::error!("{err}");
                             }
                         },
-                        Some(block) = blocks_stream.next() => {
+                        Some(_block) = blocks_stream.next() => {
                             if let Err(err) = async {
-                                let mut t = database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
+                                let t = database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
                                 t.commit().await?;
                                 Ok::<(), BlockchainManagerError>(())
                             }.await {
@@ -103,7 +103,7 @@ impl WithdrawsBlockchainManager {
         WithdrawsBlockchainManagerController {
             shutdown_tx,
             join_handle,
-            insert_withdraw_request_tx,
+            insert_withdraw_event_tx,
         }
     }
 }
@@ -111,7 +111,7 @@ impl WithdrawsBlockchainManager {
 #[derive(Debug)]
 pub struct WithdrawsBlockchainManagerController {
     shutdown_tx: oneshot::Sender<()>,
-    insert_withdraw_request_tx: mpsc::Sender<WithdrawRequest>,
+    insert_withdraw_event_tx: mpsc::Sender<WithdrawInsert>,
     join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>>,
 }
 impl WithdrawsBlockchainManagerController {
@@ -119,13 +119,13 @@ impl WithdrawsBlockchainManagerController {
         if self.shutdown_tx.send(()).is_err() {
             tracing::error!("Error: shutdown");
         }
-        Ok(self.join_handle.await?)
+        self.join_handle.await
     }
 
     pub async fn withdraw(
         &self,
-        request: WithdrawRequest,
-    ) -> Result<(), mpsc::error::SendError<WithdrawRequest>> {
-        self.insert_withdraw_request_tx.send(request).await
+        request: WithdrawInsert,
+    ) -> Result<(), mpsc::error::SendError<WithdrawInsert>> {
+        self.insert_withdraw_event_tx.send(request).await
     }
 }

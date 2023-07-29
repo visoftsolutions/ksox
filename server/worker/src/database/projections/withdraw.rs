@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use evm::txhash::TxHash;
+use evm::{address::Address, txhash::TxHash};
 use fraction::Fraction;
 use serde::{Deserialize, Serialize};
 use sqlx::types::Uuid;
@@ -9,8 +9,9 @@ pub struct Withdraw {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,
     pub last_modification_at: DateTime<Utc>,
-    pub user_id: Uuid,
-    pub asset_id: Uuid,
+    pub maker_address: Address,
+    pub taker_address: Address,
+    pub asset_address: Address,
     pub tx_hash: TxHash,
     pub amount: Fraction,
     pub confirmations: Fraction,

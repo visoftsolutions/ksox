@@ -21,6 +21,12 @@ impl MatchingLoopResponse {
     }
 }
 
+impl Default for MatchingLoopResponse {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum MatchingLoopError {
     #[error("volume can not be zero")]

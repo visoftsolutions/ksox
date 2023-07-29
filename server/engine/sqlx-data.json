@@ -111,6 +111,47 @@
     },
     "query": "\n            UPDATE \n                spot.orders \n            SET\n                is_active = $2,\n                last_modification_at = $3\n            WHERE\n                id = $1\n            "
   },
+  "28d3ffe3553596cfe611a3be82a2a6b01df233508612daa0e0f8c6a251066018": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Timestamptz",
+          "Timestamptz",
+          "Uuid",
+          "Uuid",
+          "Uuid",
+          {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        ]
+      }
+    },
+    "query": "\n            INSERT INTO transfers\n                (created_at, last_modification_at, maker_id, taker_id, asset_id, amount)\n            VALUES\n                ($1, $2, $3, $4, $5, $6::fraction)\n            RETURNING id\n            "
+  },
   "3d8f28b3e99ead9f1ef1922efb53c31024ef0b81add0d6dc907270e949eec3b1": {
     "describe": {
       "columns": [
@@ -317,39 +358,6 @@
       }
     },
     "query": "\n            INSERT INTO spot.trades\n                (quote_asset_id, base_asset_id, taker_id, taker_presentation, order_id, price, taker_quote_volume, maker_quote_volume, taker_base_volume, maker_base_volume, last_modification_at, created_at)\n            VALUES\n                ($1, $2, $3, $4, $5, $6::fraction, $7::fraction, $8::fraction, $9::fraction, $10::fraction, $11, $12)\n            "
-  },
-  "3feacd7db3712260ad626796efca4508d08d39d7999b2d9717fc1f9913f344d0": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Timestamptz",
-          "Timestamptz",
-          "Uuid",
-          "Uuid",
-          "Uuid",
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        ]
-      }
-    },
-    "query": "\n            INSERT INTO transfers\n                (created_at, last_modification_at, maker_id, taker_id, asset_id, amount)\n            VALUES\n                ($1, $2, $3, $4, $5, $6::fraction)\n            "
   },
   "561e63af125146ac3c8cfb83b2c61c448ac7a2cfcca1325f9933133edc71e8e7": {
     "describe": {

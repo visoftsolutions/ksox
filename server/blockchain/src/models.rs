@@ -6,7 +6,10 @@ use ethers::{
 use thiserror::Error;
 use tonic::Status;
 
-use crate::{confirmation::ConfirmationQueueError, submission::SubmissionQueueError};
+use crate::{
+    blockchain_engine::models::BlockchainEngineError, confirmation::ConfirmationQueueError,
+    submission::SubmissionQueueError,
+};
 
 #[derive(Error, Debug)]
 pub enum BlockchainManagerError {
@@ -27,4 +30,7 @@ pub enum BlockchainManagerError {
 
     #[error(transparent)]
     ConfirmationQueueError(#[from] ConfirmationQueueError),
+
+    #[error(transparent)]
+    BlockchainEngineError(#[from] BlockchainEngineError),
 }

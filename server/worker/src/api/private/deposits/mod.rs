@@ -27,9 +27,10 @@ pub async fn root(
     State(state): State<AppState>,
     user_id: UserId,
 ) -> Result<Json<Vec<Deposit>>, AppError> {
+    let user = state.users_manager.get_by_id(*user_id).await?;
     let deposits = state
         .deposits_manager
-        .get_all_for_user(*user_id)
+        .get_all_for_user(user.address)
         .try_collect()
         .await?;
     Ok(Json(deposits))

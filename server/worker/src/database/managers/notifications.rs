@@ -148,10 +148,8 @@ impl NotificationManager {
                                     for set_entry in set.values() {
                                         let result: Vec<_> = elements.iter().cloned()
                                             .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Valuts(e.clone()))).collect();
-                                        if !result.is_empty() {
-                                            if set_entry.sender.send(NotificationManagerOutput::Valuts(result)).await.is_err() {
-                                                set_entry_to_remove_ids.push(set_entry.id);
-                                            }
+                                        if !result.is_empty() && set_entry.sender.send(NotificationManagerOutput::Valuts(result)).await.is_err(){
+                                            set_entry_to_remove_ids.push(set_entry.id);
                                         }
                                     }
                                     set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
@@ -166,10 +164,8 @@ impl NotificationManager {
                                     for set_entry in set.values() {
                                         let result: Vec<_> = elements.iter().cloned()
                                             .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Assets(e.clone()))).collect();
-                                        if !result.is_empty() {
-                                            if set_entry.sender.send(NotificationManagerOutput::Assets(result)).await.is_err() {
-                                                set_entry_to_remove_ids.push(set_entry.id);
-                                            }
+                                        if !result.is_empty() && set_entry.sender.send(NotificationManagerOutput::Assets(result)).await.is_err(){
+                                            set_entry_to_remove_ids.push(set_entry.id);
                                         }
                                     }
                                     set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
@@ -184,10 +180,8 @@ impl NotificationManager {
                                     for set_entry in set.values() {
                                         let result: Vec<_> = elements.iter().cloned()
                                             .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotOrders(e.clone()))).collect();
-                                        if !result.is_empty() {
-                                            if set_entry.sender.send(NotificationManagerOutput::SpotOrders(result)).await.is_err() {
-                                                set_entry_to_remove_ids.push(set_entry.id);
-                                            }
+                                        if !result.is_empty() && set_entry.sender.send(NotificationManagerOutput::SpotOrders(result)).await.is_err() {
+                                            set_entry_to_remove_ids.push(set_entry.id);
                                         }
                                     }
                                     set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
@@ -202,10 +196,8 @@ impl NotificationManager {
                                     for set_entry in set.values() {
                                         let result: Vec<_> = elements.iter().cloned()
                                             .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotTrades(e.clone()))).collect();
-                                        if !result.is_empty() {
-                                            if set_entry.sender.send(NotificationManagerOutput::SpotTrades(result)).await.is_err() {
-                                                set_entry_to_remove_ids.push(set_entry.id);
-                                            }
+                                        if !result.is_empty() && set_entry.sender.send(NotificationManagerOutput::SpotTrades(result)).await.is_err(){
+                                            set_entry_to_remove_ids.push(set_entry.id);
                                         }
                                     }
                                     set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
@@ -220,10 +212,8 @@ impl NotificationManager {
                                     for set_entry in set.values() {
                                         let result: Vec<_> = elements.iter().cloned()
                                             .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::SpotCandlesticks(e.clone()))).collect();
-                                        if !result.is_empty() {
-                                            if set_entry.sender.send(NotificationManagerOutput::SpotCandlesticks(result)).await.is_err() {
-                                                set_entry_to_remove_ids.push(set_entry.id);
-                                            }
+                                        if !result.is_empty() && set_entry.sender.send(NotificationManagerOutput::SpotCandlesticks(result)).await.is_err() {
+                                            set_entry_to_remove_ids.push(set_entry.id);
                                         }
                                     }
                                     set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
@@ -238,10 +228,8 @@ impl NotificationManager {
                                     for set_entry in set.values() {
                                         let result: Vec<_> = elements.iter().cloned()
                                             .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Transfers(e.clone()))).collect();
-                                        if !result.is_empty() {
-                                            if set_entry.sender.send(NotificationManagerOutput::Transfers(result)).await.is_err() {
-                                                set_entry_to_remove_ids.push(set_entry.id);
-                                            }
+                                        if !result.is_empty() && set_entry.sender.send(NotificationManagerOutput::Transfers(result)).await.is_err() {
+                                            set_entry_to_remove_ids.push(set_entry.id);
                                         }
                                     }
                                     set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
@@ -256,10 +244,8 @@ impl NotificationManager {
                                     for set_entry in set.values() {
                                         let result: Vec<_> = elements.iter().cloned()
                                             .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::EngagementBadges(e.clone()))).collect();
-                                        if !result.is_empty() {
-                                            if set_entry.sender.send(NotificationManagerOutput::EngagementBadges(result)).await.is_err() {
-                                                set_entry_to_remove_ids.push(set_entry.id);
-                                            }
+                                        if !result.is_empty() && set_entry.sender.send(NotificationManagerOutput::EngagementBadges(result)).await.is_err() {
+                                            set_entry_to_remove_ids.push(set_entry.id);
                                         }
                                     }
                                     set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
@@ -274,10 +260,8 @@ impl NotificationManager {
                                     for set_entry in set.values() {
                                         let result: Vec<_> = elements.iter().cloned()
                                             .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Users(e.clone()))).collect();
-                                        if !result.is_empty() {
-                                            if set_entry.sender.send(NotificationManagerOutput::Users(result)).await.is_err() {
-                                                set_entry_to_remove_ids.push(set_entry.id);
-                                            }
+                                        if !result.is_empty() && set_entry.sender.send(NotificationManagerOutput::Users(result)).await.is_err() {
+                                            set_entry_to_remove_ids.push(set_entry.id);
                                         }
                                     }
                                     set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
@@ -292,10 +276,8 @@ impl NotificationManager {
                                     for set_entry in set.values() {
                                         let result: Vec<_> = elements.iter().cloned()
                                             .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Deposits(e.clone()))).collect();
-                                        if !result.is_empty() {
-                                            if set_entry.sender.send(NotificationManagerOutput::Deposits(result)).await.is_err() {
-                                                set_entry_to_remove_ids.push(set_entry.id);
-                                            }
+                                        if !result.is_empty() && set_entry.sender.send(NotificationManagerOutput::Deposits(result)).await.is_err() {
+                                            set_entry_to_remove_ids.push(set_entry.id);
                                         }
                                     }
                                     set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});
@@ -310,10 +292,8 @@ impl NotificationManager {
                                     for set_entry in set.values() {
                                         let result: Vec<_> = elements.iter().cloned()
                                             .filter(|e| set_entry.predicate.eval(&NotificationManagerPredicateInput::Withdraws(e.clone()))).collect();
-                                        if !result.is_empty() {
-                                            if set_entry.sender.send(NotificationManagerOutput::Withdraws(result)).await.is_err() {
-                                                set_entry_to_remove_ids.push(set_entry.id);
-                                            }
+                                        if !result.is_empty() && set_entry.sender.send(NotificationManagerOutput::Withdraws(result)).await.is_err() {
+                                            set_entry_to_remove_ids.push(set_entry.id);
                                         }
                                     }
                                     set_entry_to_remove_ids.into_iter().for_each(|e| {set.remove(&e);});

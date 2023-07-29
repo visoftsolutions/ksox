@@ -32,7 +32,7 @@ impl UsersManager {
     pub async fn get_by_address<'t, 'p>(
         pool: &'t mut Transaction<'p, Postgres>,
         address: Address,
-    ) -> Result<Option<User>> {
+    ) -> Result<User> {
         sqlx::query_as!(
             User,
             r#"
@@ -44,7 +44,7 @@ impl UsersManager {
             "#,
             address.to_string()
         )
-        .fetch_optional(pool)
+        .fetch_one(pool)
         .await
     }
 
@@ -52,9 +52,10 @@ impl UsersManager {
         pool: &'t mut Transaction<'p, Postgres>,
         address: Address,
     ) -> Result<User> {
-        match Self::get_by_address(pool, address.clone()).await? {
-            Some(user) => Ok(user),
-            None => Self::insert_with_address(pool, address).await,
+        match Self::get_by_address(pool, address.clone()).await {
+            Ok(user) => Ok(user),
+            Err(sqlx::Error::RowNotFound) => Self::insert_with_address(pool, address).await,
+            Err(err) => Err(err),
         }
     }
 

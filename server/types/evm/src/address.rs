@@ -6,7 +6,7 @@ use sqlx::{
     Decode, Encode, Postgres, Type, TypeInfo,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq, PartialEq, Hash, Default)]
 pub struct Address(pub ethereum_types::Address);
 
 impl FromStr for Address {

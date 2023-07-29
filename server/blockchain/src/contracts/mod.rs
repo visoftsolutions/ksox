@@ -8,8 +8,8 @@ use ethers::{
 };
 use tokio_stream::{Stream, StreamExt};
 
-pub async fn transaction_block<'provider>(
-    ws_provider: &'provider Provider<Ws>,
+pub async fn transaction_block(
+    ws_provider: &Provider<Ws>,
     tx_hash: TxHash,
 ) -> Result<Block<H256>, ProviderError> {
     let transaction_block_hash = ws_provider
@@ -17,20 +17,18 @@ pub async fn transaction_block<'provider>(
         .await?
         .and_then(|f| f.block_hash)
         .ok_or_else(|| ProviderError::CustomError("transaction not found".to_string()))?;
-    Ok(ws_provider
+    ws_provider
         .get_block(transaction_block_hash)
         .await?
-        .ok_or_else(|| ProviderError::CustomError("block not found".to_string()))?)
+        .ok_or_else(|| ProviderError::CustomError("block not found".to_string()))
 }
 
-pub async fn current_block<'provider>(
-    ws_provider: &'provider Provider<Ws>,
-) -> Result<Block<H256>, ProviderError> {
+pub async fn current_block(ws_provider: &Provider<Ws>) -> Result<Block<H256>, ProviderError> {
     let block_number = ws_provider.get_block_number().await?;
-    Ok(ws_provider
+    ws_provider
         .get_block(block_number)
         .await?
-        .ok_or(ProviderError::CustomError("block not found".to_string()))?)
+        .ok_or(ProviderError::CustomError("block not found".to_string()))
 }
 
 pub async fn block_distance(

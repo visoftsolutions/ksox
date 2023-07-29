@@ -6,7 +6,7 @@ use sqlx::{
     Decode, Encode, Postgres,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 pub struct TxHash(pub ethereum_types::Secret);
 
 impl FromStr for TxHash {

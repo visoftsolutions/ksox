@@ -1,9 +1,9 @@
 use std::pin::Pin;
 
+use evm::address::Address;
 use fraction::Fraction;
 use futures::Stream;
 use sqlx::{postgres::PgPool, Result};
-use uuid::Uuid;
 
 use super::notifications::{
     NotificationManagerOutput, NotificationManagerPredicateInput, NotificationManagerSubscriber,
@@ -32,8 +32,9 @@ impl DepositsManager {
                 id,
                 created_at,
                 last_modification_at,
-                user_id,
-                asset_id,
+                maker_address as "maker_address: Address",
+                taker_address as "taker_address: Address",
+                asset_address as "asset_address: Address",
                 tx_hash as "tx_hash: TxHash",
                 amount as "amount: Fraction",
                 confirmations as "confirmations: Fraction"
@@ -49,7 +50,7 @@ impl DepositsManager {
 
     pub fn get_all_for_user(
         &self,
-        user_id: Uuid,
+        user_address: Address,
     ) -> Pin<Box<dyn Stream<Item = sqlx::Result<Deposit>> + Send + '_>> {
         sqlx::query_as!(
             Deposit,
@@ -58,16 +59,17 @@ impl DepositsManager {
                 id,
                 created_at,
                 last_modification_at,
-                user_id,
-                asset_id,
+                maker_address as "maker_address: Address",
+                taker_address as "taker_address: Address",
+                asset_address as "asset_address: Address",
                 tx_hash as "tx_hash: TxHash",
                 amount as "amount: Fraction",
                 confirmations as "confirmations: Fraction"
             FROM deposits
-            WHERE user_id = $1
+            WHERE taker_address = $1
             ORDER BY last_modification_at DESC
             "#,
-            user_id
+            user_address.to_string() as _
         )
         .fetch(&self.database)
     }
@@ -86,11 +88,13 @@ impl DepositsNotificationManager {
 
     pub async fn subscribe_for_user(
         &self,
-        user_id: Uuid,
+        user_address: Address,
     ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Vec<Deposit>> + Send>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
-                NotificationManagerPredicateInput::Deposits(deposit) => deposit.user_id == user_id,
+                NotificationManagerPredicateInput::Deposits(deposit) => {
+                    deposit.taker_address == user_address
+                }
                 _ => false,
             }
         });

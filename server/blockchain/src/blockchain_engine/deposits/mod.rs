@@ -5,8 +5,6 @@ use ethers::{
     providers::{Middleware, Provider, Ws},
     signers::Wallet,
 };
-use evm::txhash::TxHash;
-use fraction::Fraction;
 use sqlx::PgPool;
 use tokio::{
     select,
@@ -21,13 +19,11 @@ use crate::{
     contracts::treasury::{Treasury, TreasuryEvents},
     database::{
         managers::deposits::DepositsManager,
-        projections::deposit::{Deposit, DepositInsert},
+        projections::deposit::{deposit_to_transfer_request, Deposit, DepositInsert},
     },
-    engine_base::{engine_client::EngineClient, TransferRequest},
+    engine_base::engine_client::EngineClient,
     models::BlockchainManagerError,
 };
-
-use self::models::DepositEvent;
 
 pub struct DepositsBlockchainManager {
     pub database: PgPool,
@@ -42,7 +38,7 @@ impl DepositsBlockchainManager {
     ) -> DepositsBlockchainManagerController {
         let (shutdown_tx, mut shutdown_rx) = oneshot::channel::<()>();
         let (insert_deposit_event_tx, mut insert_deposit_event_rx) =
-            mpsc::channel::<(DepositEvent, TxHash)>(100);
+            mpsc::channel::<DepositInsert>(100);
 
         let database = self.database.to_owned();
         let provider = self.provider.to_owned();
@@ -58,17 +54,11 @@ impl DepositsBlockchainManager {
                         _ = &mut shutdown_rx => {
                             break;
                         },
-                        Some((event, tx_hash)) = insert_deposit_event_rx.recv() => {
+                        Some(event) = insert_deposit_event_rx.recv() => {
                             if let Err(err) = async {
                                 let mut t = database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
-                                let deposit = DepositsManager::insert(&mut t, DepositInsert {
-                                    user_id: event.user_id,
-                                    asset_id: event.asset_id,
-                                    tx_hash: tx_hash.to_owned(),
-                                    amount: event.amount,
-                                    confirmations: Fraction::default(),
-                                }).await?;
-                                deposits_queue.insert(deposit, *tx_hash).await?;
+                                let deposit = DepositsManager::insert(&mut t, &event).await?;
+                                deposits_queue.insert(deposit, *event.tx_hash).await?;
                                 t.commit().await?;
                                 Ok::<(), BlockchainManagerError>(())
                             }.await {
@@ -78,19 +68,10 @@ impl DepositsBlockchainManager {
                         Some(Ok((filter, meta))) = events_stream.next() => {
                             if let Err(err) = async {
                                 let mut t = database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
-                                match filter {
-                                    TreasuryEvents::DepositFilter(filter) => {
-                                        let event = DepositEvent::from_filter(&mut t, filter).await?;
-                                        let deposit = DepositsManager::insert(&mut t, DepositInsert {
-                                             user_id: event.user_id,
-                                             asset_id: event.asset_id,
-                                             tx_hash: meta.transaction_hash.into(),
-                                             amount: event.amount,
-                                             confirmations: Fraction::default(),
-                                        }).await?;
+                                if let TreasuryEvents::DepositFilter(filter) = filter {
+                                        let insert = DepositInsert::from_filter(&mut t, &filter, &meta).await?;
+                                        let deposit = DepositsManager::insert(&mut t, &insert).await?;
                                         deposits_queue.insert(deposit, meta.transaction_hash).await?;
-                                    }
-                                    _ => (),
                                 };
                                 t.commit().await?;
                                 Ok::<(), BlockchainManagerError>(())
@@ -109,7 +90,7 @@ impl DepositsBlockchainManager {
                                     DepositsManager::update(&mut t, deposit).await?;
                                 }
                                 for deposit in confirmed_deposit.into_iter() {
-                                    engine_client.transfer(TryInto::<TransferRequest>::try_into(deposit)?).await?;
+                                    engine_client.transfer(deposit_to_transfer_request(&mut t, deposit).await?).await?;
                                 }
                                 t.commit().await?;
                                 Ok::<(), BlockchainManagerError>(())
@@ -133,7 +114,7 @@ impl DepositsBlockchainManager {
 #[derive(Debug)]
 pub struct DepositsBlockchainManagerController {
     shutdown_tx: oneshot::Sender<()>,
-    insert_deposit_event_tx: mpsc::Sender<(DepositEvent, TxHash)>,
+    insert_deposit_event_tx: mpsc::Sender<DepositInsert>,
     join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>>,
 }
 impl DepositsBlockchainManagerController {
@@ -141,13 +122,13 @@ impl DepositsBlockchainManagerController {
         if self.shutdown_tx.send(()).is_err() {
             tracing::error!("Error: shutdown");
         }
-        Ok(self.join_handle.await?)
+        self.join_handle.await
     }
 
     pub async fn submit_deposit_event(
         &self,
-        event: (DepositEvent, TxHash),
-    ) -> Result<(), mpsc::error::SendError<(DepositEvent, TxHash)>> {
+        event: DepositInsert,
+    ) -> Result<(), mpsc::error::SendError<DepositInsert>> {
         self.insert_deposit_event_tx.send(event).await
     }
 }
