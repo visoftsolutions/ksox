@@ -7,37 +7,29 @@ use ethers::{
     signers::Wallet,
 };
 use thiserror::Error;
-use uuid::Uuid;
 
 use crate::{
     contracts::treasury::{BalanceUpdate, Treasury},
-    database::managers::valuts::ValutsManager,
+    database::{managers::valuts::ValutsManager, projections::valut::ValutFinite},
 };
 
 pub struct SubmissionQueue<'a> {
-    entries: HashSet<Uuid>,
-    valuts_manager: &'a ValutsManager,
+    entries: HashSet<ValutFinite>,
     contract: &'a Treasury<SignerMiddleware<Provider<Ws>, Wallet<SigningKey>>>,
 }
 
 impl<'a> SubmissionQueue<'a> {
-    pub fn new(
-        valuts_manager: &'a ValutsManager,
-        contract: &'a Treasury<SignerMiddleware<Provider<Ws>, Wallet<SigningKey>>>,
-    ) -> Self {
+    pub fn new(contract: &'a Treasury<SignerMiddleware<Provider<Ws>, Wallet<SigningKey>>>) -> Self {
         Self {
             entries: HashSet::new(),
-            valuts_manager,
             contract,
         }
     }
 
     pub async fn submit(&mut self) -> Result<(), SubmissionQueueError> {
         let updates: Vec<BalanceUpdate> = self
-            .valuts_manager
-            .get_by_id(self.entries.iter().cloned().collect())
-            .await?
-            .into_iter()
+            .entries
+            .drain()
             .map(|f| BalanceUpdate {
                 token_address: *f.asset_address,
                 user_address: *f.user_address,
@@ -50,9 +42,11 @@ impl<'a> SubmissionQueue<'a> {
                 ),
             })
             .collect();
-
-        match self.contract.set_balances(updates).await {
-            Ok(()) => {
+        
+        tracing::info!("{:?}", updates);
+        match self.contract.set_balances(updates).send().await {
+            Ok(a) => {
+                tracing::info!("{:?}", a);
                 self.entries.clear();
                 Ok(())
             }
@@ -60,8 +54,8 @@ impl<'a> SubmissionQueue<'a> {
         }
     }
 
-    pub fn enqueue(&mut self, id: Uuid) -> bool {
-        self.entries.insert(id)
+    pub fn enqueue(&mut self, valut: ValutFinite) -> bool {
+        self.entries.insert(valut)
     }
 
     pub fn size(&self) -> usize {

@@ -45,9 +45,6 @@ CREATE TABLE "deposits" (
   "confirmations" fraction NOT NULL
 );
 
-ALTER TABLE "deposits" ADD FOREIGN KEY ("taker_address") REFERENCES "users" ("address");
-ALTER TABLE "deposits" ADD FOREIGN KEY ("asset_address") REFERENCES "assets" ("address");
-
 CREATE TABLE "withdraws" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,

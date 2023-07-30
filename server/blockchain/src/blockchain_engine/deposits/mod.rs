@@ -1,17 +1,16 @@
 pub mod models;
-
 use ethers::{
     prelude::{k256::ecdsa::SigningKey, SignerMiddleware},
     providers::{Middleware, Provider, Ws},
     signers::Wallet,
 };
+use futures::stream::StreamExt;
 use sqlx::PgPool;
 use tokio::{
     select,
     sync::{mpsc, oneshot},
     task::JoinError,
 };
-use tokio_stream::StreamExt;
 use tonic::{transport::Channel, Status};
 
 use crate::{
@@ -21,7 +20,7 @@ use crate::{
         managers::deposits::DepositsManager,
         projections::deposit::{deposit_to_transfer_request, Deposit, DepositInsert},
     },
-    engine_base::engine_client::EngineClient,
+    engine_base::{self, engine_client::EngineClient},
     models::BlockchainManagerError,
 };
 
@@ -89,10 +88,18 @@ impl DepositsBlockchainManager {
                                 for deposit in confirmed_deposit.iter().cloned() {
                                     DepositsManager::update(&mut t, deposit).await?;
                                 }
-                                for deposit in confirmed_deposit.into_iter() {
-                                    engine_client.transfer(deposit_to_transfer_request(&mut t, deposit).await?).await?;
+
+                                let mut transfers: Vec<engine_base::TransferRequest> = Vec::new();
+
+                                for deposit in confirmed_deposit {
+                                    transfers.push(deposit_to_transfer_request(&mut t, deposit).await?);
                                 }
+
                                 t.commit().await?;
+
+                                for transfer in transfers.into_iter() {
+                                    engine_client.transfer(transfer).await?;
+                                }
                                 Ok::<(), BlockchainManagerError>(())
                             }.await {
                                 tracing::error!("{err}");

@@ -6,6 +6,6 @@ DECLARE
 BEGIN
    FOR asset IN SELECT * FROM assets
    LOOP
-      INSERT INTO "valuts" ("user_id","asset_id","balance") VALUES ('00000000-0000-0000-0000-000000000000', asset.id, '{"Infinite": "Positive"}');
+      INSERT INTO "valuts" ("user_id","asset_id","balance") VALUES ('00000000-0000-0000-0000-000000000000', asset.id, '{"Infinite":"Positive"}');
    END LOOP;
 END; $$

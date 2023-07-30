@@ -13,7 +13,7 @@ use engine_base::engine_client::EngineClient;
 use ethers::{
     prelude::SignerMiddleware,
     providers::{Provider, Ws},
-    signers::LocalWallet,
+    signers::{LocalWallet, Signer},
 };
 use sqlx::postgres::PgPoolOptions;
 use std::io;
@@ -50,7 +50,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         NotificationManager::start(database.clone(), "blockchain").await?;
 
     let wallet: LocalWallet = std::env::var("PRIVATE_KEY")?.parse()?;
-    let client = SignerMiddleware::new(provider.clone(), wallet);
+    let client = SignerMiddleware::new_with_provider_chain(provider.clone(), wallet).await?;
     let treasury = Treasury::new(
         prefix_hex::decode::<[u8; 20]>(std::env::var("TREASURY_ADDRESS")?)
             .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err.to_string()))?,

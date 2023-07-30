@@ -12,7 +12,7 @@ use tokio_stream::StreamExt;
 use uuid::Uuid;
 
 use super::valuts::ValutsManager;
-use crate::database::projections::{self};
+use crate::database::projections::{self, valut::ValutFinite};
 
 #[derive(Debug, Clone, Deserialize)]
 pub enum NotificationManagerEvent {
@@ -21,12 +21,12 @@ pub enum NotificationManagerEvent {
 
 #[derive(Debug, Clone)]
 pub enum NotificationManagerPredicateInput {
-    Valuts(projections::valut::Valut),
+    Valuts(projections::valut::ValutFinite),
 }
 
 #[derive(Debug, Clone)]
 pub enum NotificationManagerOutput {
-    Valuts(Vec<projections::valut::Valut>),
+    Valuts(Vec<projections::valut::ValutFinite>),
 }
 
 #[derive(Debug)]
@@ -91,7 +91,8 @@ impl NotificationManager {
                         if let Err(err) = async {
                             match serde_json::from_str::<NotificationManagerEvent>(element?.payload())? {
                                 NotificationManagerEvent::Valuts => {
-                                    let elements = valuts_manager.get_modified(valuts_last_modification_at).await?;
+                                    // dont want to update perpetual account
+                                    let elements: Vec<ValutFinite> = valuts_manager.get_modified(valuts_last_modification_at).await?.into_iter().filter_map(ValutFinite::checked_from).collect();
                                     let mut set_entry_to_remove_ids = Vec::new();
                                     for set_entry in set.values() {
                                         if set_entry.sender.send(NotificationManagerOutput::Valuts(elements.clone())).await.is_err() {

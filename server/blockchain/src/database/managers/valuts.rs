@@ -3,6 +3,7 @@ use evm::address::Address;
 use fraction::Fraction;
 use sqlx::PgPool;
 use uuid::Uuid;
+use value::Value;
 
 use crate::database::projections::valut::Valut;
 
@@ -30,7 +31,7 @@ impl ValutsManager {
                 users.address as "user_address: Address",
                 assets.address as "asset_address: Address",
                 assets.decimals as "decimals: Fraction",
-                valuts.balance as "balance: Fraction"
+                valuts.balance as "balance: Value"
             FROM valuts
             JOIN users ON valuts.user_id = users.id
             JOIN assets ON valuts.asset_id = assets.id
@@ -54,7 +55,7 @@ impl ValutsManager {
                 users.address as "user_address: Address",
                 assets.address as "asset_address: Address",
                 assets.decimals as "decimals: Fraction",
-                valuts.balance as "balance: Fraction"
+                valuts.balance as "balance: Value"
             FROM valuts
             JOIN users ON valuts.user_id = users.id
             JOIN assets ON valuts.asset_id = assets.id

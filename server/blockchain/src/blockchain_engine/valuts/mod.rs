@@ -36,11 +36,10 @@ impl ValutsBlockchainManager {
         let (push_tx, mut push_rx) = mpsc::channel::<()>(100);
 
         let contract = self.contract.to_owned();
-        let valuts_manager = ValutsManager::new(self.database.to_owned());
         let provider = self.provider.to_owned();
         let join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>> =
             tokio::spawn(async move {
-                let mut submission_queue = SubmissionQueue::new(&valuts_manager, &contract);
+                let mut submission_queue = SubmissionQueue::new(&contract);
                 let mut changes_threshold = 10;
                 let mut blocks_threshold = 10;
                 let mut last_block = current_block(&provider).await?;
@@ -67,9 +66,10 @@ impl ValutsBlockchainManager {
                         }
                         Some(NotificationManagerOutput::Valuts(valuts)) = notifications.recv() => {
                             if let Err(err) = async {
-                                for id in valuts.into_iter().map(|f| f.id) {
-                                    submission_queue.enqueue(id);
+                                for valut in valuts.into_iter() {
+                                    submission_queue.enqueue(valut);
                                 }
+                                tracing::info!("{:?}", submission_queue.size());
                                 if submission_queue.size() >= changes_threshold{
                                     submission_queue.submit().await?;
                                 }
@@ -80,6 +80,8 @@ impl ValutsBlockchainManager {
                         }
                         Some(block) = blocks_stream.next() => {
                             if let Err(err) = async {
+                                tracing::info!("{:?}", block_distance(&last_block, &block).await);
+                                tracing::info!("{:?}", submission_queue.size());
                                 if block_distance(&last_block, &block).await? >= blocks_threshold {
                                     if submission_queue.size() > 0_usize {
                                         submission_queue.submit().await?;

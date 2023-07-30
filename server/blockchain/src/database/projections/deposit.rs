@@ -42,7 +42,7 @@ pub async fn deposit_to_transfer_request(
     pool: &mut Transaction<'_, Postgres>,
     deposit: Deposit,
 ) -> Result<engine_base::TransferRequest, BlockchainEngineError> {
-    let taker_id = UsersManager::get_by_address(pool, deposit.taker_address)
+    let taker_id = UsersManager::get_or_create_by_address(pool, deposit.taker_address)
         .await?
         .id;
     let asset_id = AssetsManager::get_by_address(pool, deposit.asset_address)

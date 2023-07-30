@@ -104,7 +104,7 @@
     },
     "query": "\n            SELECT\n                id,\n                address as \"address: Address\",\n                decimals as \"decimals: Fraction\"\n            FROM assets\n            WHERE id = $1\n            "
   },
-  "a386c2e929884fdad050352e0f750dd27934e6aacfd3ed65c64151f61c4c9a9a": {
+  "9ae5d754afd828a3560fad1d5a12fe7612f88328e7e31a9d6a5381d39a6391ff": {
     "describe": {
       "columns": [
         {
@@ -154,7 +154,7 @@
           }
         },
         {
-          "name": "balance: Fraction",
+          "name": "balance: Value",
           "ordinal": 6,
           "type_info": "Text"
         }
@@ -170,11 +170,11 @@
       ],
       "parameters": {
         "Left": [
-          "UuidArray"
+          "Timestamptz"
         ]
       }
     },
-    "query": "\n            SELECT\n                valuts.id,\n                valuts.created_at,\n                valuts.last_modification_at,\n                users.address as \"user_address: Address\",\n                assets.address as \"asset_address: Address\",\n                assets.decimals as \"decimals: Fraction\",\n                valuts.balance as \"balance: Fraction\"\n            FROM valuts\n            JOIN users ON valuts.user_id = users.id\n            JOIN assets ON valuts.asset_id = assets.id\n            WHERE valuts.id = ANY($1)\n            "
+    "query": "\n            SELECT\n                valuts.id,\n                valuts.created_at,\n                valuts.last_modification_at,\n                users.address as \"user_address: Address\",\n                assets.address as \"asset_address: Address\",\n                assets.decimals as \"decimals: Fraction\",\n                valuts.balance as \"balance: Value\"\n            FROM valuts\n            JOIN users ON valuts.user_id = users.id\n            JOIN assets ON valuts.asset_id = assets.id\n            WHERE valuts.last_modification_at > $1\n            ORDER BY valuts.last_modification_at ASC\n            "
   },
   "baf93ee82229fd8d4a7ab0cd80302ff982017de2d6e383740c4cd484bb0f777b": {
     "describe": {
@@ -315,7 +315,55 @@
     },
     "query": "\n            INSERT INTO withdraws\n                (created_at, last_modification_at, maker_address, taker_address, asset_address, tx_hash, amount, confirmations)\n            VALUES\n                ($1, $2, $3, $4, $5, $6, $7::fraction, $8::fraction)\n            RETURNING id, created_at, last_modification_at, maker_address as \"maker_address: Address\", taker_address as \"taker_address: Address\", asset_address as \"asset_address: Address\", tx_hash as \"tx_hash: TxHash\", amount as \"amount: Fraction\", confirmations as \"confirmations: Fraction\"\n            "
   },
-  "bb74758dd3d228d89824aa2785343c638ce47227a2ecad296233046ff1de355f": {
+  "bdd462f29574f8f75208510be6031770b6b7201129e97425a59dcba78c6591d0": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "address: Address",
+          "ordinal": 1,
+          "type_info": "Bpchar"
+        },
+        {
+          "name": "decimals: Fraction",
+          "ordinal": 2,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Bpchar"
+        ]
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                address as \"address: Address\",\n                decimals as \"decimals: Fraction\"\n            FROM assets\n            WHERE address = $1\n            "
+  },
+  "c6fe94905eaba7633b131f4417780a5273ec6085b62395e905e66022aeaa54b7": {
     "describe": {
       "columns": [
         {
@@ -365,7 +413,7 @@
           }
         },
         {
-          "name": "balance: Fraction",
+          "name": "balance: Value",
           "ordinal": 6,
           "type_info": "Text"
         }
@@ -381,59 +429,11 @@
       ],
       "parameters": {
         "Left": [
-          "Timestamptz"
+          "UuidArray"
         ]
       }
     },
-    "query": "\n            SELECT\n                valuts.id,\n                valuts.created_at,\n                valuts.last_modification_at,\n                users.address as \"user_address: Address\",\n                assets.address as \"asset_address: Address\",\n                assets.decimals as \"decimals: Fraction\",\n                valuts.balance as \"balance: Fraction\"\n            FROM valuts\n            JOIN users ON valuts.user_id = users.id\n            JOIN assets ON valuts.asset_id = assets.id\n            WHERE valuts.last_modification_at > $1\n            ORDER BY valuts.last_modification_at ASC\n            "
-  },
-  "bdd462f29574f8f75208510be6031770b6b7201129e97425a59dcba78c6591d0": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "address: Address",
-          "ordinal": 1,
-          "type_info": "Bpchar"
-        },
-        {
-          "name": "decimals: Fraction",
-          "ordinal": 2,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Bpchar"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                id,\n                address as \"address: Address\",\n                decimals as \"decimals: Fraction\"\n            FROM assets\n            WHERE address = $1\n            "
+    "query": "\n            SELECT\n                valuts.id,\n                valuts.created_at,\n                valuts.last_modification_at,\n                users.address as \"user_address: Address\",\n                assets.address as \"asset_address: Address\",\n                assets.decimals as \"decimals: Fraction\",\n                valuts.balance as \"balance: Value\"\n            FROM valuts\n            JOIN users ON valuts.user_id = users.id\n            JOIN assets ON valuts.asset_id = assets.id\n            WHERE valuts.id = ANY($1)\n            "
   },
   "ce035cfa3bf021cf9228ea6d2134ddc0ccde517f31cf5569254b4991f45a204b": {
     "describe": {

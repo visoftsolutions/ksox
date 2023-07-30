@@ -29,6 +29,20 @@ impl Value {
     pub fn is_infinite(&self) -> bool {
         matches!(*self, Self::Infinite(_))
     }
+
+    pub fn into_finite(self) -> Option<Fraction> {
+        match self {
+            Self::Finite(v) => Some(v),
+            Self::Infinite(_) => None,
+        }
+    }
+
+    pub fn into_infinite(self) -> Option<Infinity> {
+        match self {
+            Self::Finite(_) => None,
+            Self::Infinite(v) => Some(v),
+        }
+    }
 }
 
 impl Add for Value {
@@ -285,12 +299,12 @@ impl PartialOrd for Value {
             (Value::Finite(lhs), Value::Finite(rhs)) => lhs.lt(rhs),
             (Value::Infinite(lhs), Value::Infinite(rhs)) => lhs.lt(rhs),
             (Value::Finite(_), Value::Infinite(rhs)) => match rhs {
-                Infinity::Positive => false,
-                Infinity::Negative => true,
-            },
-            (Value::Infinite(lhs), Value::Finite(_)) => match lhs {
                 Infinity::Positive => true,
                 Infinity::Negative => false,
+            },
+            (Value::Infinite(lhs), Value::Finite(_)) => match lhs {
+                Infinity::Positive => false,
+                Infinity::Negative => true,
             },
         }
     }
@@ -451,6 +465,8 @@ pub enum ValueError {
 
 #[cfg(test)]
 mod tests {
+    use fraction::Fraction;
+    use num_bigint::BigInt;
     use num_traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub};
     use proptest::{prelude::*, proptest};
     use seq_macro::seq;
@@ -482,4 +498,16 @@ mod tests {
         }
     }
     });
+
+    #[test]
+    fn check() {
+        let a: Value = serde_json::from_str("{\"Infinite\": \"Positive\"}").unwrap();
+        let b = Value::Finite(Fraction::from_raw((BigInt::from(1), BigInt::from(1))).unwrap());
+
+        assert!(a > b);
+        assert!(a >= b);
+
+        assert!(!(a < b));
+        assert!(!(a <= b));
+    }
 }

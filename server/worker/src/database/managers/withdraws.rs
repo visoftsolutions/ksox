@@ -4,7 +4,6 @@ use evm::address::Address;
 use fraction::Fraction;
 use futures::Stream;
 use sqlx::{postgres::PgPool, Result};
-use uuid::Uuid;
 
 use super::notifications::{
     NotificationManagerOutput, NotificationManagerPredicateInput, NotificationManagerSubscriber,
