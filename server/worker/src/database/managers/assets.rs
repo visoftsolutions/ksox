@@ -1,5 +1,6 @@
 use std::pin::Pin;
 
+use evm::address::Address;
 use fraction::Fraction;
 use futures::Stream;
 use sqlx::{postgres::PgPool, Result};
@@ -33,6 +34,7 @@ impl AssetsManager {
                 last_modification_at,
                 name,
                 symbol,
+                address as "address: Address",
                 maker_fee as "maker_fee: Fraction",
                 taker_fee as "taker_fee: Fraction"
             FROM assets
@@ -55,6 +57,7 @@ impl AssetsManager {
                 last_modification_at,
                 name,
                 symbol,
+                address as "address: Address",
                 maker_fee as "maker_fee: Fraction",
                 taker_fee as "taker_fee: Fraction"
             FROM assets

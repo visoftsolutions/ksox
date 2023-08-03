@@ -13,7 +13,7 @@ use engine_base::engine_client::EngineClient;
 use ethers::{
     prelude::SignerMiddleware,
     providers::{Provider, Ws},
-    signers::{LocalWallet, Signer},
+    signers::LocalWallet,
 };
 use sqlx::postgres::PgPoolOptions;
 use std::io;
@@ -36,16 +36,20 @@ pub mod base {
     tonic::include_proto!("server.blockchain.base");
 }
 
+use macros::retry;
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
 
-    let database = PgPoolOptions::new()
+    let database = retry!(PgPoolOptions::new()
         .max_connections(10)
-        .connect(std::env::var("DATABASE_URL")?.as_str())
-        .await?;
-    let engine_client = EngineClient::connect(std::env::var("ENGINE_URL")?).await?;
-    let provider = Provider::<Ws>::connect(std::env::var("WS_PROVIDER_URL")?).await?;
+        .connect(std::env::var("DATABASE_URL").unwrap().as_str()))?;
+    let engine_client = retry!(EngineClient::connect(std::env::var("ENGINE_URL").unwrap()))?;
+    let provider = retry!(Provider::<Ws>::connect(
+        std::env::var("WS_PROVIDER_URL").unwrap()
+    ))?;
+
     let notification_manager_controller =
         NotificationManager::start(database.clone(), "blockchain").await?;
 

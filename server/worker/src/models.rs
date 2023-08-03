@@ -1,4 +1,5 @@
 use axum::extract::FromRef;
+use blockchain_base::blockchain_client::BlockchainClient;
 use database::managers::{
     assets::{AssetsManager, AssetsNotificationManager},
     candlesticks::{CandlesticksManager, CandlesticksNotificationManager},
@@ -12,6 +13,7 @@ use sqlx::PgPool;
 use tonic::transport::Channel;
 
 use crate::{
+    blockchain_base,
     database::{
         self,
         managers::{
@@ -52,6 +54,7 @@ pub struct AppState {
     pub assets_pair_recognition: AssetPairRecognition,
     pub user_recognition: UserRecognition,
     pub engine_client: EngineClient<Channel>,
+    pub blockchain_client: BlockchainClient<Channel>,
 }
 
 impl FromRef<AppState> for redis::Client {

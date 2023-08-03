@@ -9,5 +9,6 @@ members = [
     "types/infinity",
     "types/pricelevel",
     "types/value",
+    "types/macros",
     "worker",
 ]

@@ -9,6 +9,7 @@ pub mod trades;
 pub mod transfer;
 pub mod transfers;
 pub mod user;
+pub mod withdraw;
 pub mod withdraws;
 
 use axum::{
@@ -40,6 +41,7 @@ pub fn router(app_state: &AppState) -> Router {
         .route("/cancel", delete(cancel::root))
         .route("/submit", post(submit::root))
         .route("/transfer", post(transfer::root))
+        .route("/withdraw", post(withdraw::root))
         .with_state(app_state.clone())
         .nest("/user", user::router(app_state))
         .nest("/active", active::router(app_state))

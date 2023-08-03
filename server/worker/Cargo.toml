@@ -16,6 +16,7 @@ ethers-core = "2.0.7"
 evm = { path = "../types/evm" }
 fraction = { path = "../types/fraction" }
 futures = "0.3.28"
+macros = { path = "../types/macros" }
 headers = "0.3.8"
 hyper = { version = "0.14.27", features = ["full"] }
 nalgebra = "0.32.2"

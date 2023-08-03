@@ -10,12 +10,16 @@ pub mod engine_base {
     tonic::include_proto!("server.engine.base");
 }
 
-use std::net::SocketAddr;
+pub mod blockchain_base {
+    tonic::include_proto!("server.blockchain.base");
+}
 
 use axum::{routing::get, Router};
+use blockchain_base::blockchain_client::BlockchainClient;
 use engine_base::engine_client::EngineClient;
 use regex::Regex;
 use sqlx::postgres::PgPoolOptions;
+use std::net::SocketAddr;
 
 use crate::{
     cache::get_client,
@@ -36,13 +40,15 @@ use crate::{
     recognition::{asset_pair::AssetPairRecognition, user::UserRecognition},
 };
 
+use macros::retry;
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
-    let database = PgPoolOptions::new()
+
+    let database = retry!(PgPoolOptions::new()
         .max_connections(10)
-        .connect(std::env::var("DATABASE_URL")?.as_str())
-        .await?;
+        .connect(std::env::var("DATABASE_URL").unwrap().as_str()))?;
 
     let notification_manager_controller =
         NotificationManager::start(database.clone(), "worker").await?;
@@ -96,7 +102,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Regex::new(r"[^a-zA-Z]+")?,
         ),
         user_recognition: UserRecognition::new(database),
-        engine_client: EngineClient::connect(std::env::var("ENGINE_URL")?).await?,
+        engine_client: retry!(EngineClient::connect(std::env::var("ENGINE_URL").unwrap()))?,
+        blockchain_client: retry!(BlockchainClient::connect(
+            std::env::var("BLOCKCHAIN_URL").unwrap()
+        ))?,
     };
 
     let app = Router::new()

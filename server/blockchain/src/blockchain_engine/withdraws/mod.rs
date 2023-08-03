@@ -62,7 +62,7 @@ impl WithdrawsBlockchainManager {
                                 let filter: WithdrawFilter = event.to_filter(&mut t).await?;
                                 let response = engine_client.transfer(withdraw_to_transfer_request(&mut t, withdraw).await?).await?.into_inner();
                                 if let Err(err) = async {
-                                     contract.withdraw(filter.token_address, filter.user_address, filter.amount).await?;
+                                     contract.withdraw(filter.token_address, filter.user_address, filter.amount).send().await?;
                                     Ok::<(), BlockchainManagerError>(())
                                 }.await {
                                     engine_client.revert_transfer(Into::<RevertTransferRequest>::into(response)).await?;

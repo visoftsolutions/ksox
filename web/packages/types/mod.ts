@@ -3,6 +3,7 @@ import { Uuid } from "./primitives/uuid";
 import { CandlestickType } from "./candlestick";
 import { Pagination } from "./primitives/pagination";
 import { Fraction } from "./primitives/fraction";
+import { Address } from "@web/components/providers/SessionProvider/models";
 
 export const DepthRequest = z.object({
   quote_asset_id: Uuid,
@@ -83,3 +84,12 @@ export const UserUpdateRequest = z.object({
 });
 
 export type UserUpdateRequest = z.infer<typeof UserUpdateRequest>;
+
+export const WithdrawRequest = z.object({
+  maker_address: Address,
+  taker_address: Address,
+  asset_address: Address,
+  amount: Fraction
+});
+
+export type WithdrawRequest = z.infer<typeof WithdrawRequest>;

@@ -390,6 +390,7 @@ dependencies = [
  "fraction",
  "futures",
  "linked-hash-map",
+ "macros",
  "num-bigint",
  "num-derive",
  "num-rational",
@@ -1041,6 +1042,7 @@ dependencies = [
  "futures",
  "headers",
  "hyper",
+ "macros",
  "num-bigint",
  "prefix-hex",
  "prost",
@@ -1072,6 +1074,7 @@ dependencies = [
  "fraction",
  "futures",
  "hyper",
+ "macros",
  "num-bigint",
  "num-traits",
  "proptest",
@@ -2309,6 +2312,10 @@ name = "log"
 version = "0.4.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b06a4cde4c0f271a446782e3eff8de789548ce57dbc8eca9292c27f4a42004b4"
+
+[[package]]
+name = "macros"
+version = "0.1.0"
 
 [[package]]
 name = "matchit"
@@ -5092,6 +5099,7 @@ dependencies = [
  "futures",
  "headers",
  "hyper",
+ "macros",
  "nalgebra",
  "num-bigint",
  "ordered-float",

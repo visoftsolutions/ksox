@@ -10,7 +10,7 @@ use thiserror::Error;
 
 use crate::{
     contracts::treasury::{BalanceUpdate, Treasury},
-    database::{managers::valuts::ValutsManager, projections::valut::ValutFinite},
+    database::projections::valut::ValutFinite,
 };
 
 pub struct SubmissionQueue<'a> {
@@ -42,7 +42,7 @@ impl<'a> SubmissionQueue<'a> {
                 ),
             })
             .collect();
-        
+
         tracing::info!("{:?}", updates);
         match self.contract.set_balances(updates).send().await {
             Ok(a) => {

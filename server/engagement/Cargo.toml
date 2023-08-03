@@ -18,6 +18,7 @@ prefix-hex = "0.7.0"
 prost = "0.11.9"
 rand = "0.8.5"
 regex = "1.8.4"
+macros = { path = "../types/macros" }
 serde = { version = "1.0.164", features = ["derive"] }
 serde_json = "1.0.99"
 sqlx = { version = "0.6.3", features = [

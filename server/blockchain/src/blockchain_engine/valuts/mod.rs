@@ -14,7 +14,7 @@ use tokio_stream::StreamExt;
 
 use crate::{
     contracts::{block_distance, current_block, treasury::Treasury},
-    database::managers::{notification::NotificationManagerOutput, valuts::ValutsManager},
+    database::managers::notification::NotificationManagerOutput,
     models::BlockchainManagerError,
     submission::SubmissionQueue,
 };

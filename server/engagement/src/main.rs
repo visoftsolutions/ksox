@@ -6,24 +6,24 @@ pub mod database;
 pub mod engagement_engine;
 mod shutdown_signal;
 
-use std::net::SocketAddr;
-
 use base::engagement_server::EngagementServer;
 use sqlx::postgres::PgPoolOptions;
+use std::net::SocketAddr;
 use tonic::transport::Server;
 
 use crate::{
     database::managers::notifications::NotificationManager, engagement_engine::EngagementEngine,
 };
 
+use macros::retry;
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
 
-    let database = PgPoolOptions::new()
+    let database = retry!(PgPoolOptions::new()
         .max_connections(10)
-        .connect(std::env::var("DATABASE_URL")?.as_str())
-        .await?;
+        .connect(std::env::var("DATABASE_URL").unwrap().as_str()))?;
 
     let notification_manager_controller =
         NotificationManager::start(database, "engagement").await?;

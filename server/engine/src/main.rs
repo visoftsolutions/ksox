@@ -6,19 +6,22 @@ mod database;
 mod matching_engine;
 mod shutdown_signal;
 
-use std::net::SocketAddr;
-
 use base::engine_server::EngineServer;
-use sqlx::PgPool;
+use sqlx::postgres::PgPoolOptions;
+use std::net::SocketAddr;
 use tonic::transport::Server;
 
 use crate::matching_engine::MatchingEngine;
+
+use macros::retry;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
 
-    let database = PgPool::connect(std::env::var("DATABASE_URL")?.as_str()).await?;
+    let database = retry!(PgPoolOptions::new()
+        .max_connections(10)
+        .connect(std::env::var("DATABASE_URL").unwrap().as_str()))?;
 
     let matching_engine = MatchingEngine::new(database);
 
