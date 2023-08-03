@@ -12,9 +12,9 @@ ethereum-types = "0.14.1"
 ethers = { version = "2.0.7", features = ["legacy-ws", "ws", "rustls", "openssl", "abigen", "eip712"] }
 evm = { path = "../types/evm" }
 fraction = { path = "../types/fraction" }
-macros = { path = "../types/macros" }
 futures = "0.3.28"
 linked-hash-map = "0.5.6"
+macros = { path = "../types/macros" }
 num-bigint = { version = "0.4.3", features = ["serde", "arbitrary", "quickcheck"] }
 num-derive = "0.4.0"
 num-rational = { version = "0.4.1", features = ["serde"] }

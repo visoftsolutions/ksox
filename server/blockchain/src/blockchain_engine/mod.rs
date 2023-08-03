@@ -41,6 +41,7 @@ impl Blockchain for BlockchainEngine {
         request: Request<base::WithdrawRequest>,
     ) -> Result<Response<base::WithdrawResponse>, Status> {
         let request: WithdrawRequest = request.into_inner().try_into()?;
+        tracing::info!("{:?}", request);
         self.withdraws_controller
             .withdraw(WithdrawInsert {
                 maker_address: request.maker_address,

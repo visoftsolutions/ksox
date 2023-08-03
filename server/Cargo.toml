@@ -7,8 +7,8 @@ members = [
     "types/evm",
     "types/fraction",
     "types/infinity",
+    "types/macros",
     "types/pricelevel",
     "types/value",
-    "types/macros",
     "worker",
 ]

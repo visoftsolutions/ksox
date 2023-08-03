@@ -3,7 +3,7 @@ macro_rules! retry {
     // The macro takes an async block as an input
     ($func:expr) => {{
         // Set the maximum number of retries
-        const MAX_RETRIES: usize = 5;
+        const MAX_RETRIES: usize = 20;
 
         // Set the delay between retries in milliseconds (adjust as needed)
         const RETRY_DELAY_MS: u64 = 1000;

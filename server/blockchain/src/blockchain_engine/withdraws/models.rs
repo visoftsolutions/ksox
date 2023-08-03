@@ -13,6 +13,7 @@ impl From<engine_base::TransferResponse> for engine_base::RevertTransferRequest 
     }
 }
 
+#[derive(Debug)]
 pub struct WithdrawRequest {
     pub maker_address: Address,
     pub taker_address: Address,

@@ -28,7 +28,7 @@ export function AssetInfo(props: { session?: SessionResponse; asset?: Asset; pre
       const asset = props.asset;
 
       eventsource = await subscribeEvents(`${api}/private/balance`, params({ asset_id: asset.id }), params({ asset_id: asset.id }), (data) => {
-        setBalance(Valut.parse(data).balance);
+        setBalance(Valut.parse(data).balance.Finite);
       });
     }
   });
