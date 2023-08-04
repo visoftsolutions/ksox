@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 async-stream = "0.3.5"
-axum = { version = "0.6.18", features = ["http2", "tracing", "macros"] }
+axum = { version = "0.6.20", features = ["http2", "tracing", "macros"] }
 chrono = { version = "0.4.26", features = ["serde"] }
 fraction = { path = "../fraction" }
 futures = "0.3.28"
@@ -14,9 +14,9 @@ hyper = { version = "0.14.27", features = ["full"] }
 num-bigint = { version = "0.4.3" }
 proptest = "1.2.0"
 prost = "0.11.9"
-seq-macro = "0.3.3"
-serde = { version = "1.0.164", features = ["derive"] }
-serde_json = "1.0.99"
+seq-macro = "0.3.5"
+serde = { version = "1.0.181", features = ["derive"] }
+serde_json = "1.0.104"
 sqlx = { version = "0.6.3", features = [
     "runtime-tokio-native-tls",
     "postgres",
@@ -25,14 +25,14 @@ sqlx = { version = "0.6.3", features = [
     "bigdecimal",
     "chrono"
 ] }
-thiserror = "1.0.40"
+thiserror = "1.0.44"
 tokio = { version = "1.29.1", features = ["full"] }
 tokio-stream = "0.1.14"
 tonic = "0.9.2"
 tower = "0.4.13"
 tracing = "0.1.37"
 tracing-subscriber = "0.3.17"
-uuid = { version = "1.4.0", features = ["v4", "serde"] }
+uuid = { version = "1.4.1", features = ["v4", "serde"] }
 
 [build-dependencies]
 tonic-build = "0.9.2"
