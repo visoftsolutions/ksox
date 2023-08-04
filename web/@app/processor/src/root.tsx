@@ -1,5 +1,17 @@
 import { Suspense, lazy, onMount } from "solid-js";
-import { Body, ErrorBoundary, FileRoutes, Head, Html, Link, Meta, Route, Routes, Scripts, Title } from "solid-start";
+import {
+  Body,
+  ErrorBoundary,
+  FileRoutes,
+  Head,
+  Html,
+  Link,
+  Meta,
+  Route,
+  Routes,
+  Scripts,
+  Title,
+} from "solid-start";
 import "~/root.css";
 import { joinPaths } from "solid-start/islands/server-router";
 import { Nav, NavProvider, setNav } from "~/components/providers/NavProvider";
@@ -19,23 +31,26 @@ export default function Root() {
   return (
     <Html lang="en">
       <Head>
-        <Title>KsoxPay</Title>
+        <Title>KSOX - Payment Processor</Title>
         <Meta charset="utf-8" />
         <Meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta name="theme-color" content="#0F0D12" />
         <Meta
           name="description"
-          content="KSOX is a crypto payment processor powered by zk-STARKs technology. Buy, sell, and trade cryptocurrencies securely and seamlessly. Accept crypto payments through NFC-enabled mobile phones."
+          content="KSOX Payment Processor - Revolutionizing crypto payments with NFC technology for seamless fund transfers and secure transactions. Embrace financial freedom today!"
         />
         <Meta
           name="keywords"
-          content="KSOX, pay, decentralized exchange, payment processor, zk-STARKs, cryptocurrency exchange, buy, sell, trade, transaction fees, arbitrage, payment processor, NFC, mobile payments, transaction processing, investor, secure, seamless, crypto payments"
+          content="ksox, pay, transaction, decentralized, zk, zero knowledge, stark, nfc"
         />
         <Link rel="icon" href="/gfx/logo.svg" />
         <Link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png" />
         {import.meta.env.PROD == true ? (
           <>
-            <Link rel="manifest" href={joinPaths(base, "/manifest.webmanifest")} />
+            <Link
+              rel="manifest"
+              href={joinPaths(base, "/manifest.webmanifest")}
+            />
             <script src={joinPaths(base, "/registerSW.js")} />
           </>
         ) : (
@@ -49,9 +64,21 @@ export default function Root() {
               <WalletProvider projectId={projectId} alchemyId={alchemyId}>
                 <Routes>
                   <Route path="/" component={Index}>
-                    <Route path="/" element={<App />} preload={() => setNav(Nav.App)} />
-                    <Route path="/account" element={<Account />} preload={() => setNav(Nav.Account)} />
-                    <Route path="/asset/:assetId" element={<Asset />} preload={() => setNav(Nav.Asset)} />
+                    <Route
+                      path="/"
+                      element={<App />}
+                      preload={() => setNav(Nav.App)}
+                    />
+                    <Route
+                      path="/account"
+                      element={<Account />}
+                      preload={() => setNav(Nav.Account)}
+                    />
+                    <Route
+                      path="/asset/:assetId"
+                      element={<Asset />}
+                      preload={() => setNav(Nav.Asset)}
+                    />
                   </Route>
                   <FileRoutes />
                 </Routes>

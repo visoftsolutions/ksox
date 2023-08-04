@@ -30,17 +30,17 @@ export default function Root() {
   return (
     <Html lang="en">
       <Head>
-        <Title>KSOX - Cryptocurrency Exchange</Title>
+        <Title>KSOX - Your Key to Decentralized Finance</Title>
         <Meta charset="utf-8" />
         <Meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta name="theme-color" content="#0F0D12" />
         <Meta
           name="description"
-          content="KSOX is a decentralized exchange powered by zk-STARKs technology. Buy, sell, and trade cryptocurrencies securely and seamlessly. Accept crypto payments through NFC-enabled mobile phones."
+          content="KSOX - Unlocking financial freedom. Innovative, contactless payments with NFC capabilities. Effortless fund transfers with temporary 6-digit codes. Trust secured by zk-STARK tech. Embrace a decentralized future today!"
         />
         <Meta
           name="keywords"
-          content="KSOX, Crypto, decentralized exchange, zk-STARKs, cryptocurrency exchange, buy, sell, trade, transaction fees, arbitrage, transaction processing, Token Crowdsale, KSXT, KSX, investor, crowdfunding, secure, seamless, crypto payments"
+          content="ksox, crypto, decentralized, zk, zero knowledge, stark, cryptocurrency, nfc, buy, sell, trade, fees, arbitrage, secure, seamless, payment, transaction"
         />
         <Link rel="icon" href="/gfx/logo.svg" />
         <Link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png" />
