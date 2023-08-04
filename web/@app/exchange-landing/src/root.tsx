@@ -1,5 +1,17 @@
 import { Suspense, lazy } from "solid-js";
-import { Body, ErrorBoundary, FileRoutes, Head, Html, Link, Meta, Route, Routes, Scripts, Title } from "solid-start";
+import {
+  Body,
+  ErrorBoundary,
+  FileRoutes,
+  Head,
+  Html,
+  Link,
+  Meta,
+  Route,
+  Routes,
+  Scripts,
+  Title,
+} from "solid-start";
 import "./root.css";
 import { Nav, NavProvider, setNav } from "./components/providers/NavProvider";
 import { joinPaths } from "solid-start/islands/server-router";
@@ -32,9 +44,15 @@ export default function Root() {
         />
         <Link rel="icon" href="/gfx/logo.svg" />
         <Link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png" />
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-HS7VCPVSGW" />
+        <script async src="/google-analytics.js" />
+        <script async src="/cookie3-integration.js" />
         {import.meta.env.PROD == true ? (
           <>
-            <Link rel="manifest" href={joinPaths(base, "/manifest.webmanifest")} />
+            <Link
+              rel="manifest"
+              href={joinPaths(base, "/manifest.webmanifest")}
+            />
             <script src={joinPaths(base, "/registerSW.js")} />
           </>
         ) : (
@@ -48,8 +66,16 @@ export default function Root() {
               <WalletProvider projectId={projectId} alchemyId={alchemyId}>
                 <Routes>
                   <Route path="/" component={Index}>
-                    <Route path={"/"} element={<Landing />} preload={() => setNav(Nav.Landing)} />
-                    <Route path="/token" element={<Token />} preload={() => setNav(Nav.Token)} />
+                    <Route
+                      path={"/"}
+                      element={<Landing />}
+                      preload={() => setNav(Nav.Landing)}
+                    />
+                    <Route
+                      path="/token"
+                      element={<Token />}
+                      preload={() => setNav(Nav.Token)}
+                    />
                   </Route>
                   <FileRoutes />
                 </Routes>

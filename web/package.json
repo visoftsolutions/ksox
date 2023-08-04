@@ -17,6 +17,6 @@
   ],
   "devDependencies": {
     "typescript": "^5.1.6",
-    "unlighthouse": "^0.9.0"
+    "unlighthouse": "^0.10.0"
   }
 }

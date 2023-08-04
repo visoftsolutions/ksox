@@ -1,5 +1,5 @@
 // @refresh reload
-import { Suspense, lazy } from "solid-js";
+import { Suspense, lazy, onMount } from "solid-js";
 import { Body, ErrorBoundary, FileRoutes, Head, Html, Meta, Routes, Scripts, Title, Link, Route } from "solid-start";
 import "./root.css";
 import { Nav, NavProvider, setNav } from "./components/providers/NavProvider";

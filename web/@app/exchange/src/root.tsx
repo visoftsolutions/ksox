@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "solid-js";
+import { Suspense, lazy, onMount } from "solid-js";
 import { Body, ErrorBoundary, FileRoutes, Head, Html, Link, Meta, Route, Routes, Scripts, Title } from "solid-start";
 import "~/root.css";
 import { joinPaths } from "solid-start/islands/server-router";
