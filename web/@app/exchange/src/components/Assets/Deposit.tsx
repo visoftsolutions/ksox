@@ -18,6 +18,16 @@ export default function CreateDeposit(asset?: Asset, precision?: number) {
   );
 }
 
+const splitSig = (sig: string) => {
+  const pureSig = sig.replace("0x", "")
+  const r = "0x"+pureSig.substring(0, 64)
+  const s = "0x"+pureSig.substring(64, 128)
+  const v = parseInt(pureSig.substring(128, 130), 16);
+  return {
+    r, s, v
+  }
+}
+
 export function Deposit(props: { asset: Asset; precision: number }) {
   const [amount, setAmount] = createSignal<Fraction>(fFromBigint(0n));
   const session = useSession();
@@ -53,24 +63,89 @@ export function Deposit(props: { asset: Asset; precision: number }) {
           `}
           onClick={async () => {
             const address_value = address();
-            const value = Math.floor(ev(fmul(props.asset.decimals, amount())))
+            const value = BigInt(Math.floor(ev(fmul(props.asset.decimals, amount()))));
             console.log(wallet, address_value, wallet.address)
             if (wallet && address_value && wallet.address) {
-              await wallet.walletClient?.writeContract({
+              // await wallet.walletClient?.writeContract({
+              //   address: props.asset.address as Address,
+              //   abi: ERC20_ABI,
+              //   functionName: 'approve',
+              //   account: wallet.address as Address,
+              //   args: [TREASURY_ADDRESS, value]
+              // });
+
+              // await wallet.walletClient?.writeContract({
+              //   address: TREASURY_ADDRESS,
+              //   abi: TREASURY_ABI,
+              //   functionName: 'deposit',
+              //   account: wallet.address as Address,
+              //   args: [props.asset.address as Address, value]
+              // })
+
+              let nonce = await wallet.publicWSClient?.readContract({
                 address: props.asset.address as Address,
                 abi: ERC20_ABI,
-                functionName: 'approve',
+                functionName: 'nonces',
                 account: wallet.address as Address,
-                args: [TREASURY_ADDRESS, value]
-              });
+                args: [wallet.address as Address]
+              }) as bigint
+              console.log(nonce);
 
-              await wallet.walletClient?.writeContract({
-                address: TREASURY_ADDRESS,
-                abi: TREASURY_ABI,
-                functionName: 'deposit',
+              let deadline = ((await wallet.publicWSClient?.getBlock())?.timestamp ?? 0n) + 3600n;
+              console.log(deadline);
+
+              const domain = { 
+                name: "TokenPermit",
+                version: "1",
+                chainId: 11155111n,
+                verifyingContract: props.asset.address as Address,
+              }
+
+              const permit = { 
+                owner: wallet.address as Address, 
+                spender: TREASURY_ADDRESS as Address, 
+                value, 
+                nonce,
+                deadline
+              }
+
+              const signature = await wallet.walletClient?.signTypedData({
                 account: wallet.address as Address,
-                args: [props.asset.address as Address, value]
-              })
+                domain,
+                types: {
+                  Permit: [
+                    { name: "owner", type: "address" },
+                    { name: "spender", type: "address" },
+                    { name: "value", type: "uint256" },
+                    { name: "nonce", type: "uint256" },
+                    { name: "deadline", type: "uint256" },
+                  ],
+                  EIP712Domain: [
+                    { name: 'name', type: 'string' },
+                    { name: 'version', type: 'string' },
+                    { name: 'chainId', type: 'uint256' },
+                    { name: 'verifyingContract', type: 'address' },
+                  ],
+                },
+                primaryType: 'Permit',
+                message: permit,
+              });
+              if (signature) {
+                const {r, s, v} = splitSig(signature);
+                console.log(r,s,v);
+                await wallet.walletClient?.writeContract({
+                  address: TREASURY_ADDRESS,
+                  abi: TREASURY_ABI,
+                  functionName: 'depositPermit',
+                  account: wallet.address as Address,
+                  args: [
+                    props.asset.address as Address,
+                    value,
+                    deadline,
+                    v,r,s
+                  ]
+                })
+              }
             }
           }}
         >

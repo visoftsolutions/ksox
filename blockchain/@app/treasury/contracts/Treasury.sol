@@ -35,10 +35,10 @@ contract Treasury is Ownable {
     }
 
     function deposit(address tokenAddress, uint256 amount) external {
-        address userAddress = address(msg.sender);
-        IERC20(tokenAddress).transferFrom(userAddress, address(this), amount);
-        _balances[tokenAddress][userAddress] += amount;
-        emit Deposit(tokenAddress, userAddress, amount);
+        address owner = address(msg.sender);
+        IERC20(tokenAddress).transferFrom(owner, address(this), amount);
+        _balances[tokenAddress][owner] += amount;
+        emit Deposit(tokenAddress, owner, amount);
     }
 
     function depositPermit(address tokenAddress, uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
