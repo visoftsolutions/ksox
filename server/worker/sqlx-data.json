@@ -57,7 +57,7 @@
     },
     "query": "\n            INSERT INTO \n                users\n                (last_modification_at, address) VALUES ($1, $2)\n                RETURNING id, created_at, last_modification_at, address as \"address: Address\", users.name, users.phone, users.email\n            "
   },
-  "18f59375052a2deea4b856ee56954a40f860213f6ddcc50fdf7184151ca6b7d5": {
+  "216a8a580a79ae399446698a4ea522ade35c5a7de07ded6630242a118f552028": {
     "describe": {
       "columns": [
         {
@@ -91,7 +91,7 @@
           "type_info": "Bpchar"
         },
         {
-          "name": "maker_fee: Fraction",
+          "name": "decimals: Fraction",
           "ordinal": 6,
           "type_info": {
             "Custom": {
@@ -112,8 +112,29 @@
           }
         },
         {
-          "name": "taker_fee: Fraction",
+          "name": "maker_fee: Fraction",
           "ordinal": 7,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "taker_fee: Fraction",
+          "ordinal": 8,
           "type_info": {
             "Custom": {
               "kind": {
@@ -141,13 +162,16 @@
         false,
         false,
         false,
+        false,
         false
       ],
       "parameters": {
-        "Left": []
+        "Left": [
+          "Timestamptz"
+        ]
       }
     },
-    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                name,\n                symbol,\n                address as \"address: Address\",\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\"\n            FROM assets\n            "
+    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                name,\n                symbol,\n                address as \"address: Address\",\n                decimals as \"decimals: Fraction\",\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\"\n            FROM assets\n            WHERE last_modification_at > $1\n            ORDER BY last_modification_at ASC\n            "
   },
   "23f2082a9f359e13aa9bb513a2e0fd1fec8c1c6f91f788f3153deb377a7790fc": {
     "describe": {
@@ -1025,100 +1049,6 @@
       }
     },
     "query": "\n            SELECT\n                users.id,\n                users.created_at,\n                users.last_modification_at,\n                users.address as \"address: Address\",\n                users.name,\n                users.phone,\n                users.email\n            FROM users\n            "
-  },
-  "5806486538c7aef327630306a3f2559ab92d3af0de7b182c17e4dd0662fcd6cd": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "created_at",
-          "ordinal": 1,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "last_modification_at",
-          "ordinal": 2,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "name",
-          "ordinal": 3,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "symbol",
-          "ordinal": 4,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "address: Address",
-          "ordinal": 5,
-          "type_info": "Bpchar"
-        },
-        {
-          "name": "maker_fee: Fraction",
-          "ordinal": 6,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        },
-        {
-          "name": "taker_fee: Fraction",
-          "ordinal": 7,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Timestamptz"
-        ]
-      }
-    },
-    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                name,\n                symbol,\n                address as \"address: Address\",\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\"\n            FROM assets\n            WHERE last_modification_at > $1\n            ORDER BY last_modification_at ASC\n            "
   },
   "5c882856c4997ce3eba711cdb804daf5cced28f3ff605b06520eb7e562464096": {
     "describe": {
@@ -3086,6 +3016,120 @@
       }
     },
     "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                maker_address as \"maker_address: Address\",\n                taker_address as \"taker_address: Address\",\n                asset_address as \"asset_address: Address\",\n                tx_hash as \"tx_hash: TxHash\",\n                amount as \"amount: Fraction\",\n                confirmations as \"confirmations: Fraction\"\n            FROM withdraws\n            WHERE last_modification_at > $1\n            ORDER BY last_modification_at ASC\n            "
+  },
+  "dcb15d67aea8cdda61515a213316ab9332fbfda050240ee3a54dec87bec6eec5": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "last_modification_at",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "name",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "symbol",
+          "ordinal": 4,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "address: Address",
+          "ordinal": 5,
+          "type_info": "Bpchar"
+        },
+        {
+          "name": "decimals: Fraction",
+          "ordinal": 6,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "maker_fee: Fraction",
+          "ordinal": 7,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "taker_fee: Fraction",
+          "ordinal": 8,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                name,\n                symbol,\n                address as \"address: Address\",\n                decimals as \"decimals: Fraction\",\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\"\n            FROM assets\n            "
   },
   "dd2a63156ebca90bdb0f70497fab657a3d53b9dcc5d5b6cd09a25782b1c06f73": {
     "describe": {

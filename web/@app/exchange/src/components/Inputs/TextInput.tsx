@@ -32,7 +32,7 @@ export default function TextInput(props: TextInputComponent) {
       <div class="col-start-2 col-end-3 text-right">
         <input
           id={id}
-          class={"w-full max-w-[150px] bg-transparent p-1 text-right outline-none"}
+          class={"w-full bg-transparent p-1 text-right outline-none"}
           type="text"
           spellcheck={true}
           ref={inputDOM}

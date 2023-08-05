@@ -11,6 +11,7 @@ export const Asset = z.object({
   name: z.string(),
   symbol: z.string(),
   address: Address,
+  decimals: Fraction,
   maker_fee: Fraction,
   taker_fee: Fraction,
 });

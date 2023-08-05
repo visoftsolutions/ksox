@@ -12,6 +12,7 @@ pub struct Asset {
     pub name: String,
     pub symbol: String,
     pub address: Address,
+    pub decimals: Fraction,
     pub maker_fee: Fraction,
     pub taker_fee: Fraction,
 }

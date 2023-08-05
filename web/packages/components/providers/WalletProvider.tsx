@@ -1,4 +1,4 @@
-import { GetAccountResult, GetNetworkResult, PublicClient } from "@wagmi/core";
+import { GetAccountResult, GetNetworkResult, PublicClient, sepolia } from "@wagmi/core";
 import { createContext, JSX, onMount, useContext } from "solid-js";
 import { createStore } from "solid-js/store";
 import { Address, CustomTransport, http, HttpTransport, WalletClient, webSocket, WebSocketTransport } from "viem";
@@ -12,9 +12,9 @@ import { AVAILABLE_CHAINS, Network } from "./WalletProvider/chains";
 export interface WalletProvider {
   selected_network: Network;
   walletConnectProjectId: string | undefined;
-  walletClient: WalletClient<CustomTransport, typeof mainnet> | undefined;
-  publicClient: PublicClient<HttpTransport, typeof mainnet> | undefined;
-  publicWSClient: PublicClient<WebSocketTransport, typeof mainnet> | undefined;
+  walletClient: WalletClient<CustomTransport, typeof sepolia> | undefined;
+  publicClient: PublicClient<HttpTransport, typeof sepolia> | undefined;
+  publicWSClient: PublicClient<WebSocketTransport, typeof sepolia> | undefined;
   address: Address | undefined;
 }
 
@@ -33,15 +33,15 @@ export function WalletProvider(props: { children: JSX.Element; projectId: string
       walletConnectProjectId: props.projectId,
       publicClient: createPublicClient({
         // chain: hardhat,
-        chain: mainnet,
+        chain: sepolia,
         // transport: http("http://127.0.0.1:8545/"),
-        transport: http(`https://eth-goerli.g.alchemy.com/v2/${props.alchemyId}`),
+        transport: http(`https://eth-sepolia.g.alchemy.com/v2/${props.alchemyId}`),
       }),
       publicWSClient: createPublicClient({
         // chain: hardhat,
-        chain: mainnet,
+        chain: sepolia,
         // transport: webSocket("ws://127.0.0.1:8545/"),
-        transport: webSocket(`wss://eth-goerli.g.alchemy.com/v2/${props.alchemyId}`),
+        transport: webSocket(`wss://eth-sepolia.g.alchemy.com/v2/${props.alchemyId}`),
       }),
     });
   });
@@ -55,7 +55,7 @@ export function useWallet() {
 const walletAccount = async (account: GetAccountResult<PublicClient>) => {
   if (account.address && account.connector && account.isConnected) {
     const walletClient = createWalletClient({
-      chain: mainnet,
+      chain: sepolia,
       transport: custom(await account.connector.getProvider()),
     });
     setWallet({ walletClient: walletClient, address: account.address });
