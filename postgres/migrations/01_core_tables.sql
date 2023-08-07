@@ -40,8 +40,8 @@ CREATE TABLE "deposits" (
   "maker_address" CHAR(42) NOT NULL,
   "taker_address" CHAR(42) NOT NULL,
   "asset_address" CHAR(42) NOT NULL,
-  "tx_hash" CHAR(66) NOT NULL,
   "amount" fraction NOT NULL,
+  "tx_hash" CHAR(66) NOT NULL,
   "confirmations" fraction NOT NULL
 );
 
@@ -52,9 +52,8 @@ CREATE TABLE "withdraws" (
   "maker_address" CHAR(42) NOT NULL,
   "taker_address" CHAR(42) NOT NULL,
   "asset_address" CHAR(42) NOT NULL,
-  "tx_hash" CHAR(66) NOT NULL,
   "amount" fraction NOT NULL,
-  "confirmations" fraction NOT NULL
+  "deadline" TIMESTAMP(6) WITH TIME ZONE NOT NULL
 );
 
 ALTER TABLE "withdraws" ADD FOREIGN KEY ("maker_address") REFERENCES "users" ("address");

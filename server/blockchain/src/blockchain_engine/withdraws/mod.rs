@@ -59,17 +59,9 @@ impl WithdrawsBlockchainManager {
                             if let Err(err) = async {
                                 let mut t = database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
                                 let withdraw = WithdrawsManager::insert(&mut t, &event).await?;
-                                let filter: WithdrawFilter = event.to_filter(&mut t).await?;
                                 let response = engine_client.transfer(withdraw_to_transfer_request(&mut t, withdraw).await?).await?.into_inner();
-                                if let Err(err) = async {
-                                     contract.withdraw(filter.token_address, filter.user_address, filter.amount).send().await?;
-                                    Ok::<(), BlockchainManagerError>(())
-                                }.await {
-                                    engine_client.revert_transfer(Into::<RevertTransferRequest>::into(response)).await?;
-                                    Err(err)
-                                } else {
-                                    Ok(t.commit().await?)
-                                }
+                                t.commit().await?;
+                                Ok::<(), BlockchainManagerError>(())
                             }.await {
                                 tracing::error!("{err}");
                             }
@@ -78,7 +70,7 @@ impl WithdrawsBlockchainManager {
                             if let Err(err) = async {
                                 let mut t = database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
                                 if let TreasuryEvents::WithdrawFilter(filter) = filter {
-                                    let _event = WithdrawInsert::from_filter(&mut t, &filter, &meta).await?;
+
                                 };
                                 t.commit().await?;
                                 Ok::<(), BlockchainManagerError>(())

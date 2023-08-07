@@ -35,9 +35,8 @@ impl WithdrawsManager {
                 maker_address as "maker_address: Address",
                 taker_address as "taker_address: Address",
                 asset_address as "asset_address: Address",
-                tx_hash as "tx_hash: TxHash",
                 amount as "amount: Fraction",
-                confirmations as "confirmations: Fraction"
+                deadline
             FROM withdraws
             WHERE last_modification_at > $1
             ORDER BY last_modification_at ASC
@@ -62,9 +61,8 @@ impl WithdrawsManager {
                 maker_address as "maker_address: Address",
                 taker_address as "taker_address: Address",
                 asset_address as "asset_address: Address",
-                tx_hash as "tx_hash: TxHash",
                 amount as "amount: Fraction",
-                confirmations as "confirmations: Fraction"
+                deadline
             FROM withdraws
             WHERE maker_address = $1
             ORDER BY last_modification_at DESC

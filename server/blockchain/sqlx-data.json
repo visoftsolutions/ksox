@@ -26,13 +26,83 @@
     },
     "query": "\n            SELECT\n                id,\n                address as \"address: Address\"\n            FROM users\n            WHERE id = $1\n            "
   },
-  "63ab0e7577b06975b0c1c3f0f94a7e2946c8e890d9ba7544764ac8738efae33c": {
+  "3b3c98e47429bdc7a762d0a59561ceb36fd2791da1336762f7591242c7cb990b": {
     "describe": {
-      "columns": [],
-      "nullable": [],
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Uuid"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 1,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "last_modification_at",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "maker_address: Address",
+          "ordinal": 3,
+          "type_info": "Bpchar"
+        },
+        {
+          "name": "taker_address: Address",
+          "ordinal": 4,
+          "type_info": "Bpchar"
+        },
+        {
+          "name": "asset_address: Address",
+          "ordinal": 5,
+          "type_info": "Bpchar"
+        },
+        {
+          "name": "amount: Fraction",
+          "ordinal": 6,
+          "type_info": {
+            "Custom": {
+              "kind": {
+                "Composite": [
+                  [
+                    "numer",
+                    "Numeric"
+                  ],
+                  [
+                    "denom",
+                    "Numeric"
+                  ]
+                ]
+              },
+              "name": "fraction"
+            }
+          }
+        },
+        {
+          "name": "deadline",
+          "ordinal": 7,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
       "parameters": {
         "Left": [
-          "Uuid",
+          "Timestamptz",
+          "Timestamptz",
+          "Bpchar",
+          "Bpchar",
+          "Bpchar",
           {
             "Custom": {
               "kind": {
@@ -54,7 +124,7 @@
         ]
       }
     },
-    "query": "\n            UPDATE \n                withdraws\n            SET\n                confirmations = $2::fraction,\n                last_modification_at = $3\n            WHERE\n                id = $1\n            "
+    "query": "\n            INSERT INTO withdraws\n                (created_at, last_modification_at, maker_address, taker_address, asset_address, amount, deadline)\n            VALUES\n                ($1, $2, $3, $4, $5, $6::fraction, $7)\n            RETURNING id, created_at, last_modification_at, maker_address as \"maker_address: Address\", taker_address as \"taker_address: Address\", asset_address as \"asset_address: Address\", amount as \"amount: Fraction\", deadline\n            "
   },
   "698e804df9978dc62cecf076cc55cc32db2b8dfb0d69586f84c527e93bbb51a1": {
     "describe": {
@@ -175,145 +245,6 @@
       }
     },
     "query": "\n            SELECT\n                valuts.id,\n                valuts.created_at,\n                valuts.last_modification_at,\n                users.address as \"user_address: Address\",\n                assets.address as \"asset_address: Address\",\n                assets.decimals as \"decimals: Fraction\",\n                valuts.balance as \"balance: Value\"\n            FROM valuts\n            JOIN users ON valuts.user_id = users.id\n            JOIN assets ON valuts.asset_id = assets.id\n            WHERE valuts.last_modification_at > $1\n            ORDER BY valuts.last_modification_at ASC\n            "
-  },
-  "baf93ee82229fd8d4a7ab0cd80302ff982017de2d6e383740c4cd484bb0f777b": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Uuid"
-        },
-        {
-          "name": "created_at",
-          "ordinal": 1,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "last_modification_at",
-          "ordinal": 2,
-          "type_info": "Timestamptz"
-        },
-        {
-          "name": "maker_address: Address",
-          "ordinal": 3,
-          "type_info": "Bpchar"
-        },
-        {
-          "name": "taker_address: Address",
-          "ordinal": 4,
-          "type_info": "Bpchar"
-        },
-        {
-          "name": "asset_address: Address",
-          "ordinal": 5,
-          "type_info": "Bpchar"
-        },
-        {
-          "name": "tx_hash: TxHash",
-          "ordinal": 6,
-          "type_info": "Bpchar"
-        },
-        {
-          "name": "amount: Fraction",
-          "ordinal": 7,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        },
-        {
-          "name": "confirmations: Fraction",
-          "ordinal": 8,
-          "type_info": {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Timestamptz",
-          "Timestamptz",
-          "Bpchar",
-          "Bpchar",
-          "Bpchar",
-          "Bpchar",
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          },
-          {
-            "Custom": {
-              "kind": {
-                "Composite": [
-                  [
-                    "numer",
-                    "Numeric"
-                  ],
-                  [
-                    "denom",
-                    "Numeric"
-                  ]
-                ]
-              },
-              "name": "fraction"
-            }
-          }
-        ]
-      }
-    },
-    "query": "\n            INSERT INTO withdraws\n                (created_at, last_modification_at, maker_address, taker_address, asset_address, tx_hash, amount, confirmations)\n            VALUES\n                ($1, $2, $3, $4, $5, $6, $7::fraction, $8::fraction)\n            RETURNING id, created_at, last_modification_at, maker_address as \"maker_address: Address\", taker_address as \"taker_address: Address\", asset_address as \"asset_address: Address\", tx_hash as \"tx_hash: TxHash\", amount as \"amount: Fraction\", confirmations as \"confirmations: Fraction\"\n            "
   },
   "bdd462f29574f8f75208510be6031770b6b7201129e97425a59dcba78c6591d0": {
     "describe": {

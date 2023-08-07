@@ -8,7 +8,6 @@ use tonic::Status;
 
 use crate::{
     blockchain_engine::models::BlockchainEngineError, confirmation::ConfirmationQueueError,
-    submission::SubmissionQueueError,
 };
 
 #[derive(Error, Debug)]
@@ -24,9 +23,6 @@ pub enum BlockchainManagerError {
 
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),
-
-    #[error(transparent)]
-    SubmissionQueueError(#[from] SubmissionQueueError),
 
     #[error(transparent)]
     ConfirmationQueueError(#[from] ConfirmationQueueError),

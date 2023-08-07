@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 use sqlx::{Postgres, Transaction};
 use uuid::Uuid;
 
-use super::Confirmable;
 use crate::{
     blockchain_engine::models::BlockchainEngineError,
     contracts::treasury::WithdrawFilter,
@@ -22,20 +21,9 @@ pub struct Withdraw {
     pub maker_address: Address,
     pub taker_address: Address,
     pub asset_address: Address,
-    pub tx_hash: TxHash,
     pub amount: Fraction,
-    pub confirmations: Fraction,
+    pub deadline: DateTime<Utc>,
 }
-
-impl Confirmable for Withdraw {
-    fn set(&mut self, confirmations: usize) {
-        self.confirmations = Fraction::from(confirmations) / Fraction::from(10)
-    }
-    fn is_confirmed(&self) -> bool {
-        self.confirmations >= Fraction::one()
-    }
-}
-
 pub async fn withdraw_to_transfer_request(
     pool: &mut Transaction<'_, Postgres>,
     withdraw: Withdraw,
@@ -59,45 +47,6 @@ pub struct WithdrawInsert {
     pub maker_address: Address,
     pub taker_address: Address,
     pub asset_address: Address,
-    pub tx_hash: TxHash,
     pub amount: Fraction,
-    pub confirmations: Fraction,
-}
-
-impl WithdrawInsert {
-    pub async fn from_filter<'t, 'p>(
-        t: &'t mut Transaction<'p, Postgres>,
-        filter: &WithdrawFilter,
-        meta: &LogMeta,
-    ) -> sqlx::Result<Self> {
-        let asset = AssetsManager::get_by_address(t, filter.token_address.into()).await?;
-        let mut bytes = [0_u8; 32];
-        filter.amount.to_little_endian(&mut bytes);
-        Ok(Self {
-            maker_address: meta.address.into(),
-            taker_address: filter.user_address.into(),
-            asset_address: filter.token_address.into(),
-            tx_hash: meta.transaction_hash.into(),
-            amount: Fraction::from_bytes_le(&bytes) / asset.decimals,
-            confirmations: Fraction::default(),
-        })
-    }
-
-    pub async fn to_filter<'t, 'p>(
-        self,
-        t: &'t mut Transaction<'p, Postgres>,
-    ) -> sqlx::Result<WithdrawFilter> {
-        let asset = AssetsManager::get_by_address(t, self.asset_address.clone()).await?;
-        Ok(WithdrawFilter {
-            user_address: *self.taker_address,
-            token_address: *self.asset_address,
-            amount: U256::from_little_endian(
-                (*(self.amount * asset.decimals))
-                    .to_integer()
-                    .to_bytes_le()
-                    .1
-                    .as_slice(),
-            ),
-        })
-    }
+    pub deadline: DateTime<Utc>,
 }

@@ -3,8 +3,6 @@ pub mod confirmation;
 pub mod contracts;
 pub mod database;
 pub mod models;
-pub mod submission;
-pub mod timeout;
 
 mod shutdown_signal;
 use contracts::treasury::Treasury;
@@ -23,8 +21,8 @@ use tonic::transport::Server;
 use crate::{
     base::blockchain_server::BlockchainServer,
     blockchain_engine::{
-        deposits::DepositsBlockchainManager, valuts::ValutsBlockchainManager,
-        withdraws::WithdrawsBlockchainManager, BlockchainEngine,
+        deposits::DepositsBlockchainManager, withdraws::WithdrawsBlockchainManager,
+        BlockchainEngine,
     },
 };
 
@@ -78,31 +76,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .start(engine_client.to_owned())
     .await;
 
-    let valuts_controller = ValutsBlockchainManager {
-        database: database.to_owned(),
-        provider,
-        contract: treasury.to_owned().into(),
-    }
-    .start(
-        notification_manager_controller
-            .get_subscriber()
-            .subscribe_to()
-            .await?,
-    )
-    .await;
-
-    let engagement = BlockchainEngine {
+    let blockchain_engine = BlockchainEngine {
         contract: treasury.into(),
         database: database.to_owned(),
         deposits_controller,
         withdraws_controller,
-        valuts_controller,
     };
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));
     tracing::info!("listening on {}", addr);
 
     Server::builder()
-        .add_service(BlockchainServer::new(engagement))
+        .add_service(BlockchainServer::new(blockchain_engine))
         .serve_with_shutdown(addr, shutdown_signal::listen())
         .await?;
 

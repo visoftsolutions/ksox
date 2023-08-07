@@ -8,6 +8,21 @@ use ethers::{
 };
 use tokio_stream::{Stream, StreamExt};
 
+// #[derive(Eip712, EthAbiType, Clone)]
+// #[eip712(
+//     name = "Uniswap V2",
+//     version = "1",
+//     chain_id = 1,
+//     verifying_contract = "0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc"
+// )]
+// struct Permit {
+//     owner: Address,
+//     spender: Address,
+//     value: U256,
+//     nonce: U256,
+//     deadline: U256,
+// }
+
 pub async fn transaction_block(
     ws_provider: &Provider<Ws>,
     tx_hash: TxHash,

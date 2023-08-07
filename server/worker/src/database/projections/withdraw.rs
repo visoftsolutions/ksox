@@ -12,7 +12,6 @@ pub struct Withdraw {
     pub maker_address: Address,
     pub taker_address: Address,
     pub asset_address: Address,
-    pub tx_hash: TxHash,
     pub amount: Fraction,
-    pub confirmations: Fraction,
+    pub deadline: DateTime<Utc>,
 }

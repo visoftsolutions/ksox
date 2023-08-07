@@ -1,8 +1,8 @@
 pub mod deposits;
 pub mod models;
-pub mod valuts;
 pub mod withdraws;
 
+use chrono::{Duration, Utc};
 use ethers::{
     prelude::{k256::ecdsa::SigningKey, SignerMiddleware},
     providers::{Provider, Ws},
@@ -21,7 +21,6 @@ use crate::{
 
 use self::{
     deposits::DepositsBlockchainManagerController,
-    valuts::ValutsBlockchainManagerController,
     withdraws::{models::WithdrawRequest, WithdrawsBlockchainManagerController},
 };
 
@@ -31,7 +30,6 @@ pub struct BlockchainEngine {
     pub database: PgPool,
     pub deposits_controller: DepositsBlockchainManagerController,
     pub withdraws_controller: WithdrawsBlockchainManagerController,
-    pub valuts_controller: ValutsBlockchainManagerController,
 }
 
 #[tonic::async_trait]
@@ -47,9 +45,8 @@ impl Blockchain for BlockchainEngine {
                 maker_address: request.maker_address,
                 taker_address: request.taker_address,
                 asset_address: request.asset_address,
-                tx_hash: TxHash::default(),
                 amount: request.amount,
-                confirmations: Fraction::default(),
+                deadline: Utc::now() + Duration::minutes(10),
             })
             .await
             .map_err(|e| Status::aborted(e.to_string()))?;
