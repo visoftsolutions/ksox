@@ -89,10 +89,8 @@ export function Deposit(props: { asset: Asset; precision: number }) {
                 account: wallet.address as Address,
                 args: [wallet.address as Address]
               }) as bigint
-              console.log(nonce);
 
               let deadline = ((await wallet.publicWSClient?.getBlock())?.timestamp ?? 0n) + 3600n;
-              console.log(deadline);
 
               const domain = { 
                 name: "TokenPermit",
@@ -132,7 +130,6 @@ export function Deposit(props: { asset: Asset; precision: number }) {
               });
               if (signature) {
                 const {r, s, v} = splitSig(signature);
-                console.log(r,s,v);
                 await wallet.walletClient?.writeContract({
                   address: TREASURY_ADDRESS,
                   abi: TREASURY_ABI,
