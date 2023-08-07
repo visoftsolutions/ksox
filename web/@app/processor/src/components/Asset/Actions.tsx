@@ -23,7 +23,11 @@ const querySearch = async (input: string) => {
     .then((r) => z.array(UserRecognitionResult).parse(r));
 };
 
-export default function CreateActions(asset?: Asset, session?: SessionResponse, precision?: number) {
+export default function CreateActions(
+  asset?: Asset,
+  session?: SessionResponse,
+  precision?: number,
+) {
   return () => (
     <Show when={asset && precision}>
       <Actions asset={asset} precision={precision} session={session} />
@@ -31,11 +35,17 @@ export default function CreateActions(asset?: Asset, session?: SessionResponse, 
   );
 }
 
-export function Actions(props: { session?: SessionResponse; asset?: Asset; precision?: number }) {
+export function Actions(props: {
+  session?: SessionResponse;
+  asset?: Asset;
+  precision?: number;
+}) {
   const [amount, setAmount] = createSignal<Fraction>(fFromBigint(0n));
   const [search, setSearch] = createSignal<string>("");
   const [users, setUsers] = createSignal<UserRecognitionResult[]>([]);
-  const [selectedUser, setSelectedUser] = createSignal<User | undefined>(undefined);
+  const [selectedUser, setSelectedUser] = createSignal<User | undefined>(
+    undefined,
+  );
 
   createEffect(async () => {
     if (search()) {
@@ -59,7 +69,11 @@ export function Actions(props: { session?: SessionResponse; asset?: Asset; preci
         <div class="row-start-2 row-end-3 grid grid-cols-2 items-center justify-center justify-items-center">
           <div
             class={`col-start-1 col-end-2 grid h-[32px] w-[100px]
-                    ${props.session ? "cursor-pointer bg-ksox-2 active:bg-opacity-70" : "bg-gray-3"}
+                    ${
+                      props.session
+                        ? "cursor-pointer bg-ksox-2 active:bg-opacity-70"
+                        : "bg-gray-3"
+                    }
                     select-none items-center justify-center rounded-md  text-markets-label transition-colors duration-75`}
             onClick={async () => {
               if (props.session) {
@@ -75,7 +89,7 @@ export function Actions(props: { session?: SessionResponse; asset?: Asset; preci
                       asset_id: props.asset?.id,
                       amount: amount(),
                     }),
-                    (_, v) => (typeof v === "bigint" ? v.toString() : v)
+                    (_, v) => (typeof v === "bigint" ? v.toString() : v),
                   ),
                 }).then((r) => r.text());
               }
@@ -85,7 +99,11 @@ export function Actions(props: { session?: SessionResponse; asset?: Asset; preci
           </div>
           <div
             class={`col-start-2 col-end-3 grid h-[32px] w-[100px] 
-                    ${props.session ? "cursor-pointer bg-ksox-2 active:bg-opacity-70" : "bg-gray-3"}
+                    ${
+                      props.session
+                        ? "cursor-pointer bg-ksox-2 active:bg-opacity-70"
+                        : "bg-gray-3"
+                    }
                     select-none items-center justify-center rounded-md  text-markets-label transition-colors duration-75`}
             onClick={async () => {
               if (props.session) {
@@ -101,7 +119,7 @@ export function Actions(props: { session?: SessionResponse; asset?: Asset; preci
                       asset_id: props.asset?.id,
                       amount: amount(),
                     }),
-                    (_, v) => (typeof v === "bigint" ? v.toString() : v)
+                    (_, v) => (typeof v === "bigint" ? v.toString() : v),
                   ),
                 }).then((r) => r.text());
               }
@@ -112,7 +130,11 @@ export function Actions(props: { session?: SessionResponse; asset?: Asset; preci
         </div>
         <div
           class={`row-start-3 row-end-4 grid h-[32px] 
-                    ${props.session ? "cursor-pointer bg-ksox-2 active:bg-opacity-70" : "bg-gray-3"}
+                    ${
+                      props.session
+                        ? "cursor-pointer bg-ksox-2 active:bg-opacity-70"
+                        : "bg-gray-3"
+                    }
                     select-none items-center justify-center rounded-md  text-markets-label transition-colors duration-75`}
           onClick={async () => {
             if (props.session && selectedUser() != undefined) {
@@ -129,7 +151,7 @@ export function Actions(props: { session?: SessionResponse; asset?: Asset; preci
                     asset_id: props.asset?.id,
                     amount: amount(),
                   }),
-                  (_, v) => (typeof v === "bigint" ? v.toString() : v)
+                  (_, v) => (typeof v === "bigint" ? v.toString() : v),
                 ),
               }).then((r) => r.text());
             }
@@ -149,17 +171,28 @@ export function Actions(props: { session?: SessionResponse; asset?: Asset; preci
             <Index each={users()}>
               {(element) => (
                 <div
-                  class={`grid grid-cols-[auto_1fr] items-center gap-4 py-2 ${selectedUser()?.id == element().user.id ? "bg-gray-3 text-violet-400" : ""}`}
+                  class={`grid grid-cols-[auto_1fr] items-center gap-4 py-2 ${
+                    selectedUser()?.id == element().user.id
+                      ? "bg-gray-3 text-violet-400"
+                      : ""
+                  }`}
                   onClick={() => {
                     setSelectedUser(element().user);
                   }}
                 >
                   <div class="col-start-1 col-end-2">
-                    <img src={joinPaths(base, "gfx/user.svg")} alt="user" width="30px" class="m-auto" />
+                    <img
+                      src={joinPaths(base, "gfx/user.svg")}
+                      alt="user"
+                      width="30px"
+                      class="m-auto"
+                    />
                   </div>
                   <div class="col-start-2 col-end-3 grid grid-flow-row gap-1 break-all text-xs ">
                     <div class="font-medium">id: {element().user.id}</div>
-                    <div class="font-medium">address: {element().user.address}</div>
+                    <div class="font-medium">
+                      address: {element().user.address}
+                    </div>
                   </div>
                 </div>
               )}

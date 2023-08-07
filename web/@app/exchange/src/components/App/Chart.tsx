@@ -1,7 +1,11 @@
 import { Show, onCleanup, onMount } from "solid-js";
 import { Market } from "~/components/providers/MarketProvider";
 import { CandlestickChart } from "./Chart/candlestickChart";
-import { chartOptions, histogramOptions, candlestickOptions } from "./Chart/config";
+import {
+  chartOptions,
+  histogramOptions,
+  candlestickOptions,
+} from "./Chart/config";
 import { api } from "~/root";
 import params from "@web/utils/params";
 import { Candlestick } from "@web/types/candlestick";
@@ -9,7 +13,10 @@ import { z } from "zod";
 
 export default function CreateChart(market: Market) {
   return () => (
-    <Show when={market && market.quote_asset && market.base_asset} fallback={<Chart />}>
+    <Show
+      when={market && market.quote_asset && market.base_asset}
+      fallback={<Chart />}
+    >
       <Chart market={market} />;
     </Show>
   );
@@ -29,7 +36,12 @@ export function Chart(props: { market?: Market }) {
       const market = props.market;
       const quote_asset = props.market.quote_asset;
       const basee_asset = props.market.base_asset;
-      const chart = new CandlestickChart(ChartDOM as HTMLElement, chartOptions(market), histogramOptions, candlestickOptions);
+      const chart = new CandlestickChart(
+        ChartDOM as HTMLElement,
+        chartOptions(market),
+        histogramOptions,
+        candlestickOptions,
+      );
       const interval = 60000;
       const now = Date.now();
       let reference_point = now - (now % interval);
@@ -41,7 +53,7 @@ export function Chart(props: { market?: Market }) {
           kind: ChartType.Interval.toString(),
           reference_point: new Date(reference_point).toISOString(),
           span: 60000000,
-        })}`
+        })}`,
       );
       events.onmessage = (ev) => {
         chart.push(Candlestick.parse(JSON.parse(ev.data)));
@@ -56,7 +68,7 @@ export function Chart(props: { market?: Market }) {
             kind: ChartType.Interval.toString(),
             reference_point: new Date(reference_point).toISOString(),
             span: 60000000,
-          })}`
+          })}`,
         )
           .then((r) => r.json())
           .then((r) => z.nullable(Candlestick).parse(r))
@@ -71,5 +83,10 @@ export function Chart(props: { market?: Market }) {
     events?.close();
   });
 
-  return <div ref={ChartDOM} class="absolute bottom-0 left-0 right-0 top-0 bg-gray-2" />;
+  return (
+    <div
+      ref={ChartDOM}
+      class="absolute bottom-0 left-0 right-0 top-0 bg-gray-2"
+    />
+  );
 }

@@ -44,7 +44,10 @@ export default function Root() {
         />
         <Link rel="icon" href="/gfx/logo.svg" />
         <Link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png" />
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-HS7VCPVSGW" />
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-HS7VCPVSGW"
+        />
         <script async src="/google-analytics.js" />
         <script async src="/cookie3-integration.js" />
         {import.meta.env.PROD == true ? (

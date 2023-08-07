@@ -2,7 +2,11 @@ import { For, Show, createSignal } from "solid-js";
 import { joinPaths } from "solid-start/islands/server-router";
 import { base } from "~/root";
 import { useWallet } from "@web/components/providers/WalletProvider";
-import { CONTRACT_ON_CHAIN, setCrowdsale, useCrowdsale } from "../providers/CrowdsaleProvider";
+import {
+  CONTRACT_ON_CHAIN,
+  setCrowdsale,
+  useCrowdsale,
+} from "../providers/CrowdsaleProvider";
 
 interface TokenDropdownProps {
   disabled: boolean;
@@ -52,9 +56,16 @@ export default function TokenDropdown(props: TokenDropdownProps) {
       </div>
       <Show when={showDropdown()}>
         <div class="absolute right-0 top-[50px] z-10 grid gap-2 rounded-lg border border-gray-500 p-2 backdrop-blur-md max-md:w-[200px] md:w-[300px]">
-          <div class=" rounded-lg px-4 py-2 font-semibold text-text-1">Select Token</div>
+          <div class=" rounded-lg px-4 py-2 font-semibold text-text-1">
+            Select Token
+          </div>
           <div class="border-[1px] border-solid border-gray-500" />
-          <For each={CONTRACT_ON_CHAIN.get(wallet.selected_network.network.name)?.tokens}>
+          <For
+            each={
+              CONTRACT_ON_CHAIN.get(wallet.selected_network.network.name)
+                ?.tokens
+            }
+          >
             {(item, index) => (
               <div
                 data-index={index()}
@@ -65,7 +76,12 @@ export default function TokenDropdown(props: TokenDropdownProps) {
                 }}
               >
                 <div class="col-start-1 col-end-2">
-                  <img src={joinPaths(base, item.icon)} width="30px" elementtiming={""} fetchpriority={"high"} />
+                  <img
+                    src={joinPaths(base, item.icon)}
+                    width="30px"
+                    elementtiming={""}
+                    fetchpriority={"high"}
+                  />
                 </div>
                 <div class="col-start-2 col-end-3 text-left">
                   <div>{item.name}</div>

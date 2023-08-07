@@ -6,7 +6,11 @@ import { AssetInfo } from "./Wealth/AssetInfo";
 import { A } from "@solidjs/router";
 import { SessionResponse } from "@web/components/providers/SessionProvider/models";
 
-export default function CreateWealth(assets: Map<Uuid, Asset>, session: SessionResponse | undefined, precision: number) {
+export default function CreateWealth(
+  assets: Map<Uuid, Asset>,
+  session: SessionResponse | undefined,
+  precision: number,
+) {
   return () => (
     <Show when={assets} fallback={<Wealth />}>
       <Wealth session={session} assets={assets} precision={precision} />
@@ -14,7 +18,11 @@ export default function CreateWealth(assets: Map<Uuid, Asset>, session: SessionR
   );
 }
 
-export function Wealth(props: { session?: SessionResponse; assets?: Map<Uuid, Asset>; precision?: number }) {
+export function Wealth(props: {
+  session?: SessionResponse;
+  assets?: Map<Uuid, Asset>;
+  precision?: number;
+}) {
   const [assetsStore, setAssetsStore] = createStore<{ [key: Uuid]: Asset }>({});
 
   onMount(async () => {
@@ -30,7 +38,11 @@ export function Wealth(props: { session?: SessionResponse; assets?: Map<Uuid, As
       <Index each={Object.values(assetsStore)}>
         {(element) => (
           <A href={`/asset/${element().id}`} class="cursor-pointer py-4">
-            <AssetInfo asset={element()} precision={props.precision} session={props.session} />
+            <AssetInfo
+              asset={element()}
+              precision={props.precision}
+              session={props.session}
+            />
           </A>
         )}
       </Index>

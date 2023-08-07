@@ -20,7 +20,10 @@ interface BadgeStore {
   progress: Fraction;
 }
 
-export default function CreateBadge(session?: SessionResponse, badgeFamily?: BadgeFamily) {
+export default function CreateBadge(
+  session?: SessionResponse,
+  badgeFamily?: BadgeFamily,
+) {
   return () => (
     <Show when={session && badgeFamily}>
       <Badge session={session} badgeFamily={badgeFamily} />
@@ -28,7 +31,10 @@ export default function CreateBadge(session?: SessionResponse, badgeFamily?: Bad
   );
 }
 
-export function Badge(props: { session?: SessionResponse; badgeFamily?: BadgeFamily }) {
+export function Badge(props: {
+  session?: SessionResponse;
+  badgeFamily?: BadgeFamily;
+}) {
   const [badge, setBadge] = createStore<BadgeStore>({
     name: undefined,
     description: undefined,
@@ -55,7 +61,7 @@ export function Badge(props: { session?: SessionResponse; badgeFamily?: BadgeFam
             progress: badge.progress,
             // image: badge.name.replaceAll(" ", "").toLowerCase()
           });
-        }
+        },
       );
     }
   });
@@ -68,7 +74,11 @@ export function Badge(props: { session?: SessionResponse; badgeFamily?: BadgeFam
     <div class="grid grid-flow-row items-center justify-stretch gap-1 bg-gray-2 pb-2">
       <div class="grid grid-cols-[auto_1fr] items-center justify-center">
         <img
-          src={badge.image ? joinPaths(base, `gfx/badges/${badge.image}.svg`) : joinPaths(base, "gfx/badges/default.svg")}
+          src={
+            badge.image
+              ? joinPaths(base, `gfx/badges/${badge.image}.svg`)
+              : joinPaths(base, "gfx/badges/default.svg")
+          }
           alt="badge"
           title={badge.description}
           class="h-16 w-16 rounded-full"

@@ -72,7 +72,10 @@ export function chartOptions(makret?: Market): DeepPartial<ChartOptions> {
     },
     localization: {
       timeFormatter: (time: UTCTimestamp | BusinessDay) => {
-        return new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "medium" }).format((time as UTCTimestamp) * 1000);
+        return new Intl.DateTimeFormat("en-GB", {
+          dateStyle: "medium",
+          timeStyle: "medium",
+        }).format((time as UTCTimestamp) * 1000);
       },
     },
   };

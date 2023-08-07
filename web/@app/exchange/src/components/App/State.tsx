@@ -12,15 +12,30 @@ enum StateTabs {
   TradeHistory,
 }
 
-export default function CreateState(market?: Market, session?: SessionResponse, precision?: number, capacity?: number) {
+export default function CreateState(
+  market?: Market,
+  session?: SessionResponse,
+  precision?: number,
+  capacity?: number,
+) {
   return () => (
     <Show when={session && precision} fallback={<State />}>
-      <State market={market} session={session} precision={precision} capacity={capacity} />
+      <State
+        market={market}
+        session={session}
+        precision={precision}
+        capacity={capacity}
+      />
     </Show>
   );
 }
 
-export function State(props: { market?: Market; session?: SessionResponse; precision?: number; capacity?: number }) {
+export function State(props: {
+  market?: Market;
+  session?: SessionResponse;
+  precision?: number;
+  capacity?: number;
+}) {
   const [tab, setTab] = createSignal<StateTabs>(StateTabs.OpenOrders);
 
   return (
@@ -58,9 +73,30 @@ export function State(props: { market?: Market; session?: SessionResponse; preci
       </div>
 
       <Switch>
-        <Match when={tab() == StateTabs.OpenOrders}>{CreateOpenOrders(props.market, props.session, props.precision, props.capacity)()}</Match>
-        <Match when={tab() == StateTabs.OrderHistory}>{CreateOrderHistory(props.market, props.session, props.precision, props.capacity)()}</Match>
-        <Match when={tab() == StateTabs.TradeHistory}>{CreateTradeHistory(props.market, props.session, props.precision, props.capacity)()}</Match>
+        <Match when={tab() == StateTabs.OpenOrders}>
+          {CreateOpenOrders(
+            props.market,
+            props.session,
+            props.precision,
+            props.capacity,
+          )()}
+        </Match>
+        <Match when={tab() == StateTabs.OrderHistory}>
+          {CreateOrderHistory(
+            props.market,
+            props.session,
+            props.precision,
+            props.capacity,
+          )()}
+        </Match>
+        <Match when={tab() == StateTabs.TradeHistory}>
+          {CreateTradeHistory(
+            props.market,
+            props.session,
+            props.precision,
+            props.capacity,
+          )()}
+        </Match>
       </Switch>
     </div>
   );

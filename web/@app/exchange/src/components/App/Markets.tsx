@@ -22,7 +22,9 @@ export const AssetPairRecognitionResult = z.object({
   asset0: AssetResponse,
   asset1: AssetResponse,
 });
-export type AssetPairRecognitionResult = z.infer<typeof AssetPairRecognitionResult>;
+export type AssetPairRecognitionResult = z.infer<
+  typeof AssetPairRecognitionResult
+>;
 
 enum Tab {
   Markets,
@@ -30,14 +32,18 @@ enum Tab {
 }
 
 const querySearch = async (input: string) => {
-  return await fetch(`${api}/public/assets/search_asset_pair?${params({ input })}`)
+  return await fetch(
+    `${api}/public/assets/search_asset_pair?${params({ input })}`,
+  )
     .then((r) => r.json())
     .then((r) => z.array(AssetPairRecognitionResult).parse(r));
 };
 
 export default function Markets() {
   const [search, setSearch] = createSignal("");
-  const [marketsState, setMarketsState] = createStore<Array<AssetPairRecognitionResult>>([]);
+  const [marketsState, setMarketsState] = createStore<
+    Array<AssetPairRecognitionResult>
+  >([]);
   const [tab, setTab] = createSignal(Tab.Markets);
 
   createEffect(async () => {
@@ -64,7 +70,13 @@ export default function Markets() {
           }}
         >
           <div class="grid items-center justify-center gap-1 text-navButton">
-            <img src={joinPaths(base, "/gfx/star.svg")} alt="star" width="16px" height="16px" class="col-start-1 col-end-2" />
+            <img
+              src={joinPaths(base, "/gfx/star.svg")}
+              alt="star"
+              width="16px"
+              height="16px"
+              class="col-start-1 col-end-2"
+            />
             <div class="col-start-2 col-end-3">Favorites</div>
           </div>
         </NavButton>
@@ -74,7 +86,11 @@ export default function Markets() {
           class="text-markets-searchbar row-start-1 row-end-2 mx-auto mt-3 w-full"
           left={
             <>
-              <img src={joinPaths(base, "/gfx/search.svg")} alt="search" width="20px" />
+              <img
+                src={joinPaths(base, "/gfx/search.svg")}
+                alt="search"
+                width="20px"
+              />
             </>
           }
           onInput={(e) => {
@@ -82,7 +98,12 @@ export default function Markets() {
             setSearch(value);
           }}
         />
-        <TriElementHeader class="row-start-2 row-end-3 self-end" column_0={"Market"} column_1={"Price"} column_2={"Change"} />
+        <TriElementHeader
+          class="row-start-2 row-end-3 self-end"
+          column_0={"Market"}
+          column_1={"Price"}
+          column_2={"Change"}
+        />
       </div>
       <div class="relative row-start-3 row-end-4">
         <div class="absolute bottom-0 left-0 right-0 top-0 flex flex-col overflow-y-auto">
@@ -90,8 +111,12 @@ export default function Markets() {
             {(element, i) => (
               <A href={`/${element().asset0.id}/${element().asset1.id}`}>
                 <TriElement
-                  class={`cursor-pointer select-none px-3 py-2 ${i % 2 && "bg-gray-3"}`}
-                  column_0={`${element().asset0.symbol}/${element().asset1.symbol}`}
+                  class={`cursor-pointer select-none px-3 py-2 ${
+                    i % 2 && "bg-gray-3"
+                  }`}
+                  column_0={`${element().asset0.symbol}/${
+                    element().asset1.symbol
+                  }`}
                   column_1={0}
                   column_2={0}
                 />

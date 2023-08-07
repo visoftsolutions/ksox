@@ -8,7 +8,9 @@ export interface RectangularButtonComponent {
   onClick?: (e: MouseEvent) => void;
 }
 
-export default function NavRectangularButton(props: RectangularButtonComponent) {
+export default function NavRectangularButton(
+  props: RectangularButtonComponent,
+) {
   return (
     <div
       class={`grid h-[40px] cursor-pointer select-none items-center justify-center px-3 font-sanspro text-navButton font-semibold

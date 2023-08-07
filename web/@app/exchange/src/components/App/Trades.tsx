@@ -14,21 +14,51 @@ import { Market } from "~/components/providers/MarketProvider";
 import { ev, finv, fmul } from "@web/types/primitives/fraction";
 import subscribeEvents from "@web/utils/subscribeEvents";
 
-export default function CreateTrades(market: Market, precision?: number, capacity?: number) {
+export default function CreateTrades(
+  market: Market,
+  precision?: number,
+  capacity?: number,
+) {
   return () => (
-    <Show when={market && market.quote_asset && market.base_asset && precision && capacity} fallback={<Trades />}>
-      <Trades quote_asset={market.quote_asset} base_asset={market.base_asset} precision={precision} capacity={capacity} />
+    <Show
+      when={
+        market &&
+        market.quote_asset &&
+        market.base_asset &&
+        precision &&
+        capacity
+      }
+      fallback={<Trades />}
+    >
+      <Trades
+        quote_asset={market.quote_asset}
+        base_asset={market.base_asset}
+        precision={precision}
+        capacity={capacity}
+      />
     </Show>
   );
 }
 
-export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precision?: number; capacity?: number }) {
-  const [tradesState, setTradesState] = createStore<{ trades: TriElementComponent[] }>({ trades: [] });
+export function Trades(props: {
+  quote_asset?: Asset;
+  base_asset?: Asset;
+  precision?: number;
+  capacity?: number;
+}) {
+  const [tradesState, setTradesState] = createStore<{
+    trades: TriElementComponent[];
+  }>({ trades: [] });
 
   let eventsource: EventSource | undefined;
 
   onMount(async () => {
-    if (props.quote_asset && props.base_asset && props.precision && props.capacity) {
+    if (
+      props.quote_asset &&
+      props.base_asset &&
+      props.precision &&
+      props.capacity
+    ) {
       const quote_asset = props.quote_asset;
       const base_asset = props.base_asset;
       const precision = props.precision;
@@ -36,19 +66,39 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
 
       const convertTrade = (trade: PublicTrade) => {
         return {
-          column_0: <span class={trade.direction == "buy" ? "text-green" : "text-red"}>{format(ev(trade.price), formatTemplate(precision))}</span>,
-          column_1: format(ev(fmul(trade.volume, finv(trade.price))), formatTemplate(precision)),
+          column_0: (
+            <span class={trade.direction == "buy" ? "text-green" : "text-red"}>
+              {format(ev(trade.price), formatTemplate(precision))}
+            </span>
+          ),
+          column_1: format(
+            ev(fmul(trade.volume, finv(trade.price))),
+            formatTemplate(precision),
+          ),
           column_2: trade.time.toLocaleTimeString(),
         };
       };
 
       eventsource = await subscribeEvents(
         `${api}/public/trades`,
-        params({ quote_asset_id: quote_asset.id, base_asset_id: base_asset.id, limit: capacity, offset: 0 }),
-        params({ quote_asset_id: quote_asset.id, base_asset_id: base_asset.id }),
+        params({
+          quote_asset_id: quote_asset.id,
+          base_asset_id: base_asset.id,
+          limit: capacity,
+          offset: 0,
+        }),
+        params({
+          quote_asset_id: quote_asset.id,
+          base_asset_id: base_asset.id,
+        }),
         (data) => {
-          setTradesState("trades", (prev) => [...prev, ...z.array(PublicTrade).parse(data).map(convertTrade)].slice(0, props.capacity));
-        }
+          setTradesState("trades", (prev) =>
+            [
+              ...prev,
+              ...z.array(PublicTrade).parse(data).map(convertTrade),
+            ].slice(0, props.capacity),
+          );
+        },
       );
     }
   });
@@ -59,7 +109,9 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
 
   return (
     <div class="grid h-full grid-rows-[auto_36px_1fr]">
-      <div class="row-start-1 row-end-2 p-3 font-sanspro text-orderbook-label font-semibold">Trades</div>
+      <div class="row-start-1 row-end-2 p-3 font-sanspro text-orderbook-label font-semibold">
+        Trades
+      </div>
       <TriElementHeader
         class="row-start-2 row-end-3 px-3"
         column_0={`Price (${props.quote_asset?.symbol ?? "---"})`}
@@ -71,7 +123,9 @@ export function Trades(props: { quote_asset?: Asset; base_asset?: Asset; precisi
           <Index each={tradesState.trades}>
             {(element, i) => (
               <TriElement
-                class={`px-3 py-1 font-sanspro text-trades-item ${i % 2 && "bg-gray-3"}`}
+                class={`px-3 py-1 font-sanspro text-trades-item ${
+                  i % 2 && "bg-gray-3"
+                }`}
                 column_0={element().column_0}
                 column_1={element().column_1}
                 column_2={element().column_2}

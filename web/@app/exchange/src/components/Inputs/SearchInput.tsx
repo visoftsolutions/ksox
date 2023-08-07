@@ -31,7 +31,9 @@ export default function SearchInput(props: SearchInputComponent) {
       <div class="col-start-2 col-end-3 text-right">
         <input
           id={id}
-          class={"w-full bg-transparent p-1 text-left placeholder-gray-4 outline-none"}
+          class={
+            "w-full bg-transparent p-1 text-left placeholder-gray-4 outline-none"
+          }
           type="text"
           spellcheck={true}
           ref={inputDOM}

@@ -1,4 +1,11 @@
-import { Accessor, createContext, createSignal, JSX, onMount, useContext } from "solid-js";
+import {
+  Accessor,
+  createContext,
+  createSignal,
+  JSX,
+  onMount,
+  useContext,
+} from "solid-js";
 import { z } from "zod";
 import { api } from "~/root";
 import { Asset } from "@web/types/asset";
@@ -23,7 +30,11 @@ export function AssetsProvider(props: { children: JSX.Element }) {
     setAssets(x);
   });
 
-  return <AssetsContext.Provider value={assets}>{props.children}</AssetsContext.Provider>;
+  return (
+    <AssetsContext.Provider value={assets}>
+      {props.children}
+    </AssetsContext.Provider>
+  );
 }
 export function useAssets() {
   return useContext<Accessor<Map<Uuid, Asset>>>(AssetsContext);

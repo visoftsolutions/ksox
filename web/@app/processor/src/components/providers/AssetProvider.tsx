@@ -1,4 +1,11 @@
-import { Accessor, createContext, createEffect, createSignal, JSX, useContext } from "solid-js";
+import {
+  Accessor,
+  createContext,
+  createEffect,
+  createSignal,
+  JSX,
+  useContext,
+} from "solid-js";
 import { useParams } from "solid-start";
 import { Asset } from "@web/types/asset";
 import { Uuid } from "@web/types/primitives/uuid";
@@ -16,7 +23,11 @@ export function AssetProvider(props: { children: JSX.Element }) {
     }
   });
 
-  return <AssetContext.Provider value={asset}>{props.children}</AssetContext.Provider>;
+  return (
+    <AssetContext.Provider value={asset}>
+      {props.children}
+    </AssetContext.Provider>
+  );
 }
 export function useAsset() {
   return useContext<Accessor<Asset | undefined>>(AssetContext);

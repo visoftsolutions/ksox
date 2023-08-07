@@ -33,7 +33,11 @@ export function Mint(props: { asset: Asset; precision: number }) {
         />
         <div
           class={`col-start-2 col-end-3 grid h-[32px] w-[100px] 
-            ${session() ? "cursor-pointer bg-ksox-2 active:bg-opacity-70" : "bg-gray-3"}
+            ${
+              session()
+                ? "cursor-pointer bg-ksox-2 active:bg-opacity-70"
+                : "bg-gray-3"
+            }
             select-none items-center justify-center rounded-md  text-markets-label transition-colors duration-75
           `}
           onClick={async () => {
@@ -50,7 +54,7 @@ export function Mint(props: { asset: Asset; precision: number }) {
                     asset_id: props.asset.id,
                     amount: amount(),
                   }),
-                  (_, v) => (typeof v === "bigint" ? v.toString() : v)
+                  (_, v) => (typeof v === "bigint" ? v.toString() : v),
                 ),
               }).then((r) => r.text());
             }

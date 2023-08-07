@@ -30,7 +30,9 @@ export default function App() {
         <Dynamic component={CreateTrades(market(), precision(), capacity)} />
       </div>
       <div class="col-start-2 col-end-4 row-start-3 row-end-4 bg-gray-2 lg:col-end-5">
-        <Dynamic component={CreateState(market(), session(), precision(), capacity)} />
+        <Dynamic
+          component={CreateState(market(), session(), precision(), capacity)}
+        />
       </div>
       <div class="col-start-4 col-end-6 row-start-3 row-end-4 bg-gray-2 lg:col-start-5">
         <Dynamic component={CreateSubmit(market(), session(), precision())} />

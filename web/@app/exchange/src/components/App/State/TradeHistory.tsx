@@ -26,7 +26,12 @@ interface TradeHistory {
   fee: number;
 }
 
-export default function CreateTradeHistory(market?: Market, session?: SessionResponse, precision?: number, capacity?: number) {
+export default function CreateTradeHistory(
+  market?: Market,
+  session?: SessionResponse,
+  precision?: number,
+  capacity?: number,
+) {
   return () => (
     <>
       <div class="row-start-2 row-end-3 grid grid-cols-7 items-center self-center px-3 text-stateHeader font-semibold text-gray-4">
@@ -39,27 +44,47 @@ export default function CreateTradeHistory(market?: Market, session?: SessionRes
         <div class="col-start-7 col-end-8 text-right">Fee</div>
       </div>
       <Show when={market && session && precision}>
-        <TradeHistory market={market} session={session} precision={precision} capacity={capacity} />
+        <TradeHistory
+          market={market}
+          session={session}
+          precision={precision}
+          capacity={capacity}
+        />
       </Show>
     </>
   );
 }
 
-export function TradeHistory(props: { market?: Market; session?: SessionResponse; precision?: number; capacity?: number }) {
+export function TradeHistory(props: {
+  market?: Market;
+  session?: SessionResponse;
+  precision?: number;
+  capacity?: number;
+}) {
   const assets = useAssets();
-  const [tradeHistory, setTradeHistory] = createStore<{ [key: Uuid]: TradeHistory }>({});
+  const [tradeHistory, setTradeHistory] = createStore<{
+    [key: Uuid]: TradeHistory;
+  }>({});
 
   let eventsource: EventSource | undefined;
 
   onMount(async () => {
-    if (props.market?.quote_asset && props.market?.base_asset && props.capacity && assets()) {
+    if (
+      props.market?.quote_asset &&
+      props.market?.base_asset &&
+      props.capacity &&
+      assets()
+    ) {
       const capacity = props.capacity;
 
       const convertTradeHistory = (trade: PrivateTrade): TradeHistory => {
         const price = ev(trade.price);
         const quote_asset_volume = ev(trade.taker_quote_volume);
         const base_asset_volume = ev(trade.taker_base_volume);
-        const asset_pair: [Asset | undefined, Asset | undefined] = [assets().get(trade.base_asset_id), assets().get(trade.quote_asset_id)];
+        const asset_pair: [Asset | undefined, Asset | undefined] = [
+          assets().get(trade.base_asset_id),
+          assets().get(trade.quote_asset_id),
+        ];
         const fee = (ev(trade.maker_quote_volume) - base_asset_volume) * price;
         return {
           id: trade.id,
@@ -73,15 +98,20 @@ export function TradeHistory(props: { market?: Market; session?: SessionResponse
         };
       };
 
-      eventsource = await subscribeEvents(`${api}/private/trades`, params({ limit: capacity, offset: 0 }), params({}), (data) => {
-        batch(() =>
-          z
-            .array(PrivateTrade)
-            .parse(data)
-            .map(convertTradeHistory)
-            .forEach((e) => setTradeHistory({ [e.id]: e }))
-        );
-      });
+      eventsource = await subscribeEvents(
+        `${api}/private/trades`,
+        params({ limit: capacity, offset: 0 }),
+        params({}),
+        (data) => {
+          batch(() =>
+            z
+              .array(PrivateTrade)
+              .parse(data)
+              .map(convertTradeHistory)
+              .forEach((e) => setTradeHistory({ [e.id]: e })),
+          );
+        },
+      );
     }
   });
 
@@ -91,18 +121,55 @@ export function TradeHistory(props: { market?: Market; session?: SessionResponse
 
   return (
     <div class="row-start-3 row-end-4 overflow-auto">
-      <Index each={Object.values(tradeHistory).sort((b, a) => a.trade_time.getTime() - b.trade_time.getTime())}>
+      <Index
+        each={Object.values(tradeHistory).sort(
+          (b, a) => a.trade_time.getTime() - b.trade_time.getTime(),
+        )}
+      >
         {(element, i) => (
-          <div class={`grid grid-cols-7 items-center self-center px-[12px] py-[8px] text-state-item font-normal text-white ${i % 2 && "bg-gray-3"} `}>
-            <div class="col-start-1 col-end-2 text-left">{element().trade_time.toUTCString()}</div>
-            <div class="col-start-2 col-end-3 text-center">{element().asset_pair[0]?.symbol + " / " + element().asset_pair[1]?.symbol}</div>
-            <div class={`col-start-3 col-end-4 text-center ${element().direction == Direction.Enum.buy ? "text-green" : "text-red"}`}>
+          <div
+            class={`grid grid-cols-7 items-center self-center px-[12px] py-[8px] text-state-item font-normal text-white ${
+              i % 2 && "bg-gray-3"
+            } `}
+          >
+            <div class="col-start-1 col-end-2 text-left">
+              {element().trade_time.toUTCString()}
+            </div>
+            <div class="col-start-2 col-end-3 text-center">
+              {element().asset_pair[0]?.symbol +
+                " / " +
+                element().asset_pair[1]?.symbol}
+            </div>
+            <div
+              class={`col-start-3 col-end-4 text-center ${
+                element().direction == Direction.Enum.buy
+                  ? "text-green"
+                  : "text-red"
+              }`}
+            >
               {element().direction}
             </div>
-            <div class="col-start-4 col-end-5 text-center">{format(element().trade_price, formatTemplate(props.precision ?? 2))}</div>
-            <div class="col-start-5 col-end-6 text-center">{format(element().trade_value, formatTemplate(props.precision ?? 2))}</div>
-            <div class="col-start-6 col-end-7 text-center">{format(element().trade_qty, formatTemplate(props.precision ?? 2))}</div>
-            <div class="col-start-7 col-end-8 text-right">{format(element().fee, formatTemplate(props.precision ?? 2))}</div>
+            <div class="col-start-4 col-end-5 text-center">
+              {format(
+                element().trade_price,
+                formatTemplate(props.precision ?? 2),
+              )}
+            </div>
+            <div class="col-start-5 col-end-6 text-center">
+              {format(
+                element().trade_value,
+                formatTemplate(props.precision ?? 2),
+              )}
+            </div>
+            <div class="col-start-6 col-end-7 text-center">
+              {format(
+                element().trade_qty,
+                formatTemplate(props.precision ?? 2),
+              )}
+            </div>
+            <div class="col-start-7 col-end-8 text-right">
+              {format(element().fee, formatTemplate(props.precision ?? 2))}
+            </div>
           </div>
         )}
       </Index>

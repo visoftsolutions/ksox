@@ -1,6 +1,18 @@
 // @refresh reload
 import { Suspense, lazy, onMount } from "solid-js";
-import { Body, ErrorBoundary, FileRoutes, Head, Html, Meta, Routes, Scripts, Title, Link, Route } from "solid-start";
+import {
+  Body,
+  ErrorBoundary,
+  FileRoutes,
+  Head,
+  Html,
+  Meta,
+  Routes,
+  Scripts,
+  Title,
+  Link,
+  Route,
+} from "solid-start";
 import "./root.css";
 import { Nav, NavProvider, setNav } from "./components/providers/NavProvider";
 import { joinPaths } from "solid-start/islands/server-router";
@@ -22,7 +34,10 @@ export default function Root() {
         <Meta charset="utf-8" />
         <Meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta name="theme-color" content="#0F0D12" />
-        <Meta name="description" content="KSOX dashboard check your badges and engagement rate." />
+        <Meta
+          name="description"
+          content="KSOX dashboard check your badges and engagement rate."
+        />
         <Meta
           name="keywords"
           content="KSOX, Crypto, decentralized exchange, zk-STARKs, cryptocurrency exchange, buy, sell, trade, transaction fees, arbitrage, transaction processing, Token Crowdsale, KSXT, KSX, investor, crowdfunding, secure, seamless, crypto payments, badges, engagement, dashboard"
@@ -36,7 +51,11 @@ export default function Root() {
               <WalletProvider projectId={projectId} alchemyId={alchemyId}>
                 <Routes>
                   <Route path="/" component={Index}>
-                    <Route path={["/"]} element={<App />} preload={() => setNav(Nav.App)} />
+                    <Route
+                      path={["/"]}
+                      element={<App />}
+                      preload={() => setNav(Nav.App)}
+                    />
                   </Route>
                   <FileRoutes />
                 </Routes>

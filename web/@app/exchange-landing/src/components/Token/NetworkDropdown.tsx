@@ -52,7 +52,9 @@ export default function NetworkDropdown(props: NetworkDropdownProps) {
       </div>
       <Show when={showDropdown()}>
         <div class="md-max:left-0 absolute top-[50px] grid w-[300px] grid-flow-row gap-2 rounded-lg border border-gray-500 p-2 backdrop-blur-md max-md:w-auto md:right-0">
-          <div class="rounded-lg px-4 py-2 font-semibold text-text-1">Select Network</div>
+          <div class="rounded-lg px-4 py-2 font-semibold text-text-1">
+            Select Network
+          </div>
           <div class="border-[1px] border-solid border-gray-500" />
           <For each={AVAILABLE_CHAINS}>
             {(item, index) => (
@@ -80,9 +82,16 @@ export default function NetworkDropdown(props: NetworkDropdownProps) {
                 }}
               >
                 <div class="col-start-1 col-end-2">
-                  <img src={joinPaths(base, item.icon)} width="30px" elementtiming={""} fetchpriority={"high"} />
+                  <img
+                    src={joinPaths(base, item.icon)}
+                    width="30px"
+                    elementtiming={""}
+                    fetchpriority={"high"}
+                  />
                 </div>
-                <div class="col-start-2 col-end-3 text-left">{item.network.name}</div>
+                <div class="col-start-2 col-end-3 text-left">
+                  {item.network.name}
+                </div>
               </div>
             )}
           </For>

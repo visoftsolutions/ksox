@@ -1,4 +1,11 @@
-import { Accessor, createContext, createEffect, createSignal, JSX, useContext } from "solid-js";
+import {
+  Accessor,
+  createContext,
+  createEffect,
+  createSignal,
+  JSX,
+  useContext,
+} from "solid-js";
 import { useParams } from "solid-start";
 import { Asset } from "@web/types/asset";
 import { Uuid } from "@web/types/primitives/uuid";
@@ -6,7 +13,10 @@ import { useAssets } from "./AssetsProvider";
 
 export type Market = { quote_asset?: Asset; base_asset?: Asset };
 
-const [market, setMarket] = createSignal<Market>({ quote_asset: undefined, base_asset: undefined });
+const [market, setMarket] = createSignal<Market>({
+  quote_asset: undefined,
+  base_asset: undefined,
+});
 const MarketContext = createContext<Accessor<Market>>(market);
 export function MarketProvider(props: { children: JSX.Element }) {
   const params = useParams<{ baseAssetId?: Uuid; quoteAssetId?: Uuid }>();
@@ -21,7 +31,11 @@ export function MarketProvider(props: { children: JSX.Element }) {
     }
   });
 
-  return <MarketContext.Provider value={market}>{props.children}</MarketContext.Provider>;
+  return (
+    <MarketContext.Provider value={market}>
+      {props.children}
+    </MarketContext.Provider>
+  );
 }
 export function useMarket() {
   return useContext<Accessor<Market>>(MarketContext);

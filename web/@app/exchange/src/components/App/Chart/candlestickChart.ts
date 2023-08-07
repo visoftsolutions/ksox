@@ -22,7 +22,7 @@ export class CandlestickChart {
     container: HTMLElement,
     chartOptions: DeepPartial<ChartOptions>,
     histogramOptions: HistogramSeriesPartialOptions,
-    candlestickOptions: CandlestickSeriesPartialOptions
+    candlestickOptions: CandlestickSeriesPartialOptions,
   ) {
     this.tohlc_data = [];
     this.tv_data = [];
@@ -36,7 +36,8 @@ export class CandlestickChart {
     }).observe(container as Element);
 
     this.histogramSeries = this.chart.addHistogramSeries(histogramOptions);
-    this.candlestickSeries = this.chart.addCandlestickSeries(candlestickOptions);
+    this.candlestickSeries =
+      this.chart.addCandlestickSeries(candlestickOptions);
     this.chart.timeScale().fitContent();
   }
 

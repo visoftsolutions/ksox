@@ -33,12 +33,28 @@ export default function Account() {
 
   return (
     <div class="grid grid-flow-row items-center justify-center gap-3 bg-gray-2 p-4">
-      <SearchInput left="name" value={userData.name} onInput={(e) => setUserData({ name: e.target.value })} />
-      <SearchInput left="email" value={userData.email} onInput={(e) => setUserData({ email: e.target.value })} />
-      <SearchInput left="phone" value={userData.phone} onInput={(e) => setUserData({ phone: e.target.value })} />
+      <SearchInput
+        left="name"
+        value={userData.name}
+        onInput={(e) => setUserData({ name: e.target.value })}
+      />
+      <SearchInput
+        left="email"
+        value={userData.email}
+        onInput={(e) => setUserData({ email: e.target.value })}
+      />
+      <SearchInput
+        left="phone"
+        value={userData.phone}
+        onInput={(e) => setUserData({ phone: e.target.value })}
+      />
       <div
         class={`grid h-[32px]
-                    ${session() ? "cursor-pointer bg-ksox-2 active:bg-opacity-70" : "bg-gray-3"}
+                    ${
+                      session()
+                        ? "cursor-pointer bg-ksox-2 active:bg-opacity-70"
+                        : "bg-gray-3"
+                    }
                     select-none items-center justify-center rounded-md  text-markets-label transition-colors duration-75`}
         onClick={async () => {
           if (session()) {
@@ -55,7 +71,7 @@ export default function Account() {
                   email: userData.email,
                   phone: userData.phone,
                 }),
-                (_, v) => (typeof v === "bigint" ? v.toString() : v)
+                (_, v) => (typeof v === "bigint" ? v.toString() : v),
               ),
             }).then((r) => r.text());
           }

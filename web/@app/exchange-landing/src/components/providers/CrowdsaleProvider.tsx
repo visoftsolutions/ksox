@@ -149,7 +149,11 @@ export const CONTRACT_ON_CHAIN: Map<string, Contract> = new Map([
 ]);
 
 export const [crowdsale, setCrowdsale] = createStore<CrowdsaleProvider>({
-  selected_token: { icon: "/gfx/asset_icons/eth.svg", name: "Ethereum", symbol: "ETH" },
+  selected_token: {
+    icon: "/gfx/asset_icons/eth.svg",
+    name: "Ethereum",
+    symbol: "ETH",
+  },
   phaseContract: {
     name: "",
     isPhaseActive: false,
@@ -180,7 +184,9 @@ export function CrowdsaleProvider(props: { children: JSX.Element }) {
   createEffect(async () => {
     const publicClient = wallet.publicClient;
     const publicWSClient = wallet.publicWSClient;
-    const phaseContract = CONTRACT_ON_CHAIN.get(wallet.selected_network.network.name)?.phaseContract;
+    const phaseContract = CONTRACT_ON_CHAIN.get(
+      wallet.selected_network.network.name,
+    )?.phaseContract;
 
     if (phaseContract && publicClient && publicWSClient) {
       try {
@@ -244,7 +250,9 @@ export function CrowdsaleProvider(props: { children: JSX.Element }) {
           currentBucketStartTimestamp,
           currentBucketEndTimestamp,
           currentBucketCapacity,
-          currentBucketRate: Number((currentBucketRateNumer * 100n) / currentBucketRateDenom) / 100,
+          currentBucketRate:
+            Number((currentBucketRateNumer * 100n) / currentBucketRateDenom) /
+            100,
           currentBucketSoldAmount,
         }));
 
@@ -262,7 +270,10 @@ export function CrowdsaleProvider(props: { children: JSX.Element }) {
                 currentBucketEndTimestamp: event.endTimestamp,
                 currentBucketCapacity: event.capacity,
                 currentBucketSoldAmount: 0n,
-                currentBucketRate: Number(((event.rateNumer ?? 0n) * 100n) / (event.rateDenom ?? 0n)) / 100,
+                currentBucketRate:
+                  Number(
+                    ((event.rateNumer ?? 0n) * 100n) / (event.rateDenom ?? 0n),
+                  ) / 100,
               }));
             }
           },
@@ -314,7 +325,11 @@ export function CrowdsaleProvider(props: { children: JSX.Element }) {
     }
   });
 
-  return <CrowdsaleContext.Provider value={crowdsale}>{props.children}</CrowdsaleContext.Provider>;
+  return (
+    <CrowdsaleContext.Provider value={crowdsale}>
+      {props.children}
+    </CrowdsaleContext.Provider>
+  );
 }
 export function useCrowdsale() {
   return useContext<CrowdsaleProvider>(CrowdsaleContext);

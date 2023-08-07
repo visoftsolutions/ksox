@@ -27,7 +27,9 @@ export default function Assets() {
 
   const [search, setSearch] = createSignal<string>("");
   const [tab, setTab] = createSignal<Tab>(Tab.Mint);
-  const [selectedAsset, setSelectedAsset] = createSignal<Asset | undefined>(undefined);
+  const [selectedAsset, setSelectedAsset] = createSignal<Asset | undefined>(
+    undefined,
+  );
 
   return (
     <>
@@ -38,7 +40,11 @@ export default function Assets() {
               class="text-markets-searchbar row-start-1 row-end-2 mx-auto mt-3 w-full"
               left={
                 <>
-                  <img src={joinPaths(base, "/gfx/search.svg")} alt="search" width="20px" />
+                  <img
+                    src={joinPaths(base, "/gfx/search.svg")}
+                    alt="search"
+                    width="20px"
+                  />
                 </>
               }
               onInput={(e) => {
@@ -46,7 +52,10 @@ export default function Assets() {
                 setSearch(value);
               }}
             />
-            <TriElementHeader class="row-start-2 row-end-3 self-end" column_0={"Coin"} />
+            <TriElementHeader
+              class="row-start-2 row-end-3 self-end"
+              column_0={"Coin"}
+            />
           </div>
           <div class="relative row-start-2 row-end-3">
             <div class="absolute bottom-0 left-0 right-0 top-0 flex flex-col overflow-y-auto">
@@ -55,16 +64,31 @@ export default function Assets() {
                   <div
                     class={`grid h-[56px] cursor-pointer items-center justify-between px-3 py-2 text-orderbook-label
                     ${i % 2 ? "bg-gray-3" : ""}
-                    ${element() == selectedAsset() ? "bg-ksox-1 bg-opacity-40 text-white" : ""}`}
+                    ${
+                      element() == selectedAsset()
+                        ? "bg-ksox-1 bg-opacity-40 text-white"
+                        : ""
+                    }`}
                     onClick={() => {
                       setSelectedAsset(element());
                     }}
                   >
                     <div class="col-start-1 col-end-2 inline-grid items-center">
                       <div class="col-start-1 col-end-2 mr-1">
-                        <img src={joinPaths(base, "/gfx/asset_icons/" + element().symbol.toLowerCase() + ".svg")} width="28px" height="28px" />
+                        <img
+                          src={joinPaths(
+                            base,
+                            "/gfx/asset_icons/" +
+                              element().symbol.toLowerCase() +
+                              ".svg",
+                          )}
+                          width="28px"
+                          height="28px"
+                        />
                       </div>
-                      <div class="col-start-2 col-end-3">{`${element().name} (${element().symbol})`}</div>
+                      <div class="col-start-2 col-end-3">{`${element().name} (${
+                        element().symbol
+                      })`}</div>
                     </div>
                   </div>
                 )}
@@ -73,7 +97,9 @@ export default function Assets() {
           </div>
         </div>
         <div class="col-start-2 col-end-3 grid grid-rows-[76px_1fr] bg-gray-2 text-orderbook-label text-gray-4">
-          <Dynamic component={CreateAssetInfo(session(), selectedAsset(), precision())} />
+          <Dynamic
+            component={CreateAssetInfo(session(), selectedAsset(), precision())}
+          />
           <div class="row-start-2 row-end-3">
             <div
               class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
@@ -81,7 +107,11 @@ export default function Assets() {
               } `}
               onClick={() => setTab(Tab.Mint)}
             >
-              <img src={joinPaths(base, "/gfx/assets_arrow_down.svg")} alt="arrow_down" class="col-start-1 col-end-2" />
+              <img
+                src={joinPaths(base, "/gfx/assets_arrow_down.svg")}
+                alt="arrow_down"
+                class="col-start-1 col-end-2"
+              />
               <div class="col-start-2 col-end-3">Mint</div>
             </div>
             <div
@@ -90,7 +120,11 @@ export default function Assets() {
               }`}
               onClick={() => setTab(Tab.Burn)}
             >
-              <img src={joinPaths(base, "/gfx/assets_arrow_up.svg")} alt="arrow_up" class="col-start-1 col-end-2" />
+              <img
+                src={joinPaths(base, "/gfx/assets_arrow_up.svg")}
+                alt="arrow_up"
+                class="col-start-1 col-end-2"
+              />
               <div class="col-start-2 col-end-3">Burn</div>
             </div>
             <div
@@ -99,16 +133,26 @@ export default function Assets() {
               }`}
               onClick={() => setTab(Tab.History)}
             >
-              <img src={joinPaths(base, "/gfx/assets_clock.svg")} alt="clock" class="col-start-1 col-end-2" />
+              <img
+                src={joinPaths(base, "/gfx/assets_clock.svg")}
+                alt="clock"
+                class="col-start-1 col-end-2"
+              />
               <div class="col-start-2 col-end-3">History</div>
             </div>
             <div
               class={`mb-[1px] grid h-[36px] cursor-pointer grid-cols-[auto_1fr] items-center justify-center gap-2 px-4 py-2 ${
-                tab() == Tab.OwnTransfer ? "bg-ksox-1 bg-opacity-40 text-white" : ""
+                tab() == Tab.OwnTransfer
+                  ? "bg-ksox-1 bg-opacity-40 text-white"
+                  : ""
               }`}
               onClick={() => setTab(Tab.OwnTransfer)}
             >
-              <img src={joinPaths(base, "/gfx/assets_transfer.svg")} alt="transfer" class="col-start-1 col-end-2" />
+              <img
+                src={joinPaths(base, "/gfx/assets_transfer.svg")}
+                alt="transfer"
+                class="col-start-1 col-end-2"
+              />
               <div class="col-start-2 col-end-3">Own Transfer</div>
             </div>
           </div>

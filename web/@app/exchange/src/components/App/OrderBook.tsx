@@ -7,7 +7,9 @@ import { Asset } from "@web/types/asset";
 import params from "@web/utils/params";
 import { formatTemplate } from "@web/utils/precision";
 import { Market } from "~/components/providers/MarketProvider";
-import TriElementFill, { TriElementFillComponent } from "./TriElement/TriElementFill";
+import TriElementFill, {
+  TriElementFillComponent,
+} from "./TriElement/TriElementFill";
 import TriElementHeader from "./TriElement/TriElementHeader";
 import { ev } from "@web/types/primitives/fraction";
 import { PriceLevel } from "@web/types/pricelevel";
@@ -21,15 +23,38 @@ export const DepthResponse = z.object({
 
 export type DepthResponse = z.infer<typeof DepthResponse>;
 
-export default function CreateOrderBook(market: Market, precision?: number, capacity?: number) {
+export default function CreateOrderBook(
+  market: Market,
+  precision?: number,
+  capacity?: number,
+) {
   return () => (
-    <Show when={market && market.quote_asset && market.base_asset && precision && capacity} fallback={<OrderBook />}>
-      <OrderBook quote_asset={market.quote_asset} base_asset={market.base_asset} precision={precision} capacity={capacity} />
+    <Show
+      when={
+        market &&
+        market.quote_asset &&
+        market.base_asset &&
+        precision &&
+        capacity
+      }
+      fallback={<OrderBook />}
+    >
+      <OrderBook
+        quote_asset={market.quote_asset}
+        base_asset={market.base_asset}
+        precision={precision}
+        capacity={capacity}
+      />
     </Show>
   );
 }
 
-export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; precision?: number; capacity?: number }) {
+export function OrderBook(props: {
+  quote_asset?: Asset;
+  base_asset?: Asset;
+  precision?: number;
+  capacity?: number;
+}) {
   const [orderBook, setOrderBook] = createStore<{
     buys: TriElementFillComponent[];
     price: JSXElement;
@@ -44,14 +69,23 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
   let eventsource_price: EventSource | undefined;
 
   onMount(async () => {
-    if (props.quote_asset && props.base_asset && props.precision && props.capacity) {
+    if (
+      props.quote_asset &&
+      props.base_asset &&
+      props.precision &&
+      props.capacity
+    ) {
       const quote_asset = props.quote_asset;
       const base_asset = props.base_asset;
       const precision = props.precision;
       const capacity = props.capacity;
 
       const convertTrade = (trade: PublicTrade) => {
-        return <span class={trade.direction == "buy" ? "text-green" : "text-red"}>{format(ev(trade.price), formatTemplate(precision))}</span>;
+        return (
+          <span class={trade.direction == "buy" ? "text-green" : "text-red"}>
+            {format(ev(trade.price), formatTemplate(precision))}
+          </span>
+        );
       };
 
       const convertBuys = (levels: PriceLevel[]) => {
@@ -63,7 +97,11 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
           const volume = ev(el.volume);
           sum += volume;
           return {
-            column_0: <span class="text-green">{format(price, formatTemplate(precision))}</span>,
+            column_0: (
+              <span class="text-green">
+                {format(price, formatTemplate(precision))}
+              </span>
+            ),
             column_1: format(volume / price, formatTemplate(precision)),
             column_2: format(sum, formatTemplate(precision)),
             fill: sum / total,
@@ -81,7 +119,11 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
           const volume = ev(el.volume);
           sum += volume;
           return {
-            column_0: <span class="text-red">{format(price, formatTemplate(precision))}</span>,
+            column_0: (
+              <span class="text-red">
+                {format(price, formatTemplate(precision))}
+              </span>
+            ),
             column_1: format(volume / price, formatTemplate(precision)),
             column_2: format(sum, formatTemplate(precision)),
             fill: sum / total,
@@ -92,24 +134,45 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
 
       eventsource_depth = await subscribeEvents(
         `${api}/public/depth`,
-        params({ quote_asset_id: quote_asset.id, base_asset_id: base_asset.id, limit: capacity, precision: 1000 }),
-        params({ quote_asset_id: quote_asset.id, base_asset_id: base_asset.id, limit: capacity, precision: 1000 }),
+        params({
+          quote_asset_id: quote_asset.id,
+          base_asset_id: base_asset.id,
+          limit: capacity,
+          precision: 1000,
+        }),
+        params({
+          quote_asset_id: quote_asset.id,
+          base_asset_id: base_asset.id,
+          limit: capacity,
+          precision: 1000,
+        }),
         (data) => {
           const r = DepthResponse.parse(data);
-          setOrderBook({ buys: convertBuys(r.buys), sells: convertSells(r.sells.reverse()) });
-        }
+          setOrderBook({
+            buys: convertBuys(r.buys),
+            sells: convertSells(r.sells.reverse()),
+          });
+        },
       );
 
       eventsource_price = await subscribeEvents(
         `${api}/public/trades`,
-        params({ quote_asset_id: quote_asset.id, base_asset_id: base_asset.id, limit: 1, offset: 0 }),
-        params({ quote_asset_id: quote_asset.id, base_asset_id: base_asset.id }),
+        params({
+          quote_asset_id: quote_asset.id,
+          base_asset_id: base_asset.id,
+          limit: 1,
+          offset: 0,
+        }),
+        params({
+          quote_asset_id: quote_asset.id,
+          base_asset_id: base_asset.id,
+        }),
         (data) => {
           const trades = PublicTrade.array().parse(data);
           if (trades.length > 0) {
             setOrderBook("price", convertTrade(trades[0]));
           }
-        }
+        },
       );
     }
   });
@@ -121,7 +184,9 @@ export function OrderBook(props: { quote_asset?: Asset; base_asset?: Asset; prec
 
   return (
     <div class="grid h-full grid-rows-[auto_36px_1fr_40px_1fr]">
-      <div class="row-start-1 row-end-2 p-3 font-sanspro text-orderbook-label font-semibold">Orderbook</div>
+      <div class="row-start-1 row-end-2 p-3 font-sanspro text-orderbook-label font-semibold">
+        Orderbook
+      </div>
       <TriElementHeader
         class="row-start-2 row-end-3 grid items-center justify-center px-3"
         column_0={`Price (${props.quote_asset?.symbol ?? "---"})`}

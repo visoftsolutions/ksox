@@ -20,7 +20,12 @@ export default function Hero() {
       </div>
 
       <div class="max-md:hidden">
-        <img src={joinPaths(base, "/gfx/laptop.png")} class="mx-auto" elementtiming={""} fetchpriority={"high"} />
+        <img
+          src={joinPaths(base, "/gfx/laptop.png")}
+          class="mx-auto"
+          elementtiming={""}
+          fetchpriority={"high"}
+        />
       </div>
     </div>
   );

@@ -39,7 +39,21 @@ html {
 }
 
 .token-linear-wipe-text {
-  background: linear-gradient(to right, #bf088c, #b41c98, #a629a4, #9535af, #823eb8, #823eb8, #823eb8, #823eb8, #9535af, #a629a4, #b41c98, #bf088c);
+  background: linear-gradient(
+    to right,
+    #bf088c,
+    #b41c98,
+    #a629a4,
+    #9535af,
+    #823eb8,
+    #823eb8,
+    #823eb8,
+    #823eb8,
+    #9535af,
+    #a629a4,
+    #b41c98,
+    #bf088c
+  );
   background-size: 400% auto;
 
   background-clip: text;
@@ -52,7 +66,21 @@ html {
 .token-linear-wipe-button {
   text-align: center;
 
-  background: linear-gradient(to right, #bf088c, #b41c98, #a629a4, #9535af, #823eb8, #823eb8, #823eb8, #823eb8, #9535af, #a629a4, #b41c98, #bf088c);
+  background: linear-gradient(
+    to right,
+    #bf088c,
+    #b41c98,
+    #a629a4,
+    #9535af,
+    #823eb8,
+    #823eb8,
+    #823eb8,
+    #823eb8,
+    #9535af,
+    #a629a4,
+    #b41c98,
+    #bf088c
+  );
   background-size: 400% auto;
   background-blend-mode: screen;
   animation: shine 15s linear infinite;

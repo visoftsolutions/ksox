@@ -11,15 +11,32 @@ import SellForm from "./Submit/SellForm";
 import { Fraction } from "@web/types/primitives/fraction";
 import subscribeEvents from "@web/utils/subscribeEvents";
 
-export default function CreateSubmit(market: Market, session?: SessionResponse, precision?: number) {
+export default function CreateSubmit(
+  market: Market,
+  session?: SessionResponse,
+  precision?: number,
+) {
   return () => (
-    <Show when={market && market.quote_asset && market.base_asset && session && precision} fallback={<Submit />}>
+    <Show
+      when={
+        market &&
+        market.quote_asset &&
+        market.base_asset &&
+        session &&
+        precision
+      }
+      fallback={<Submit />}
+    >
       <Submit market={market} session={session} precision={precision} />
     </Show>
   );
 }
 
-export function Submit(props: { market?: Market; session?: SessionResponse; precision?: number }) {
+export function Submit(props: {
+  market?: Market;
+  session?: SessionResponse;
+  precision?: number;
+}) {
   const [storeSubmit, setStoreSubmit] = createStore<{
     buy_available_balance?: Fraction;
     sell_available_balance?: Fraction;
@@ -32,7 +49,12 @@ export function Submit(props: { market?: Market; session?: SessionResponse; prec
   let eventsource_balance_sell: EventSource | undefined;
 
   onMount(async () => {
-    if (props.session && props.market?.quote_asset && props.market?.base_asset && props.precision) {
+    if (
+      props.session &&
+      props.market?.quote_asset &&
+      props.market?.base_asset &&
+      props.precision
+    ) {
       const quote_asset = props.market?.quote_asset;
       const base_asset = props.market?.base_asset;
 
@@ -42,7 +64,7 @@ export function Submit(props: { market?: Market; session?: SessionResponse; prec
         params({ asset_id: quote_asset.id }),
         (data) => {
           setStoreSubmit("buy_available_balance", Valut.parse(data).balance);
-        }
+        },
       );
 
       eventsource_balance_sell = await subscribeEvents(
@@ -51,7 +73,7 @@ export function Submit(props: { market?: Market; session?: SessionResponse; prec
         params({ asset_id: base_asset.id }),
         (data) => {
           setStoreSubmit("sell_available_balance", Valut.parse(data).balance);
-        }
+        },
       );
     }
   });
@@ -73,10 +95,18 @@ export function Submit(props: { market?: Market; session?: SessionResponse; prec
       <div class="row-start-2 row-end-3 overflow-auto py-[8px]">
         <div class="grid h-full grid-cols-2 grid-rows-1">
           <div class="col-start-1 col-end-2 px-[12px] ">
-            <BuyForm available_balance={storeSubmit.buy_available_balance} market={props.market} precision={props.precision} />
+            <BuyForm
+              available_balance={storeSubmit.buy_available_balance}
+              market={props.market}
+              precision={props.precision}
+            />
           </div>
           <div class="col-start-2 col-end-3 px-[12px]">
-            <SellForm available_balance={storeSubmit.sell_available_balance} market={props.market} precision={props.precision} />
+            <SellForm
+              available_balance={storeSubmit.sell_available_balance}
+              market={props.market}
+              precision={props.precision}
+            />
           </div>
         </div>
       </div>
