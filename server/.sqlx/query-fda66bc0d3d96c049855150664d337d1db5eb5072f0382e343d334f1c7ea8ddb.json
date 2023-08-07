@@ -1,0 +1,32 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE \n                valuts \n            SET\n                balance = $2::fraction,\n                last_modification_at = $3\n            WHERE\n                id = $1\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        },
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "fda66bc0d3d96c049855150664d337d1db5eb5072f0382e343d334f1c7ea8ddb"
+}

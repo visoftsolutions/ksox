@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO \n                mints (created_at, last_modification_at, user_id, asset_id, amount)\n            VALUES\n                ($1, $2, $3, $4, $5::fraction)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "Timestamptz",
+        "Uuid",
+        "Uuid",
+        {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "bff57e0f041de4f3ec1ae4ea4633c352c7bd3bcaf9dfa5c8a912cebc31ef0c14"
+}

@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                last_modification_at\n            FROM burns\n            WHERE user_id = $1\n            ORDER BY last_modification_at DESC\n            LIMIT 1 \n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "last_modification_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "cef228d625efe4cfa2f4e42dacb053c9924446facb287c7c1b6fc8bd1482e1ef"
+}

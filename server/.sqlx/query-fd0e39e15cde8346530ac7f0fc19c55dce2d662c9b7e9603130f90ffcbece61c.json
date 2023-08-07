@@ -1,0 +1,182 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                spot.trades.id,\n                spot.trades.created_at,\n                spot.trades.last_modification_at,\n                spot.trades.quote_asset_id,\n                spot.trades.base_asset_id,\n                spot.trades.taker_id,\n                spot.trades.taker_presentation,\n                spot.orders.maker_id,\n                spot.orders.maker_presentation,\n                spot.trades.price as \"price: Fraction\",\n                spot.trades.taker_quote_volume as \"taker_quote_volume: Fraction\",\n                spot.trades.taker_base_volume as \"taker_base_volume: Fraction\",\n                spot.trades.maker_quote_volume as \"maker_quote_volume: Fraction\",\n                spot.trades.maker_base_volume as \"maker_base_volume: Fraction\"\n            FROM spot.trades\n            JOIN spot.orders ON spot.orders.id = spot.trades.order_id\n            WHERE spot.trades.taker_id = $1 OR spot.orders.maker_id = $1\n            ORDER BY spot.trades.created_at DESC\n            LIMIT $2\n            OFFSET $3\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 2,
+        "name": "last_modification_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 3,
+        "name": "quote_asset_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 4,
+        "name": "base_asset_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 5,
+        "name": "taker_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 6,
+        "name": "taker_presentation",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "maker_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 8,
+        "name": "maker_presentation",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 9,
+        "name": "price: Fraction",
+        "type_info": {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "taker_quote_volume: Fraction",
+        "type_info": {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "taker_base_volume: Fraction",
+        "type_info": {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "maker_quote_volume: Fraction",
+        "type_info": {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "maker_base_volume: Fraction",
+        "type_info": {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "fd0e39e15cde8346530ac7f0fc19c55dce2d662c9b7e9603130f90ffcbece61c"
+}

@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO engagement.badges\n                (created_at, last_modification_at, user_id, badge_name)\n            VALUES\n                ($1, $2, $3, $4)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "Timestamptz",
+        "Uuid",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "31d393fa1e60c11980de28e2aa00cf470bbd3a6c937ac3f305f9e323d727cb3d"
+}
