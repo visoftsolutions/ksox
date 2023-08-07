@@ -25,7 +25,7 @@ impl TransfersManager {
             element.asset_id,
             element.amount.to_tuple_string() as _,
         )
-        .execute(pool)
+        .execute(pool.as_mut())
         .await
     }
 }

@@ -23,7 +23,7 @@ impl MintsManager {
             "#,
             user_id
         )
-        .fetch_optional(pool)
+        .fetch_optional(pool.as_mut())
         .await
     }
 
@@ -42,7 +42,7 @@ impl MintsManager {
             element.asset_id,
             element.amount.to_tuple_string() as _
         )
-        .execute(pool)
+        .execute(pool.as_mut())
         .await
     }
 }

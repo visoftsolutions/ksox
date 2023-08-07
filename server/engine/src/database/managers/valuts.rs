@@ -26,7 +26,7 @@ impl ValutsManager {
             user_id,
             asset_id
         )
-        .fetch_optional(pool)
+        .fetch_optional(pool.as_mut())
         .await
     }
 
@@ -49,7 +49,7 @@ impl ValutsManager {
             now,
             now
         )
-        .fetch_one(pool)
+        .fetch_one(pool.as_mut())
         .await
     }
 
@@ -72,7 +72,7 @@ impl ValutsManager {
             valut.balance.to_tuple_string() as _,
             Utc::now()
         )
-        .execute(pool)
+        .execute(pool.as_mut())
         .await
     }
 
