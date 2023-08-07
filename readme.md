@@ -29,7 +29,6 @@ cargo install sqlx-cli
 cargo install cargo-make
 cargo install cargo-udeps
 cargo install cargo-sort
-rustup toolchain install nightly
 sudo apt-get install protobuf-compiler
 ```
 
@@ -63,7 +62,7 @@ cargo +nightly udeps
 ```
 
 ## update package.json
-npx npm-check-updates -u
+npx npm-check-updates -ws -u --root
 
 ## update Rust crates
 cargo install cargo-edit
