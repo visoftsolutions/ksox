@@ -17,17 +17,20 @@ contract Treasury is Ownable, EIP712 {
 
     // solhint-disable-next-line var-name-mixedcase
     bytes32 private constant _PERMIT_TYPEHASH =
-        keccak256("Permit(address owner,uint256 value,uint256 nonce,uint256 deadline)");
+        keccak256("WithdrawPermit(address owner,address spender,address token,uint256 value,uint256 nonce,uint256 deadline)");
 
     event Deposit(
-        address indexed tokenAddress,
-        address indexed userAddress,
+        address indexed owner,
+        address indexed spender,
+        address indexed token,
         uint256 amount
     );
     event Withdraw(
-        address indexed tokenAddress,
-        address indexed userAddress,
-        uint256 amount
+        address indexed owner,
+        address indexed spender,
+        address indexed token,
+        uint256 amount,
+        uint256 nonce
     );
 
     constructor(string memory _name, address _publicKey) EIP712(_name, "1") {
@@ -35,27 +38,6 @@ contract Treasury is Ownable, EIP712 {
     }
 
     /**
-     * @dev See {Permit-permit}.
-     */
-    function _permit(
-        address owner,
-        uint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) internal {
-        require(block.timestamp <= deadline, "ERC20Permit: expired deadline");
-
-        bytes32 structHash = keccak256(abi.encode(_PERMIT_TYPEHASH, owner, value, _useNonce(owner), deadline));
-
-        bytes32 hash = _hashTypedDataV4(structHash);
-
-        address signer = ECDSA.recover(hash, v, r, s);
-        require(signer == owner, "ERC20Permit: invalid signature");
-    }
-
-        /**
      * @dev See {IERC20Permit-nonces}.
      */
     function nonces(address owner) public view returns (uint256) {
@@ -81,17 +63,28 @@ contract Treasury is Ownable, EIP712 {
         nonce.increment();
     }
 
-    function depositPermit(address tokenAddress, uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
+    function depositPermit(address token, uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
         address owner = address(msg.sender);
-        IERC20Permit(tokenAddress).permit(owner, address(this), amount, deadline, v, r, s);
-        IERC20(tokenAddress).transferFrom(owner, address(this), amount);
-        emit Deposit(tokenAddress, owner, amount);
+        IERC20Permit(token).permit(owner, address(this), amount, deadline, v, r, s);
+        IERC20(token).transferFrom(owner, address(this), amount);
+        emit Deposit(owner, publicKey, token, amount);
     }
 
-    function withdrawPermit(address tokenAddress, uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
+    function withdrawPermit(address token, uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s, address to) external {
         address owner = address(msg.sender);
-        _permit(publicKey, amount, deadline, v, r, s);
-        IERC20(tokenAddress).transfer(owner, amount);
-        emit Withdraw(tokenAddress, owner, amount);
+        uint256 nonce = _useNonce(owner);
+
+        require(block.timestamp <= deadline, "ERC20Permit: expired deadline");
+
+        bytes32 structHash = keccak256(abi.encode(_PERMIT_TYPEHASH, publicKey, owner, token, amount, nonce, deadline));
+
+        bytes32 hash = _hashTypedDataV4(structHash);
+
+        address signer = ECDSA.recover(hash, v, r, s);
+        require(signer == publicKey, "ERC20Permit: invalid signature");
+
+        IERC20(token).transfer(to, amount);
+
+        emit Withdraw(publicKey, owner, token, amount, nonce);
     }
 }
