@@ -1,5 +1,5 @@
 # Database schemas
-**/sqlx-data.json
+**/.sqlx/
 
 # Rust
 **/debug/
@@ -30,6 +30,9 @@
 # Solid.js
 **/.solid
 **/dist
+
+# Vite
+**/public/
 
 # IDEs and editors
 **/.vscode/

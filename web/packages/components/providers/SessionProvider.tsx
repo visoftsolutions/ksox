@@ -33,11 +33,11 @@ export async function login(api_url: string, wallet: WalletClient<CustomTranspor
     `${api_url}/auth?${params(
       GenerateMessageRequest.parse({
         address,
-      })
+      }),
     )}`,
     {
       method: "GET",
-    }
+    },
   )
     .then((r) => r.json())
     .then((r) => GenerateMessageResponse.parse(r));
@@ -57,7 +57,7 @@ export async function login(api_url: string, wallet: WalletClient<CustomTranspor
       ValidateSignatureRequest.parse({
         address,
         signature,
-      })
+      }),
     ),
   })
     .then((r) => r.json())

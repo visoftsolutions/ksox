@@ -5,8 +5,10 @@
   "private": "true",
   "type": "module",
   "scripts": {
-    "prettier": "prettier -w .",
-    "lint": "eslint . --ext .tsx --config packages/eslint/.eslintrc.cjs",
+    "lint": "eslint --config packages/eslint/.eslintrc.cjs '**/*.{js,jsx,ts,tsx}'",
+    "lint:fix": "eslint --config packages/eslint/.eslintrc.cjs --fix '**/*.{js,jsx,ts,tsx}'",
+    "format": "prettier --check '**/*.{js,jsx,ts,tsx,json,css,md}'",
+    "format:fix": "prettier --check --write '**/*.{js,jsx,ts,tsx,json,css,md}'",
     "update": "npx npm-check-updates -ws -u --root"
   },
   "author": "",
@@ -16,7 +18,6 @@
     "packages/*"
   ],
   "devDependencies": {
-    "typescript": "^5.1.6",
-    "unlighthouse": "^0.10.0"
+    "typescript": "^5.1.6"
   }
 }

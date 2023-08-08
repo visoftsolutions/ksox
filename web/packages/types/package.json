@@ -4,9 +4,7 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "prettier": "prettier -w .",
-    "lint": "eslint . --ext .ts",
-    "update": "npx npm-check-updates -u"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",

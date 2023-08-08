@@ -163,8 +163,8 @@ export default function BuyForm(props: {
       />
       <SubmitRectangularButton
         class="my-[12px] bg-green"
-        onClick={async () => {
-          await fetch(`${api}/private/submit`, {
+        onClick={() => {
+          fetch(`${api}/private/submit`, {
             method: "POST",
             headers: {
               Accept: "application/json",

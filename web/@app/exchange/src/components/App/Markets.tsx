@@ -46,8 +46,8 @@ export default function Markets() {
   >([]);
   const [tab, setTab] = createSignal(Tab.Markets);
 
-  createEffect(async () => {
-    setMarketsState(await querySearch(search()));
+  createEffect(() => {
+    querySearch(search()).then((r) => setMarketsState(r));
   });
 
   return (

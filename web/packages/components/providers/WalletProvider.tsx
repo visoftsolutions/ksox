@@ -75,7 +75,7 @@ export const walletClientConnect = async () => {
   if (wallet.walletConnectProjectId) {
     const { publicClient, chains } = configureChains(
       AVAILABLE_CHAINS.map((e) => e.network),
-      [w3mProvider({ projectId: wallet.walletConnectProjectId })]
+      [w3mProvider({ projectId: wallet.walletConnectProjectId })],
     );
     const wagmiConfig = createConfig({
       autoConnect: true,

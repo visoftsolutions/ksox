@@ -47,9 +47,9 @@ export function Actions(props: {
     undefined,
   );
 
-  createEffect(async () => {
+  createEffect(() => {
     if (search()) {
-      setUsers(await querySearch(search()));
+      querySearch(search()).then((r) => setUsers(r));
     }
   });
 

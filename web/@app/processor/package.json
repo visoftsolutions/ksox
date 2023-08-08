@@ -3,10 +3,7 @@
   "scripts": {
     "dev": "solid-start dev",
     "build": "solid-start build",
-    "start": "solid-start start",
-    "prettier": "prettier -w .",
-    "lint": "eslint . --ext .tsx",
-    "update": "npx npm-check-updates -u"
+    "start": "solid-start start"
   },
   "type": "module",
   "devDependencies": {

@@ -25,7 +25,6 @@ export default function Assets() {
   const precision = usePrecision();
   const assetsList = createMemo(() => [...assets().values()]);
 
-  const [search, setSearch] = createSignal<string>("");
   const [tab, setTab] = createSignal<Tab>(Tab.Mint);
   const [selectedAsset, setSelectedAsset] = createSignal<Asset | undefined>(
     undefined,
@@ -47,10 +46,6 @@ export default function Assets() {
                   />
                 </>
               }
-              onInput={(e) => {
-                const value = (e.target as HTMLInputElement).value;
-                setSearch(value);
-              }}
             />
             <TriElementHeader
               class="row-start-2 row-end-3 self-end"
@@ -166,10 +161,10 @@ export default function Assets() {
               <Dynamic component={CreateBurn(selectedAsset(), precision())} />
             </Match>
             <Match when={tab() == Tab.History}>
-              <div></div>
+              <div />
             </Match>
             <Match when={tab() == Tab.OwnTransfer}>
-              <div></div>
+              <div />
             </Match>
           </Switch>
         </div>

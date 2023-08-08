@@ -1,6 +1,7 @@
 import { BadgeFamily } from "@web/types/badge";
 import CreateProfile from "./App/Profile";
-import { Dynamic, Index } from "solid-js/web";
+import { Index } from "solid-js";
+import { Dynamic } from "solid-js/web";
 import { useSession } from "@web/components/providers/SessionProvider";
 import CreateBadge from "./App/Badge";
 

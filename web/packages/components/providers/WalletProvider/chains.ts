@@ -1,5 +1,4 @@
 import { Chain, mainnet, polygon, bsc } from "viem/chains";
-import { Address } from "viem";
 
 export interface Network {
   network: Chain;

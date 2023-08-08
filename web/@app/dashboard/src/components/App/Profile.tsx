@@ -18,12 +18,12 @@ interface ProfileStore {
 export default function CreateProfile(session?: SessionResponse) {
   return () => (
     <Show when={session}>
-      <Profile session={session!} />
+      <Profile />
     </Show>
   );
 }
 
-export function Profile(props: { session: SessionResponse }) {
+export function Profile() {
   const [profile, setProfile] = createStore<ProfileStore>({
     name: undefined,
     address: undefined,
