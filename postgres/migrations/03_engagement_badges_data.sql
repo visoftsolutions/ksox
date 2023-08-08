@@ -1,9 +1,7 @@
 -- MAKER BADGES
 INSERT INTO "engagement"."badges" ("name", "family", "description", "value") VALUES ('First Maker', 'Maker', 'Badge for performing first maker trade', 1);
 INSERT INTO "engagement"."badges" ("name", "family", "description", "value") VALUES ('Maker Apprentice', 'Maker', 'Badge for performing ten maker trades', 10);
-
 INSERT INTO "engagement"."badges" ("name", "family", "description", "value") VALUES ('Maker Aficionado', 'Maker', 'Badge for performing hundred maker trades', 100);
-
 INSERT INTO "engagement"."badges" ("name", "family", "description", "value") VALUES ('Maker Avenger', 'Maker', 'Badge for performing five hundred maker trades', 500);
 INSERT INTO "engagement"."badges" ("name", "family", "description", "value") VALUES ('Maker Ace', 'Maker', 'Badge for performing thousand maker trades', 1000);
 INSERT INTO "engagement"."badges" ("name", "family", "description", "value") VALUES ('Maker Avalanche', 'Maker', 'Badge for performing five thousand maker trades', 5000);
