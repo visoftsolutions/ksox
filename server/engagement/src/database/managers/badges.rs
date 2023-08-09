@@ -22,14 +22,14 @@ impl BadgesManager {
             Badge,
             r#"
             SELECT
-                engagement.badges.id,
-                engagement.badges.created_at,
-                engagement.badges.last_modification_at,
-                engagement.badges.user_id,
-                engagement.badges.badge_name as "badge_name: BadgeName"
-            FROM engagement.badges
-            WHERE engagement.badges.last_modification_at > $1
-            ORDER BY engagement.badges.last_modification_at ASC
+                engagement.assigned_badges.id,
+                engagement.assigned_badges.created_at,
+                engagement.assigned_badges.last_modification_at,
+                engagement.assigned_badges.user_id,
+                engagement.assigned_badges.badge_name as "badge_name: BadgeName"
+            FROM engagement.assigned_badges
+            WHERE engagement.assigned_badges.last_modification_at > $1
+            ORDER BY engagement.assigned_badges.last_modification_at ASC
             "#,
             last_modification_at
         )
@@ -42,13 +42,13 @@ impl BadgesManager {
             Badge,
             r#"
             SELECT
-                engagement.badges.id,
-                engagement.badges.created_at,
-                engagement.badges.last_modification_at,
-                engagement.badges.user_id,
-                engagement.badges.badge_name as "badge_name: BadgeName"
-            FROM engagement.badges
-            WHERE engagement.badges.user_id = $1
+                engagement.assigned_badges.id,
+                engagement.assigned_badges.created_at,
+                engagement.assigned_badges.last_modification_at,
+                engagement.assigned_badges.user_id,
+                engagement.assigned_badges.badge_name as "badge_name: BadgeName"
+            FROM engagement.assigned_badges
+            WHERE engagement.assigned_badges.user_id = $1
             "#,
             user_id
         )
@@ -64,7 +64,7 @@ impl BadgesManager {
         let now = Utc::now();
         sqlx::query!(
             r#"
-            INSERT INTO engagement.badges
+            INSERT INTO engagement.assigned_badges
                 (created_at, last_modification_at, user_id, badge_name)
             VALUES
                 ($1, $2, $3, $4)
