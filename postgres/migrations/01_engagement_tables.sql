@@ -5,18 +5,18 @@ CREATE TABLE "engagement"."badges" (
   "description" VARCHAR(255) NOT NULL,
   "value" INTEGER NOT NULL,
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+  UNIQUE("name")
 );
 
 CREATE TABLE "engagement"."assigned_badges" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-  "badge_id" uuid NOT NULL,
   "user_id" uuid NOT NULL,
+  "badge_name" VARCHAR(50) NOT NULL,
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-ALTER TABLE "engagement"."assigned_badges" ADD FOREIGN KEY ("badge_id") REFERENCES "engagement"."badges" ("id");
+ALTER TABLE "engagement"."assigned_badges" ADD FOREIGN KEY ("badge_name") REFERENCES "engagement"."badges" ("name");
 
 ALTER TABLE "engagement"."assigned_badges" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 
