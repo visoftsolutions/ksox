@@ -1,22 +1,17 @@
 pub mod models;
 
 use ethers::{
-    prelude::{k256::ecdsa::SigningKey, SignerMiddleware},
+    prelude::LogMeta,
     providers::{Middleware, Provider, Ws},
-    signers::Wallet,
 };
 use futures::stream::StreamExt;
 use sqlx::PgPool;
-use tokio::{
-    select,
-    sync::{mpsc, oneshot},
-    task::JoinError,
-};
+use tokio::{select, sync::oneshot, task::JoinError};
 use tonic::{transport::Channel, Status};
 
 use crate::{
     confirmation::ConfirmationQueue,
-    contracts::treasury::{Treasury, TreasuryEvents},
+    contracts::treasury::{DepositFilter, Treasury, TreasuryEvents},
     database::{
         managers::deposits::DepositsManager,
         projections::deposit::{deposit_to_transfer_request, Deposit, DepositInsert},
@@ -28,7 +23,7 @@ use crate::{
 pub struct DepositsBlockchainManager {
     pub database: PgPool,
     pub provider: Provider<Ws>,
-    pub contract: Treasury<SignerMiddleware<Provider<Ws>, Wallet<SigningKey>>>,
+    pub contract: Treasury<Provider<Ws>>,
 }
 
 impl DepositsBlockchainManager {
@@ -37,16 +32,14 @@ impl DepositsBlockchainManager {
         mut engine_client: EngineClient<Channel>,
     ) -> DepositsBlockchainManagerController {
         let (shutdown_tx, mut shutdown_rx) = oneshot::channel::<()>();
-        let (insert_deposit_event_tx, mut insert_deposit_event_rx) =
-            mpsc::channel::<DepositInsert>(100);
 
         let database = self.database.to_owned();
         let provider = self.provider.to_owned();
-        let contract_events = self.contract.events();
+        let contract = self.contract.to_owned();
+
         let join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>> = tokio::spawn(
             async move {
                 let mut blocks_stream = provider.subscribe_blocks().await?;
-                let mut events_stream = contract_events.stream_with_meta().await?;
                 let mut deposits_queue = ConfirmationQueue::<Deposit>::new(&provider);
 
                 loop {
@@ -54,34 +47,22 @@ impl DepositsBlockchainManager {
                         _ = &mut shutdown_rx => {
                             break;
                         },
-                        Some(event) = insert_deposit_event_rx.recv() => {
-                            if let Err(err) = async {
-                                let mut t = database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
-                                let deposit = DepositsManager::insert(&mut t, &event).await?;
-                                deposits_queue.insert(deposit, *event.tx_hash).await?;
-                                t.commit().await?;
-                                Ok::<(), BlockchainManagerError>(())
-                            }.await {
-                                tracing::error!("{err}");
-                            }
-                        },
-                        Some(Ok((filter, meta))) = events_stream.next() => {
-                            if let Err(err) = async {
-                                let mut t = database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
-                                if let TreasuryEvents::DepositFilter(filter) = filter {
-                                        let insert = DepositInsert::from_filter(&mut t, &filter, &meta).await?;
-                                        let deposit = DepositsManager::insert(&mut t, &insert).await?;
-                                        deposits_queue.insert(deposit, meta.transaction_hash).await?;
-                                };
-                                t.commit().await?;
-                                Ok::<(), BlockchainManagerError>(())
-                            }.await {
-                                tracing::error!("{err}");
-                            }
-                        },
                         Some(block) = blocks_stream.next() => {
+                            let events = contract.events().at_block_hash(block.hash.unwrap_or_default()).query_with_meta().await?.into_iter()
+                            .filter_map(|(ev, log)| match ev {
+                                TreasuryEvents::DepositFilter(ev) => Some((ev, log)),
+                                _ => None
+                            }).collect::<Vec<(DepositFilter, LogMeta)>>();
+
                             if let Err(err) = async {
                                 let mut t = database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
+
+                                for (event, meta) in events {
+                                    let insert = DepositInsert::from_filter(&mut t, &event, &meta).await?;
+                                    let deposit = DepositsManager::insert(&mut t, &insert).await?;
+                                    deposits_queue.insert(deposit, meta.transaction_hash).await?;
+                                }
+
                                 let (confirmed_deposit, not_confirmed_deposits) = deposits_queue.confirmation_step(&block).await;
                                 for deposit in not_confirmed_deposits.into_iter() {
                                     DepositsManager::update(&mut t, deposit).await?;
@@ -114,7 +95,6 @@ impl DepositsBlockchainManager {
         DepositsBlockchainManagerController {
             shutdown_tx,
             join_handle,
-            insert_deposit_event_tx,
         }
     }
 }
@@ -122,7 +102,6 @@ impl DepositsBlockchainManager {
 #[derive(Debug)]
 pub struct DepositsBlockchainManagerController {
     shutdown_tx: oneshot::Sender<()>,
-    insert_deposit_event_tx: mpsc::Sender<DepositInsert>,
     join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>>,
 }
 impl DepositsBlockchainManagerController {
@@ -131,12 +110,5 @@ impl DepositsBlockchainManagerController {
             tracing::error!("Error: shutdown");
         }
         self.join_handle.await
-    }
-
-    pub async fn submit_deposit_event(
-        &self,
-        event: DepositInsert,
-    ) -> Result<(), mpsc::error::SendError<DepositInsert>> {
-        self.insert_deposit_event_tx.send(event).await
     }
 }

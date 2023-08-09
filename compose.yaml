@@ -74,8 +74,8 @@ services:
       - DATABASE_URL=postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox
       - ENGINE_URL=http://ksox-server-engine/
       - WS_PROVIDER_URL=wss://eth-sepolia.g.alchemy.com/v2/-koG9fJPMpiL7ywoOZyGtWlLZ_JymCb2
-      - TREASURY_ADDRESS=0x8C7419dA64d29BE79a4a7933cC7cd92Fc31972A0
-      - PRIVATE_KEY=637cf0cb529ff41499db61e0913674570ebd68c9d7c9a7a021cffd3c02c85427
+      - CONTRACT_ADDRESS=0x09032B61218Be2906525696C97dC68f14BACdA1e
+      - CONTRACT_PRIVATE_KEY=637cf0cb529ff41499db61e0913674570ebd68c9d7c9a7a021cffd3c02c85427
     depends_on:
       - postgres
       - redis

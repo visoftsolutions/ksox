@@ -32,9 +32,9 @@ impl WithdrawsManager {
                 id,
                 created_at,
                 last_modification_at,
-                maker_address as "maker_address: Address",
-                taker_address as "taker_address: Address",
-                asset_address as "asset_address: Address",
+                owner as "owner: Address",
+                spender as "spender: Address",
+                asset as "asset: Address",
                 amount as "amount: Fraction",
                 deadline
             FROM withdraws
@@ -58,13 +58,13 @@ impl WithdrawsManager {
                 id,
                 created_at,
                 last_modification_at,
-                maker_address as "maker_address: Address",
-                taker_address as "taker_address: Address",
-                asset_address as "asset_address: Address",
+                owner as "owner: Address",
+                spender as "spender: Address",
+                asset as "asset: Address",
                 amount as "amount: Fraction",
                 deadline
             FROM withdraws
-            WHERE maker_address = $1
+            WHERE spender = $1
             ORDER BY last_modification_at DESC
             "#,
             user_address.to_string() as _
@@ -91,7 +91,7 @@ impl WithdrawsNotificationManager {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
                 NotificationManagerPredicateInput::Withdraws(withdraw) => {
-                    withdraw.maker_address == user_address
+                    withdraw.spender == user_address
                 }
                 _ => false,
             }

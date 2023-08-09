@@ -1,19 +1,21 @@
 use ethers::{
-    prelude::{k256::ecdsa::SigningKey, ContractError, SignerMiddleware},
+    prelude::ContractError,
     providers::{Provider, ProviderError, Ws},
-    signers::Wallet,
+    signers::WalletError,
+    types::{transaction::eip712::Eip712Error, TimeError},
 };
 use thiserror::Error;
 use tonic::Status;
 
 use crate::{
     blockchain_engine::models::BlockchainEngineError, confirmation::ConfirmationQueueError,
+    database::projections::withdraw::WithdrawInsert,
 };
 
 #[derive(Error, Debug)]
 pub enum BlockchainManagerError {
     #[error(transparent)]
-    ContractError(#[from] ContractError<SignerMiddleware<Provider<Ws>, Wallet<SigningKey>>>),
+    ContractError(#[from] ContractError<Provider<Ws>>),
 
     #[error(transparent)]
     ProviderError(#[from] ProviderError),
@@ -25,8 +27,23 @@ pub enum BlockchainManagerError {
     Sqlx(#[from] sqlx::Error),
 
     #[error(transparent)]
+    Eip712Error(#[from] Eip712Error),
+
+    #[error(transparent)]
+    WalletError(#[from] WalletError),
+
+    #[error(transparent)]
     ConfirmationQueueError(#[from] ConfirmationQueueError),
 
     #[error(transparent)]
     BlockchainEngineError(#[from] BlockchainEngineError),
+
+    #[error(transparent)]
+    SendError(#[from] tokio::sync::mpsc::error::SendError<WithdrawInsert>),
+
+    #[error(transparent)]
+    TimeError(#[from] TimeError),
+
+    #[error(transparent)]
+    Uuid(#[from] uuid::Error),
 }

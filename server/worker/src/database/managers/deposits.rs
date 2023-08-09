@@ -32,11 +32,11 @@ impl DepositsManager {
                 id,
                 created_at,
                 last_modification_at,
-                maker_address as "maker_address: Address",
-                taker_address as "taker_address: Address",
-                asset_address as "asset_address: Address",
-                tx_hash as "tx_hash: TxHash",
+                owner as "owner: Address",
+                spender as "spender: Address",
+                asset as "asset: Address",
                 amount as "amount: Fraction",
+                tx_hash as "tx_hash: TxHash",
                 confirmations as "confirmations: Fraction"
             FROM deposits
             WHERE last_modification_at > $1
@@ -59,14 +59,14 @@ impl DepositsManager {
                 id,
                 created_at,
                 last_modification_at,
-                maker_address as "maker_address: Address",
-                taker_address as "taker_address: Address",
-                asset_address as "asset_address: Address",
-                tx_hash as "tx_hash: TxHash",
+                owner as "owner: Address",
+                spender as "spender: Address",
+                asset as "asset: Address",
                 amount as "amount: Fraction",
+                tx_hash as "tx_hash: TxHash",
                 confirmations as "confirmations: Fraction"
             FROM deposits
-            WHERE taker_address = $1
+            WHERE spender = $1
             ORDER BY last_modification_at DESC
             "#,
             user_address.to_string() as _
@@ -93,7 +93,7 @@ impl DepositsNotificationManager {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
                 NotificationManagerPredicateInput::Deposits(deposit) => {
-                    deposit.taker_address == user_address
+                    deposit.spender == user_address
                 }
                 _ => false,
             }

@@ -1,37 +1,37 @@
 use chrono::{DateTime, Utc};
-use ethereum_types::U256;
-use ethers::prelude::LogMeta;
-use evm::{address::Address, txhash::TxHash};
-use fraction::{num_traits::One, Fraction};
+use evm::address::Address;
+use fraction::Fraction;
 use serde::{Deserialize, Serialize};
 use sqlx::{Postgres, Transaction};
 use uuid::Uuid;
 
 use crate::{
     blockchain_engine::models::BlockchainEngineError,
-    contracts::treasury::WithdrawFilter,
     database::managers::{assets::AssetsManager, users::UsersManager},
     engine_base,
 };
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub struct Withdraw {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,
     pub last_modification_at: DateTime<Utc>,
-    pub maker_address: Address,
-    pub taker_address: Address,
-    pub asset_address: Address,
+    pub owner: Address,
+    pub spender: Address,
+    pub asset: Address,
     pub amount: Fraction,
+    pub nonce: i64,
     pub deadline: DateTime<Utc>,
 }
+
 pub async fn withdraw_to_transfer_request(
     pool: &mut Transaction<'_, Postgres>,
     withdraw: Withdraw,
 ) -> Result<engine_base::TransferRequest, BlockchainEngineError> {
-    let maker_id = UsersManager::get_by_address(pool, withdraw.maker_address)
+    let maker_id = UsersManager::get_by_address(pool, withdraw.spender)
         .await?
         .id;
-    let asset_id = AssetsManager::get_by_address(pool, withdraw.asset_address)
+    let asset_id = AssetsManager::get_by_address(pool, withdraw.asset)
         .await?
         .id;
     Ok::<engine_base::TransferRequest, BlockchainEngineError>(engine_base::TransferRequest {
@@ -44,9 +44,11 @@ pub async fn withdraw_to_transfer_request(
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct WithdrawInsert {
-    pub maker_address: Address,
-    pub taker_address: Address,
-    pub asset_address: Address,
+    pub owner: Address,
+    pub spender: Address,
+    pub asset: Address,
     pub amount: Fraction,
+    pub nonce: i64,
     pub deadline: DateTime<Utc>,
+    pub is_active: bool,
 }

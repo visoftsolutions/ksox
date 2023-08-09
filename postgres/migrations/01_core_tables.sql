@@ -20,7 +20,7 @@ CREATE TABLE "assets" (
   "taker_fee" fraction NOT NULL
 );
 
-CREATE TABLE valuts (
+CREATE TABLE "valuts" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -37,9 +37,9 @@ CREATE TABLE "deposits" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "maker_address" CHAR(42) NOT NULL,
-  "taker_address" CHAR(42) NOT NULL,
-  "asset_address" CHAR(42) NOT NULL,
+  "owner" CHAR(42) NOT NULL,
+  "spender" CHAR(42) NOT NULL,
+  "asset" CHAR(42) NOT NULL,
   "amount" fraction NOT NULL,
   "tx_hash" CHAR(66) NOT NULL,
   "confirmations" fraction NOT NULL
@@ -49,15 +49,17 @@ CREATE TABLE "withdraws" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "maker_address" CHAR(42) NOT NULL,
-  "taker_address" CHAR(42) NOT NULL,
-  "asset_address" CHAR(42) NOT NULL,
+  "owner" CHAR(42) NOT NULL,
+  "spender" CHAR(42) NOT NULL,
+  "asset" CHAR(42) NOT NULL,
   "amount" fraction NOT NULL,
-  "deadline" TIMESTAMP(6) WITH TIME ZONE NOT NULL
+  "nonce"  BIGINT NOT NULL,
+  "deadline" TIMESTAMP(6) WITH TIME ZONE NOT NULL,
+  "is_active" BOOLEAN NOT NULL DEFAULT true
 );
 
-ALTER TABLE "withdraws" ADD FOREIGN KEY ("maker_address") REFERENCES "users" ("address");
-ALTER TABLE "withdraws" ADD FOREIGN KEY ("asset_address") REFERENCES "assets" ("address");
+ALTER TABLE "withdraws" ADD FOREIGN KEY ("spender") REFERENCES "users" ("address");
+ALTER TABLE "withdraws" ADD FOREIGN KEY ("asset") REFERENCES "assets" ("address");
 
 CREATE TABLE "transfers" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
@@ -166,7 +168,6 @@ DECLARE
 BEGIN
   val := '"Valuts"';
   PERFORM notify_worker(val);
-  PERFORM notify_blockchain(val);
   PERFORM notify_engagement(val);
   RETURN NEW;
 END;

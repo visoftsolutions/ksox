@@ -18,18 +18,27 @@ impl DepositsManager {
             Deposit,
             r#"
             INSERT INTO deposits
-            (created_at, last_modification_at, maker_address, taker_address, asset_address, tx_hash, amount, confirmations)
+            (created_at, last_modification_at, owner, spender, asset, amount, tx_hash, confirmations)
             VALUES
-                ($1, $2, $3, $4, $5, $6, $7::fraction, $8::fraction)
-            RETURNING id, created_at, last_modification_at, maker_address as "maker_address: Address", taker_address as "taker_address: Address", asset_address as "asset_address: Address", tx_hash as "tx_hash: TxHash", amount as "amount: Fraction", confirmations as "confirmations: Fraction"
+                ($1, $2, $3, $4, $5, $6::fraction, $7, $8::fraction)
+            RETURNING 
+                id,
+                created_at,
+                last_modification_at,
+                owner as "owner: Address",
+                spender as "spender: Address",
+                asset as "asset: Address",
+                amount as "amount: Fraction",
+                tx_hash as "tx_hash: TxHash",
+                confirmations as "confirmations: Fraction"
             "#,
             now,
             now,
-            deposit.maker_address.to_string() as _,
-            deposit.taker_address.to_string() as _,
-            deposit.asset_address.to_string() as _,
-            deposit.tx_hash.to_string() as _,
+            deposit.owner.to_string() as _,
+            deposit.spender.to_string() as _,
+            deposit.asset.to_string() as _,
             deposit.amount.to_tuple_string() as _,
+            deposit.tx_hash.to_string() as _,
             deposit.confirmations.to_tuple_string() as _,
         )
         .fetch_one(pool)

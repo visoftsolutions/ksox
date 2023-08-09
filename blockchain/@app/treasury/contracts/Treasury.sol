@@ -13,10 +13,10 @@ contract Treasury is Ownable, EIP712 {
 
     using Counters for Counters.Counter;
 
-    mapping(address => Counters.Counter) private _nonces;
+    mapping(address => Counters.Counter) private _nonces_withdraw;
 
     // solhint-disable-next-line var-name-mixedcase
-    bytes32 private constant _PERMIT_TYPEHASH =
+    bytes32 private constant _PERMIT_TYPEHASH_WITHDRAW =
         keccak256("WithdrawPermit(address owner,address spender,address token,uint256 value,uint256 nonce,uint256 deadline)");
 
     event Deposit(
@@ -41,7 +41,7 @@ contract Treasury is Ownable, EIP712 {
      * @dev See {IERC20Permit-nonces}.
      */
     function nonces(address owner) public view returns (uint256) {
-        return _nonces[owner].current();
+        return _nonces_withdraw[owner].current();
     }
 
     /**
@@ -57,8 +57,8 @@ contract Treasury is Ownable, EIP712 {
      *
      * _Available since v4.1._
      */
-    function _useNonce(address owner) internal returns (uint256 current) {
-        Counters.Counter storage nonce = _nonces[owner];
+    function _useNonceWithdraw(address owner) internal returns (uint256 current) {
+        Counters.Counter storage nonce = _nonces_withdraw[owner];
         current = nonce.current();
         nonce.increment();
     }
@@ -72,11 +72,11 @@ contract Treasury is Ownable, EIP712 {
 
     function withdrawPermit(address token, uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s, address to) external {
         address owner = address(msg.sender);
-        uint256 nonce = _useNonce(owner);
+        uint256 nonce = _useNonceWithdraw(owner);
 
         require(block.timestamp <= deadline, "ERC20Permit: expired deadline");
 
-        bytes32 structHash = keccak256(abi.encode(_PERMIT_TYPEHASH, publicKey, owner, token, amount, nonce, deadline));
+        bytes32 structHash = keccak256(abi.encode(_PERMIT_TYPEHASH_WITHDRAW, publicKey, owner, token, amount, nonce, deadline));
 
         bytes32 hash = _hashTypedDataV4(structHash);
 

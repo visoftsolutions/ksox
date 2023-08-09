@@ -9,9 +9,9 @@ pub struct Withdraw {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,
     pub last_modification_at: DateTime<Utc>,
-    pub maker_address: Address,
-    pub taker_address: Address,
-    pub asset_address: Address,
+    pub owner: Address,
+    pub spender: Address,
+    pub asset: Address,
     pub amount: Fraction,
     pub deadline: DateTime<Utc>,
 }

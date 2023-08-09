@@ -6,13 +6,12 @@ pub mod models;
 
 mod shutdown_signal;
 use contracts::treasury::Treasury;
-use database::managers::notification::NotificationManager;
 use engine_base::engine_client::EngineClient;
 use ethers::{
-    prelude::SignerMiddleware,
     providers::{Provider, Ws},
-    signers::LocalWallet,
+    signers::{LocalWallet, Signer},
 };
+use evm::address::Address;
 use sqlx::postgres::PgPoolOptions;
 use std::io;
 use std::net::SocketAddr;
@@ -48,22 +47,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::env::var("WS_PROVIDER_URL").unwrap()
     ))?;
 
-    let notification_manager_controller =
-        NotificationManager::start(database.clone(), "blockchain").await?;
+    let contract_key_wallet: LocalWallet = std::env::var("CONTRACT_PRIVATE_KEY")?.parse()?;
+    let contract_key_address: Address = contract_key_wallet.address().into();
 
-    let wallet: LocalWallet = std::env::var("PRIVATE_KEY")?.parse()?;
-    let client = SignerMiddleware::new_with_provider_chain(provider.clone(), wallet).await?;
     let treasury = Treasury::new(
-        prefix_hex::decode::<[u8; 20]>(std::env::var("TREASURY_ADDRESS")?)
+        prefix_hex::decode::<[u8; 20]>(std::env::var("CONTRACT_ADDRESS")?)
             .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err.to_string()))?,
         std::sync::Arc::new(provider.clone()),
-    )
-    .connect(client.into());
+    );
 
     let deposits_controller = DepositsBlockchainManager {
         database: database.to_owned(),
         provider: provider.to_owned(),
-        contract: treasury.to_owned().into(),
+        contract: treasury.to_owned(),
     }
     .start(engine_client.to_owned())
     .await;
@@ -71,16 +67,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let withdraws_controller = WithdrawsBlockchainManager {
         database: database.to_owned(),
         provider: provider.to_owned(),
-        contract: treasury.to_owned().into(),
+        contract: treasury.to_owned(),
+        contract_key_wallet,
     }
     .start(engine_client.to_owned())
     .await;
 
     let blockchain_engine = BlockchainEngine {
-        contract: treasury.into(),
-        database: database.to_owned(),
+        contract: treasury,
+        database: database,
         deposits_controller,
         withdraws_controller,
+        contract_key_address,
     };
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));
     tracing::info!("listening on {}", addr);

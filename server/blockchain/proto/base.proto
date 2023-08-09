@@ -1,15 +1,17 @@
 syntax = "proto3";
 package server.blockchain.base;
 
-message WithdrawRequest {
-    string maker_address = 1;
-    string taker_address = 2;
-    string asset_address = 3;
-    string amount = 4;
+message WithdrawPermitRequest {
+    string spender = 1;
+    string asset = 2;
+    string amount = 3;
+    string deadline = 4;
 }
 
-message WithdrawResponse {}
+message WithdrawPermitResponse {
+    string signature = 1;
+}
 
 service Blockchain {
-    rpc Withdraw(WithdrawRequest) returns (WithdrawResponse) {}
+    rpc Withdraw(WithdrawPermitRequest) returns (WithdrawPermitResponse) {}
 }
