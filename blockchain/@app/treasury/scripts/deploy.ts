@@ -8,11 +8,6 @@ async function main() {
   await Treasury.waitForDeployment();
   console.log("Treasury: ", await Treasury.getAddress());
 
-  const TokenFactory = await ethers.getContractFactory("Token");
-  const Token = await TokenFactory.deploy("Token", "TOK");
-  await Token.waitForDeployment();
-  console.log("Token: ", await Token.getAddress());
-
   const TokenPermitFactory = await ethers.getContractFactory("TokenPermit");
   const TokenPermit = await TokenPermitFactory.deploy("TokenPermit", "TOKP");
   await TokenPermit.waitForDeployment();

@@ -41,6 +41,6 @@ pub async fn root(
         .into_inner();
 
     Ok(Json(Response {
-        response: format!("{response:?}"),
+        response: response.signature,
     }))
 }

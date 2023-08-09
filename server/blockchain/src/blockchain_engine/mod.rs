@@ -5,11 +5,12 @@ pub mod withdraws;
 use ethers::providers::{Provider, Ws};
 use evm::address::Address;
 use sqlx::PgPool;
-use tonic::{Request, Response, Status};
+use tonic::{transport::Channel, Request, Response, Status};
 
 use crate::{
     base::{self, blockchain_server::Blockchain},
     contracts::treasury::Treasury,
+    engine_base::engine_client::EngineClient,
 };
 
 use self::{
@@ -24,6 +25,7 @@ pub struct BlockchainEngine {
     pub deposits_controller: DepositsBlockchainManagerController,
     pub withdraws_controller: WithdrawsBlockchainManagerController,
     pub contract_key_address: Address,
+    pub engine_client: EngineClient<Channel>,
 }
 
 #[tonic::async_trait]
@@ -35,11 +37,11 @@ impl Blockchain for BlockchainEngine {
         let request: WithdrawPermitRequest = request.into_inner().try_into()?;
         let response = self
             .withdraws_controller
-            .withdraw(request)
+            .withdraw(request, self.engine_client.to_owned())
             .await
             .map_err(|e| Status::aborted(e.to_string()))?;
         Ok(Response::new(base::WithdrawPermitResponse {
-            signature: response.to_string(),
+            signature: prefix_hex::encode(<[u8; 65]>::from(response)),
         }))
     }
 }

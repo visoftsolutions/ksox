@@ -49,6 +49,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let contract_key_wallet: LocalWallet = std::env::var("CONTRACT_PRIVATE_KEY")?.parse()?;
     let contract_key_address: Address = contract_key_wallet.address().into();
+    tracing::info!("{}", contract_key_address);
 
     let treasury = Treasury::new(
         prefix_hex::decode::<[u8; 20]>(std::env::var("CONTRACT_ADDRESS")?)
@@ -79,6 +80,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         deposits_controller,
         withdraws_controller,
         contract_key_address,
+        engine_client,
     };
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));
     tracing::info!("listening on {}", addr);

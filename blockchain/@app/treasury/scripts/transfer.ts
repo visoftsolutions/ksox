@@ -1,8 +1,14 @@
 import { ethers } from "hardhat";
 
+<<<<<<< Updated upstream
 const TOKEN_ADDRESS = "0xd8Cf62f758CFce316577f2769abbc23C3930CbdD";
 const TREASURY_ADDRESS = "0x78cC73D4dD9D4fdb32158B7F7761F6CCf05e362C";
 const AMOUNT = 1n * 10n ** 18n;
+=======
+const TOKEN_ADDRESS = "0xbd9512Ce3fd5752D46776D545b05Da9c0561F609";
+const TREASURY_ADDRESS = "0xaC8a31c9E4F7Ee67eb82D80cbC8A0a8F9593635a";
+const AMOUNT = 1n*10n**18n;
+>>>>>>> Stashed changes
 
 const splitSig = (sig: string) => {
   const pureSig = sig.replace("0x", "");
@@ -22,7 +28,11 @@ async function main() {
   const Treasury = await ethers.getContractAt("Treasury", TREASURY_ADDRESS);
   console.log("Treasury: ", await Treasury.getAddress());
 
+<<<<<<< Updated upstream
   const nonce = await Treasury.nonces(owner);
+=======
+  let nonce = 0;
+>>>>>>> Stashed changes
 
   const deadline = ((await ethers.provider.getBlock("latest"))?.timestamp ?? 0) + 3600;
 

@@ -47,7 +47,7 @@ impl WithdrawsBlockchainManager {
     ) -> WithdrawsBlockchainManagerController {
         let (shutdown_tx, mut shutdown_rx) = oneshot::channel::<()>();
         let (insert_withdraw_event_tx, mut insert_withdraw_event_rx) =
-            mpsc::channel::<WithdrawInsert>(100);
+            mpsc::channel::<(WithdrawQueueKey, WithdrawQueueValue)>(100);
 
         let database = self.database.to_owned();
         let provider = self.provider.to_owned();
@@ -63,32 +63,8 @@ impl WithdrawsBlockchainManager {
                         _ = &mut shutdown_rx => {
                             break;
                         },
-                        Some(event) = insert_withdraw_event_rx.recv() => {
-                            if let Err(err) = async {
-                                let mut t = database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
-
-                                let withdraw = WithdrawsManager::insert(&mut t, &event).await?;
-                                let transfer_id = Uuid::from_str(engine_client.transfer(withdraw_to_transfer_request(&mut t, withdraw.to_owned()).await?).await?.into_inner().id.as_str())?;
-
-                                withdraw_queue.insert(
-                                    WithdrawQueueKey {
-                                        owner: withdraw.owner,
-                                        spender: withdraw.spender,
-                                        asset: withdraw.asset, amount:
-                                        withdraw.amount,
-                                        nonce: withdraw.nonce
-                                    },
-                                    WithdrawQueueValue {
-                                        deadline: withdraw.deadline,
-                                        transfer: transfer_id
-                                    }
-                                );
-
-                                t.commit().await?;
-                                Ok::<(), BlockchainManagerError>(())
-                            }.await {
-                                tracing::error!("{err}");
-                            }
+                        Some((key, value)) = insert_withdraw_event_rx.recv() => {
+                            withdraw_queue.insert(key, value);
                         },
                         Some(block) = blocks_stream.next() => {
                             let time = block.time()?;
@@ -148,7 +124,7 @@ impl WithdrawsBlockchainManager {
 #[derive(Debug)]
 pub struct WithdrawsBlockchainManagerController {
     shutdown_tx: oneshot::Sender<()>,
-    insert_withdraw_event_tx: mpsc::Sender<WithdrawInsert>,
+    insert_withdraw_event_tx: mpsc::Sender<(WithdrawQueueKey, WithdrawQueueValue)>,
     join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>>,
     database: PgPool,
     contract: Treasury<Provider<Ws>>,
@@ -165,27 +141,59 @@ impl WithdrawsBlockchainManagerController {
     pub async fn withdraw(
         &self,
         request: WithdrawPermitRequest,
+        mut engine_client: EngineClient<Channel>,
     ) -> Result<Signature, BlockchainManagerError> {
         let nonce = self.contract.nonces(*request.spender).await?;
-
-        let insert = WithdrawInsert {
-            owner: self.contract_key_wallet.address().into(),
-            spender: request.spender.to_owned(),
-            asset: request.asset.to_owned(),
-            amount: request.amount.to_owned(),
-            nonce: nonce.low_u32().into(),
-            deadline: request.deadline.to_owned(),
-            is_active: true,
-        };
-
+        tracing::info!("nonce {}", nonce);
         let mut t = self.database.begin().await?;
+
+        let withdraw = WithdrawsManager::insert(
+            &mut t,
+            &WithdrawInsert {
+                owner: self.contract_key_wallet.address().into(),
+                spender: request.spender.to_owned(),
+                asset: request.asset.to_owned(),
+                amount: request.amount.to_owned(),
+                nonce: nonce.low_u32().into(),
+                deadline: request.deadline.to_owned(),
+                is_active: true,
+            },
+        )
+        .await?;
+
+        // let transfer_id = Uuid::from_str(
+        //     engine_client
+        //         .transfer(withdraw_to_transfer_request(&mut t, withdraw.to_owned()).await?)
+        //         .await?
+        //         .into_inner()
+        //         .id
+        //         .as_str(),
+        // )?;
+
         let permit = request
             .clone()
-            .to_permit(&mut t, insert.owner.to_owned(), nonce)
+            .to_permit(&mut t, withdraw.owner.to_owned(), nonce)
             .await?;
+
         t.commit().await?;
 
-        self.insert_withdraw_event_tx.send(insert).await?;
+        tracing::info!("permit {:#?}", permit);
+        // self.insert_withdraw_event_tx
+        //     .send((
+        //         WithdrawQueueKey {
+        //             owner: withdraw.owner,
+        //             spender: withdraw.spender,
+        //             asset: withdraw.asset,
+        //             amount: withdraw.amount,
+        //             nonce: withdraw.nonce,
+        //         },
+        //         WithdrawQueueValue {
+        //             deadline: withdraw.deadline,
+        //             transfer: transfer_id,
+        //         },
+        //     ))
+        //     .await?;
+
         Ok(self.contract_key_wallet.sign_typed_data(&permit).await?)
     }
 }

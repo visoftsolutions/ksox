@@ -13,7 +13,7 @@ use uuid::Uuid;
 
 use crate::{
     base,
-    contracts::{treasury::WithdrawFilter, WithdrawPermit},
+    contracts::{treasury::WithdrawFilter, Permit},
     database::{
         managers::assets::AssetsManager,
         projections::{withdraw::Withdraw, Expirable},
@@ -41,9 +41,9 @@ impl WithdrawPermitRequest {
         t: &'t mut Transaction<'p, Postgres>,
         owner: Address,
         nonce: U256,
-    ) -> sqlx::Result<WithdrawPermit> {
+    ) -> sqlx::Result<Permit> {
         let asset = AssetsManager::get_by_address(t, self.asset.clone()).await?;
-        Ok(WithdrawPermit {
+        Ok(Permit {
             owner: *owner,
             spender: *self.spender,
             token: *self.asset,

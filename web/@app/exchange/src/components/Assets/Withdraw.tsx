@@ -2,12 +2,13 @@ import NumberInput from "../Inputs/NumberInput";
 import { Show, createSignal } from "solid-js";
 import { useSession } from "@web/components/providers/SessionProvider";
 import { Asset } from "@web/types/asset";
-import { Fraction, fFromBigint } from "@web/types/primitives/fraction";
+import { Fraction, ev, fFromBigint, fmul } from "@web/types/primitives/fraction";
 import TextInput from "../Inputs/TextInput";
 import { api } from "~/root";
-import { WithdrawRequest } from "@web/types/mod";
+import { WithdrawRequest, WithdrawResponse } from "@web/types/mod";
 import { useWallet } from "@web/components/providers/WalletProvider";
 import { Address } from "viem";
+import { ABI as TREASURY_ABI, ADDRESS as TREASURY_ADDRESS } from "~/contract/treasury";
 
 export default function CreateWithdraw(asset?: Asset, precision?: number) {
   return () => (
@@ -15,6 +16,16 @@ export default function CreateWithdraw(asset?: Asset, precision?: number) {
       <Withdraw asset={asset!} precision={precision!} />
     </Show>
   );
+}
+
+const splitSig = (sig: string) => {
+  const pureSig = sig.replace("0x", "")
+  const r = "0x"+pureSig.substring(0, 64)
+  const s = "0x"+pureSig.substring(64, 128)
+  const v = parseInt(pureSig.substring(128, 130), 16);
+  return {
+    r, s, v
+  }
 }
 
 export function Withdraw(props: { asset: Asset; precision: number }) {
@@ -51,8 +62,12 @@ export function Withdraw(props: { asset: Asset; precision: number }) {
             select-none items-center justify-center rounded-md  text-markets-label transition-colors duration-75
           `}
           onClick={async () => {
-            if (session()) {
-              await fetch(`${api}/private/withdraw`, {
+            const address_value = address();
+            const value = BigInt(Math.floor(ev(fmul(props.asset.decimals, amount()))));
+            const deadline = new Date((new Date()).getTime() + 60 * 60 * 1000);
+            console.log(wallet, address_value, wallet.address)
+            if (wallet && address_value && wallet.address) {
+              let response = await fetch(`${api}/private/withdraw`, {
                 method: "POST",
                 headers: {
                   Accept: "application/json",
@@ -61,14 +76,45 @@ export function Withdraw(props: { asset: Asset; precision: number }) {
                 credentials: "same-origin",
                 body: JSON.stringify(
                   WithdrawRequest.parse({
-                    maker_address: session()?.address,
-                    taker_address: address(),
-                    asset_address: props.asset.address,
+                    spender: address(),
+                    asset: props.asset.address,
                     amount: amount(),
+                    deadline
                   }),
                   (_, v) => (typeof v === "bigint" ? v.toString() : v)
                 ),
-              }).then((r) => r.text());
+              })
+              .then((r) => r.json())
+              .then((r) => WithdrawResponse.parse(r));
+
+              const {r, s, v} = splitSig(response.response);
+              console.log(
+                {
+                  account: wallet.address as Address,
+                  args: [
+                    props.asset.address as Address,
+                    value,
+                    deadline,
+                    v,r,s,
+                    address()
+                  ]
+                }
+              )
+
+              await wallet.walletClient?.writeContract({
+                address: TREASURY_ADDRESS,
+                abi: TREASURY_ABI,
+                functionName: 'withdrawPermit',
+                account: wallet.address as Address,
+                args: [
+                  props.asset.address as Address,
+                  value,
+                  deadline,
+                  v,r,s,
+                  address()
+                ]
+              })
+
             }
           }}
         >

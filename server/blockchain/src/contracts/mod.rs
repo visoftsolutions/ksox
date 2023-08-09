@@ -13,14 +13,14 @@ use ethers::{
     core::types::{Address, U256},
 };
 
-#[derive(Eip712, EthAbiType, Clone)]
+#[derive(Eip712, EthAbiType, Clone, Debug)]
 #[eip712(
     name = "Treasury",
     version = "1",
     chain_id = 11155111,
-    verifying_contract = "0x09032B61218Be2906525696C97dC68f14BACdA1e"
+    verifying_contract = "0x8edCD44edF2C5391B418a2b9d3194eDDa6253303"
 )]
-pub struct WithdrawPermit {
+pub struct Permit {
     pub owner: Address,
     pub spender: Address,
     pub token: Address,

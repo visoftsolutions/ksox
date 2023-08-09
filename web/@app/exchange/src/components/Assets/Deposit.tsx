@@ -66,22 +66,7 @@ export function Deposit(props: { asset: Asset; precision: number }) {
             const value = BigInt(Math.floor(ev(fmul(props.asset.decimals, amount()))));
             console.log(wallet, address_value, wallet.address)
             if (wallet && address_value && wallet.address) {
-              // await wallet.walletClient?.writeContract({
-              //   address: props.asset.address as Address,
-              //   abi: ERC20_ABI,
-              //   functionName: 'approve',
-              //   account: wallet.address as Address,
-              //   args: [TREASURY_ADDRESS, value]
-              // });
-
-              // await wallet.walletClient?.writeContract({
-              //   address: TREASURY_ADDRESS,
-              //   abi: TREASURY_ABI,
-              //   functionName: 'deposit',
-              //   account: wallet.address as Address,
-              //   args: [props.asset.address as Address, value]
-              // })
-
+              
               let nonce = await wallet.publicWSClient?.readContract({
                 address: props.asset.address as Address,
                 abi: ERC20_ABI,

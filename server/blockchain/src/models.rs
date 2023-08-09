@@ -8,8 +8,11 @@ use thiserror::Error;
 use tonic::Status;
 
 use crate::{
-    blockchain_engine::models::BlockchainEngineError, confirmation::ConfirmationQueueError,
-    database::projections::withdraw::WithdrawInsert,
+    blockchain_engine::{
+        models::BlockchainEngineError,
+        withdraws::models::{WithdrawQueueKey, WithdrawQueueValue},
+    },
+    confirmation::ConfirmationQueueError,
 };
 
 #[derive(Error, Debug)]
@@ -39,7 +42,7 @@ pub enum BlockchainManagerError {
     BlockchainEngineError(#[from] BlockchainEngineError),
 
     #[error(transparent)]
-    SendError(#[from] tokio::sync::mpsc::error::SendError<WithdrawInsert>),
+    SendError(#[from] tokio::sync::mpsc::error::SendError<(WithdrawQueueKey, WithdrawQueueValue)>),
 
     #[error(transparent)]
     TimeError(#[from] TimeError),
