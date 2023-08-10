@@ -1,8 +1,8 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 cleanup() {
   # Remove Ingress hosts from /etc/hosts
-  echo "$unique_dns" | while read -r host; do
+  echo "$unique_ingresses" | while read -r host; do
     sudo sed -i "/$host/d" /etc/hosts
   done
 
@@ -14,14 +14,14 @@ cleanup() {
 trap cleanup INT
 
 # Get all Ingress resources from Minikube
-dns=$(kubectl get certificate -n prod -o jsonpath='{range .items[*]}{.spec.dnsNames[*]}{"\n"}{end}')
-ip=$(kubectl get gateway prod-gateway -n prod -o jsonpath='{.spec.addresses[0].value}')
+ingresses=$(kubectl get ingress -o jsonpath='{range .items[*]}{.spec.rules[*].host}{"\n"}{end}')
 
 # Remove duplicates from Ingress hosts
-unique_dns=$(echo "$dns" | awk '!seen[$0]++')
+unique_ingresses=$(echo "$ingresses" | awk '!seen[$0]++')
 
 # Add Ingress hosts to /etc/hosts
-echo "$unique_dns" | while read -r host; do
+echo "$ingresses" | while read -r host; do
+  ip=$(minikube ip)
   echo "$ip $host" | sudo tee -a /etc/hosts >/dev/null
 done
 
@@ -31,7 +31,7 @@ echo "Ingress hosts added to /etc/hosts."
 read -rp "Press Enter to remove Ingress hosts from /etc/hosts..."
 
 # Remove Ingress hosts from /etc/hosts
-echo "$unique_dns" | while read -r host; do
+echo "$ingresses" | while read -r host; do
   sudo sed -i "/$host/d" /etc/hosts
 done
 

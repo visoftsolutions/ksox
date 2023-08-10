@@ -25,7 +25,7 @@ impl UsersManager {
             now,
             &address.to_string()
         )
-        .fetch_one(pool)
+        .fetch_one(pool.as_mut())
         .await
     }
 
@@ -44,7 +44,7 @@ impl UsersManager {
             "#,
             address.to_string()
         )
-        .fetch_one(pool)
+        .fetch_one(pool.as_mut())
         .await
     }
 
@@ -74,7 +74,7 @@ impl UsersManager {
             "#,
             id
         )
-        .fetch_one(pool)
+        .fetch_one(pool.as_mut())
         .await
     }
 }

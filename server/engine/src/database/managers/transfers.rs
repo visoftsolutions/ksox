@@ -29,7 +29,7 @@ impl TransfersManager {
             element.asset_id,
             element.amount.to_tuple_string() as _,
         )
-        .fetch_one(pool)
+        .fetch_one(pool.as_mut())
         .await
         .map(|e| e.id)
     }
@@ -51,7 +51,7 @@ impl TransfersManager {
             "#,
             id,
         )
-        .fetch_one(pool)
+        .fetch_one(pool.as_mut())
         .await
     }
 }

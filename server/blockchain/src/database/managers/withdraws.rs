@@ -41,7 +41,7 @@ impl WithdrawsManager {
             withdraw.nonce.to_tuple_string() as _,
             withdraw.deadline,
         )
-        .fetch_one(pool)
+        .fetch_one(pool.as_mut())
         .await
     }
 }

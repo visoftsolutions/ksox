@@ -41,7 +41,7 @@ impl DepositsManager {
             deposit.tx_hash.to_string() as _,
             deposit.confirmations.to_tuple_string() as _,
         )
-        .fetch_one(pool)
+        .fetch_one(pool.as_mut())
         .await
     }
 
@@ -64,7 +64,7 @@ impl DepositsManager {
             deposit.confirmations.to_tuple_string() as _,
             now
         )
-        .execute(pool)
+        .execute(pool.as_mut())
         .await
     }
 }

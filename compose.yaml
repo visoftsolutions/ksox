@@ -4,10 +4,8 @@ services:
     hostname: ksox-postgres
     build:
       context: postgres
-    environment:
-      - POSTGRES_USER=ksoxuser
-      - POSTGRES_PASSWORD=ksoxuserp4ssword
-      - POSTGRES_DB=ksox
+    env_file:
+      - .env
     ports:
       - 5432:5432
 
@@ -26,9 +24,8 @@ services:
     build:
       context: server
       dockerfile: ./engine.dockerfile
-    environment:
-      - DATABASE_URL=postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox
-      - REDIS_URL=redis://ksox-redis/
+    env_file:
+      - .env
     depends_on:
       - postgres
       - redis
@@ -39,43 +36,34 @@ services:
     build:
       context: server
       dockerfile: ./engagement.dockerfile
-    environment:
-      - DATABASE_URL=postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox
-      - REDIS_URL=redis://ksox-redis/
+    env_file:
+      - .env
     depends_on:
       - postgres
       - redis
-  
+
   server-worker:
     container_name: ksox-server-worker
     hostname: ksox-server-worker
     build:
       context: server
       dockerfile: ./worker.dockerfile
-    environment:
-      - DATABASE_URL=postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox
-      - ENGINE_URL=http://ksox-server-engine/
-      - BLOCKCHAIN_URL=http://ksox-server-blockchain/
-      - REDIS_URL=redis://ksox-redis/
-      - RUST_BACKTRACE=full
+    env_file:
+      - .env
     depends_on:
       - postgres
       - redis
       - server-engine
       - server-blockchain
-  
+
   server-blockchain:
     container_name: ksox-server-blockchain
     hostname: ksox-server-blockchain
     build:
       context: server
       dockerfile: ./blockchain.dockerfile
-    environment:
-      - DATABASE_URL=postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox
-      - ENGINE_URL=http://ksox-server-engine/
-      - WS_PROVIDER_URL=wss://eth-sepolia.g.alchemy.com/v2/-koG9fJPMpiL7ywoOZyGtWlLZ_JymCb2
-      - CONTRACT_ADDRESS=0xe516B9d4F9A3ea0c0ac2e4F664cF9c66B7EA6cd2
-      - CONTRACT_PRIVATE_KEY=637cf0cb529ff41499db61e0913674570ebd68c9d7c9a7a021cffd3c02c85427
+    env_file:
+      - .env
     depends_on:
       - postgres
       - redis

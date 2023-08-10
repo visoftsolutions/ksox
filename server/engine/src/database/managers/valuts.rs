@@ -28,7 +28,7 @@ impl ValutsManager {
             user_id,
             asset_id
         )
-        .fetch_optional(pool)
+        .fetch_optional(pool.as_mut())
         .await
     }
 
@@ -53,7 +53,7 @@ impl ValutsManager {
             now,
             now
         )
-        .fetch_one(pool)
+        .fetch_one(pool.as_mut())
         .await
     }
 
@@ -76,7 +76,7 @@ impl ValutsManager {
             serde_json::to_string(&valut.balance).unwrap_or_default(),
             Utc::now()
         )
-        .execute(pool)
+        .execute(pool.as_mut())
         .await
     }
 

@@ -31,7 +31,7 @@ impl TradesManager {
             now,
             now
         )
-        .execute(pool)
+        .execute(pool.as_mut())
         .await
     }
 }

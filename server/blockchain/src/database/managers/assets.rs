@@ -25,7 +25,7 @@ impl AssetsManager {
             "#,
             address.to_string()
         )
-        .fetch_one(pool)
+        .fetch_one(pool.as_mut())
         .await
     }
 
@@ -45,7 +45,7 @@ impl AssetsManager {
             "#,
             id
         )
-        .fetch_one(pool)
+        .fetch_one(pool.as_mut())
         .await
     }
 }

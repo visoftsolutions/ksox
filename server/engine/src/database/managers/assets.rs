@@ -25,7 +25,7 @@ impl AssetsManager {
             "#,
             id
         )
-        .fetch_optional(pool)
+        .fetch_optional(pool.as_mut())
         .await
     }
 }

@@ -30,7 +30,7 @@ impl OrdersManager {
             "#,
             id
         )
-        .fetch_optional(pool)
+        .fetch_optional(pool.as_mut())
         .await
     }
 
@@ -60,7 +60,7 @@ impl OrdersManager {
             base_asset_id,
             price.to_tuple_string() as _
         )
-        .fetch(pool)
+        .fetch(pool.as_mut())
     }
 
     pub async fn insert<'t, 'p>(
@@ -86,7 +86,7 @@ impl OrdersManager {
             now,
             now
         )
-        .execute(pool)
+        .execute(pool.as_mut())
         .await
     }
 
@@ -110,7 +110,7 @@ impl OrdersManager {
             order.quote_asset_volume_left.to_tuple_string() as _,
             Utc::now()
         )
-        .execute(pool)
+        .execute(pool.as_mut())
         .await
     }
 
@@ -132,7 +132,7 @@ impl OrdersManager {
             order.is_active,
             Utc::now()
         )
-        .execute(pool)
+        .execute(pool.as_mut())
         .await
     }
 }

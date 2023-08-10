@@ -1,0 +1,88 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                id,\n                decimals as \"decimals: Fraction\",\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\"\n            FROM assets\n            WHERE assets.id = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "decimals: Fraction",
+        "type_info": {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "maker_fee: Fraction",
+        "type_info": {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "taker_fee: Fraction",
+        "type_info": {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "9ccd3a0fe0118e1de7222907e03e740064419fed1374deaf023dc5d520a9c202"
+}

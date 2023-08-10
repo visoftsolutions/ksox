@@ -1,6 +1,4 @@
-import { Chain, mainnet, polygon, bsc } from "viem/chains";
-import { Address } from "viem";
-import { sepolia } from "@wagmi/core";
+import { Chain, mainnet, polygon, bsc, sepolia } from "viem/chains";
 
 export interface Network {
   network: Chain;
