@@ -14,7 +14,7 @@ use crate::{
     contracts::treasury::{DepositFilter, Treasury, TreasuryEvents},
     database::{
         managers::deposits::DepositsManager,
-        projections::deposit::{deposit_to_transfer_request, Deposit, DepositInsert},
+        projections::deposit::{Deposit, DepositInsert},
     },
     engine_base::{self, engine_client::EngineClient},
     models::BlockchainManagerError,
@@ -74,7 +74,7 @@ impl DepositsBlockchainManager {
                                 let mut transfers: Vec<engine_base::TransferRequest> = Vec::new();
 
                                 for deposit in confirmed_deposit {
-                                    transfers.push(deposit_to_transfer_request(&mut t, deposit).await?);
+                                    transfers.push(deposit.as_transfer_request(&mut t).await?);
                                 }
 
                                 t.commit().await?;

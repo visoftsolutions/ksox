@@ -53,9 +53,8 @@ CREATE TABLE "withdraws" (
   "spender" CHAR(42) NOT NULL,
   "asset" CHAR(42) NOT NULL,
   "amount" fraction NOT NULL,
-  "nonce"  BIGINT NOT NULL,
-  "deadline" TIMESTAMP(6) WITH TIME ZONE NOT NULL,
-  "is_active" BOOLEAN NOT NULL DEFAULT true
+  "nonce"  fraction NOT NULL,
+  "deadline" TIMESTAMP(6) WITH TIME ZONE NOT NULL
 );
 
 ALTER TABLE "withdraws" ADD FOREIGN KEY ("spender") REFERENCES "users" ("address");

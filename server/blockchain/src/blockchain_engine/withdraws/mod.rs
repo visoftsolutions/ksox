@@ -2,6 +2,7 @@ pub mod models;
 
 use std::str::FromStr;
 
+use ethereum_types::U256;
 use ethers::{
     prelude::LogMeta,
     providers::{Middleware, Provider, Ws},
@@ -9,6 +10,7 @@ use ethers::{
     types::Signature,
 };
 
+use evm::address::Address;
 use fraction::Fraction;
 use sqlx::PgPool;
 use tokio::{
@@ -21,17 +23,22 @@ use tonic::{transport::Channel, Status};
 use uuid::Uuid;
 
 use crate::{
-    blockchain_engine::withdraws::models::{WithdrawQueueKey, WithdrawQueueValue},
-    contracts::treasury::{Treasury, TreasuryEvents, WithdrawFilter},
+    blockchain_engine::withdraws::models::WithdrawQueueValue,
+    contracts::{
+        treasury::{Treasury, TreasuryEvents, WithdrawFilter},
+        Permit,
+    },
     database::{
         managers::{assets::AssetsManager, withdraws::WithdrawsManager},
-        projections::withdraw::{withdraw_to_transfer_request, WithdrawInsert},
+        projections::withdraw::WithdrawInsert,
     },
     engine_base::{self, engine_client::EngineClient},
     models::BlockchainManagerError,
 };
 
-use self::models::{WithdrawPermitRequest, WithdrawQueue};
+use self::models::WithdrawQueue;
+
+use super::models::WithdrawPermitRequest;
 
 pub struct WithdrawsBlockchainManager {
     pub database: PgPool,
@@ -47,7 +54,7 @@ impl WithdrawsBlockchainManager {
     ) -> WithdrawsBlockchainManagerController {
         let (shutdown_tx, mut shutdown_rx) = oneshot::channel::<()>();
         let (insert_withdraw_event_tx, mut insert_withdraw_event_rx) =
-            mpsc::channel::<(WithdrawQueueKey, WithdrawQueueValue)>(100);
+            mpsc::channel::<(WithdrawInsert, WithdrawQueueValue)>(100);
 
         let database = self.database.to_owned();
         let provider = self.provider.to_owned();
@@ -83,20 +90,11 @@ impl WithdrawsBlockchainManager {
                                     }).await?;
                                 }
 
-                                for (event, _meta) in events {
+                                for (event, meta) in events {
 
-                                    let asset = AssetsManager::get_by_address(&mut t, event.token.into()).await?;
-                                    let mut bytes = [0_u8; 32];
-                                    event.amount.to_little_endian(&mut bytes);
-                                    withdraw_queue.remove(
-                                        &WithdrawQueueKey {
-                                            owner: event.owner.into(),
-                                            spender: event.spender.into(),
-                                            asset: event.token.into(),
-                                            amount: Fraction::from_bytes_le(&bytes) / asset.decimals,
-                                            nonce: event.nonce.low_u32().into(),
-                                        },
-                                    );
+                                    let asset = AssetsManager::get_by_address(&mut t, &Address(event.token)).await?;
+                                    let insert = WithdrawInsert::from_filter(&mut t, &event, &meta).await?;
+                                    withdraw_queue.remove(&insert);
                                 }
 
                                 t.commit().await?;
@@ -124,7 +122,7 @@ impl WithdrawsBlockchainManager {
 #[derive(Debug)]
 pub struct WithdrawsBlockchainManagerController {
     shutdown_tx: oneshot::Sender<()>,
-    insert_withdraw_event_tx: mpsc::Sender<(WithdrawQueueKey, WithdrawQueueValue)>,
+    insert_withdraw_event_tx: mpsc::Sender<(WithdrawInsert, WithdrawQueueValue)>,
     join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>>,
     database: PgPool,
     contract: Treasury<Provider<Ws>>,
@@ -143,56 +141,53 @@ impl WithdrawsBlockchainManagerController {
         request: WithdrawPermitRequest,
         mut engine_client: EngineClient<Channel>,
     ) -> Result<Signature, BlockchainManagerError> {
-        let nonce = self.contract.nonces(*request.spender).await?;
-        tracing::info!("nonce {}", nonce);
         let mut t = self.database.begin().await?;
 
-        let withdraw = WithdrawsManager::insert(
-            &mut t,
-            &WithdrawInsert {
-                owner: self.contract_key_wallet.address().into(),
-                spender: request.spender.to_owned(),
-                asset: request.asset.to_owned(),
-                amount: request.amount.to_owned(),
-                nonce: nonce.low_u32().into(),
-                deadline: request.deadline.to_owned(),
-                is_active: true,
-            },
-        )
-        .await?;
+        let insert = WithdrawInsert {
+            owner: self.contract_key_wallet.address().into(),
+            spender: request.spender.to_owned(),
+            asset: request.asset.to_owned(),
+            amount: request.amount.to_owned(),
+            nonce: self.contract.nonces(*request.spender).await?.into(),
+            deadline: request.deadline.to_owned(),
+        };
 
-        // let transfer_id = Uuid::from_str(
-        //     engine_client
-        //         .transfer(withdraw_to_transfer_request(&mut t, withdraw.to_owned()).await?)
-        //         .await?
-        //         .into_inner()
-        //         .id
-        //         .as_str(),
-        // )?;
+        let withdraw = WithdrawsManager::insert(&mut t, &insert).await?;
 
-        let permit = request
-            .clone()
-            .to_permit(&mut t, withdraw.owner.to_owned(), nonce)
-            .await?;
+        let transfer_id = Uuid::from_str(
+            engine_client
+                .transfer(withdraw.as_transfer_request(&mut t).await?)
+                .await?
+                .into_inner()
+                .id
+                .as_str(),
+        )?;
+
+        let asset = AssetsManager::get_by_address(&mut t, &withdraw.asset).await?;
 
         t.commit().await?;
 
-        tracing::info!("permit {:#?}", permit);
         // self.insert_withdraw_event_tx
         //     .send((
-        //         WithdrawQueueKey {
-        //             owner: withdraw.owner,
-        //             spender: withdraw.spender,
-        //             asset: withdraw.asset,
-        //             amount: withdraw.amount,
-        //             nonce: withdraw.nonce,
-        //         },
+        //         insert,
         //         WithdrawQueueValue {
-        //             deadline: withdraw.deadline,
+        //             withdraw: withdraw.to_owned(),
         //             transfer: transfer_id,
         //         },
         //     ))
         //     .await?;
+
+
+        let permit = Permit {
+            owner: withdraw.owner.into(),
+            spender: withdraw.spender.into(),
+            token: withdraw.asset.into(),
+            value: (withdraw.amount * asset.decimals).into(),
+            nonce: withdraw.nonce.into(),
+            deadline: U256::from(withdraw.deadline.timestamp()),
+        };
+
+        tracing::info!("{:#?}", permit);
 
         Ok(self.contract_key_wallet.sign_typed_data(&permit).await?)
     }

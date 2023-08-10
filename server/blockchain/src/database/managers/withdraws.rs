@@ -18,9 +18,9 @@ impl WithdrawsManager {
             Withdraw,
             r#"
             INSERT INTO withdraws
-                (created_at, last_modification_at, owner, spender, asset, amount, nonce, deadline, is_active)
+                (created_at, last_modification_at, owner, spender, asset, amount, nonce, deadline)
             VALUES
-                ($1, $2, $3, $4, $5, $6::fraction, $7, $8, $9)
+                ($1, $2, $3, $4, $5, $6::fraction, $7::fraction, $8)
             RETURNING 
                 id,
                 created_at,
@@ -29,7 +29,7 @@ impl WithdrawsManager {
                 spender as "spender: Address",
                 asset as "asset: Address",
                 amount as "amount: Fraction",
-                nonce,
+                nonce as "nonce: Fraction",
                 deadline
             "#,
             now,
@@ -38,9 +38,8 @@ impl WithdrawsManager {
             withdraw.spender.to_string() as _,
             withdraw.asset.to_string() as _,
             withdraw.amount.to_tuple_string() as _,
-            withdraw.nonce,
+            withdraw.nonce.to_tuple_string() as _,
             withdraw.deadline,
-            withdraw.is_active,
         )
         .fetch_one(pool)
         .await

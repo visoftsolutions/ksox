@@ -141,10 +141,8 @@ describe("Deposit", function () {
 
         const { r, s, v } = splitSig(await user.signTypedData(domain, { Permit: permitType }, permit));
         await treasury.connect(user).depositPermit(tokenAddress, value, deadline, v, r, s);
-        console.log("Deposit succes");
       }
       expect(await token.balanceOf(treasury)).to.equal(value);
-
       {
         const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
         const deadline = (await time.latest()) + ONE_YEAR_IN_SECS;

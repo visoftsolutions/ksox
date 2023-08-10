@@ -4,6 +4,7 @@ use std::{
     str::FromStr,
 };
 
+use ethereum_types::U256;
 use num_bigint::{BigInt, Sign};
 use num_derive::{Num, NumOps, One, ToPrimitive, Zero};
 use num_rational::{BigRational, ParseRatioError};
@@ -156,6 +157,21 @@ impl From<usize> for Fraction {
 impl From<BigInt> for Fraction {
     fn from(value: BigInt) -> Self {
         Self(BigRational::from(value))
+    }
+}
+
+impl From<U256> for Fraction {
+    fn from(value: U256) -> Self {
+        let mut bytes = [0_u8; 32];
+        value.to_little_endian(&mut bytes);
+        Self::from_bytes_le(&bytes)
+    }
+}
+
+impl Into<U256> for Fraction {
+    fn into(self) -> U256 {
+        let value = self.to_integer().to_bytes_le().1;
+        U256::from_little_endian(value.as_slice())
     }
 }
 

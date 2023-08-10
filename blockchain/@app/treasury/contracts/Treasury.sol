@@ -20,7 +20,7 @@ contract Treasury is Ownable, EIP712 {
   bytes32 private constant _PERMIT_TYPEHASH = keccak256("Permit(address owner,address spender,address token,uint256 value,uint256 nonce,uint256 deadline)");
 
   event Deposit(address indexed owner, address indexed spender, address indexed token, uint256 amount);
-  event Withdraw(address indexed owner, address indexed spender, address indexed token, uint256 amount, uint256 nonce);
+  event Withdraw(address indexed owner, address indexed spender, address indexed token, uint256 amount, uint256 nonce, uint256 deadline);
 
   constructor(string memory _name, address _publicKey) EIP712(_name, "1") {
     publicKey = _publicKey;
@@ -82,6 +82,6 @@ contract Treasury is Ownable, EIP712 {
 
     IERC20(token).transfer(to, amount);
 
-    emit Withdraw(publicKey, owner, token, amount, nonce);
+    emit Withdraw(publicKey, owner, token, amount, nonce, deadline);
   }
 }

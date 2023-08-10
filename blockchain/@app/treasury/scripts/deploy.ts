@@ -12,6 +12,9 @@ async function main() {
   const TokenPermit = await TokenPermitFactory.deploy("TokenPermit", "TOKP");
   await TokenPermit.waitForDeployment();
   console.log("TokenPermit: ", await TokenPermit.getAddress());
+
+  console.log(await (await TokenPermit.mint(owner.address, 100000n * 10n ** 18n)).wait());
+  console.log(`TokenPermit: ${owner.address} balance: ${await TokenPermit.balanceOf(owner.address)}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

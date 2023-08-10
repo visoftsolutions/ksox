@@ -27,6 +27,24 @@ pub struct Deposit {
     pub confirmations: Fraction,
 }
 
+impl Deposit {
+    pub async fn as_transfer_request<'t, 'p>(
+        &self,
+        t: &'t mut Transaction<'p, Postgres>,
+    ) -> Result<engine_base::TransferRequest, BlockchainEngineError> {
+        let taker_id = UsersManager::get_or_create_by_address(t, &self.owner)
+            .await?
+            .id;
+        let asset_id = AssetsManager::get_by_address(t, &self.asset).await?.id;
+        Ok::<engine_base::TransferRequest, BlockchainEngineError>(engine_base::TransferRequest {
+            maker_id: Uuid::default().to_string(),
+            taker_id: taker_id.to_string(),
+            asset_id: asset_id.to_string(),
+            amount: serde_json::to_string(&self.amount)?,
+        })
+    }
+}
+
 impl Confirmable for Deposit {
     fn set(&mut self, confirmations: usize) {
         self.confirmations =
@@ -35,22 +53,6 @@ impl Confirmable for Deposit {
     fn is_confirmed(&self) -> bool {
         self.confirmations >= Fraction::one()
     }
-}
-
-pub async fn deposit_to_transfer_request(
-    pool: &mut Transaction<'_, Postgres>,
-    deposit: Deposit,
-) -> Result<engine_base::TransferRequest, BlockchainEngineError> {
-    let taker_id = UsersManager::get_or_create_by_address(pool, deposit.owner)
-        .await?
-        .id;
-    let asset_id = AssetsManager::get_by_address(pool, deposit.asset).await?.id;
-    Ok::<engine_base::TransferRequest, BlockchainEngineError>(engine_base::TransferRequest {
-        maker_id: Uuid::default().to_string(),
-        taker_id: taker_id.to_string(),
-        asset_id: asset_id.to_string(),
-        amount: serde_json::to_string(&deposit.amount)?,
-    })
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -69,15 +71,13 @@ impl DepositInsert {
         filter: &DepositFilter,
         meta: &LogMeta,
     ) -> sqlx::Result<Self> {
-        let asset = AssetsManager::get_by_address(t, filter.token.into()).await?;
-        let mut bytes = [0_u8; 32];
-        filter.amount.to_little_endian(&mut bytes);
+        let asset = AssetsManager::get_by_address(t, &Address(filter.token)).await?;
         Ok(Self {
             owner: filter.owner.into(),
             spender: filter.spender.into(),
             asset: filter.token.into(),
             tx_hash: meta.transaction_hash.into(),
-            amount: Fraction::from_bytes_le(&bytes) / asset.decimals,
+            amount: Fraction::from(filter.amount) / asset.decimals,
             confirmations: Fraction::default(),
         })
     }

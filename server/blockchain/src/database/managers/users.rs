@@ -11,7 +11,7 @@ pub struct UsersManager {}
 impl UsersManager {
     async fn insert_with_address<'t, 'p>(
         pool: &'t mut Transaction<'p, Postgres>,
-        address: Address,
+        address: &Address,
     ) -> Result<User> {
         let now = Utc::now();
         sqlx::query_as!(
@@ -31,7 +31,7 @@ impl UsersManager {
 
     pub async fn get_by_address<'t, 'p>(
         pool: &'t mut Transaction<'p, Postgres>,
-        address: Address,
+        address: &Address,
     ) -> Result<User> {
         sqlx::query_as!(
             User,
@@ -50,9 +50,9 @@ impl UsersManager {
 
     pub async fn get_or_create_by_address<'t, 'p>(
         pool: &'t mut Transaction<'p, Postgres>,
-        address: Address,
+        address: &Address,
     ) -> Result<User> {
-        match Self::get_by_address(pool, address.clone()).await {
+        match Self::get_by_address(pool, address).await {
             Ok(user) => Ok(user),
             Err(sqlx::Error::RowNotFound) => Self::insert_with_address(pool, address).await,
             Err(err) => Err(err),

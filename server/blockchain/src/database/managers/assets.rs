@@ -11,7 +11,7 @@ pub struct AssetsManager {}
 impl AssetsManager {
     pub async fn get_by_address<'t, 'p>(
         pool: &'t mut Transaction<'p, Postgres>,
-        address: Address,
+        address: &Address,
     ) -> Result<Asset> {
         sqlx::query_as!(
             Asset,

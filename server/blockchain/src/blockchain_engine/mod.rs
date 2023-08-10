@@ -15,7 +15,8 @@ use crate::{
 
 use self::{
     deposits::DepositsBlockchainManagerController,
-    withdraws::{models::WithdrawPermitRequest, WithdrawsBlockchainManagerController},
+    models::{WithdrawPermitRequest, WithdrawPermitResponse},
+    withdraws::WithdrawsBlockchainManagerController,
 };
 
 #[derive(Debug)]
@@ -40,8 +41,11 @@ impl Blockchain for BlockchainEngine {
             .withdraw(request, self.engine_client.to_owned())
             .await
             .map_err(|e| Status::aborted(e.to_string()))?;
-        Ok(Response::new(base::WithdrawPermitResponse {
-            signature: prefix_hex::encode(<[u8; 65]>::from(response)),
-        }))
+        Ok(Response::new(
+            WithdrawPermitResponse {
+                signature: response,
+            }
+            .into(),
+        ))
     }
 }

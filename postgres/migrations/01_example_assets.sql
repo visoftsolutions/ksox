@@ -10,4 +10,4 @@ INSERT INTO "assets" ("name", "address", "decimals", "symbol", "maker_fee", "tak
 INSERT INTO "assets" ("name", "address", "decimals", "symbol", "maker_fee", "taker_fee") VALUES ('Wrapped Cosmos', '0xcF8bAE99C28392c0Cf1D8798D63cbE1F79865ee7', (1000000000000000000, 1), 'ATOM', (0, 1), (0, 1));
 INSERT INTO "assets" ("name", "address", "decimals", "symbol", "maker_fee", "taker_fee") VALUES ('Polygon', '0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0', (1000000000000000000, 1), 'MATIC', (0, 1), (0, 1));
 INSERT INTO "assets" ("name", "address", "decimals", "symbol", "maker_fee", "taker_fee") VALUES ('MyToken', '0x9e3e576d24a052fe6a0c88283d51a998fd69312b', (1000000000000000000, 1), 'TOK', (0, 1), (0, 1));
-INSERT INTO "assets" ("name", "address", "decimals", "symbol", "maker_fee", "taker_fee") VALUES ('MyTokenPermit', '0xc851bcfd67908c593de54fe6b2264eba976cc912', (1000000000000000000, 1), 'TOKP', (0, 1), (0, 1));
+INSERT INTO "assets" ("name", "address", "decimals", "symbol", "maker_fee", "taker_fee") VALUES ('MyTokenPermit', '0xa3505085a07f27130bf875c249bff676e86d8f80', (1000000000000000000, 1), 'TOKP', (0, 1), (0, 1));
