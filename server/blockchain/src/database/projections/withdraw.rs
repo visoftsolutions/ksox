@@ -1,5 +1,4 @@
 use chrono::{DateTime, NaiveDateTime, Utc};
-use ethers::prelude::LogMeta;
 use evm::address::Address;
 use fraction::Fraction;
 use num_traits::ToPrimitive;
@@ -65,7 +64,6 @@ impl WithdrawInsert {
     pub async fn from_filter<'t, 'p>(
         t: &'t mut Transaction<'p, Postgres>,
         filter: &WithdrawFilter,
-        meta: &LogMeta,
     ) -> sqlx::Result<Self> {
         let asset = AssetsManager::get_by_address(t, &Address(filter.token)).await?;
         let naive_datetime = NaiveDateTime::from_timestamp_millis(

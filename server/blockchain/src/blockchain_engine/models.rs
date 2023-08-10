@@ -4,11 +4,10 @@ use chrono::{DateTime, Utc};
 use ethers::types::Signature;
 use evm::address::Address;
 use fraction::Fraction;
-use sqlx::{Postgres, Transaction};
 use thiserror::Error;
 use tonic::Status;
 
-use crate::{base, contracts::Permit, database::managers::assets::AssetsManager};
+use crate::base;
 
 #[derive(Debug, Clone)]
 pub struct WithdrawPermitRequest {

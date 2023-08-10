@@ -168,10 +168,10 @@ impl From<U256> for Fraction {
     }
 }
 
-impl Into<U256> for Fraction {
-    fn into(self) -> U256 {
-        let value = self.to_integer().to_bytes_le().1;
-        U256::from_little_endian(value.as_slice())
+impl From<Fraction> for U256 {
+    fn from(val: Fraction) -> Self {
+        let value = val.to_integer().to_bytes_le().1;
+        Self::from_little_endian(value.as_slice())
     }
 }
 

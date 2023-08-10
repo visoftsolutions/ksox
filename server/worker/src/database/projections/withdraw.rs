@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use evm::{address::Address, txhash::TxHash};
+use evm::address::Address;
 use fraction::Fraction;
 use serde::{Deserialize, Serialize};
 use sqlx::types::Uuid;

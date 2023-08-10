@@ -76,7 +76,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let blockchain_engine = BlockchainEngine {
         contract: treasury,
-        database: database,
+        database,
         deposits_controller,
         withdraws_controller,
         contract_key_address,

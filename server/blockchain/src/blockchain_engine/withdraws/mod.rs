@@ -10,8 +10,6 @@ use ethers::{
     types::Signature,
 };
 
-use evm::address::Address;
-use fraction::Fraction;
 use sqlx::PgPool;
 use tokio::{
     select,
@@ -90,10 +88,8 @@ impl WithdrawsBlockchainManager {
                                     }).await?;
                                 }
 
-                                for (event, meta) in events {
-
-                                    let asset = AssetsManager::get_by_address(&mut t, &Address(event.token)).await?;
-                                    let insert = WithdrawInsert::from_filter(&mut t, &event, &meta).await?;
+                                for (event, _meta) in events {
+                                    let insert = WithdrawInsert::from_filter(&mut t, &event).await?;
                                     withdraw_queue.remove(&insert);
                                 }
 
@@ -176,7 +172,6 @@ impl WithdrawsBlockchainManagerController {
         //         },
         //     ))
         //     .await?;
-
 
         let permit = Permit {
             owner: withdraw.owner.into(),

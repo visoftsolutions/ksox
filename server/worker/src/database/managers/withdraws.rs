@@ -9,7 +9,6 @@ use super::notifications::{
     NotificationManagerOutput, NotificationManagerPredicateInput, NotificationManagerSubscriber,
 };
 use crate::database::projections::withdraw::Withdraw;
-use evm::txhash::TxHash;
 
 #[derive(Debug, Clone)]
 pub struct WithdrawsManager {

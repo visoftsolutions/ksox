@@ -45,3 +45,9 @@ impl WithdrawQueue {
         expired
     }
 }
+
+impl Default for WithdrawQueue {
+    fn default() -> Self {
+        Self::new()
+    }
+}
