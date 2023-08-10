@@ -1572,6 +1572,7 @@ dependencies = [
 name = "fraction"
 version = "0.1.0"
 dependencies = [
+ "ethereum-types",
  "num-bigint",
  "num-derive",
  "num-rational",

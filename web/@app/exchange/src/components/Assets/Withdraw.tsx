@@ -94,7 +94,7 @@ export function Withdraw(props: { asset: Asset; precision: number }) {
                   args: [
                     props.asset.address as Address,
                     value,
-                    deadline,
+                    Math.floor((deadline).getTime() / 1000),
                     v,r,s,
                     address()
                   ]
@@ -109,7 +109,7 @@ export function Withdraw(props: { asset: Asset; precision: number }) {
                 args: [
                   props.asset.address as Address,
                   value,
-                  deadline,
+                  Math.floor((deadline).getTime() / 1000),
                   v,r,s,
                   address()
                 ]

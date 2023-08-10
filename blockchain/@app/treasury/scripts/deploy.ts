@@ -4,7 +4,7 @@ async function main() {
   const [owner] = await ethers.getSigners();
 
   const TreasuryFactory = await ethers.getContractFactory("Treasury");
-  const Treasury = await TreasuryFactory.deploy("Treasury", "0x3acaDFB15E991e8403D2Fe3E75Ee4782B88cF5b1");
+  const Treasury = await TreasuryFactory.deploy("Treasury", "0x3acadfb15e991e8403d2fe3e75ee4782b88cf5b1");
   await Treasury.waitForDeployment();
   console.log("Treasury: ", await Treasury.getAddress());
 

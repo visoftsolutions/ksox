@@ -4,7 +4,7 @@ use std::pin::Pin;
 use async_stream::try_stream;
 use ethers::{
     prelude::*,
-    providers::{Provider, Ws},
+    providers::{Provider, Ws}, types::transaction::eip712::{Eip712, Eip712Error},
 };
 use tokio_stream::{Stream, StreamExt};
 
@@ -18,7 +18,7 @@ use ethers::{
     name = "Treasury",
     version = "1",
     chain_id = 11155111,
-    verifying_contract = "0x8edCD44edF2C5391B418a2b9d3194eDDa6253303"
+    verifying_contract = "0x5dedf5f9e573859c3d06c92e4b8168e55c02039f"
 )]
 pub struct Permit {
     pub owner: Address,
@@ -28,6 +28,19 @@ pub struct Permit {
     pub nonce: U256,
     pub deadline: U256,
 }
+
+// impl Eip712 for Permit {
+//     type Error = Eip712Error;
+//     fn domain(&self) -> Result<transaction::eip712::EIP712Domain, Self::Error> {
+        
+//     }
+//     fn struct_hash(&self) -> Result<[u8; 32], Self::Error> {
+        
+//     }
+//     fn type_hash() -> Result<[u8; 32], Self::Error> {
+        
+//     }
+// }
 
 pub async fn transaction_block(
     ws_provider: &Provider<Ws>,
