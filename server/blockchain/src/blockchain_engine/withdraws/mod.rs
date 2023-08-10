@@ -83,15 +83,15 @@ impl WithdrawsBlockchainManager {
                             if let Err(err) = async {
                                 let mut t = database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
 
+                                for (event, _) in events {
+                                    let key = WithdrawInsert::from_filter(&mut t, &event).await?;
+                                    withdraw_queue.remove(&key);
+                                }
+
                                 for expired in withdraw_queue.eval(&time) {
                                     engine_client.revert_transfer(engine_base::RevertTransferRequest {
                                         id: expired.transfer.to_string()
                                     }).await?;
-                                }
-
-                                for (event, _) in events {
-                                    let key = WithdrawInsert::from_filter(&mut t, &event).await?;
-                                    withdraw_queue.remove(&key);
                                 }
 
                                 t.commit().await?;
