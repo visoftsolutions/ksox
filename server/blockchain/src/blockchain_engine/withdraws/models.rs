@@ -33,6 +33,10 @@ impl WithdrawQueue {
         self.entries.remove(key).is_some()
     }
 
+    pub fn len(&self) -> usize {
+        self.entries.len()
+    }
+
     pub fn eval(&mut self, time: &DateTime<Utc>) -> Vec<WithdrawQueueValue> {
         let mut expired = Vec::new();
         while let Some((_, value)) = self.entries.front() {
@@ -40,6 +44,8 @@ impl WithdrawQueue {
                 if let Some((_, value)) = self.entries.pop_front() {
                     expired.push(value);
                 }
+            } else {
+                break;
             }
         }
         expired

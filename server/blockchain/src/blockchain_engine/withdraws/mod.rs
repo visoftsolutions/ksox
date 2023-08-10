@@ -2,6 +2,7 @@ pub mod models;
 
 use std::str::FromStr;
 
+use chrono::{NaiveDateTime, Utc, DateTime};
 use ethereum_types::U256;
 use ethers::{
     prelude::LogMeta,
@@ -88,9 +89,9 @@ impl WithdrawsBlockchainManager {
                                     }).await?;
                                 }
 
-                                for (event, _meta) in events {
-                                    let insert = WithdrawInsert::from_filter(&mut t, &event).await?;
-                                    withdraw_queue.remove(&insert);
+                                for (event, _) in events {
+                                    let key = WithdrawInsert::from_filter(&mut t, &event).await?;
+                                    withdraw_queue.remove(&key);
                                 }
 
                                 t.commit().await?;
@@ -139,13 +140,16 @@ impl WithdrawsBlockchainManagerController {
     ) -> Result<Signature, BlockchainManagerError> {
         let mut t = self.database.begin().await?;
 
+        let timestamp = request.deadline.timestamp();
+        let deadline = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp_millis(timestamp * 1000).unwrap_or_default(), Utc);
+
         let insert = WithdrawInsert {
             owner: self.contract_key_wallet.address().into(),
             spender: request.spender.to_owned(),
             asset: request.asset.to_owned(),
             amount: request.amount.to_owned(),
             nonce: self.contract.nonces(*request.spender).await?.into(),
-            deadline: request.deadline.to_owned(),
+            deadline: deadline,
         };
 
         let withdraw = WithdrawsManager::insert(&mut t, &insert).await?;
@@ -163,15 +167,15 @@ impl WithdrawsBlockchainManagerController {
 
         t.commit().await?;
 
-        // self.insert_withdraw_event_tx
-        //     .send((
-        //         insert,
-        //         WithdrawQueueValue {
-        //             withdraw: withdraw.to_owned(),
-        //             transfer: transfer_id,
-        //         },
-        //     ))
-        //     .await?;
+        self.insert_withdraw_event_tx
+            .send((
+                insert,
+                WithdrawQueueValue {
+                    withdraw: withdraw.to_owned(),
+                    transfer: transfer_id,
+                },
+            ))
+            .await?;
 
         let permit = Permit {
             owner: withdraw.owner.into(),
@@ -179,10 +183,8 @@ impl WithdrawsBlockchainManagerController {
             token: withdraw.asset.into(),
             value: (withdraw.amount * asset.decimals).into(),
             nonce: withdraw.nonce.into(),
-            deadline: U256::from(withdraw.deadline.timestamp()),
+            deadline: U256::from(timestamp),
         };
-
-        tracing::info!("{:#?}", permit);
 
         Ok(self.contract_key_wallet.sign_typed_data(&permit).await?)
     }
