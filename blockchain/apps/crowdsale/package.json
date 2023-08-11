@@ -1,9 +1,7 @@
 {
   "name": "@apps/crowdsale",
   "scripts": {
-    "prettier": "prettier -w .",
-    "lint": "eslint .",
-    "update": "npx npm-check-updates -u"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^3.0.0",

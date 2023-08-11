@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "prettier": "prettier -w .",
-    "lint": "eslint .",
-    "update": "npx npm-check-updates -u"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
