@@ -30,7 +30,7 @@ export default function Root() {
   return (
     <Html lang="en">
       <Head>
-        <Title>KsoxDashboard</Title>
+        <Title>KSOX - Dashboard</Title>
         <Meta charset="utf-8" />
         <Meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta name="theme-color" content="#0F0D12" />
@@ -43,6 +43,23 @@ export default function Root() {
           content="KSOX, Crypto, decentralized exchange, zk-STARKs, cryptocurrency exchange, buy, sell, trade, transaction fees, arbitrage, transaction processing, Token Crowdsale, KSXT, KSX, investor, crowdfunding, secure, seamless, crypto payments, badges, engagement, dashboard"
         />
         <Link rel="icon" href="/gfx/logo.svg" />
+        {import.meta.env.PROD == true ? (
+          <>
+            <Link
+              rel="manifest"
+              href={joinPaths(base, "/manifest.webmanifest")}
+            />
+            <script src={joinPaths(base, "/registerSW.js")} />
+            <script
+              async
+              src="https://www.googletagmanager.com/gtag/js?id=G-HS7VCPVSGW"
+            />
+            <script async src="/google-analytics.js" />
+            <script async src="/cookie3-integration.js" />
+          </>
+        ) : (
+          <></>
+        )}
       </Head>
       <Body>
         <Suspense>

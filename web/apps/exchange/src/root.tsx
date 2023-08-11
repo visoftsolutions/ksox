@@ -43,6 +43,23 @@ export default function Root() {
           content="KSOX, Crypto, decentralized exchange, zk-STARKs, cryptocurrency exchange, buy, sell, trade, transaction fees, arbitrage, transaction processing, Token Crowdsale, KSXT, KSX, investor, crowdfunding, secure, seamless, crypto payments"
         />
         <Link rel="icon" href="/gfx/logo.svg" />
+        {import.meta.env.PROD == true ? (
+          <>
+            <Link
+              rel="manifest"
+              href={joinPaths(base, "/manifest.webmanifest")}
+            />
+            <script src={joinPaths(base, "/registerSW.js")} />
+            <script
+              async
+              src="https://www.googletagmanager.com/gtag/js?id=G-HS7VCPVSGW"
+            />
+            <script async src="/google-analytics.js" />
+            <script async src="/cookie3-integration.js" />
+          </>
+        ) : (
+          <></>
+        )}
       </Head>
       <Body>
         <Suspense>

@@ -51,6 +51,12 @@ export default function Root() {
               href={joinPaths(base, "/manifest.webmanifest")}
             />
             <script src={joinPaths(base, "/registerSW.js")} />
+            <script
+              async
+              src="https://www.googletagmanager.com/gtag/js?id=G-HS7VCPVSGW"
+            />
+            <script async src="/google-analytics.js" />
+            <script async src="/cookie3-integration.js" />
           </>
         ) : (
           <></>
