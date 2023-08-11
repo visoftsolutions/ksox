@@ -10,8 +10,8 @@ use crate::database::projections::valut::Valut;
 pub struct ValutsManager {}
 
 impl ValutsManager {
-    pub async fn get<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn get<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         user_id: Uuid,
         asset_id: Uuid,
     ) -> sqlx::Result<Option<Valut>> {
@@ -28,12 +28,12 @@ impl ValutsManager {
             user_id,
             asset_id
         )
-        .fetch_optional(pool.as_mut())
+        .fetch_optional(t.as_mut())
         .await
     }
 
-    pub async fn create<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn create<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         user_id: Uuid,
         asset_id: Uuid,
     ) -> sqlx::Result<Valut> {
@@ -53,12 +53,12 @@ impl ValutsManager {
             now,
             now
         )
-        .fetch_one(pool.as_mut())
+        .fetch_one(t.as_mut())
         .await
     }
 
-    pub async fn update<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn update<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         valut: Valut,
     ) -> sqlx::Result<PgQueryResult> {
         sqlx::query_as!(
@@ -76,20 +76,20 @@ impl ValutsManager {
             serde_json::to_string(&valut.balance).unwrap_or_default(),
             Utc::now()
         )
-        .execute(pool.as_mut())
+        .execute(t.as_mut())
         .await
     }
 
-    pub async fn get_or_create<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn get_or_create<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         user_id: Uuid,
         asset_id: Uuid,
     ) -> sqlx::Result<Valut> {
         Ok(
-            if let Some(valut) = Self::get(pool, user_id, asset_id).await? {
+            if let Some(valut) = Self::get(t, user_id, asset_id).await? {
                 valut
             } else {
-                Self::create(pool, user_id, asset_id).await?
+                Self::create(t, user_id, asset_id).await?
             },
         )
     }

@@ -9,8 +9,8 @@ use crate::database::projections::withdraw::{Withdraw, WithdrawInsert};
 pub struct WithdrawsManager {}
 
 impl WithdrawsManager {
-    pub async fn insert<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn insert<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         withdraw: &WithdrawInsert,
     ) -> sqlx::Result<Withdraw> {
         let now = Utc::now();
@@ -41,7 +41,7 @@ impl WithdrawsManager {
             withdraw.nonce.to_tuple_string() as _,
             withdraw.deadline,
         )
-        .fetch_one(pool.as_mut())
+        .fetch_one(t.as_mut())
         .await
     }
 }

@@ -9,8 +9,8 @@ use sqlx::{postgres::PgQueryResult, Postgres, Transaction};
 pub struct DepositsManager {}
 
 impl DepositsManager {
-    pub async fn insert<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn insert<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         deposit: &DepositInsert,
     ) -> sqlx::Result<Deposit> {
         let now = Utc::now();
@@ -41,12 +41,12 @@ impl DepositsManager {
             deposit.tx_hash.to_string() as _,
             deposit.confirmations.to_tuple_string() as _,
         )
-        .fetch_one(pool.as_mut())
+        .fetch_one(t.as_mut())
         .await
     }
 
-    pub async fn update<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn update<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         deposit: Deposit,
     ) -> sqlx::Result<PgQueryResult> {
         let now = Utc::now();
@@ -64,7 +64,7 @@ impl DepositsManager {
             deposit.confirmations.to_tuple_string() as _,
             now
         )
-        .execute(pool.as_mut())
+        .execute(t.as_mut())
         .await
     }
 }

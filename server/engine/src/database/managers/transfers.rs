@@ -8,8 +8,8 @@ use uuid::Uuid;
 pub struct TransfersManager {}
 
 impl TransfersManager {
-    pub async fn insert<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn insert<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         element: Transfer,
     ) -> sqlx::Result<Uuid> {
         let now = Utc::now();
@@ -29,13 +29,13 @@ impl TransfersManager {
             element.asset_id,
             element.amount.to_tuple_string() as _,
         )
-        .fetch_one(pool.as_mut())
+        .fetch_one(t.as_mut())
         .await
         .map(|e| e.id)
     }
 
-    pub async fn get_by_id<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn get_by_id<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         id: Uuid,
     ) -> sqlx::Result<Transfer> {
         sqlx::query_as!(
@@ -51,7 +51,7 @@ impl TransfersManager {
             "#,
             id,
         )
-        .fetch_one(pool.as_mut())
+        .fetch_one(t.as_mut())
         .await
     }
 }

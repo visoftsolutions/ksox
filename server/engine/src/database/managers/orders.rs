@@ -11,8 +11,8 @@ use crate::database::projections::order::{Order, OrderGet, OrderInsert, OrderSta
 pub struct OrdersManager {}
 
 impl OrdersManager {
-    pub async fn get_by_id<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn get_by_id<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         id: Uuid,
     ) -> sqlx::Result<Option<Order>> {
         sqlx::query_as!(
@@ -30,12 +30,16 @@ impl OrdersManager {
             "#,
             id
         )
+<<<<<<< HEAD
         .fetch_optional(pool.as_mut())
+=======
+        .fetch_optional(t)
+>>>>>>> 0a42fb9 (refactor)
         .await
     }
 
-    pub fn get_orders_with_not_smaller_price<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub fn get_orders_with_not_smaller_price<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         quote_asset_id: Uuid,
         base_asset_id: Uuid,
         price: Fraction,
@@ -60,11 +64,15 @@ impl OrdersManager {
             base_asset_id,
             price.to_tuple_string() as _
         )
+<<<<<<< HEAD
         .fetch(pool.as_mut())
+=======
+        .fetch(t)
+>>>>>>> 0a42fb9 (refactor)
     }
 
-    pub async fn insert<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn insert<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         element: OrderInsert,
     ) -> sqlx::Result<PgQueryResult> {
         let now = Utc::now();
@@ -86,12 +94,16 @@ impl OrdersManager {
             now,
             now
         )
+<<<<<<< HEAD
         .execute(pool.as_mut())
+=======
+        .execute(t)
+>>>>>>> 0a42fb9 (refactor)
         .await
     }
 
-    pub async fn update<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn update<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         order: OrderUpdate,
     ) -> sqlx::Result<PgQueryResult> {
         sqlx::query!(
@@ -110,12 +122,12 @@ impl OrdersManager {
             order.quote_asset_volume_left.to_tuple_string() as _,
             Utc::now()
         )
-        .execute(pool.as_mut())
+        .execute(t.as_mut())
         .await
     }
 
-    pub async fn update_status<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn update_status<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         order: OrderStatus,
     ) -> sqlx::Result<PgQueryResult> {
         sqlx::query!(
@@ -132,7 +144,7 @@ impl OrdersManager {
             order.is_active,
             Utc::now()
         )
-        .execute(pool.as_mut())
+        .execute(t.as_mut())
         .await
     }
 }

@@ -61,8 +61,8 @@ pub struct WithdrawInsert {
 }
 
 impl WithdrawInsert {
-    pub async fn from_filter<'t, 'p>(
-        t: &'t mut Transaction<'p, Postgres>,
+    pub async fn from_filter<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         filter: &WithdrawFilter,
     ) -> sqlx::Result<Self> {
         let asset = AssetsManager::get_by_address(t, &Address(filter.token)).await?;

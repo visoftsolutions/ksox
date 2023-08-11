@@ -2,14 +2,10 @@ pub mod deposits;
 pub mod models;
 pub mod withdraws;
 
-use ethers::providers::{Provider, Ws};
-use evm::address::Address;
-use sqlx::PgPool;
 use tonic::{transport::Channel, Request, Response, Status};
 
 use crate::{
     base::{self, blockchain_server::Blockchain},
-    contracts::treasury::Treasury,
     engine_base::engine_client::EngineClient,
 };
 
@@ -21,11 +17,8 @@ use self::{
 
 #[derive(Debug)]
 pub struct BlockchainEngine {
-    pub contract: Treasury<Provider<Ws>>,
-    pub database: PgPool,
     pub deposits_controller: DepositsBlockchainManagerController,
     pub withdraws_controller: WithdrawsBlockchainManagerController,
-    pub contract_key_address: Address,
     pub engine_client: EngineClient<Channel>,
 }
 

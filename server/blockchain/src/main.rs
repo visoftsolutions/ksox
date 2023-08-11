@@ -1,5 +1,4 @@
 pub mod blockchain_engine;
-pub mod confirmation;
 pub mod contracts;
 pub mod database;
 pub mod models;
@@ -75,11 +74,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     .await;
 
     let blockchain_engine = BlockchainEngine {
-        contract: treasury,
-        database,
         deposits_controller,
         withdraws_controller,
-        contract_key_address,
         engine_client,
     };
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));

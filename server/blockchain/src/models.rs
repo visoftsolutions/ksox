@@ -8,8 +8,10 @@ use thiserror::Error;
 use tonic::Status;
 
 use crate::{
-    blockchain_engine::{models::BlockchainEngineError, withdraws::models::WithdrawQueueValue},
-    confirmation::ConfirmationQueueError,
+    blockchain_engine::{
+        deposits::models::DepositQueueError, models::BlockchainEngineError,
+        withdraws::models::WithdrawQueueValue,
+    },
     database::projections::withdraw::WithdrawInsert,
 };
 
@@ -34,7 +36,7 @@ pub enum BlockchainManagerError {
     WalletError(#[from] WalletError),
 
     #[error(transparent)]
-    ConfirmationQueueError(#[from] ConfirmationQueueError),
+    DepositQueueError(#[from] DepositQueueError),
 
     #[error(transparent)]
     BlockchainEngineError(#[from] BlockchainEngineError),

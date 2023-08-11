@@ -2,7 +2,7 @@ pub mod models;
 
 use std::str::FromStr;
 
-use chrono::{NaiveDateTime, Utc, DateTime};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use ethereum_types::U256;
 use ethers::{
     prelude::LogMeta,
@@ -141,7 +141,10 @@ impl WithdrawsBlockchainManagerController {
         let mut t = self.database.begin().await?;
 
         let timestamp = request.deadline.timestamp();
-        let deadline = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp_millis(timestamp * 1000).unwrap_or_default(), Utc);
+        let deadline = DateTime::<Utc>::from_utc(
+            NaiveDateTime::from_timestamp_millis(timestamp * 1000).unwrap_or_default(),
+            Utc,
+        );
 
         let insert = WithdrawInsert {
             owner: self.contract_key_wallet.address().into(),

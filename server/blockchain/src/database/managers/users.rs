@@ -9,8 +9,8 @@ use crate::database::projections::user::User;
 pub struct UsersManager {}
 
 impl UsersManager {
-    async fn insert_with_address<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    async fn insert_with_address<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         address: &Address,
     ) -> Result<User> {
         let now = Utc::now();
@@ -25,12 +25,12 @@ impl UsersManager {
             now,
             &address.to_string()
         )
-        .fetch_one(pool.as_mut())
+        .fetch_one(t.as_mut())
         .await
     }
 
-    pub async fn get_by_address<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn get_by_address<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         address: &Address,
     ) -> Result<User> {
         sqlx::query_as!(
@@ -44,25 +44,22 @@ impl UsersManager {
             "#,
             address.to_string()
         )
-        .fetch_one(pool.as_mut())
+        .fetch_one(t.as_mut())
         .await
     }
 
-    pub async fn get_or_create_by_address<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn get_or_create_by_address<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         address: &Address,
     ) -> Result<User> {
-        match Self::get_by_address(pool, address).await {
+        match Self::get_by_address(t, address).await {
             Ok(user) => Ok(user),
-            Err(sqlx::Error::RowNotFound) => Self::insert_with_address(pool, address).await,
+            Err(sqlx::Error::RowNotFound) => Self::insert_with_address(t, address).await,
             Err(err) => Err(err),
         }
     }
 
-    pub async fn get_by_id<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
-        id: Uuid,
-    ) -> Result<User> {
+    pub async fn get_by_id<'t>(t: &'t mut Transaction<'_, Postgres>, id: Uuid) -> Result<User> {
         sqlx::query_as!(
             User,
             r#"
@@ -74,7 +71,7 @@ impl UsersManager {
             "#,
             id
         )
-        .fetch_one(pool.as_mut())
+        .fetch_one(t.as_mut())
         .await
     }
 }

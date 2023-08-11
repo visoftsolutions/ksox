@@ -10,7 +10,6 @@ use tokio::{select, sync::oneshot, task::JoinError};
 use tonic::{transport::Channel, Status};
 
 use crate::{
-    confirmation::ConfirmationQueue,
     contracts::treasury::{DepositFilter, Treasury, TreasuryEvents},
     database::{
         managers::deposits::DepositsManager,
@@ -19,6 +18,8 @@ use crate::{
     engine_base::{self, engine_client::EngineClient},
     models::BlockchainManagerError,
 };
+
+use self::models::DepositQueue;
 
 pub struct DepositsBlockchainManager {
     pub database: PgPool,
@@ -40,7 +41,7 @@ impl DepositsBlockchainManager {
         let join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>> = tokio::spawn(
             async move {
                 let mut blocks_stream = provider.subscribe_blocks().await?;
-                let mut deposits_queue = ConfirmationQueue::<Deposit>::new(&provider);
+                let mut deposits_queue = DepositQueue::<Deposit>::new(&provider);
 
                 loop {
                     select! {
@@ -63,7 +64,7 @@ impl DepositsBlockchainManager {
                                     deposits_queue.insert(deposit, meta.transaction_hash).await?;
                                 }
 
-                                let (confirmed_deposit, not_confirmed_deposits) = deposits_queue.confirmation_step(&block).await;
+                                let (confirmed_deposit, not_confirmed_deposits) = deposits_queue.eval(&block).await;
                                 for deposit in not_confirmed_deposits.into_iter() {
                                     DepositsManager::update(&mut t, deposit).await?;
                                 }
