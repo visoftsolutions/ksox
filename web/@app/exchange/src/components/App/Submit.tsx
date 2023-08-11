@@ -10,6 +10,7 @@ import BuyForm from "./Submit/BuyForm";
 import SellForm from "./Submit/SellForm";
 import { Fraction } from "@web/types/primitives/fraction";
 import subscribeEvents from "@web/utils/subscribeEvents";
+import { Value } from "@web/types/primitives/value";
 
 export default function CreateSubmit(market: Market, session?: SessionResponse, precision?: number) {
   return () => (
@@ -21,8 +22,8 @@ export default function CreateSubmit(market: Market, session?: SessionResponse, 
 
 export function Submit(props: { market?: Market; session?: SessionResponse; precision?: number }) {
   const [storeSubmit, setStoreSubmit] = createStore<{
-    buy_available_balance?: Fraction;
-    sell_available_balance?: Fraction;
+    buy_available_balance?: Value;
+    sell_available_balance?: Value;
   }>({
     buy_available_balance: undefined,
     sell_available_balance: undefined,

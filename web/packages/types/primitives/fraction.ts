@@ -6,26 +6,26 @@ export const Fraction = z.object({
 });
 export type Fraction = z.infer<typeof Fraction>;
 
-export function finv(f: Fraction): Fraction {
-  return { numer: f.denom, denom: f.numer };
+export function finv(f: Fraction) {
+  return Fraction.parse({ numer: f.denom, denom: f.numer });
 }
 
-export function fmul(a: Fraction, b: Fraction): Fraction {
-  return { numer: a.numer * b.numer, denom: a.denom * b.denom };
+export function fmul(a: Fraction, b: Fraction) {
+  return Fraction.parse({ numer: a.numer * b.numer, denom: a.denom * b.denom });
 }
 
-export function fFromBigint(n: bigint): Fraction {
-  return { numer: n, denom: 1n };
+export function fFromBigint(n: bigint) {
+  return Fraction.parse({ numer: n, denom: 1n });
 }
 
-export function fmax(a: Fraction, b: Fraction): Fraction {
+export function fmax(a: Fraction, b: Fraction) {
   return a.numer * b.denom > a.denom * b.numer ? a : b;
 }
 
-export function fmin(a: Fraction, b: Fraction): Fraction {
+export function fmin(a: Fraction, b: Fraction) {
   return a.numer * b.denom < a.denom * b.numer ? a : b;
 }
 
-export function ev(f: Fraction): number {
+export function ev(f: Fraction) {
   return Number(f.numer) / Number(f.denom);
 }

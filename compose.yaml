@@ -18,6 +18,18 @@ services:
       - 6379:6379
       - 8001:8001
 
+  server-engagement:
+    container_name: ksox-server-engagement
+    hostname: ksox-server-engagement
+    build:
+      context: server
+      dockerfile: ./engagement.dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+
   server-engine:
     container_name: ksox-server-engine
     hostname: ksox-server-engine
@@ -30,17 +42,18 @@ services:
       - postgres
       - redis
 
-  server-engagement:
-    container_name: ksox-server-engagement
-    hostname: ksox-server-engagement
+  server-blockchain:
+    container_name: ksox-server-blockchain
+    hostname: ksox-server-blockchain
     build:
       context: server
-      dockerfile: ./engagement.dockerfile
+      dockerfile: ./blockchain.dockerfile
     env_file:
       - .env
     depends_on:
       - postgres
       - redis
+      - server-engine
 
   server-worker:
     container_name: ksox-server-worker
@@ -55,19 +68,8 @@ services:
       - redis
       - server-engine
       - server-blockchain
-
-  server-blockchain:
-    container_name: ksox-server-blockchain
-    hostname: ksox-server-blockchain
-    build:
-      context: server
-      dockerfile: ./blockchain.dockerfile
-    env_file:
-      - .env
-    depends_on:
-      - postgres
-      - redis
-      - server-engine
+    ports:
+      - 8080:80
 
   web-exchange:
     container_name: ksox-web-exchange

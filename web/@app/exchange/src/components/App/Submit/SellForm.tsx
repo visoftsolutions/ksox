@@ -9,6 +9,7 @@ import Slider from "~/components/Inputs/Slider";
 import { Market } from "~/components/providers/MarketProvider";
 import { Fraction, ev, fFromBigint, finv, fmin, fmul } from "@web/types/primitives/fraction";
 import { createEffect, untrack } from "solid-js";
+import { Value } from "@web/types/primitives/value";
 
 interface FormValues {
   price: Fraction;
@@ -17,7 +18,7 @@ interface FormValues {
   quote_asset_volume: Fraction;
 }
 
-export default function SellForm(props: { market?: Market; available_balance?: Fraction; precision?: number }) {
+export default function SellForm(props: { market?: Market; available_balance?: Value; precision?: number }) {
   const [storeComponent, setStoreComponent] = createStore<FormValues>({
     price: fFromBigint(0n),
     slider: fFromBigint(0n),
@@ -26,7 +27,7 @@ export default function SellForm(props: { market?: Market; available_balance?: F
   });
 
   createEffect(() => {
-    const max_base_asset_volume = props.available_balance ?? { numer: 0n, denom: 1n };
+    const max_base_asset_volume = props.available_balance?.Finite ?? { numer: 0n, denom: 1n };
     const { quote_asset_volume, base_asset_volume } = untrack(() => {
       const base_asset_volume = fmin(max_base_asset_volume, storeComponent.base_asset_volume);
       return {
@@ -44,7 +45,7 @@ export default function SellForm(props: { market?: Market; available_balance?: F
       <div class="grid justify-between pb-[4px] text-submit-sublabel font-semibold text-gray-4">
         <div class="col-start-1 col-end-2">Available Balance:</div>
         <div class="col-start-2 col-end-3">
-          {props.available_balance != undefined ? format(ev(props.available_balance), formatTemplate(props.precision ?? 2)) : "---"}
+          {props.available_balance?.Finite != undefined ? format(ev(props.available_balance.Finite), formatTemplate(props.precision ?? 2)) : "---"}
           {props.market?.base_asset?.symbol ?? "---"}
         </div>
       </div>
@@ -63,7 +64,7 @@ export default function SellForm(props: { market?: Market; available_balance?: F
         class="my-[4px] bg-gray-1 p-1 text-submit-label"
         value={storeComponent.base_asset_volume}
         onChange={(base_val) => {
-          const max_base_asset_volume = props.available_balance ?? { numer: 0n, denom: 1n };
+          const max_base_asset_volume = props.available_balance?.Finite ?? { numer: 0n, denom: 1n };
           const base_asset_volume = fmin(max_base_asset_volume, base_val);
           setStoreComponent("base_asset_volume", base_asset_volume);
           const quote_asset_volume = storeComponent.price.numer != 0n ? fmul(base_asset_volume, storeComponent.price) : { numer: 0n, denom: 1n };
@@ -78,7 +79,7 @@ export default function SellForm(props: { market?: Market; available_balance?: F
         value={storeComponent.slider}
         inputClass="slider-red"
         onInput={(slider_val) => {
-          const max_base_asset_volume = props.available_balance ?? { numer: 0n, denom: 1n };
+          const max_base_asset_volume = props.available_balance?.Finite ?? { numer: 0n, denom: 1n };
           const base_asset_volume = fmul(max_base_asset_volume, slider_val);
           setStoreComponent("base_asset_volume", base_asset_volume);
           const quote_asset_volume = storeComponent.price.numer != 0n ? fmul(base_asset_volume, storeComponent.price) : { numer: 0n, denom: 1n };
@@ -89,7 +90,7 @@ export default function SellForm(props: { market?: Market; available_balance?: F
         class="my-[4px] bg-gray-1 p-1 text-submit-label"
         value={storeComponent.quote_asset_volume}
         onChange={(quote_val) => {
-          const max_base_asset_volume = props.available_balance ?? { numer: 0n, denom: 1n };
+          const max_base_asset_volume = props.available_balance?.Finite ?? { numer: 0n, denom: 1n };
           const max_quote_asset_volume = fmul(max_base_asset_volume, storeComponent.price);
           const quote_asset_volume = fmin(max_quote_asset_volume, quote_val);
           setStoreComponent("quote_asset_volume", quote_asset_volume);

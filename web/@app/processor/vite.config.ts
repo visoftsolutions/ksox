@@ -16,9 +16,9 @@ const pwaOptions: Partial<VitePWAOptions> = {
   },
   manifest: {
     theme_color: "#0F0D12",
-    name: "KSOX PAY",
-    short_name: "PAY",
-    description: "KSOX - Payment Processor",
+    name: "KSOX",
+    short_name: "KSOX",
+    description: "KSOX - Cryptocurrency Exchange & Payment Processor",
     icons: [
       {
         src: "/pwa/mstile-150x150-darkbg.png",
