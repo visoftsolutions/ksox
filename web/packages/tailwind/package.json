@@ -1,5 +1,5 @@
 {
-  "name": "@web/tailwind",
+  "name": "@packages/tailwind",
   "version": "1.0.0",
   "description": "",
   "private": "true",

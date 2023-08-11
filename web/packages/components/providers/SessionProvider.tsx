@@ -1,12 +1,30 @@
-import { Accessor, JSX, createContext, createSignal, onMount, useContext } from "solid-js";
-import { mainnet } from "@wagmi/core";
+import {
+  Accessor,
+  JSX,
+  createContext,
+  createSignal,
+  onMount,
+  useContext,
+} from "solid-js";
+import { sepolia } from "@wagmi/core";
 import { CustomTransport, WalletClient } from "viem";
-import params from "@web/utils/params";
-import { GenerateMessageRequest, GenerateMessageResponse, ValidateSignatureRequest, SessionResponse } from "./SessionProvider/models";
+import params from "@packages/utils/params";
+import {
+  GenerateMessageRequest,
+  GenerateMessageResponse,
+  ValidateSignatureRequest,
+  SessionResponse,
+} from "./SessionProvider/models";
 
-export const [session, setSession] = createSignal<SessionResponse | undefined>(undefined);
-const SessionContext = createContext<Accessor<SessionResponse | undefined>>(session);
-export function SessionProvider(props: { children: JSX.Element; api_url: string }) {
+export const [session, setSession] = createSignal<SessionResponse | undefined>(
+  undefined,
+);
+const SessionContext =
+  createContext<Accessor<SessionResponse | undefined>>(session);
+export function SessionProvider(props: {
+  children: JSX.Element;
+  api_url: string;
+}) {
   onMount(async () => {
     const response = await fetch(`${props.api_url}/auth/session`, {
       method: "GET",
@@ -20,24 +38,31 @@ export function SessionProvider(props: { children: JSX.Element; api_url: string 
     }
   });
 
-  return <SessionContext.Provider value={session}>{props.children}</SessionContext.Provider>;
+  return (
+    <SessionContext.Provider value={session}>
+      {props.children}
+    </SessionContext.Provider>
+  );
 }
 export function useSession() {
   return useContext<Accessor<SessionResponse | undefined>>(SessionContext);
 }
 
-export async function login(api_url: string, wallet: WalletClient<CustomTransport, typeof mainnet>) {
+export async function login(
+  api_url: string,
+  wallet: WalletClient<CustomTransport, typeof sepolia>,
+) {
   const address = await wallet.getAddresses().then((addresses) => addresses[0]);
 
   const generateMessageResponse = await fetch(
     `${api_url}/auth?${params(
       GenerateMessageRequest.parse({
         address,
-      })
+      }),
     )}`,
     {
       method: "GET",
-    }
+    },
   )
     .then((r) => r.json())
     .then((r) => GenerateMessageResponse.parse(r));
@@ -57,7 +82,7 @@ export async function login(api_url: string, wallet: WalletClient<CustomTranspor
       ValidateSignatureRequest.parse({
         address,
         signature,
-      })
+      }),
     ),
   })
     .then((r) => r.json())

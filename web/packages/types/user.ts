@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Datetime } from "./primitives/datetime";
 import { Uuid } from "./primitives/uuid";
-import { Address } from "@web/components/providers/SessionProvider/models";
+import { Address } from "@packages/components/providers/SessionProvider/models";
 
 export const User = z.object({
   id: Uuid,

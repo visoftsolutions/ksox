@@ -2,7 +2,7 @@ import { z } from "zod";
 import { Fraction } from "./primitives/fraction";
 import { Datetime } from "./primitives/datetime";
 import { Uuid } from "./primitives/uuid";
-import { Address } from "@web/components/providers/SessionProvider/models";
+import { Address } from "@packages/components/providers/SessionProvider/models";
 
 export const Asset = z.object({
   id: Uuid,

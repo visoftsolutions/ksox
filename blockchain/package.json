@@ -14,7 +14,7 @@
   "author": "",
   "license": "ISC",
   "workspaces": [
-    "@app/*",
+    "apps/*",
     "packages/*"
   ]
 }

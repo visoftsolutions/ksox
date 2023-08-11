@@ -77,6 +77,8 @@ services:
     build:
       context: web
       dockerfile: ./exchange.dockerfile
+    env_file:
+      - .env
     depends_on:
       - server-worker
 
@@ -86,6 +88,8 @@ services:
     build:
       context: web
       dockerfile: ./exchange-landing.dockerfile
+    env_file:
+      - .env
     depends_on:
       - server-worker
 
@@ -95,6 +99,8 @@ services:
     build:
       context: web
       dockerfile: ./processor.dockerfile
+    env_file:
+      - .env
     depends_on:
       - server-worker
 
@@ -104,6 +110,8 @@ services:
     build:
       context: web
       dockerfile: ./dashboard.dockerfile
+    env_file:
+      - .env
     depends_on:
       - server-worker
 
@@ -113,12 +121,14 @@ services:
     build:
       context: proxy
     depends_on:
+      - server-engagement
+      - server-engine
+      - server-blockchain
       - server-worker
       - web-exchange
       - web-exchange-landing
       - web-processor
       - web-dashboard
-      # - processor-landing
     ports:
       - 0.0.0.0:80:80
       - 0.0.0.0:443:443

@@ -1,4 +1,9 @@
-export default async function subscribeEvents(url: string, fetchparams: string, sseparams: string, callback: (data: any) => void) {
+export default async function subscribeEvents(
+  url: string,
+  fetchparams: string,
+  sseparams: string,
+  callback: (data: any) => void,
+) {
   const events = new EventSource(`${url}/sse?${sseparams}`, {
     withCredentials: true,
   });

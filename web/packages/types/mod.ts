@@ -3,7 +3,10 @@ import { Uuid } from "./primitives/uuid";
 import { CandlestickType } from "./candlestick";
 import { Pagination } from "./primitives/pagination";
 import { Fraction } from "./primitives/fraction";
-import { Address, Signature } from "@web/components/providers/SessionProvider/models";
+import {
+  Address,
+  Signature,
+} from "@packages/components/providers/SessionProvider/models";
 import { Datetime } from "./primitives/datetime";
 
 export const DepthRequest = z.object({
