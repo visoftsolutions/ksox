@@ -1,6 +1,8 @@
 import { A } from "solid-start";
 import NavButton from "./Navigation/NavButton";
 import { useNav, Nav } from "~/components/providers/NavProvider";
+import TransferIcon from "./Atoms/Icons/TransferIcon";
+import HomeIcon from "./Atoms/Icons/HomeIcon";
 
 export default function Navigation() {
   const nav = useNav();
@@ -9,15 +11,15 @@ export default function Navigation() {
       <A href="/">
         <NavButton
           name="Home"
-          imgPath="/gfx/home.svg"
-          highlighted={nav() == Nav.App}
+          highlighted={nav() == Nav.Home}
+          icon={HomeIcon({})}
         />
       </A>
-      <A href="/account">
+      <A href="/1">
         <NavButton
-          name="Account"
-          imgPath="/gfx/user.svg"
-          highlighted={nav() == Nav.Account}
+          name="Transfer"
+          highlighted={nav() == Nav.Transfer}
+          icon={TransferIcon({})}
         />
       </A>
     </div>

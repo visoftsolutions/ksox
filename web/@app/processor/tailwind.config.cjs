@@ -4,6 +4,7 @@ const common = require("@web/tailwind/tailwind.config.cjs");
 module.exports = {
   ...common,
   content: [...common.content, "./node_modules/web/components/**/*.{ts,tsx}"],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -17,6 +18,20 @@ module.exports = {
         red: "#B62424",
         "ksox-1": "#5532B9",
         "ksox-2": "#DA008D",
+
+        "r-dark-background": "#000000",
+        "r-dark-foreground": "#161618",
+        "r-dark-active": "#111113",
+        "r-dark-text": "#F4F4F4",
+        "r-dark-secondary-text": "#8E8E91",
+        "r-dark-search-bar": "#232325",
+        "r-light-background": "#F7F7F7",
+        "r-light-foreground": "#FFFFFF",
+        "r-light-text": "#191C1F",
+        "r-blue": "#0666EB",
+        "r-blue-light-backdrop": "#E6F0FD",
+        "r-blue-dark-backdrop": "#1A2431",
+        "r-blue-focus": "#82B2F5"
       },
       fontFamily: {
         sanspro: ["Source Sans Pro", "sans-serif"],

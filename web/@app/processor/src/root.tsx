@@ -24,7 +24,6 @@ export const alchemyId = import.meta.env.VITE_ALCHEMY_API_KEY;
 
 const Index = lazy(() => import("~/routes"));
 const App = lazy(() => import("./components/App"));
-const Account = lazy(() => import("./components/Account"));
 const Asset = lazy(() => import("./components/Asset"));
 
 export default function Root() {
@@ -67,17 +66,12 @@ export default function Root() {
                     <Route
                       path="/"
                       element={<App />}
-                      preload={() => setNav(Nav.App)}
+                      preload={() => setNav(Nav.Home)}
                     />
                     <Route
-                      path="/account"
-                      element={<Account />}
-                      preload={() => setNav(Nav.Account)}
-                    />
-                    <Route
-                      path="/asset/:assetId"
-                      element={<Asset />}
-                      preload={() => setNav(Nav.Asset)}
+                      path="/1"
+                      element={<App />}
+                      preload={() => setNav(Nav.Transfer)}
                     />
                   </Route>
                   <FileRoutes />
