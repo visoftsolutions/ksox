@@ -65,12 +65,12 @@ export default function Root() {
                   <Route path="/" component={Index}>
                     <Route
                       path="/"
-                      element={<App />}
+                      // element={<App />}
                       preload={() => setNav(Nav.Home)}
                     />
                     <Route
                       path="/1"
-                      element={<App />}
+                      // element={<App />}
                       preload={() => setNav(Nav.Transfer)}
                     />
                   </Route>
