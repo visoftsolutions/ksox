@@ -9,7 +9,7 @@ async-stream = "0.3.5"
 chrono = { version = "0.4.26", features = ["serde"] }
 engine = { path = "../engine" }
 ethereum-types = "0.14.1"
-ethers = { version = "2.0.8", features = ["legacy-ws", "ws", "rustls", "openssl", "abigen", "eip712"] }
+ethers = { version = "2.0.8", features = ["ws", "rustls", "openssl", "abigen", "eip712"] }
 evm = { path = "../types/evm" }
 fraction = { path = "../types/fraction" }
 futures = "0.3.28"

@@ -4,23 +4,28 @@
 ```
 [env]
 BLOCKCHAIN_URL="http://localhost:8545/"
+WS_PROVIDER_URL="http://localhost:8545/"
 DATABASE_URL="postgresql://ksoxuser:ksoxuserp4ssword@localhost/ksox"
 REDIS_URL="redis://localhost/"
 ENGINE_URL="http://localhost/"
 RUST_BACKTRACE="full"
 TESTS_CASES="10000"
 TESTS_FRACTION_BYTES="2"
+CONTRACT_PRIVATE_KEY=""
+CONTRACT_ADDRESS=""
 ```
 ## Production (Docker Compose)
 #### **`.env`**
 ```
-BLOCKCHAIN_URL="http://ksox-blockchain:8545/"
+BLOCKCHAIN_URL="http://localhost:8545/"
 WS_PROVIDER_URL="ws://ksox-blockchain:8545/"
 DATABASE_URL="postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox"
 REDIS_URL="redis://ksox-redis/"
 ENGINE_URL="http://ksox-server-engine/"
 TESTS_CASES = "10000"
 TESTS_FRACTION_BYTES = "2"
+CONTRACT_PRIVATE_KEY=""
+CONTRACT_ADDRESS=""
 ```
 
 # Run
