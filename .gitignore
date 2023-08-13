@@ -12,7 +12,14 @@
 # Hardhat
 **/artifacts/
 **/cache/
+**/coverage/
+**/coverage.json
+**/typechain/
 **/typechain-types/
+
+# Hardhat files
+cache
+artifacts
 
 # Solid.js
 **/.solid

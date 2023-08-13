@@ -1,4 +1,12 @@
 services:
+  blockchain:
+    container_name: ksox-blockchain
+    hostname: ksox-blockchain
+    build:
+      context: ./blockchain
+    ports:
+      - 8545:8545
+
   postgres:
     container_name: ksox-postgres
     hostname: ksox-postgres
@@ -26,6 +34,8 @@ services:
     build:
       context: ./server
       dockerfile: ./engagement.dockerfile
+    env_file:
+      - ./server/.env
     depends_on:
       - postgres
       - redis
@@ -36,6 +46,8 @@ services:
     build:
       context: ./server
       dockerfile: ./engine.dockerfile
+    env_file:
+      - ./server/.env
     depends_on:
       - postgres
       - redis
@@ -46,6 +58,8 @@ services:
     build:
       context: ./server
       dockerfile: ./blockchain.dockerfile
+    env_file:
+      - ./server/.env
     depends_on:
       - postgres
       - redis
@@ -57,6 +71,8 @@ services:
     build:
       context: ./server
       dockerfile: ./worker.dockerfile
+    env_file:
+      - ./server/.env
     depends_on:
       - postgres
       - redis

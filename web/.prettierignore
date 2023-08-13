@@ -1,6 +1,3 @@
-# Envs
-**/*.env
-
 # Node.js
 **/node_modules/
 **/npm-debug.log
@@ -10,9 +7,6 @@
 # Solid.js
 **/.solid
 **/dist
-
-# Vite
-**/public/
 
 # IDEs and editors
 **/.vscode/
