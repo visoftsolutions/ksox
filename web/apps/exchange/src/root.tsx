@@ -1,4 +1,4 @@
-import { Suspense, lazy, onMount } from "solid-js";
+import { Suspense, lazy } from "solid-js";
 import {
   Body,
   ErrorBoundary,
@@ -20,18 +20,12 @@ import { WalletProvider } from "@packages/components/providers/WalletProvider";
 export const base = import.meta.env.BASE_URL;
 export const api = joinPaths(base, "/api");
 export const projectId = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID;
-export const alchemyId = import.meta.env.VITE_ALCHEMY_API_KEY;
 
 const Index = lazy(() => import("~/routes"));
 const App = lazy(() => import("~/components/App"));
 const Assets = lazy(() => import("~/components/Assets"));
 
 export default function Root() {
-  onMount(() => {
-    console.log(`projectId: ${projectId}`);
-    console.log(`alchemyId: ${alchemyId}`);
-  });
-
   return (
     <Html lang="en">
       <Head>
@@ -70,7 +64,7 @@ export default function Root() {
         <Suspense>
           <ErrorBoundary>
             <NavProvider>
-              <WalletProvider projectId={projectId} alchemyId={alchemyId}>
+              <WalletProvider projectId={projectId}>
                 <Routes>
                   <Route path="/" component={Index}>
                     <Route

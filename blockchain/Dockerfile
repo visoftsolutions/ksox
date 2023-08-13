@@ -1,8 +1,2 @@
-FROM node AS installer
-WORKDIR /app
-COPY . .
-RUN npm ci
-
-FROM installer AS runtime
-WORKDIR /app
-ENTRYPOINT [ "npm", "run", "node" ]
+FROM ghcr.io/foundry-rs/foundry
+ENTRYPOINT [ "anvil", "--host", "0.0.0.0" ]

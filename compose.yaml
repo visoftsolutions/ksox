@@ -37,6 +37,7 @@ services:
     env_file:
       - ./server/.env
     depends_on:
+      - blockchain
       - postgres
       - redis
 
@@ -49,6 +50,7 @@ services:
     env_file:
       - ./server/.env
     depends_on:
+      - blockchain
       - postgres
       - redis
 
@@ -61,6 +63,7 @@ services:
     env_file:
       - ./server/.env
     depends_on:
+      - blockchain
       - postgres
       - redis
       - server-engine
@@ -74,8 +77,10 @@ services:
     env_file:
       - ./server/.env
     depends_on:
+      - blockchain
       - postgres
       - redis
+      - server-engagement
       - server-engine
       - server-blockchain
     ports:
@@ -123,9 +128,6 @@ services:
     build:
       context: ./proxy
     depends_on:
-      - server-engagement
-      - server-engine
-      - server-blockchain
       - server-worker
       - web-exchange
       - web-exchange-landing

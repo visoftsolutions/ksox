@@ -1,8 +1,13 @@
-## Envs
-```shell
-export VITE_WALLET_CONNECT_PROJECT_ID = ""
-export VITE_WEB3_RPC_URL = ""
-export VITE_WEB3_WS_URL = ""
+# Envs
+## Development
+#### **`.env.development.local`**
+```
+VITE_WALLET_CONNECT_PROJECT_ID=""
+```
+## Production (Docker Compose)
+#### **`.env.production.local`**
+```
+VITE_WALLET_CONNECT_PROJECT_ID=""
 ```
 
 # Run in development mode

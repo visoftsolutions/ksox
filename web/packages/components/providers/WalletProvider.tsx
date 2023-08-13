@@ -1,18 +1,7 @@
-import {
-  Chain,
-  GetAccountResult,
-  GetNetworkResult,
-  PublicClient,
-  sepolia,
-} from "@wagmi/core";
+import { GetAccountResult, GetNetworkResult, PublicClient } from "@wagmi/core";
 import { createContext, JSX, onMount, useContext } from "solid-js";
 import { createStore } from "solid-js/store";
-import {
-  Address,
-  http,
-  WalletClient,
-  webSocket,
-} from "viem";
+import { Address, WalletClient, createPublicClient } from "viem";
 import {
   EthereumClient,
   w3mConnectors,
@@ -20,51 +9,32 @@ import {
 } from "@web3modal/ethereum";
 import { Web3Modal } from "@web3modal/html";
 import { configureChains, createConfig } from "@wagmi/core";
-import { createPublicClient, createWalletClient, custom } from "viem";
+import { createWalletClient, custom } from "viem";
 import { AVAILABLE_CHAINS, Network } from "./WalletProvider/chains";
 
 export interface WalletProvider {
   selected_network: Network;
   walletConnectProjectId: string | undefined;
-  walletClient: WalletClient | undefined;
   publicClient: PublicClient | undefined;
-  publicWSClient: PublicClient | undefined;
+  walletClient: WalletClient | undefined;
   address: Address | undefined;
 }
 
 export const [wallet, setWallet] = createStore<WalletProvider>({
+  selected_network: AVAILABLE_CHAINS[0],
   walletClient: undefined,
+  publicClient: undefined,
   address: undefined,
   walletConnectProjectId: undefined,
-  publicClient: undefined,
-  publicWSClient: undefined,
-  selected_network: AVAILABLE_CHAINS[0],
 });
 const WalletContext = createContext<WalletProvider>(wallet);
 export function WalletProvider(props: {
-  children: JSX.Element;
   projectId: string;
-  alchemyId: string;
+  children: JSX.Element;
 }) {
   onMount(() => {
     setWallet({
       walletConnectProjectId: props.projectId,
-      publicClient: createPublicClient({
-        // chain: hardhat,
-        chain: sepolia,
-        // transport: http("http://127.0.0.1:8545/"),
-        transport: http(
-          `https://eth-sepolia.g.alchemy.com/v2/${props.alchemyId}`,
-        ),
-      }),
-      publicWSClient: createPublicClient({
-        // chain: hardhat,
-        chain: sepolia,
-        // transport: webSocket("ws://127.0.0.1:8545/"),
-        transport: webSocket(
-          `wss://eth-sepolia.g.alchemy.com/v2/${props.alchemyId}`,
-        ),
-      }),
     });
   });
 
@@ -78,13 +48,17 @@ export function useWallet() {
   return useContext<WalletProvider>(WalletContext);
 }
 
-const walletAccount = async (account: GetAccountResult<PublicClient>) => {
+const walletAccount = async (account: GetAccountResult) => {
   if (account.address && account.connector && account.isConnected) {
-    const walletClient = createWalletClient({
-      chain: sepolia,
+    const publicClient = createPublicClient({
+      chain: wallet.selected_network.network,
       transport: custom(await account.connector.getProvider()),
     });
-    setWallet({ walletClient: walletClient, address: account.address });
+    const walletClient = createWalletClient({
+      chain: wallet.selected_network.network,
+      transport: custom(await account.connector.getProvider()),
+    });
+    setWallet({ publicClient, walletClient });
   } else {
     setWallet({ walletClient: undefined, address: undefined });
   }

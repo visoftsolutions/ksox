@@ -183,12 +183,12 @@ export function CrowdsaleProvider(props: { children: JSX.Element }) {
 
   createEffect(async () => {
     const publicClient = wallet.publicClient;
-    const publicWSClient = wallet.publicWSClient;
+
     const phaseContract = CONTRACT_ON_CHAIN.get(
       wallet.selected_network.network.name,
     )?.phaseContract;
 
-    if (phaseContract && publicClient && publicWSClient) {
+    if (phaseContract && publicClient) {
       try {
         const name = await publicClient.readContract({
           address: phaseContract.address,
@@ -256,7 +256,7 @@ export function CrowdsaleProvider(props: { children: JSX.Element }) {
           currentBucketSoldAmount,
         }));
 
-        publicWSClient.watchContractEvent({
+        publicClient.watchContractEvent({
           address: phaseContract.address,
           abi: phaseContract.abi,
           eventName: "BucketCreated",
@@ -278,7 +278,7 @@ export function CrowdsaleProvider(props: { children: JSX.Element }) {
             }
           },
         });
-        publicWSClient.watchContractEvent({
+        publicClient.watchContractEvent({
           address: phaseContract.address,
           abi: phaseContract.abi,
           eventName: "BucketConcluded",
@@ -292,7 +292,7 @@ export function CrowdsaleProvider(props: { children: JSX.Element }) {
             }
           },
         });
-        publicWSClient.watchContractEvent({
+        publicClient.watchContractEvent({
           address: phaseContract.address,
           abi: phaseContract.abi,
           eventName: "BuyExecuted",
@@ -305,7 +305,7 @@ export function CrowdsaleProvider(props: { children: JSX.Element }) {
             }
           },
         });
-        publicWSClient.watchContractEvent({
+        publicClient.watchContractEvent({
           address: phaseContract.address,
           abi: phaseContract.abi,
           eventName: "PhaseConcluded",

@@ -1,4 +1,4 @@
-import { Chain, mainnet, polygon, bsc, sepolia } from "viem/chains";
+import { Chain, hardhat } from "viem/chains";
 
 export interface Network {
   network: Chain;
@@ -7,19 +7,7 @@ export interface Network {
 
 export const AVAILABLE_CHAINS: Network[] = [
   {
-    network: mainnet,
-    icon: "/gfx/asset_icons/eth.svg",
-  },
-  {
-    network: polygon,
-    icon: "/gfx/asset_icons/matic.svg",
-  },
-  {
-    network: bsc,
-    icon: "/gfx/asset_icons/bnb.svg",
-  },
-  {
-    network: sepolia,
+    network: hardhat,
     icon: "/gfx/asset_icons/eth.svg",
   },
 ];

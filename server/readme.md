@@ -1,9 +1,26 @@
-## Envs
-```shell
-export REDIS_URL = "redis://localhost/"
-export DATABASE_URL = "postgresql://ksoxuser:ksoxuserp4ssword@localhost/ksox"
-export TESTS_CASES = "10000"
-export TESTS_FRACTION_BYTES = "2"
+# Envs
+## Development
+#### **`.cargo/config.toml`**
+```
+[env]
+BLOCKCHAIN_URL="http://localhost:8545/"
+DATABASE_URL="postgresql://ksoxuser:ksoxuserp4ssword@localhost/ksox"
+REDIS_URL="redis://localhost/"
+ENGINE_URL="http://localhost/"
+RUST_BACKTRACE="full"
+TESTS_CASES="10000"
+TESTS_FRACTION_BYTES="2"
+```
+## Production (Docker Compose)
+#### **`.env`**
+```
+BLOCKCHAIN_URL="http://ksox-blockchain:8545/"
+WS_PROVIDER_URL="ws://ksox-blockchain:8545/"
+DATABASE_URL="postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox"
+REDIS_URL="redis://ksox-redis/"
+ENGINE_URL="http://ksox-server-engine/"
+TESTS_CASES = "10000"
+TESTS_FRACTION_BYTES = "2"
 ```
 
 # Run
