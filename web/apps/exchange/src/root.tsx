@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "solid-js";
+import { Suspense, lazy, onMount } from "solid-js";
 import {
   Body,
   ErrorBoundary,
@@ -27,6 +27,11 @@ const App = lazy(() => import("~/components/App"));
 const Assets = lazy(() => import("~/components/Assets"));
 
 export default function Root() {
+  onMount(() => {
+    console.log(`projectId: ${projectId}`);
+    console.log(`alchemyId: ${alchemyId}`);
+  });
+
   return (
     <Html lang="en">
       <Head>

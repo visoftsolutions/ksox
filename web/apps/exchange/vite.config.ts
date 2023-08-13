@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
+import { VitePWA, type VitePWAOptions } from "vite-plugin-pwa";
 import solid from "solid-start/vite";
-import { VitePWA } from "vite-plugin-pwa";
-import type { VitePWAOptions } from "vite-plugin-pwa";
 import { randomBytes } from "crypto";
 
 const buildHash = randomBytes(32).toString("hex");
@@ -42,6 +41,7 @@ const pwaOptions: Partial<VitePWAOptions> = {
 
 export default defineConfig({
   plugins: [solid(), VitePWA(pwaOptions)],
+  envDir: "../../",
   server: {
     proxy: {
       "/api": {

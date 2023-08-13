@@ -4,9 +4,9 @@ COPY . .
 RUN npm ci
 
 FROM installer AS builder
-WORKDIR /app/apps/dashboard
-RUN npm run build
+WORKDIR /app
+RUN npm run build -- apps/dashboard
 
 FROM builder AS runtime
-WORKDIR /app/apps/dashboard
-ENTRYPOINT [ "npm", "run", "start", "--", "--port", "80" ]
+WORKDIR /app
+ENTRYPOINT [ "npm", "run", "start", "--", "apps/dashboard", "--", "--port", "80" ]

@@ -30,11 +30,7 @@ impl OrdersManager {
             "#,
             id
         )
-<<<<<<< HEAD
-        .fetch_optional(pool.as_mut())
-=======
-        .fetch_optional(t)
->>>>>>> 0a42fb9 (refactor)
+        .fetch_optional(t.as_mut())
         .await
     }
 
@@ -64,11 +60,7 @@ impl OrdersManager {
             base_asset_id,
             price.to_tuple_string() as _
         )
-<<<<<<< HEAD
-        .fetch(pool.as_mut())
-=======
-        .fetch(t)
->>>>>>> 0a42fb9 (refactor)
+        .fetch(t.as_mut())
     }
 
     pub async fn insert<'t>(
@@ -94,11 +86,7 @@ impl OrdersManager {
             now,
             now
         )
-<<<<<<< HEAD
-        .execute(pool.as_mut())
-=======
-        .execute(t)
->>>>>>> 0a42fb9 (refactor)
+        .execute(t.as_mut())
         .await
     }
 

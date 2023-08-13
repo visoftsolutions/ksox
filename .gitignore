@@ -1,17 +1,7 @@
-# Rust
-**/debug/
-**/target/
-**/*.rs.bk
-
-# MSVC Windows builds of rustc generate these, which store debugging information
-**/*.pdb
-
-# Cargo
-**/Cargo.lock
-
 # Envs
-**/.env
-**/.cargo
+**/*.env
+**/*.local
+# **/*.cargo
 
 # Node.js
 **/node_modules/
@@ -27,6 +17,14 @@
 # Solid.js
 **/.solid
 **/dist
+
+# Rust
+**/debug/
+**/target/
+**/*.rs.bk
+
+# MSVC Windows builds of rustc generate these, which store debugging information
+**/*.pdb
 
 # IDEs and editors
 **/.vscode/

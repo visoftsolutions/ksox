@@ -20,8 +20,8 @@ import { WalletProvider } from "@packages/components/providers/WalletProvider";
 
 export const base = import.meta.env.BASE_URL;
 export const api = joinPaths(base, "/api");
-export const projectId = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID;
-export const alchemyId = import.meta.env.VITE_ALCHEMY_API_KEY;
+export const projectId = process.env.VITE_WALLET_CONNECT_PROJECT_ID;
+export const alchemyId = process.env.VITE_ALCHEMY_API_KEY;
 
 const Index = lazy(() => import("~/routes"));
 const App = lazy(() => import("~/components/App"));
@@ -65,7 +65,7 @@ export default function Root() {
         <Suspense>
           <ErrorBoundary>
             <NavProvider>
-              <WalletProvider projectId={projectId} alchemyId={alchemyId}>
+              <WalletProvider projectId={projectId!} alchemyId={alchemyId!}>
                 <Routes>
                   <Route path="/" component={Index}>
                     <Route

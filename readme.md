@@ -1,16 +1,3 @@
-# Build
-run database, sqlx checks queries in build time
-```
-docker compose up postgres
-cargo build
-```
-
-# Run unlighthouse
-need to be in web folder
-```
-npx unlighthouse --site http://127.0.0.1/app/
-```
-
 # Run app
 ```
 docker compose up --build
@@ -21,58 +8,17 @@ docker compose up --build
 docker system prune -a
 ```
 
-# Code management tools
-
-## dependencies
-```
-cargo install sqlx-cli
-cargo install cargo-make
-cargo install cargo-udeps
-cargo install cargo-sort
-sudo apt-get install protobuf-compiler
-```
-
-## run total check
-ideally run this before commit, make sure you have nightly toolchain installed
-```
-cargo +nightly make
-```
-
-## run partial check
-```
-cargo make partial
-```
-
-## sqlx-prepare offline data
-make sure database is running
-```
-cargo sqlx prepare --workspace -D postgresql://ksoxuser:ksoxuserp4ssword@localhost/ksox
-```
-
-## sort all Cargo.toml files in workspace
-make sure you are in workspace root folder
-```
-cargo-sort -w
-```
-
-## check for unused dependencies in workspace crates
-make sure you are in workspace root folder
-```
-cargo +nightly udeps
-```
-
-## update package.json
-npx npm-check-updates -ws -u --root
-
-## update Rust crates
-cargo install cargo-edit
-cargo upgrade
-
-## run code in kubernetes
+## run code in minikube
 make sure you have minikube, docker and skaffold installed
 make sure you are in a docker group
 ```shell
 minikube start --driver=docker --cpus 16 --memory 8192 --addons ingress
+```
+
+To deploy application to minikube do
+```shell
+kubectl config use-context minikube
+skaffold run
 ```
 
 you can now connect with your browser to ingress, ask minikube for ip
@@ -80,32 +26,26 @@ you can now connect with your browser to ingress, ask minikube for ip
 minikube ip
 ```
 
-Install Cert-Manager
-```
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
-```
-
-Install OpenEBS
-```
-kubectl apply -f https://openebs.github.io/charts/openebs-operator.yaml
-```
-
-To deploy app via scaffold do
-```shell
-skaffold run
-```
-
 Inject routes to /etc/hosts for dns resolution
 ```shell
 ./minikube-inject-hosts.sh
 ```
 
-To deploy application do
+To remove application from minikube do
 ```shell
-skaffold --kubeconfig ~/.kube/prod.conf --default-repo registry.internal.visoft.solutions run
+kubectl config use-context minikube
+skaffold delete
 ```
 
-To remove application do
+## run code in production
+To deploy application to production do
 ```shell
-skaffold --kubeconfig ~/.kube/prod.conf --default-repo registry.internal.visoft.solutions delete
+kubectl config use-context visoft-prod
+skaffold -d registry.internal.visoft.solutions run
+```
+
+To remove application from production do
+```shell
+kubectl config use-context visoft-prod
+skaffold -d registry.internal.visoft.solutions delete
 ```

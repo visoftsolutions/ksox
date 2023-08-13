@@ -1,20 +1,5 @@
-# Database schemas
-**/.sqlx/
-
-# Rust
-**/debug/
-**/target/
-**/*.rs.bk
-
-# MSVC Windows builds of rustc generate these, which store debugging information
-**/*.pdb
-
-# Cargo
-**/Cargo.lock
-
 # Envs
-**/.env
-**/.cargo
+**/*.env
 
 # Node.js
 **/node_modules/
@@ -26,13 +11,6 @@
 **/artifacts/
 **/cache/
 **/typechain-types/
-
-# Solid.js
-**/.solid
-**/dist
-
-# Vite
-**/public/
 
 # IDEs and editors
 **/.vscode/

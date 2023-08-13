@@ -1,10 +1,18 @@
-# Rust
-**/debug/
-**/target/
-**/*.rs.bk
+# Git
+**/.git
 
-# MSVC Windows builds of rustc generate these, which store debugging information
-**/*.pdb
+# Ignores
+**/.gitignore
+**/.dockerignore
+**/.eslintignore
+**/.prettierignore
+
+# Docker
+**/Dockerfile
+**/*.dockerfile
+
+# k8s
+**/k8s/
 
 # Node.js
 **/node_modules/
@@ -12,26 +20,9 @@
 **/yarn-debug.log
 **/yarn-error.log
 
-# Hardhat
-**/artifacts/
-**/cache/
-**/typechain-types/
-
 # Solid.js
 **/.solid
 **/dist
-
-# Git
-**/.git
-**/.gitignore
-
-# Docker
-**/Dockerfile
-**/*.dockerfile
-**/.dockerignore
-
-# k8s
-**/k8s/
 
 # IDEs and editors
 **/.vscode/

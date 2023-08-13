@@ -5,7 +5,7 @@ services:
     build:
       context: postgres
     env_file:
-      - .env
+      - ./postgres/.env
     ports:
       - 5432:5432
 
@@ -14,6 +14,8 @@ services:
     hostname: ksox-redis
     build:
       context: redis
+    env_file:
+      - ./redis/.env
     ports:
       - 6379:6379
       - 8001:8001
@@ -24,8 +26,6 @@ services:
     build:
       context: server
       dockerfile: ./engagement.dockerfile
-    env_file:
-      - .env
     depends_on:
       - postgres
       - redis
@@ -36,8 +36,6 @@ services:
     build:
       context: server
       dockerfile: ./engine.dockerfile
-    env_file:
-      - .env
     depends_on:
       - postgres
       - redis
@@ -48,8 +46,6 @@ services:
     build:
       context: server
       dockerfile: ./blockchain.dockerfile
-    env_file:
-      - .env
     depends_on:
       - postgres
       - redis
@@ -61,8 +57,6 @@ services:
     build:
       context: server
       dockerfile: ./worker.dockerfile
-    env_file:
-      - .env
     depends_on:
       - postgres
       - redis
@@ -77,8 +71,6 @@ services:
     build:
       context: web
       dockerfile: ./exchange.dockerfile
-    env_file:
-      - .env
     depends_on:
       - server-worker
 
@@ -88,8 +80,6 @@ services:
     build:
       context: web
       dockerfile: ./exchange-landing.dockerfile
-    env_file:
-      - .env
     depends_on:
       - server-worker
 
@@ -99,8 +89,6 @@ services:
     build:
       context: web
       dockerfile: ./processor.dockerfile
-    env_file:
-      - .env
     depends_on:
       - server-worker
 
@@ -110,8 +98,6 @@ services:
     build:
       context: web
       dockerfile: ./dashboard.dockerfile
-    env_file:
-      - .env
     depends_on:
       - server-worker
 

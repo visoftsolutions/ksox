@@ -1,4 +1,5 @@
 import {
+  Chain,
   GetAccountResult,
   GetNetworkResult,
   PublicClient,
@@ -8,12 +9,9 @@ import { createContext, JSX, onMount, useContext } from "solid-js";
 import { createStore } from "solid-js/store";
 import {
   Address,
-  CustomTransport,
   http,
-  HttpTransport,
   WalletClient,
   webSocket,
-  WebSocketTransport,
 } from "viem";
 import {
   EthereumClient,
@@ -28,9 +26,9 @@ import { AVAILABLE_CHAINS, Network } from "./WalletProvider/chains";
 export interface WalletProvider {
   selected_network: Network;
   walletConnectProjectId: string | undefined;
-  walletClient: WalletClient<CustomTransport, typeof sepolia> | undefined;
-  publicClient: PublicClient<HttpTransport, typeof sepolia> | undefined;
-  publicWSClient: PublicClient<WebSocketTransport, typeof sepolia> | undefined;
+  walletClient: WalletClient | undefined;
+  publicClient: PublicClient | undefined;
+  publicWSClient: PublicClient | undefined;
   address: Address | undefined;
 }
 
