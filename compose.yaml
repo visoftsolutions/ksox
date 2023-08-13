@@ -3,7 +3,7 @@ services:
     container_name: ksox-postgres
     hostname: ksox-postgres
     build:
-      context: postgres
+      context: ./postgres
     env_file:
       - ./postgres/.env
     ports:
@@ -13,7 +13,7 @@ services:
     container_name: ksox-redis
     hostname: ksox-redis
     build:
-      context: redis
+      context: ./redis
     env_file:
       - ./redis/.env
     ports:
@@ -24,7 +24,7 @@ services:
     container_name: ksox-server-engagement
     hostname: ksox-server-engagement
     build:
-      context: server
+      context: ./server
       dockerfile: ./engagement.dockerfile
     depends_on:
       - postgres
@@ -34,7 +34,7 @@ services:
     container_name: ksox-server-engine
     hostname: ksox-server-engine
     build:
-      context: server
+      context: ./server
       dockerfile: ./engine.dockerfile
     depends_on:
       - postgres
@@ -44,7 +44,7 @@ services:
     container_name: ksox-server-blockchain
     hostname: ksox-server-blockchain
     build:
-      context: server
+      context: ./server
       dockerfile: ./blockchain.dockerfile
     depends_on:
       - postgres
@@ -55,7 +55,7 @@ services:
     container_name: ksox-server-worker
     hostname: ksox-server-worker
     build:
-      context: server
+      context: ./server
       dockerfile: ./worker.dockerfile
     depends_on:
       - postgres
@@ -69,7 +69,7 @@ services:
     container_name: ksox-web-exchange
     hostname: ksox-web-exchange
     build:
-      context: web
+      context: ./web
       dockerfile: ./exchange.dockerfile
     depends_on:
       - server-worker
@@ -78,7 +78,7 @@ services:
     container_name: ksox-web-exchange-landing
     hostname: ksox-web-exchange-landing
     build:
-      context: web
+      context: ./web
       dockerfile: ./exchange-landing.dockerfile
     depends_on:
       - server-worker
@@ -87,7 +87,7 @@ services:
     container_name: ksox-web-processor
     hostname: ksox-web-processor
     build:
-      context: web
+      context: ./web
       dockerfile: ./processor.dockerfile
     depends_on:
       - server-worker
@@ -96,7 +96,7 @@ services:
     container_name: ksox-web-dashboard
     hostname: ksox-web-dashboard
     build:
-      context: web
+      context: ./web
       dockerfile: ./dashboard.dockerfile
     depends_on:
       - server-worker
@@ -105,7 +105,7 @@ services:
     container_name: ksox-proxy
     hostname: ksox-proxy
     build:
-      context: proxy
+      context: ./proxy
     depends_on:
       - server-engagement
       - server-engine
