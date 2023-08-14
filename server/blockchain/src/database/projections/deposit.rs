@@ -1,5 +1,7 @@
+use std::str::FromStr;
+
 use chrono::{DateTime, Utc};
-use ethers::prelude::LogMeta;
+use ethers::prelude::{LogMeta, k256::elliptic_curve::rand_core::le};
 use evm::{address::Address, txhash::TxHash};
 use fraction::{num_traits::One, Fraction};
 use num_bigint::BigInt;
@@ -47,8 +49,22 @@ impl Deposit {
 
 impl Confirmable for Deposit {
     fn set(&mut self, confirmations: usize) {
-        self.confirmations =
-            Fraction::from_raw((BigInt::from(confirmations), BigInt::from(10))).unwrap_or_default()
+        match std::env::var("EVENT_CONFIRMATIONS") {
+            Ok(string) => {
+                match BigInt::from_str(&string) {
+                    Ok(denom) => {
+                        self.confirmations = Fraction::from_raw((BigInt::from(confirmations), denom)).unwrap_or_default()
+                    },
+                    Err(err) => {
+                        tracing::error!("{err}");
+                    }
+                }
+            },
+            Err(err) => {
+                tracing::error!("EVENT_CONFIRMATIONS env: {err}");
+            }
+        }
+        
     }
     fn is_confirmed(&self) -> bool {
         self.confirmations >= Fraction::one()
