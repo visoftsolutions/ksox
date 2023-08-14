@@ -1,6 +1,7 @@
 use std::pin::Pin;
 
 use chrono::Utc;
+use evm::address::Address;
 use sqlx::{
     postgres::{PgPool, PgQueryResult},
     Result,
@@ -11,7 +12,7 @@ use uuid::Uuid;
 use super::notifications::{
     NotificationManagerOutput, NotificationManagerPredicateInput, NotificationManagerSubscriber,
 };
-use crate::database::projections::user::{EvmAddress, User};
+use crate::database::projections::user::User;
 
 #[derive(Debug, Clone)]
 pub struct UsersManager {
@@ -23,8 +24,7 @@ impl UsersManager {
         UsersManager { database }
     }
 
-    pub async fn get_for_evm_address(&self, evm_address: EvmAddress) -> Result<User> {
-        let evm_address_string = evm_address.to_string();
+    pub async fn get_for_evm_address(&self, address: Address) -> Result<User> {
         sqlx::query_as!(
             User,
             r#"
@@ -32,31 +32,30 @@ impl UsersManager {
                 users.id,
                 users.created_at,
                 users.last_modification_at,
-                users.address as "address: EvmAddress",
+                users.address as "address: Address",
                 users.name,
                 users.phone,
                 users.email
             FROM users
             WHERE users.address = $1
             "#,
-            evm_address_string.as_str()
+            &address.to_string()
         )
         .fetch_one(&self.database)
         .await
     }
 
-    pub async fn insert_with_evmaddress(&self, evm_address: EvmAddress) -> Result<User> {
-        let evm_address_string = evm_address.to_string();
+    pub async fn insert_with_evmaddress(&self, address: Address) -> Result<User> {
         sqlx::query_as!(
             User,
             r#"
             INSERT INTO 
                 users
                 (last_modification_at, address) VALUES ($1, $2)
-                RETURNING id, created_at, last_modification_at, address as "address: EvmAddress", users.name, users.phone, users.email
+                RETURNING id, created_at, last_modification_at, address as "address: Address", users.name, users.phone, users.email
             "#,
-            chrono::Utc::now(),
-            evm_address_string.as_str()
+            Utc::now(),
+            &address.to_string()
         )
         .fetch_one(&self.database)
         .await
@@ -73,7 +72,7 @@ impl UsersManager {
                 users.id,
                 users.created_at,
                 users.last_modification_at,
-                users.address as "address: EvmAddress",
+                users.address as "address: Address",
                 users.name,
                 users.phone,
                 users.email
@@ -95,7 +94,7 @@ impl UsersManager {
                 users.id,
                 users.created_at,
                 users.last_modification_at,
-                users.address as "address: EvmAddress",
+                users.address as "address: Address",
                 users.name,
                 users.phone,
                 users.email
@@ -116,7 +115,7 @@ impl UsersManager {
                 users.id,
                 users.created_at,
                 users.last_modification_at,
-                users.address as "address: EvmAddress",
+                users.address as "address: Address",
                 users.name,
                 users.phone,
                 users.email
@@ -167,7 +166,7 @@ impl UsersNotificationManager {
     ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Vec<User>> + Send>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
-                NotificationManagerPredicateInput::UsersChanged(user) => user.id == user_id,
+                NotificationManagerPredicateInput::Users(user) => user.id == user_id,
                 _ => false,
             }
         });
@@ -179,7 +178,7 @@ impl UsersNotificationManager {
         {
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
-                    if let NotificationManagerOutput::UsersChanged(users) = notification {
+                    if let NotificationManagerOutput::Users(users) = notification {
                         yield users;
                     }
                 }

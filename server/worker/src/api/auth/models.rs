@@ -9,6 +9,7 @@ use axum::{
 };
 use bytes::{Bytes, BytesMut};
 use ethers_core::types::Signature;
+use evm::address::Address;
 use hyper::StatusCode;
 use rand::RngCore;
 use redis::{
@@ -20,7 +21,6 @@ use serde_with::{serde_as, DisplayFromStr};
 use uuid::Uuid;
 
 use super::{COOKIE_NAME, SESSION_EXPIRATION_TIME};
-use crate::database::projections::user::EvmAddress;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Message(String);
@@ -297,7 +297,7 @@ where
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GenerateNonceRequest {
     #[serde_as(as = "DisplayFromStr")]
-    pub address: EvmAddress,
+    pub address: Address,
 }
 
 #[serde_as]
@@ -312,7 +312,7 @@ pub struct GenerateNonceResponse {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ValidateSignatureRequest {
     #[serde_as(as = "DisplayFromStr")]
-    pub address: EvmAddress,
+    pub address: Address,
     #[serde_as(as = "DisplayFromStr")]
     pub signature: Signature,
 }
@@ -335,7 +335,7 @@ pub struct SessionResponse {
     #[serde_as(as = "DisplayFromStr")]
     pub user_id: UserId,
     #[serde_as(as = "DisplayFromStr")]
-    pub address: EvmAddress,
+    pub address: Address,
     pub expiration: usize,
 }
 

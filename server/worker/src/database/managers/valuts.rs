@@ -1,15 +1,16 @@
 use std::pin::Pin;
 
-use chrono::{DateTime, Utc};
-use fraction::Fraction;
-use futures::Stream;
-use sqlx::{postgres::PgQueryResult, PgPool};
-use uuid::Uuid;
-
 use super::notifications::{
     NotificationManagerOutput, NotificationManagerPredicateInput, NotificationManagerSubscriber,
 };
 use crate::database::projections::valut::Valut;
+use chrono::{DateTime, Utc};
+use fraction::num_traits::Zero;
+use fraction::Fraction;
+use futures::Stream;
+use sqlx::{postgres::PgQueryResult, PgPool};
+use uuid::Uuid;
+use value::Value;
 
 #[derive(Debug, Clone)]
 pub struct ValutsManager {
@@ -34,7 +35,7 @@ impl ValutsManager {
                 last_modification_at,
                 user_id,
                 asset_id,
-                balance as "balance: Fraction"
+                balance as "balance: Value"
             FROM valuts
             WHERE last_modification_at > $1
             ORDER BY last_modification_at ASC
@@ -55,7 +56,7 @@ impl ValutsManager {
                 last_modification_at,
                 user_id,
                 asset_id,
-                balance as "balance: Fraction"
+                balance as "balance: Value"
             FROM valuts
             WHERE user_id = $1
             AND asset_id = $2
@@ -72,16 +73,19 @@ impl ValutsManager {
         user_id: Uuid,
         asset_id: Uuid,
     ) -> sqlx::Result<Valut> {
+        let now = Utc::now();
+        let value = Value::Finite(Fraction::zero());
         sqlx::query_as!(
             Valut,
             r#"
             INSERT INTO valuts (last_modification_at, user_id, asset_id, balance)
-            VALUES ($1, $2, $3, (0,1))
+            VALUES ($1, $2, $3, $4)
             ON CONFLICT (user_id, asset_id) DO NOTHING;
             "#,
-            chrono::Utc::now(),
+            now,
             user_id,
-            asset_id
+            asset_id,
+            serde_json::to_string(&value).unwrap_or_default(),
         )
         .execute(&self.database)
         .await?;
@@ -97,7 +101,7 @@ impl ValutsManager {
                 last_modification_at = $2,
                 user_id = $3,
                 asset_id = $4,
-                balance = $5::fraction
+                balance = $5
             WHERE
                 id = $1
             "#,
@@ -105,7 +109,7 @@ impl ValutsManager {
             chrono::Utc::now(),
             element.user_id,
             element.asset_id,
-            element.balance.to_tuple_string() as _
+            serde_json::to_string(&element.balance).unwrap_or_default(),
         )
         .execute(&self.database)
         .await
@@ -129,9 +133,7 @@ impl ValutsNotificationManager {
     ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Vec<Valut>> + Send>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
-                NotificationManagerPredicateInput::SpotValutsChanged(valut) => {
-                    valut.user_id == user_id
-                }
+                NotificationManagerPredicateInput::Valuts(valut) => valut.user_id == user_id,
                 _ => false,
             }
         });
@@ -143,7 +145,7 @@ impl ValutsNotificationManager {
         {
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
-                    if let NotificationManagerOutput::SpotValutsChanged(valuts) = notification {
+                    if let NotificationManagerOutput::Valuts(valuts) = notification {
                         yield valuts;
                     }
                 }
@@ -161,7 +163,7 @@ impl ValutsNotificationManager {
     ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Vec<Valut>> + Send>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
-                NotificationManagerPredicateInput::SpotValutsChanged(valut) => {
+                NotificationManagerPredicateInput::Valuts(valut) => {
                     valut.user_id == user_id && valut.asset_id == asset_id
                 }
                 _ => false,
@@ -175,7 +177,7 @@ impl ValutsNotificationManager {
         {
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
-                    if let NotificationManagerOutput::SpotValutsChanged(valuts) = notification {
+                    if let NotificationManagerOutput::Valuts(valuts) = notification {
                         yield valuts;
                     }
                 }

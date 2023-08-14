@@ -8,8 +8,8 @@ use crate::database::projections::asset::Asset;
 pub struct AssetsManager {}
 
 impl AssetsManager {
-    pub async fn get_by_id<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn get_by_id<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         id: Uuid,
     ) -> sqlx::Result<Option<Asset>> {
         sqlx::query_as!(
@@ -17,6 +17,7 @@ impl AssetsManager {
             r#"
             SELECT
                 id,
+                decimals as "decimals: Fraction",
                 maker_fee as "maker_fee: Fraction",
                 taker_fee as "taker_fee: Fraction"
             FROM assets
@@ -24,7 +25,7 @@ impl AssetsManager {
             "#,
             id
         )
-        .fetch_optional(pool.as_mut())
+        .fetch_optional(t.as_mut())
         .await
     }
 }

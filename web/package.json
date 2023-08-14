@@ -5,16 +5,19 @@
   "private": "true",
   "type": "module",
   "scripts": {
-    "lint": "eslint --config packages/eslint/.eslintrc.cjs '**/*.{js,jsx,ts,tsx}'",
-    "lint:fix": "eslint --config packages/eslint/.eslintrc.cjs --fix '**/*.{js,jsx,ts,tsx}'",
-    "format": "prettier --check '**/*.{js,jsx,ts,tsx,json,css,md}'",
-    "format:fix": "prettier --check --write '**/*.{js,jsx,ts,tsx,json,css,md}'",
-    "update": "npx npm-check-updates -ws -u --root"
+    "eslint": "eslint --config packages/eslint/.eslintrc.cjs '**/*.{js,jsx,ts,tsx}'",
+    "eslint:fix": "eslint --config packages/eslint/.eslintrc.cjs --fix '**/*.{js,jsx,ts,tsx}'",
+    "prettier": "prettier --check '**/*.{js,jsx,ts,tsx,json,css,md}'",
+    "prettier:fix": "prettier --check --write '**/*.{js,jsx,ts,tsx,json,css,md}'",
+    "update": "npx npm-check-updates -ws -u --root",
+    "dev": "npm run dev --workspace",
+    "build": "npm run build --workspace",
+    "start": "npm run start --workspace"
   },
   "author": "",
   "license": "ISC",
   "workspaces": [
-    "@app/*",
+    "apps/*",
     "packages/*"
   ],
   "devDependencies": {

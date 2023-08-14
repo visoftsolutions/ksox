@@ -1,0 +1,45 @@
+[config]
+skip_core_tasks = true
+
+[tasks.check]
+script = "cargo check --release"
+
+[tasks.build]
+script = "cargo build --release"
+
+[tasks.fmt]
+script = "cargo fmt"
+
+[tasks.clippy]
+script = "cargo clippy"
+
+[tasks.sort]
+script = "cargo sort"
+
+[tasks.udeps]
+script = "cargo udeps"
+
+[tasks.test]
+script = "cargo test --release"
+
+[tasks.clean]
+script = "cargo clean"
+
+[tasks.sqlx]
+script = "cargo sqlx prepare --database-url postgresql://ksoxuser:ksoxuserp4ssword@localhost/ksox"
+
+[tasks.total]
+dependencies = [
+    "clean",
+    "fmt",
+    "sort",
+    "sqlx",
+    "build",
+    "check",
+    "clippy",
+    "test",
+    "udeps",
+]
+
+[tasks.default]
+alias = "total"

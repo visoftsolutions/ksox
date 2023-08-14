@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use evm::address::Address;
 use fraction::Fraction;
 use serde::{Deserialize, Serialize};
 use sqlx::types::Uuid;
@@ -10,6 +11,8 @@ pub struct Asset {
     pub last_modification_at: DateTime<Utc>,
     pub name: String,
     pub symbol: String,
+    pub address: Address,
+    pub decimals: Fraction,
     pub maker_fee: Fraction,
     pub taker_fee: Fraction,
 }

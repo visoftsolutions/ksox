@@ -81,7 +81,7 @@ impl BadgesNotificationManager {
     ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Vec<Badge>> + Send>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
-                NotificationManagerPredicateInput::EngagementBadgesChanged(badge) => {
+                NotificationManagerPredicateInput::EngagementBadges(badge) => {
                     badge.user_id == user_id
                 }
                 _ => false,
@@ -95,7 +95,7 @@ impl BadgesNotificationManager {
         {
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
-                    if let NotificationManagerOutput::EngagementBadgesChanged(badge) = notification {
+                    if let NotificationManagerOutput::EngagementBadges(badge) = notification {
                         yield badge;
                     }
                 }

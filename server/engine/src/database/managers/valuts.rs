@@ -1,6 +1,8 @@
 use fraction::Fraction;
+use num_traits::Zero;
 use sqlx::{postgres::PgQueryResult, types::chrono::Utc, Postgres, Transaction};
 use uuid::Uuid;
+use value::Value;
 
 use crate::database::projections::valut::Valut;
 
@@ -8,8 +10,8 @@ use crate::database::projections::valut::Valut;
 pub struct ValutsManager {}
 
 impl ValutsManager {
-    pub async fn get<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn get<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         user_id: Uuid,
         asset_id: Uuid,
     ) -> sqlx::Result<Option<Valut>> {
@@ -18,7 +20,7 @@ impl ValutsManager {
             r#"
             SELECT
                 id,
-                balance as "balance: Fraction"
+                balance as "balance: Value"
             FROM valuts
             WHERE user_id = $1
             AND asset_id = $2
@@ -26,35 +28,37 @@ impl ValutsManager {
             user_id,
             asset_id
         )
-        .fetch_optional(pool.as_mut())
+        .fetch_optional(t.as_mut())
         .await
     }
 
-    pub async fn create<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn create<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         user_id: Uuid,
         asset_id: Uuid,
     ) -> sqlx::Result<Valut> {
         let now = Utc::now();
+        let value = Value::Finite(Fraction::zero());
         sqlx::query_as!(
             Valut,
             r#"
             INSERT INTO valuts
                 (user_id, asset_id, balance, last_modification_at, created_at)
-            VALUES ($1, $2, (0,1)::fraction, $3, $4)
-            RETURNING id, balance as "balance: Fraction"
+            VALUES ($1, $2, $3::text, $4, $5)
+            RETURNING id, balance as "balance: Value"
             "#,
             user_id,
             asset_id,
+            serde_json::to_string(&value).unwrap_or_default(),
             now,
             now
         )
-        .fetch_one(pool.as_mut())
+        .fetch_one(t.as_mut())
         .await
     }
 
-    pub async fn update<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn update<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         valut: Valut,
     ) -> sqlx::Result<PgQueryResult> {
         sqlx::query_as!(
@@ -63,29 +67,29 @@ impl ValutsManager {
             UPDATE 
                 valuts 
             SET
-                balance = $2::fraction,
+                balance = $2,
                 last_modification_at = $3
             WHERE
                 id = $1
             "#,
             valut.id,
-            valut.balance.to_tuple_string() as _,
+            serde_json::to_string(&valut.balance).unwrap_or_default(),
             Utc::now()
         )
-        .execute(pool.as_mut())
+        .execute(t.as_mut())
         .await
     }
 
-    pub async fn get_or_create<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn get_or_create<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         user_id: Uuid,
         asset_id: Uuid,
     ) -> sqlx::Result<Valut> {
         Ok(
-            if let Some(valut) = Self::get(pool, user_id, asset_id).await? {
+            if let Some(valut) = Self::get(t, user_id, asset_id).await? {
                 valut
             } else {
-                Self::create(pool, user_id, asset_id).await?
+                Self::create(t, user_id, asset_id).await?
             },
         )
     }

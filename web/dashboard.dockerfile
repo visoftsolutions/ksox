@@ -1,8 +1,12 @@
-FROM node
+FROM node AS installer
 WORKDIR /app
 COPY . .
-RUN npm ci --verbose
-WORKDIR /app/@app/dashboard
-RUN npm run build
-ENV PORT=80
-ENTRYPOINT [ "npm", "run", "start" ]
+RUN npm ci
+
+FROM installer AS builder
+WORKDIR /app
+RUN npm run build -- apps/dashboard
+
+FROM builder AS runtime
+WORKDIR /app
+ENTRYPOINT [ "npm", "run", "start", "--", "apps/dashboard", "--", "--port", "80" ]

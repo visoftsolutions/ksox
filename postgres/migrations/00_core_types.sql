@@ -118,3 +118,38 @@ CREATE CAST (numeric AS json) WITH FUNCTION to_json(numeric) AS ASSIGNMENT;
 
 CREATE SCHEMA "spot";
 CREATE SCHEMA "engagement";
+
+CREATE OR REPLACE FUNCTION notify_channel(channel_name text, val text)
+RETURNS VOID AS $$
+BEGIN
+  PERFORM pg_notify(channel_name, val);
+END;
+$$ language 'plpgsql';
+
+CREATE OR REPLACE FUNCTION notify_blockchain(val text)
+RETURNS VOID AS $$
+BEGIN
+  PERFORM notify_channel('blockchain'::text, val);
+END;
+$$ language 'plpgsql';
+
+CREATE OR REPLACE FUNCTION notify_engagement(val text)
+RETURNS VOID AS $$
+BEGIN
+  PERFORM notify_channel('engagement'::text, val);
+END;
+$$ language 'plpgsql';
+
+CREATE OR REPLACE FUNCTION notify_engine(val text)
+RETURNS VOID AS $$
+BEGIN
+  PERFORM notify_channel('engine'::text, val);
+END;
+$$ language 'plpgsql';
+
+CREATE OR REPLACE FUNCTION notify_worker(val text)
+RETURNS VOID AS $$
+BEGIN
+  PERFORM notify_channel('worker'::text, val);
+END;
+$$ language 'plpgsql';

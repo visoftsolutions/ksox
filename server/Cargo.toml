@@ -1,3 +1,14 @@
 [workspace]
 
-members = ["engagement", "engine", "fraction", "pricelevel", "worker"]
+members = [
+    "blockchain",
+    "engagement",
+    "engine",
+    "types/evm",
+    "types/fraction",
+    "types/infinity",
+    "types/macros",
+    "types/pricelevel",
+    "types/value",
+    "worker",
+]

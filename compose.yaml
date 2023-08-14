@@ -1,13 +1,19 @@
 services:
+  blockchain:
+    container_name: ksox-blockchain
+    hostname: ksox-blockchain
+    build:
+      context: ./blockchain
+    ports:
+      - 8545:8545
+
   postgres:
     container_name: ksox-postgres
     hostname: ksox-postgres
     build:
-      context: postgres
-    environment:
-      - POSTGRES_USER=ksoxuser
-      - POSTGRES_PASSWORD=ksoxuserp4ssword
-      - POSTGRES_DB=ksox
+      context: ./postgres
+    env_file:
+      - ./postgres/.env
     ports:
       - 5432:5432
 
@@ -15,105 +21,118 @@ services:
     container_name: ksox-redis
     hostname: ksox-redis
     build:
-      context: redis
+      context: ./redis
+    env_file:
+      - ./redis/.env
     ports:
       - 6379:6379
       - 8001:8001
 
-  engine:
-    container_name: ksox-engine
-    hostname: ksox-engine
+  server-engagement:
+    container_name: ksox-server-engagement
+    hostname: ksox-server-engagement
     build:
-      context: server
-      dockerfile: ./engine.dockerfile
-    environment:
-      - DATABASE_URL=postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox
-      - REDIS_URL=redis://ksox-redis/
-      - ENGINE_FRACTION_ACCURACY=1/10000
-    depends_on:
-      - postgres
-      - redis
-  
-  engagement:
-    container_name: ksox-engagement
-    hostname: ksox-engagement
-    build:
-      context: server
+      context: ./server
       dockerfile: ./engagement.dockerfile
-    environment:
-      - DATABASE_URL=postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox
-      - REDIS_URL=redis://ksox-redis/
-      - ENGINE_FRACTION_ACCURACY=1/10000
+    env_file:
+      - ./server/.env
     depends_on:
+      - blockchain
       - postgres
       - redis
 
-  worker:
-    container_name: ksox-worker
-    hostname: ksox-worker
+  server-engine:
+    container_name: ksox-server-engine
+    hostname: ksox-server-engine
     build:
-      context: server
+      context: ./server
+      dockerfile: ./engine.dockerfile
+    env_file:
+      - ./server/.env
+    depends_on:
+      - blockchain
+      - postgres
+      - redis
+
+  server-blockchain:
+    container_name: ksox-server-blockchain
+    hostname: ksox-server-blockchain
+    build:
+      context: ./server
+      dockerfile: ./blockchain.dockerfile
+    env_file:
+      - ./server/.env
+    depends_on:
+      - blockchain
+      - postgres
+      - redis
+      - server-engine
+
+  server-worker:
+    container_name: ksox-server-worker
+    hostname: ksox-server-worker
+    build:
+      context: ./server
       dockerfile: ./worker.dockerfile
-    environment:
-      - DATABASE_URL=postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox
-      - ENGINE_URL=http://ksox-engine/
-      - REDIS_URL=redis://ksox-redis/
-      - WORKER_FRACTION_ACCURACY=1/10000
+    env_file:
+      - ./server/.env
     depends_on:
+      - blockchain
       - postgres
       - redis
-      - engine
+      - server-engagement
+      - server-engine
+      - server-blockchain
     ports:
-      - 7979:80
+      - 8080:80
 
-  exchange:
-    container_name: web-exchange
-    hostname: web-exchange
+  web-exchange:
+    container_name: ksox-web-exchange
+    hostname: ksox-web-exchange
     build:
-      context: web
+      context: ./web
       dockerfile: ./exchange.dockerfile
     depends_on:
-      - worker
+      - server-worker
 
-  exchange-landing:
-    container_name: web-exchange-landing
-    hostname: web-exchange-landing
+  web-exchange-landing:
+    container_name: ksox-web-exchange-landing
+    hostname: ksox-web-exchange-landing
     build:
-      context: web
+      context: ./web
       dockerfile: ./exchange-landing.dockerfile
     depends_on:
-      - worker
+      - server-worker
 
-  processor:
-    container_name: web-processor
-    hostname: web-processor
+  web-processor:
+    container_name: ksox-web-processor
+    hostname: ksox-web-processor
     build:
-      context: web
+      context: ./web
       dockerfile: ./processor.dockerfile
     depends_on:
-      - worker
-  
-  dashboard:
-    container_name: web-dashboard
-    hostname: web-dashboard
+      - server-worker
+
+  web-dashboard:
+    container_name: ksox-web-dashboard
+    hostname: ksox-web-dashboard
     build:
-      context: web
+      context: ./web
       dockerfile: ./dashboard.dockerfile
     depends_on:
-      - worker
+      - server-worker
 
   proxy:
     container_name: ksox-proxy
     hostname: ksox-proxy
     build:
-      context: proxy
+      context: ./proxy
     depends_on:
-      - worker
-      - exchange
-      - exchange-landing
-      - processor
-      - dashboard
-      # - processor-landing
+      - server-worker
+      - web-exchange
+      - web-exchange-landing
+      - web-processor
+      - web-dashboard
     ports:
       - 0.0.0.0:80:80
       - 0.0.0.0:443:443

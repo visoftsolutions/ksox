@@ -1,5 +1,5 @@
 {
-  "name": "@web/prettier",
+  "name": "@packages/prettier",
   "version": "1.0.0",
   "description": "",
   "private": "true",
@@ -10,6 +10,6 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "prettier": "^2.8.8"
+    "prettier": "^3.0.1"
   }
 }

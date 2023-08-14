@@ -111,7 +111,7 @@ impl TransfersNotificationManager {
     ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Vec<Transfer>> + Send>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
-                NotificationManagerPredicateInput::TransfersChanged(transfer) => {
+                NotificationManagerPredicateInput::Transfers(transfer) => {
                     transfer.taker_id == user_id
                 }
                 _ => false,
@@ -125,7 +125,7 @@ impl TransfersNotificationManager {
         {
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
-                    if let NotificationManagerOutput::TransfersChanged(transfers) = notification {
+                    if let NotificationManagerOutput::Transfers(transfers) = notification {
                         yield transfers;
                     }
                 }
@@ -142,7 +142,7 @@ impl TransfersNotificationManager {
     ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Vec<Transfer>> + Send>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
-                NotificationManagerPredicateInput::TransfersChanged(transfer) => {
+                NotificationManagerPredicateInput::Transfers(transfer) => {
                     transfer.taker_id == user_id || transfer.maker_id == user_id
                 }
                 _ => false,
@@ -156,7 +156,7 @@ impl TransfersNotificationManager {
         {
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
-                    if let NotificationManagerOutput::TransfersChanged(transfers) = notification {
+                    if let NotificationManagerOutput::Transfers(transfers) = notification {
                         yield transfers;
                     }
                 }

@@ -165,12 +165,12 @@ impl CandlesticksManager {
 
 #[derive(Debug, Clone)]
 pub struct CandlesticksNotificationManager {
-    _notification_manager_subscriber: NotificationManagerSubscriber,
+    notification_manager_subscriber: NotificationManagerSubscriber,
 }
 impl CandlesticksNotificationManager {
-    pub fn new(_notification_manager_subscriber: NotificationManagerSubscriber) -> Self {
+    pub fn new(notification_manager_subscriber: NotificationManagerSubscriber) -> Self {
         Self {
-            _notification_manager_subscriber,
+            notification_manager_subscriber,
         }
     }
 }

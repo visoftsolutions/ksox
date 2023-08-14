@@ -6,8 +6,8 @@ use crate::database::projections::trade::Trade;
 pub struct TradesManager {}
 
 impl TradesManager {
-    pub async fn insert<'t, 'p>(
-        pool: &'t mut Transaction<'p, Postgres>,
+    pub async fn insert<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         element: Trade,
     ) -> sqlx::Result<PgQueryResult> {
         let now = Utc::now();
@@ -31,7 +31,7 @@ impl TradesManager {
             now,
             now
         )
-        .execute(pool.as_mut())
+        .execute(t.as_mut())
         .await
     }
 }

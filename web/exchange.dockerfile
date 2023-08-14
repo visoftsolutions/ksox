@@ -1,8 +1,12 @@
-FROM node
+FROM node AS installer
 WORKDIR /app
 COPY . .
-RUN npm ci --verbose
-WORKDIR /app/@app/exchange
+RUN npm ci
+
+FROM installer AS builder
+WORKDIR /app/apps/exchange
 RUN npm run build
-ENV PORT=80
-ENTRYPOINT [ "npm", "run", "start" ]
+
+FROM builder AS runtime
+WORKDIR /app/apps/exchange
+ENTRYPOINT [ "npm", "run", "start", "--", "--port", "80" ]

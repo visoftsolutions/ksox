@@ -1,5 +1,6 @@
 use std::pin::Pin;
 
+use evm::address::Address;
 use fraction::Fraction;
 use futures::Stream;
 use sqlx::{postgres::PgPool, Result};
@@ -33,6 +34,8 @@ impl AssetsManager {
                 last_modification_at,
                 name,
                 symbol,
+                address as "address: Address",
+                decimals as "decimals: Fraction",
                 maker_fee as "maker_fee: Fraction",
                 taker_fee as "taker_fee: Fraction"
             FROM assets
@@ -55,6 +58,8 @@ impl AssetsManager {
                 last_modification_at,
                 name,
                 symbol,
+                address as "address: Address",
+                decimals as "decimals: Fraction",
                 maker_fee as "maker_fee: Fraction",
                 taker_fee as "taker_fee: Fraction"
             FROM assets
@@ -82,7 +87,7 @@ impl AssetsNotificationManager {
     ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Vec<Trade>> + Send>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
-                NotificationManagerPredicateInput::SpotTradesChanged(trade) => {
+                NotificationManagerPredicateInput::SpotTrades(trade) => {
                     (trade.quote_asset_id == quote_asset_id && trade.base_asset_id == base_asset_id)
                         || (trade.quote_asset_id == base_asset_id
                             && trade.base_asset_id == quote_asset_id)
@@ -98,7 +103,7 @@ impl AssetsNotificationManager {
         {
             let stream = async_stream::stream! {
                 while let Some(notification) = rx.recv().await {
-                    if let NotificationManagerOutput::SpotTradesChanged(trades) = notification {
+                    if let NotificationManagerOutput::SpotTrades(trades) = notification {
                         yield trades;
                     }
                 }

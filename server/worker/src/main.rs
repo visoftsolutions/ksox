@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 mod api;
 mod cache;
 mod database;
@@ -12,12 +10,16 @@ pub mod engine_base {
     tonic::include_proto!("server.engine.base");
 }
 
-use std::net::SocketAddr;
+pub mod blockchain_base {
+    tonic::include_proto!("server.blockchain.base");
+}
 
 use axum::{routing::get, Router};
+use blockchain_base::blockchain_client::BlockchainClient;
 use engine_base::engine_client::EngineClient;
 use regex::Regex;
 use sqlx::postgres::PgPoolOptions;
+use std::net::SocketAddr;
 
 use crate::{
     cache::get_client,
@@ -25,30 +27,33 @@ use crate::{
         assets::{AssetsManager, AssetsNotificationManager},
         badges::{BadgesManager, BadgesNotificationManager},
         candlesticks::{CandlesticksManager, CandlesticksNotificationManager},
+        deposits::{DepositsManager, DepositsNotificationManager},
         notifications::NotificationManager,
         orders::{OrdersManager, OrdersNotificationManager},
         trades::{TradesManager, TradesNotificationManager},
         transfers::{TransfersManager, TransfersNotificationManager},
         users::{UsersManager, UsersNotificationManager},
         valuts::{ValutsManager, ValutsNotificationManager},
+        withdraws::{WithdrawsManager, WithdrawsNotificationManager},
     },
     models::AppState,
     recognition::{asset_pair::AssetPairRecognition, user::UserRecognition},
 };
 
+use macros::retry;
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
-    let database = PgPoolOptions::new()
+
+    let database = retry!(PgPoolOptions::new()
         .max_connections(10)
-        .connect(std::env::var("DATABASE_URL")?.as_str())
-        .await?;
+        .connect(std::env::var("DATABASE_URL").unwrap().as_str()))?;
 
     let notification_manager_controller =
-        NotificationManager::start(database.clone(), "notifications").await?;
+        NotificationManager::start(database.clone(), "worker").await?;
 
     let app_state = AppState {
-        accuracy: std::env::var("WORKER_FRACTION_ACCURACY")?.parse()?,
         database: database.clone(),
         session_store: get_client()?,
         users_manager: UsersManager::new(database.clone()),
@@ -84,12 +89,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         badges_notification_manager: BadgesNotificationManager::new(
             notification_manager_controller.get_subscriber(),
         ),
+        deposits_manager: DepositsManager::new(database.clone()),
+        deposits_notification_manager: DepositsNotificationManager::new(
+            notification_manager_controller.get_subscriber(),
+        ),
+        withdraws_manager: WithdrawsManager::new(database.clone()),
+        withdraws_notification_manager: WithdrawsNotificationManager::new(
+            notification_manager_controller.get_subscriber(),
+        ),
         assets_pair_recognition: AssetPairRecognition::new(
             database.clone(),
             Regex::new(r"[^a-zA-Z]+")?,
         ),
         user_recognition: UserRecognition::new(database),
-        engine_client: EngineClient::connect(std::env::var("ENGINE_URL")?).await?,
+        engine_client: retry!(EngineClient::connect(std::env::var("ENGINE_URL").unwrap()))?,
+        blockchain_client: retry!(BlockchainClient::connect(
+            std::env::var("BLOCKCHAIN_URL").unwrap()
+        ))?,
     };
 
     let app = Router::new()

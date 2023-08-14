@@ -1,8 +1,12 @@
-FROM node
+FROM node AS installer
 WORKDIR /app
 COPY . .
-RUN npm ci --verbose
-WORKDIR /app/@app/processor
+RUN npm ci
+
+FROM installer AS builder
+WORKDIR /app/apps/processor
 RUN npm run build
-ENV PORT=80
-ENTRYPOINT [ "npm", "run", "start" ]
+
+FROM builder AS runtime
+WORKDIR /app/apps/processor
+ENTRYPOINT [ "npm", "run", "start", "--", "--port", "80" ]

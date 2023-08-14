@@ -26,11 +26,13 @@ script = "cargo test --release"
 [tasks.clean]
 script = "cargo clean"
 dependencies = [
+    { name = "clean", path = "blockchain" },
     { name = "clean", path = "engagement" },
     { name = "clean", path = "engine" },
-    { name = "clean", path = "fraction" },
     { name = "clean", path = "worker" },
-    { name = "clean", path = "pricelevel" },
+    { name = "clean", path = "types/fraction" },
+    { name = "clean", path = "types/pricelevel" },
+    { name = "clean", path = "types/evm" },
 ]
 
 [tasks.delete_postgres]
@@ -52,6 +54,7 @@ dependencies = [
     { name = "sqlx", path = "engagement" },
     { name = "sqlx", path = "engine" },
     { name = "sqlx", path = "worker" },
+    { name = "sqlx", path = "blockchain" },
     "stop_postgres",
 ]
 
@@ -65,6 +68,7 @@ dependencies = [
     { name = "sqlx", path = "engagement" },
     { name = "sqlx", path = "engine" },
     { name = "sqlx", path = "worker" },
+    { name = "sqlx", path = "blockchain" },
     "build",
     "check",
     "clippy",

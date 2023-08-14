@@ -1,7 +1,7 @@
 use std::pin::Pin;
 
 use fraction::{
-    num_traits::{CheckedDiv, CheckedMul, CheckedSub, One, Zero},
+    num_traits::{CheckedDiv, CheckedMul, CheckedSub, Inv, One, Zero},
     Fraction,
 };
 use tokio_stream::{Stream, StreamExt};
@@ -26,7 +26,6 @@ pub async fn matching_loop(
     quote_asset: Asset,
     base_asset: Asset,
     mut matching_orders: Pin<Box<dyn Stream<Item = sqlx::Result<OrderGet>> + Send + '_>>,
-    accuracy: Fraction,
     presentation: bool,
 ) -> Result<MatchingLoopResponse, MatchingLoopError> {
     let mut response = MatchingLoopResponse::new();
@@ -35,7 +34,12 @@ pub async fn matching_loop(
         return Err(MatchingLoopError::VolumeIsZero);
     }
 
-    let mut quote_asset_volume_left = quote_asset_volume.to_owned();
+    let mut quote_asset_volume_left = quote_asset_volume
+        .to_owned()
+        .checked_floor_with_accuracy(&quote_asset.to_owned().decimals.inv())
+        .ok_or(MatchingLoopError::CheckedFloorFailed)?;
+
+    // let mut quote_asset_volume_left = quote_asset_volume.to_owned();
 
     let price_inv = Fraction::one()
         .checked_div(&price)
@@ -45,6 +49,7 @@ pub async fn matching_loop(
         if quote_asset_volume_left <= Fraction::zero() {
             break;
         }
+
         let maker_order = matching_order?;
 
         if !(maker_order.price >= price_inv
@@ -103,7 +108,7 @@ pub async fn matching_loop(
                         .ok_or(MatchingLoopError::CheckedMulFailed)?,
                 )
                 .ok_or(MatchingLoopError::CheckedSubFailed)?
-                .checked_floor_with_accuracy(&accuracy)
+                .checked_floor_with_accuracy(&base_asset.to_owned().decimals.inv())
                 .ok_or(MatchingLoopError::CheckedFloorFailed)?,
             maker_quote_volume: maker_quote_asset_volume_taken,
             maker_base_volume: maker_base_asset_volume_given
@@ -113,7 +118,7 @@ pub async fn matching_loop(
                         .ok_or(MatchingLoopError::CheckedMulFailed)?,
                 )
                 .ok_or(MatchingLoopError::CheckedSubFailed)?
-                .checked_floor_with_accuracy(&accuracy)
+                .checked_floor_with_accuracy(&quote_asset.to_owned().decimals.inv())
                 .ok_or(MatchingLoopError::CheckedFloorFailed)?,
         });
     }

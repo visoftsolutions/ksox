@@ -13,47 +13,52 @@ CREATE TABLE "assets" (
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "name" VARCHAR NOT NULL,
+  "address" CHAR(42) UNIQUE NOT NULL,
+  "decimals" fraction NOT NULL,
   "symbol" VARCHAR NOT NULL,
   "maker_fee" fraction NOT NULL,
   "taker_fee" fraction NOT NULL
 );
 
-CREATE TABLE valuts (
+CREATE TABLE "valuts" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "user_id" uuid NOT NULL,
   "asset_id" uuid NOT NULL,
-  "balance" fraction NOT NULL,
+  "balance" text NOT NULL,
   UNIQUE ("user_id", "asset_id")
 );
 
 ALTER TABLE "valuts" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 ALTER TABLE "valuts" ADD FOREIGN KEY ("asset_id") REFERENCES "assets" ("id");
 
-CREATE TABLE "mints" (
+CREATE TABLE "deposits" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "user_id" uuid NOT NULL,
-  "asset_id" uuid NOT NULL,
-  "amount" fraction NOT NULL
+  "owner" CHAR(42) NOT NULL,
+  "spender" CHAR(42) NOT NULL,
+  "asset" CHAR(42) NOT NULL,
+  "amount" fraction NOT NULL,
+  "tx_hash" CHAR(66) NOT NULL,
+  "confirmations" fraction NOT NULL
 );
 
-ALTER TABLE "mints" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-ALTER TABLE "mints" ADD FOREIGN KEY ("asset_id") REFERENCES "assets" ("id");
-
-CREATE TABLE "burns" (
+CREATE TABLE "withdraws" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "user_id" uuid NOT NULL,
-  "asset_id" uuid NOT NULL,
-  "amount" fraction NOT NULL
+  "owner" CHAR(42) NOT NULL,
+  "spender" CHAR(42) NOT NULL,
+  "asset" CHAR(42) NOT NULL,
+  "amount" fraction NOT NULL,
+  "nonce"  fraction NOT NULL,
+  "deadline" TIMESTAMP(6) WITH TIME ZONE NOT NULL
 );
 
-ALTER TABLE "burns" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-ALTER TABLE "burns" ADD FOREIGN KEY ("asset_id") REFERENCES "assets" ("id");
+ALTER TABLE "withdraws" ADD FOREIGN KEY ("spender") REFERENCES "users" ("address");
+ALTER TABLE "withdraws" ADD FOREIGN KEY ("asset") REFERENCES "assets" ("address");
 
 CREATE TABLE "transfers" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
@@ -132,40 +137,142 @@ CREATE TABLE "spot"."candlesticks" (
 ALTER TABLE "spot"."candlesticks" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "assets" ("id");
 ALTER TABLE "spot"."candlesticks" ADD FOREIGN KEY ("base_asset_id") REFERENCES "assets" ("id");
 
-
-CREATE OR REPLACE FUNCTION update_last_modification_at()
+CREATE OR REPLACE FUNCTION users_changed_trigger() 
 RETURNS TRIGGER AS $$
+DECLARE
+  val text;
 BEGIN
-   PERFORM pg_notify('notifications', TG_ARGV[0]::text);
-   RETURN NEW;
+  val := '"Users"';
+  PERFORM notify_worker(val);
+  PERFORM notify_engagement(val);
+  RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER users_update_last_modification_at
+CREATE OR REPLACE FUNCTION assets_changed_trigger() 
+RETURNS TRIGGER AS $$
+DECLARE
+  val text;
+BEGIN
+  val := '"Assets"';
+  PERFORM notify_worker(val);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION valuts_changed_trigger() 
+RETURNS TRIGGER AS $$
+DECLARE
+  val text;
+BEGIN
+  val := '"Valuts"';
+  PERFORM notify_worker(val);
+  PERFORM notify_engagement(val);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION transfers_changed_trigger() 
+RETURNS TRIGGER AS $$
+DECLARE
+  val text;
+BEGIN
+  val := '"Transfers"';
+  PERFORM notify_worker(val);
+  PERFORM notify_engagement(val);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION deposits_changed_trigger() 
+RETURNS TRIGGER AS $$
+DECLARE
+  val text;
+BEGIN
+  val := '"Deposits"';
+  PERFORM notify_worker(val);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION withdraws_changed_trigger() 
+RETURNS TRIGGER AS $$
+DECLARE
+  val text;
+BEGIN
+  val := '"Withdraws"';
+  PERFORM notify_worker(val);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION spot_orders_changed_trigger() 
+RETURNS TRIGGER AS $$
+DECLARE
+  val text;
+BEGIN
+  val := '"SpotOrders"';
+  PERFORM notify_worker(val);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION spot_trades_changed_trigger() 
+RETURNS TRIGGER AS $$
+DECLARE
+  val text;
+BEGIN
+  val := '"SpotTrades"';
+  PERFORM notify_worker(val);
+  PERFORM notify_engagement(val);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION spot_candlesticks_changed_trigger() 
+RETURNS TRIGGER AS $$
+DECLARE
+  val text;
+BEGIN
+  val := '"SpotCandlesticks"';
+  PERFORM notify_worker(val);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER users_changed
 AFTER INSERT OR UPDATE ON "users"
-FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"UsersChanged"');
+FOR EACH STATEMENT EXECUTE FUNCTION users_changed_trigger();
 
-CREATE OR REPLACE TRIGGER spot_assets_update_last_modification_at
+CREATE OR REPLACE TRIGGER assets_changed
 AFTER INSERT OR UPDATE ON "assets"
-FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"SpotAssetsChanged"');
+FOR EACH STATEMENT EXECUTE FUNCTION assets_changed_trigger();
 
-CREATE OR REPLACE TRIGGER spot_valuts_update_last_modification_at
+CREATE OR REPLACE TRIGGER valuts_changed
 AFTER INSERT OR UPDATE ON "valuts"
-FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"SpotValutsChanged"');
+FOR EACH STATEMENT EXECUTE FUNCTION valuts_changed_trigger();
 
-CREATE OR REPLACE TRIGGER transfers_update_last_modification_at
+CREATE OR REPLACE TRIGGER transfers_changed
 AFTER INSERT OR UPDATE ON "transfers"
-FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"TransfersChanged"');
+FOR EACH STATEMENT EXECUTE FUNCTION transfers_changed_trigger();
 
-CREATE OR REPLACE TRIGGER spot_orders_update_last_modification_at
+CREATE OR REPLACE TRIGGER deposits_changed
+AFTER INSERT OR UPDATE ON "deposits"
+FOR EACH STATEMENT EXECUTE FUNCTION deposits_changed_trigger();
+
+CREATE OR REPLACE TRIGGER withdraws_changed
+AFTER INSERT OR UPDATE ON "withdraws"
+FOR EACH STATEMENT EXECUTE FUNCTION withdraws_changed_trigger();
+
+CREATE OR REPLACE TRIGGER spot_orders_changed
 AFTER INSERT OR UPDATE ON "spot"."orders"
-FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"SpotOrdersChanged"');
+FOR EACH STATEMENT EXECUTE FUNCTION spot_orders_changed_trigger();
 
-CREATE OR REPLACE TRIGGER spot_trades_update_last_modification_at
+CREATE OR REPLACE TRIGGER spot_trades_changed
 AFTER INSERT OR UPDATE ON "spot"."trades"
-FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"SpotTradesChanged"');
+FOR EACH STATEMENT EXECUTE FUNCTION spot_trades_changed_trigger();
 
-CREATE OR REPLACE TRIGGER spot_candlesticks_update_last_modification_at
+CREATE OR REPLACE TRIGGER spot_candlesticks_changed
 AFTER INSERT OR UPDATE ON "spot"."candlesticks"
-FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"SpotCandlesticksChanged"');
+FOR EACH STATEMENT EXECUTE FUNCTION spot_candlesticks_changed_trigger();
 

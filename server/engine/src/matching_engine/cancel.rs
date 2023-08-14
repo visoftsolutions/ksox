@@ -1,4 +1,6 @@
+use num_traits::CheckedAdd;
 use sqlx::{Postgres, Transaction};
+use value::Value;
 
 use super::models::cancel::{CancelRequest, CancelRequestError, CancelResponse};
 use crate::database::managers::{OrdersManager, ValutsManager};
@@ -15,10 +17,12 @@ pub async fn cancel<'t, 'p>(
         return Err(CancelRequestError::OrderNotActive);
     }
 
-    let mut valut =
+    let valut =
         ValutsManager::get_or_create(transaction, order.maker_id, order.quote_asset_id).await?;
-
-    valut.balance += order.quote_asset_volume_left.to_owned();
+    valut
+        .balance
+        .checked_add(&Value::Finite(order.quote_asset_volume_left.to_owned()))
+        .ok_or(CancelRequestError::CheckedAddFailed)?;
     order.is_active = false;
 
     ValutsManager::update(transaction, valut).await?;

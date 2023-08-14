@@ -1,15 +1,11 @@
 use base::engine_server::Engine;
-use chrono::Duration;
-use fraction::Fraction;
 use sqlx::PgPool;
 use tonic::{Request, Response, Status};
 
 use crate::base;
 
-pub mod burn;
 pub mod cancel;
 pub mod matching_loop;
-pub mod mint;
 pub mod models;
 pub mod submit;
 pub mod transfer;
@@ -18,25 +14,12 @@ pub mod transfer;
 pub mod tests;
 
 pub struct MatchingEngine {
-    accuracy: Fraction,
     database: PgPool,
-    mint_timeout: Duration,
-    burn_timeout: Duration,
 }
 
 impl MatchingEngine {
-    pub fn new(
-        database: PgPool,
-        accuracy: Fraction,
-        mint_timeout: Duration,
-        burn_timeout: Duration,
-    ) -> Self {
-        Self {
-            accuracy,
-            database,
-            mint_timeout,
-            burn_timeout,
-        }
+    pub fn new(database: PgPool) -> Self {
+        Self { database }
     }
 }
 
@@ -52,13 +35,7 @@ impl Engine for MatchingEngine {
             .await
             .map_err(|e| Status::aborted(e.to_string()))?;
         Ok(Response::new(
-            match submit::submit(
-                request.into_inner().try_into()?,
-                &mut t,
-                self.accuracy.clone(),
-            )
-            .await
-            {
+            match submit::submit(request.into_inner().try_into()?, &mut t).await {
                 Ok(r) => {
                     t.commit()
                         .await
@@ -104,45 +81,17 @@ impl Engine for MatchingEngine {
         ))
     }
 
-    async fn mint(
+    async fn revert_transfer(
         &self,
-        request: Request<base::MintRequest>,
-    ) -> Result<Response<base::MintResponse>, Status> {
+        request: Request<base::RevertTransferRequest>,
+    ) -> Result<Response<base::RevertTransferResponse>, Status> {
         let mut t = self
             .database
             .begin()
             .await
             .map_err(|e| Status::aborted(e.to_string()))?;
         Ok(Response::new(
-            match mint::mint(request.into_inner().try_into()?, &mut t, self.mint_timeout).await {
-                Ok(r) => {
-                    t.commit()
-                        .await
-                        .map_err(|e| Status::aborted(e.to_string()))?;
-                    Ok(r)
-                }
-                Err(e) => {
-                    t.rollback()
-                        .await
-                        .map_err(|e| Status::aborted(e.to_string()))?;
-                    Err(e)
-                }
-            }
-            .try_into()?,
-        ))
-    }
-
-    async fn burn(
-        &self,
-        request: Request<base::BurnRequest>,
-    ) -> Result<Response<base::BurnResponse>, Status> {
-        let mut t = self
-            .database
-            .begin()
-            .await
-            .map_err(|e| Status::aborted(e.to_string()))?;
-        Ok(Response::new(
-            match burn::burn(request.into_inner().try_into()?, &mut t, self.burn_timeout).await {
+            match transfer::revert_transfer(request.into_inner().try_into()?, &mut t).await {
                 Ok(r) => {
                     t.commit()
                         .await

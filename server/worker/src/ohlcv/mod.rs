@@ -7,7 +7,6 @@ use chrono::{DateTime, Duration, Utc};
 use database::{
     managers::{
         candlesticks::CandlesticksManager,
-        orders::OrdersManager,
         trades::{TradesManager, TradesNotificationManager},
     },
     projections::candlestick::{Candlestick, CandlestickData},
@@ -20,7 +19,6 @@ use crate::database::{self, projections::candlestick::CandlestickType};
 pub struct OhlcvEngine {
     trades_manager: TradesManager,
     trades_notification_manager: TradesNotificationManager,
-    orders_manager: OrdersManager,
     candlesticks_manager: CandlesticksManager,
 }
 
@@ -83,13 +81,11 @@ impl OhlcvEngine {
     pub fn new(
         trades_manager: TradesManager,
         trades_notification_manager: TradesNotificationManager,
-        orders_manager: OrdersManager,
         candlesticks_manager: CandlesticksManager,
     ) -> Self {
         Self {
             trades_manager,
             trades_notification_manager,
-            orders_manager,
             candlesticks_manager,
         }
     }
@@ -184,7 +180,6 @@ impl OhlcvEngine {
                         self.update(&mut candlestick, trade?.into(), kind.to_owned(),reference_point.to_owned(), span)?;
                     }
                 }
-
             };
 
             if let Some(candlestick) = candlestick.to_owned() {

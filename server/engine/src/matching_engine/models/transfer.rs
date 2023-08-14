@@ -30,13 +30,17 @@ impl TryFrom<base::TransferRequest> for TransferRequest {
     }
 }
 
-pub struct TransferResponse {}
+pub struct TransferResponse {
+    pub id: Uuid,
+}
 
 impl TryFrom<Result<TransferResponse, TransferError>> for base::TransferResponse {
     type Error = Status;
     fn try_from(value: Result<TransferResponse, TransferError>) -> Result<Self, Self::Error> {
-        let _v = value.map_err(|e| Status::aborted(e.to_string()))?;
-        Ok(Self {})
+        let v = value.map_err(|e| Status::aborted(e.to_string()))?;
+        Ok(Self {
+            id: v.id.to_string(),
+        })
     }
 }
 
@@ -60,6 +64,65 @@ pub enum TransferError {
     #[error("div fractions failed")]
     CheckedDivFailed,
 
+    #[error("maker_id taker_id the same")]
+    SameUser,
+
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),
+}
+
+pub struct RevertTransferRequest {
+    pub id: Uuid,
+}
+
+impl TryFrom<base::RevertTransferRequest> for RevertTransferRequest {
+    type Error = Status;
+    fn try_from(value: base::RevertTransferRequest) -> Result<Self, Self::Error> {
+        Ok(Self {
+            id: Uuid::from_str(&value.id).map_err(|e| Status::invalid_argument(e.to_string()))?,
+        })
+    }
+}
+
+pub struct RevertTransferResponse {
+    pub id: Uuid,
+}
+
+impl TryFrom<Result<RevertTransferResponse, RevertTransferError>> for base::RevertTransferResponse {
+    type Error = Status;
+    fn try_from(
+        value: Result<RevertTransferResponse, RevertTransferError>,
+    ) -> Result<Self, Self::Error> {
+        let v = value.map_err(|e| Status::aborted(e.to_string()))?;
+        Ok(Self {
+            id: v.id.to_string(),
+        })
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum RevertTransferError {
+    #[error("asset not found in db")]
+    AssetNotFound,
+
+    #[error("not enough balance in valut")]
+    InsufficientBalance,
+
+    #[error("add fractions failed")]
+    CheckedAddFailed,
+
+    #[error("sub fractions failed")]
+    CheckedSubFailed,
+
+    #[error("mul fractions failed")]
+    CheckedMulFailed,
+
+    #[error("div fractions failed")]
+    CheckedDivFailed,
+
+    #[error(transparent)]
+    Sqlx(#[from] sqlx::Error),
+
+    #[error(transparent)]
+    TransferError(#[from] TransferError),
 }

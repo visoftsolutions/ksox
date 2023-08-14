@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE \n                valuts \n            SET\n                balance = $2,\n                last_modification_at = $3\n            WHERE\n                id = $1\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "71dfb5bd7c07c5074ed93687d2853ab56068c62434240fe61220d2afacd8408c"
+}

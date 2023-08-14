@@ -8,6 +8,17 @@ CREATE TABLE "engagement"."badges" (
 
 ALTER TABLE "engagement"."badges" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 
-CREATE OR REPLACE TRIGGER engagement_badges_update_last_modification_at
+CREATE OR REPLACE FUNCTION engagement_badges_changed_trigger() 
+RETURNS TRIGGER AS $$
+DECLARE
+  val text;
+BEGIN
+  val := '"EngagementBadges"';
+  PERFORM notify_worker(val);
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER engagement_badges_changed
 AFTER INSERT OR UPDATE ON "engagement"."badges"
-FOR EACH STATEMENT EXECUTE FUNCTION update_last_modification_at('"EngagementBadgesChanged"');
+FOR EACH STATEMENT EXECUTE FUNCTION engagement_badges_changed_trigger();

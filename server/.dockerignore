@@ -1,36 +1,37 @@
-# Rust
-**/debug/
-**/target/
-**/*.rs.bk
-
-# MSVC Windows builds of rustc generate these, which store debugging information
-**/*.pdb
-
-# Node.js
-**/node_modules/
-**/npm-debug.log
-**/yarn-debug.log
-**/yarn-error.log
-
-# Hardhat
-**/artifacts/
-**/typechain-types/
-
-# Solid.js
-**/.solid
-**/dist
-
 # Git
 **/.git
+
+# Readme
+**/[Rr][Ee][Aa][Dd][Mm][Ee]
+**/[Rr][Ee][Aa][Dd][Mm][Ee].[Mm][Dd]
+
+# Ignores
 **/.gitignore
+**/.dockerignore
+**/.eslintignore
+**/.prettierignore
 
 # Docker
 **/Dockerfile
 **/*.dockerfile
-**/.dockerignore
 
 # k8s
 **/k8s/
+
+# Envs
+**/*.cargo/
+**/*.env
+**/*.local
+
+# Rust
+**/debug/
+**/target/
+**/*.rs.bk
+**/.rustfmt.toml
+**/.Makefile.toml
+
+# MSVC Windows builds of rustc generate these, which store debugging information
+**/*.pdb
 
 # IDEs and editors
 **/.vscode/

@@ -2,53 +2,52 @@ apiVersion: skaffold/v4beta3
 kind: Config
 build:
   artifacts:
-  - image: busybox
-    context: ./containers
-    docker:
-      dockerfile: busybox.dockerfile
-  - image: postgres-database
-    context: ./postgres
-    docker:
-      dockerfile: Dockerfile
-  - image: redis-database
-    context: ./redis
-    docker:
-      dockerfile: Dockerfile
-  - image: server-engine
-    context: ./server
-    docker:
-      dockerfile: engine.dockerfile
-  - image: server-engagement
-    context: ./server
-    docker:
-      dockerfile: engagement.dockerfile
-  - image: server-worker
-    context: ./server
-    docker:
-      dockerfile: worker.dockerfile
-  - image: pay-worker
-    context: ./server
-    docker:
-      dockerfile: worker.dockerfile
-  - image: web-exchange
-    context: ./web
-    docker:
-      dockerfile: exchange.dockerfile
-  - image: web-exchange-landing
-    context: ./web
-    docker:
-      dockerfile: exchange-landing.dockerfile
-  - image: web-processor
-    context: ./web
-    docker:
-      dockerfile: processor.dockerfile
-  - image: web-dashboard
-    context: ./web
-    docker:
-      dockerfile: dashboard.dockerfile
+    - image: busybox
+      context: ./containers
+      docker:
+        dockerfile: busybox.dockerfile
+    - image: postgres-database
+      context: ./postgres
+      docker:
+        dockerfile: Dockerfile
+    - image: redis-database
+      context: ./redis
+      docker:
+        dockerfile: Dockerfile
+    - image: server-engine
+      context: ./server
+      docker:
+        dockerfile: engine.dockerfile
+    - image: server-engagement
+      context: ./server
+      docker:
+        dockerfile: engagement.dockerfile
+    - image: server-worker
+      context: ./server
+      docker:
+        dockerfile: worker.dockerfile
+    - image: pay-worker
+      context: ./server
+      docker:
+        dockerfile: worker.dockerfile
+    - image: web-exchange
+      context: ./web
+      docker:
+        dockerfile: exchange.dockerfile
+    - image: web-exchange-landing
+      context: ./web
+      docker:
+        dockerfile: exchange-landing.dockerfile
+    - image: web-processor
+      context: ./web
+      docker:
+        dockerfile: processor.dockerfile
+    - image: web-dashboard
+      context: ./web
+      docker:
+        dockerfile: dashboard.dockerfile
 manifests:
   rawYaml:
-    - ./k8s/*
     - ./postgres/k8s/*
     - ./redis/k8s/*
     - ./server/k8s/*

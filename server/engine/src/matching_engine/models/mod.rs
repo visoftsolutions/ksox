@@ -1,6 +1,4 @@
-pub mod burn;
 pub mod cancel;
-pub mod mint;
 pub mod submit;
 pub mod transfer;
 
@@ -20,6 +18,12 @@ impl MatchingLoopResponse {
             order: None,
             trades: Vec::new(),
         }
+    }
+}
+
+impl Default for MatchingLoopResponse {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
