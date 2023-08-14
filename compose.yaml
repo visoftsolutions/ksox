@@ -90,6 +90,8 @@ services:
     build:
       context: ./web
       dockerfile: ./exchange.dockerfile
+      args:
+        - NODE_ENV=development
     depends_on:
       - server-worker
 
@@ -99,6 +101,8 @@ services:
     build:
       context: ./web
       dockerfile: ./exchange-landing.dockerfile
+      args:
+        - NODE_ENV=development
     depends_on:
       - server-worker
 
@@ -108,6 +112,8 @@ services:
     build:
       context: ./web
       dockerfile: ./processor.dockerfile
+      args:
+        - NODE_ENV=development
     depends_on:
       - server-worker
 
@@ -117,6 +123,8 @@ services:
     build:
       context: ./web
       dockerfile: ./dashboard.dockerfile
+      args:
+        - NODE_ENV=development
     depends_on:
       - server-worker
 

@@ -5,6 +5,8 @@ RUN npm ci
 
 FROM installer AS builder
 WORKDIR /app
+ARG NODE_ENV
+ENV NODE_ENV ${NODE_ENV}
 RUN npm run build -- apps/processor
 
 FROM builder AS runtime
