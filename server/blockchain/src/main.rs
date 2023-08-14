@@ -8,13 +8,12 @@ use contracts::treasury::Treasury;
 use engine_base::engine_client::EngineClient;
 use ethers::{
     providers::{Provider, Ws},
-    signers::{LocalWallet, Signer},
+    signers::LocalWallet,
 };
-use evm::address::Address;
 use num_bigint::BigInt;
 use sqlx::postgres::PgPoolOptions;
-use std::{io, str::FromStr};
 use std::net::SocketAddr;
+use std::{io, str::FromStr};
 use tonic::transport::Server;
 
 use crate::{
@@ -42,7 +41,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let database = retry!(PgPoolOptions::new()
         .max_connections(10)
         .connect(std::env::var("KSOX_POSTGRES_URL").unwrap().as_str()))?;
-    let engine_client = retry!(EngineClient::connect(std::env::var("KSOX_SERVER_ENGINE_URL").unwrap()))?;
+    let engine_client = retry!(EngineClient::connect(
+        std::env::var("KSOX_SERVER_ENGINE_URL").unwrap()
+    ))?;
     let provider = retry!(Provider::<Ws>::connect(
         std::env::var("KSOX_WS_BLOCKCHAIN_URL").unwrap()
     ))?;

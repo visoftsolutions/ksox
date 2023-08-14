@@ -53,7 +53,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let app_state = AppState {
         database: database.clone(),
-        session_store: redis::Client::open(std::env::var("KSOX_REDIS_URL").unwrap_or_default().as_str())?,
+        session_store: redis::Client::open(
+            std::env::var("KSOX_REDIS_URL").unwrap_or_default().as_str(),
+        )?,
         users_manager: UsersManager::new(database.clone()),
         users_notification_manager: UsersNotificationManager::new(
             notification_manager_controller.get_subscriber(),
@@ -100,7 +102,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Regex::new(r"[^a-zA-Z]+")?,
         ),
         user_recognition: UserRecognition::new(database),
-        engine_client: retry!(EngineClient::connect(std::env::var("KSOX_SERVER_ENGINE_URL").unwrap()))?,
+        engine_client: retry!(EngineClient::connect(
+            std::env::var("KSOX_SERVER_ENGINE_URL").unwrap()
+        ))?,
         blockchain_client: retry!(BlockchainClient::connect(
             std::env::var("KSOX_SERVER_BLOCKCHAIN_URL").unwrap()
         ))?,
