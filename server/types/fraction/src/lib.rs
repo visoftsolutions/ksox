@@ -1,7 +1,7 @@
 use std::{
     fmt::{self, Display},
-    ops::{AddAssign, Deref, Neg, SubAssign},
-    str::FromStr,
+    ops::{AddAssign, Deref, Neg, SubAssign, DerefMut},
+    str::FromStr, borrow::BorrowMut,
 };
 
 use ethereum_types::U256;

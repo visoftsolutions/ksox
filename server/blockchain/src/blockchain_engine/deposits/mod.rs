@@ -4,7 +4,9 @@ use ethers::{
     prelude::LogMeta,
     providers::{Middleware, Provider, Ws},
 };
+use fraction::Fraction;
 use futures::stream::StreamExt;
+use num_bigint::BigInt;
 use sqlx::PgPool;
 use tokio::{select, sync::oneshot, task::JoinError};
 use tonic::{transport::Channel, Status};
@@ -25,6 +27,7 @@ pub struct DepositsBlockchainManager {
     pub database: PgPool,
     pub provider: Provider<Ws>,
     pub contract: Treasury<Provider<Ws>>,
+    pub confirmations: BigInt,
 }
 
 impl DepositsBlockchainManager {
@@ -37,6 +40,7 @@ impl DepositsBlockchainManager {
         let database = self.database.to_owned();
         let provider = self.provider.to_owned();
         let contract = self.contract.to_owned();
+        let confirmations = Fraction::from_raw((BigInt::from(0), self.confirmations.to_owned())).unwrap_or_default();
 
         let join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>> = tokio::spawn(
             async move {
@@ -59,7 +63,7 @@ impl DepositsBlockchainManager {
                                 let mut t = database.begin().await.map_err(|e| Status::aborted(e.to_string()))?;
 
                                 for (event, meta) in events {
-                                    let insert = DepositInsert::from_filter(&mut t, &event, &meta).await?;
+                                    let insert = DepositInsert::from_filter(&mut t, &event, &meta, confirmations.to_owned()).await?;
                                     let deposit = DepositsManager::insert(&mut t, &insert).await?;
                                     deposits_queue.insert(deposit, meta.transaction_hash).await?;
                                 }

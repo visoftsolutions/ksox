@@ -11,8 +11,9 @@ use ethers::{
     signers::{LocalWallet, Signer},
 };
 use evm::address::Address;
+use num_bigint::BigInt;
 use sqlx::postgres::PgPoolOptions;
-use std::io;
+use std::{io, str::FromStr};
 use std::net::SocketAddr;
 use tonic::transport::Server;
 
@@ -47,8 +48,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     ))?;
 
     let contract_key_wallet: LocalWallet = std::env::var("CONTRACT_PRIVATE_KEY")?.parse()?;
-    let contract_key_address: Address = contract_key_wallet.address().into();
-    tracing::info!("{}", contract_key_address);
 
     let treasury = Treasury::new(
         prefix_hex::decode::<[u8; 20]>(std::env::var("CONTRACT_ADDRESS")?)
@@ -56,10 +55,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::sync::Arc::new(provider.clone()),
     );
 
+    let confirmations = BigInt::from_str(std::env::var("KSOX_SERVER_DEPOSIT_CONFIRMATIONS").unwrap().as_str())?;
+
     let deposits_controller = DepositsBlockchainManager {
         database: database.to_owned(),
         provider: provider.to_owned(),
         contract: treasury.to_owned(),
+        confirmations: confirmations.to_owned(),
     }
     .start(engine_client.to_owned())
     .await;

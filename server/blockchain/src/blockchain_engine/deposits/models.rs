@@ -7,6 +7,7 @@ use futures::{
     stream::{self, StreamExt},
     TryFutureExt,
 };
+use num_bigint::BigInt;
 use thiserror::Error;
 
 use crate::{
@@ -62,7 +63,7 @@ impl<'a, E: Confirmable + Clone> DepositQueue<'a, E> {
                 (vec![], vec![]),
                 |(mut ready, mut not_ready), (mut f, block)| async move {
                     if let Ok(confirmations) = block_distance(block, &f.tx_block).await {
-                        f.entry.set(confirmations);
+                        f.entry.set(BigInt::from(confirmations));
                         if f.entry.is_confirmed() {
                             ready.push(f);
                         } else {
@@ -89,7 +90,7 @@ impl<'a, E: Confirmable + Clone> DepositQueue<'a, E> {
                         .and_then(|tx_block| async move { block_distance(block, &tx_block).await })
                         .await
                     {
-                        f.entry.set(confirmations);
+                        f.entry.set(BigInt::from(confirmations));
                         if f.entry.is_confirmed() {
                             confirmed.push(f);
                         } else {

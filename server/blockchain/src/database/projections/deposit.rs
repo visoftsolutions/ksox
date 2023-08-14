@@ -48,22 +48,9 @@ impl Deposit {
 }
 
 impl Confirmable for Deposit {
-    fn set(&mut self, confirmations: usize) {
-        match std::env::var("EVENT_CONFIRMATIONS") {
-            Ok(string) => {
-                match BigInt::from_str(&string) {
-                    Ok(denom) => {
-                        self.confirmations = Fraction::from_raw((BigInt::from(confirmations), denom)).unwrap_or_default()
-                    },
-                    Err(err) => {
-                        tracing::error!("{err}");
-                    }
-                }
-            },
-            Err(err) => {
-                tracing::error!("EVENT_CONFIRMATIONS env: {err}");
-            }
-        }
+    fn set(&mut self, confirmations: BigInt) {
+        let (_, denom) = self.confirmations.0.clone().into();
+        self.confirmations = Fraction::from_raw((confirmations, denom)).unwrap_or_default()
         
     }
     fn is_confirmed(&self) -> bool {
@@ -82,10 +69,11 @@ pub struct DepositInsert {
 }
 
 impl DepositInsert {
-    pub async fn from_filter<'t, 'p>(
-        t: &'t mut Transaction<'p, Postgres>,
+    pub async fn from_filter<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
         filter: &DepositFilter,
         meta: &LogMeta,
+        confirmations: Fraction,
     ) -> sqlx::Result<Self> {
         let asset = AssetsManager::get_by_address(t, &Address(filter.token)).await?;
         Ok(Self {
@@ -94,7 +82,7 @@ impl DepositInsert {
             asset: filter.token.into(),
             tx_hash: meta.transaction_hash.into(),
             amount: Fraction::from(filter.amount) / asset.decimals,
-            confirmations: Fraction::default(),
+            confirmations,
         })
     }
 }
