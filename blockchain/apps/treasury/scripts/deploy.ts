@@ -13,6 +13,11 @@ async function main() {
   await tokenPermit.waitForDeployment();
   console.log("tokenPermit Contract Address: ", await tokenPermit.getAddress());
 
+  const WethFactory = await ethers.getContractFactory("WETH");
+  const weth = await WethFactory.deploy("Wrapped Ether", "WETH");
+  await weth.waitForDeployment();
+  console.log("weth Contract Address: ", await weth.getAddress());
+
   await (await tokenPermit.mint(owner.address, 100000n * 10n ** 18n)).wait();
   console.log(`tokenPermit: ${owner.address} balance: ${await tokenPermit.balanceOf(owner.address)}`);
 }
