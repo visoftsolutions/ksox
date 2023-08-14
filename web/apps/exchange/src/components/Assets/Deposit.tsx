@@ -85,7 +85,6 @@ export function Deposit(props: { asset: Asset; precision: number }) {
             const value = BigInt(
               Math.floor(ev(fmul(props.asset.decimals, amount()))),
             );
-            console.log(wallet, address_value, wallet.address);
             if (wallet && address_value && wallet.address) {
               const nonce = (await wallet.publicClient?.readContract({
                 address: props.asset.address as Address,

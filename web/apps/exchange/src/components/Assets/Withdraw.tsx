@@ -82,8 +82,7 @@ export function Withdraw(props: { asset: Asset; precision: number }) {
             const value = BigInt(
               Math.floor(ev(fmul(props.asset.decimals, amount()))),
             );
-            const deadline = new Date(new Date().getTime() + 60 * 60 * 1000);
-            console.log(wallet, address_value, wallet.address);
+            const deadline = new Date(new Date().getTime() + 60 * 1000);
             if (wallet && address_value && wallet.address) {
               const response = await fetch(`${api}/private/withdraw`, {
                 method: "POST",
@@ -106,19 +105,6 @@ export function Withdraw(props: { asset: Asset; precision: number }) {
                 .then((r) => WithdrawResponse.parse(r));
 
               const { r, s, v } = splitSig(response.response);
-              console.log({
-                account: wallet.address as Address,
-                args: [
-                  props.asset.address as Address,
-                  value,
-                  Math.floor(deadline.getTime() / 1000),
-                  v,
-                  r,
-                  s,
-                  address(),
-                ],
-              });
-
               await wallet.walletClient?.writeContract({
                 chain: wallet.selected_network.network,
                 address: TREASURY_ADDRESS,

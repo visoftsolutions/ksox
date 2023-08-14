@@ -56,7 +56,6 @@ export function Badge(props: {
         params({ badge_family: badgeFamily }),
         (data) => {
           const badge = BadgeValue.parse(data);
-          console.log(badge);
           setBadge({
             name: badge.name,
             description: badge.description,
