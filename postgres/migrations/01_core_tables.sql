@@ -275,4 +275,3 @@ FOR EACH STATEMENT EXECUTE FUNCTION spot_trades_changed_trigger();
 CREATE OR REPLACE TRIGGER spot_candlesticks_changed
 AFTER INSERT OR UPDATE ON "spot"."candlesticks"
 FOR EACH STATEMENT EXECUTE FUNCTION spot_candlesticks_changed_trigger();
-

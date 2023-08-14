@@ -1,10 +1,15 @@
-# Run app
+# Run database
+```shell
+docker compose up --build postgres
 ```
+
+# Run app
+```shell
 docker compose up --build
 ```
 
 # Prune Docker
-```
+```shell
 docker system prune -a
 ```
 

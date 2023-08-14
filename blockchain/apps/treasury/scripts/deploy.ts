@@ -4,17 +4,17 @@ async function main() {
   const [owner] = await ethers.getSigners();
 
   const TreasuryFactory = await ethers.getContractFactory("Treasury");
-  const Treasury = await TreasuryFactory.deploy("Treasury", "0x3acadfb15e991e8403d2fe3e75ee4782b88cf5b1");
-  await Treasury.waitForDeployment();
-  console.log("Treasury: ", await Treasury.getAddress());
+  const treasury = await TreasuryFactory.deploy("Treasury", owner);
+  await treasury.waitForDeployment();
+  console.log("Treasury Contract Address: ", await treasury.getAddress());
 
   const TokenPermitFactory = await ethers.getContractFactory("TokenPermit");
-  const TokenPermit = await TokenPermitFactory.deploy("TokenPermit", "TOKP");
-  await TokenPermit.waitForDeployment();
-  console.log("TokenPermit: ", await TokenPermit.getAddress());
+  const tokenPermit = await TokenPermitFactory.deploy("TokenPermit", "TOKP");
+  await tokenPermit.waitForDeployment();
+  console.log("tokenPermit Contract Address: ", await tokenPermit.getAddress());
 
-  console.log(await (await TokenPermit.mint(owner.address, 100000n * 10n ** 18n)).wait());
-  console.log(`TokenPermit: ${owner.address} balance: ${await TokenPermit.balanceOf(owner.address)}`);
+  await (await tokenPermit.mint(owner.address, 100000n * 10n ** 18n)).wait();
+  console.log(`tokenPermit: ${owner.address} balance: ${await tokenPermit.balanceOf(owner.address)}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

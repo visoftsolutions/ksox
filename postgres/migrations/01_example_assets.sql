@@ -1,13 +1,2 @@
-INSERT INTO "assets" ("name", "address", "decimals", "symbol", "maker_fee", "taker_fee") VALUES ('Wrapped Bitcoin', '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599', (1000000000000, 1), 'BTC', (0, 1), (0, 1));
-INSERT INTO "assets" ("name", "address", "decimals", "symbol", "maker_fee", "taker_fee") VALUES ('Wrapped Ether', '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', (1000000000000000000, 1), 'ETH', (0, 1), (0, 1));
-INSERT INTO "assets" ("name", "address", "decimals", "symbol", "maker_fee", "taker_fee") VALUES ('Provable Litecoin', '0x6e858333AbbED7A2e47804C6A7648311D83a0495', (1000000000000000000, 1), 'LTC', (0, 1), (0, 1));
-INSERT INTO "assets" ("name", "address", "decimals", "symbol", "maker_fee", "taker_fee") VALUES ('Wrapped XRP', '0x580D4Fdc4BF8f9b5ae2fb9225D584fED4AD5375c', (1000000000000000000, 1), 'XRP', (0, 1), (0, 1));
-INSERT INTO "assets" ("name", "address", "decimals", "symbol", "maker_fee", "taker_fee") VALUES ('Tether', '0xdAC17F958D2ee523a2206206994597C13D831ec7', (1000000000000000000, 1), 'USDT', (0, 1), (0, 1));
-INSERT INTO "assets" ("name", "address", "decimals", "symbol", "maker_fee", "taker_fee") VALUES ('Wrapped Cardano', '0xaeF0d72a118ce24feE3cD1d43d383897D05B4e99', (1000000000000000000, 1), 'ADA', (0, 1), (0, 1));
-INSERT INTO "assets" ("name", "address", "decimals", "symbol", "maker_fee", "taker_fee") VALUES ('Wrapped Monero', '0x4adF728E2Df4945082cDD6053869f51278fae196', (1000000000000000000, 1), 'XMR', (0, 1), (0, 1));
-INSERT INTO "assets" ("name", "address", "decimals", "symbol", "maker_fee", "taker_fee") VALUES ('Wrapped TRON', '0xf230b790E05390FC8295F4d3F60332c93Bed42e2', (1000000000000000000, 1), 'TRX', (0, 1), (0, 1));
-INSERT INTO "assets" ("name", "address", "decimals", "symbol", "maker_fee", "taker_fee") VALUES ('Chainlink', '0x514910771AF9Ca656af840dff83E8264EcF986CA', (1000000000000000000, 1), 'LINK', (0, 1), (0, 1));
-INSERT INTO "assets" ("name", "address", "decimals", "symbol", "maker_fee", "taker_fee") VALUES ('Wrapped Cosmos', '0xcF8bAE99C28392c0Cf1D8798D63cbE1F79865ee7', (1000000000000000000, 1), 'ATOM', (0, 1), (0, 1));
-INSERT INTO "assets" ("name", "address", "decimals", "symbol", "maker_fee", "taker_fee") VALUES ('Polygon', '0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0', (1000000000000000000, 1), 'MATIC', (0, 1), (0, 1));
-INSERT INTO "assets" ("name", "address", "decimals", "symbol", "maker_fee", "taker_fee") VALUES ('MyToken', '0x9e3e576d24a052fe6a0c88283d51a998fd69312b', (1000000000000000000, 1), 'TOK', (0, 1), (0, 1));
-INSERT INTO "assets" ("name", "address", "decimals", "symbol", "maker_fee", "taker_fee") VALUES ('MyTokenPermit', '0xa3505085a07f27130bf875c249bff676e86d8f80', (1000000000000000000, 1), 'TOKP', (0, 1), (0, 1));
+INSERT INTO "assets" ("name", "address", "decimals", "symbol", "maker_fee", "taker_fee") VALUES
+('TokenPermit', '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512', (1000000000000000000, 1), 'TOKP', (0, 1), (0, 1));
