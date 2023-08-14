@@ -3,7 +3,7 @@
 #### **`.cargo/config.toml`**
 ```
 [env]
-BLOCKCHAIN_URL="http://localhost:8545/"
+BLOCKCHAIN_URL="http://ksox-server-blockchain/"
 WS_PROVIDER_URL="http://localhost:8545/"
 DATABASE_URL="postgresql://ksoxuser:ksoxuserp4ssword@localhost/ksox"
 REDIS_URL="redis://localhost/"
@@ -17,7 +17,7 @@ CONTRACT_ADDRESS="0x5FbDB2315678afecb367f032d93F642f64180aa3"
 ## Production (Docker Compose)
 #### **`.env`**
 ```
-BLOCKCHAIN_URL="http://ksox-blockchain:8545/"
+BLOCKCHAIN_URL="http://ksox-server-blockchain/"
 WS_PROVIDER_URL="ws://ksox-blockchain:8545/"
 DATABASE_URL="postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox"
 REDIS_URL="redis://ksox-redis/"
