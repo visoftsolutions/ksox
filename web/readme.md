@@ -2,12 +2,12 @@
 ## Development
 #### **`.env.development.local`**
 ```
-VITE_WALLET_CONNECT_PROJECT_ID=""
+VITE_KSOX_WEB_WALLET_CONNECT_PROJECT_ID=""
 ```
 ## Production (Docker Compose)
 #### **`.env.production.local`**
 ```
-VITE_WALLET_CONNECT_PROJECT_ID=""
+VITE_KSOX_WEB_WALLET_CONNECT_PROJECT_ID=""
 ```
 
 # Run in development mode

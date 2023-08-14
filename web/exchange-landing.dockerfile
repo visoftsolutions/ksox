@@ -4,9 +4,9 @@ COPY . .
 RUN npm ci
 
 FROM installer AS builder
-WORKDIR /app/apps/exchange-landing
-RUN npm run build
+WORKDIR /app
+RUN npm run build -- apps/exchange-landing
 
 FROM builder AS runtime
-WORKDIR /app/apps/exchange-landing
-ENTRYPOINT [ "npm", "run", "start", "--", "--port", "80" ]
+WORKDIR /app
+ENTRYPOINT [ "npm", "run", "start", "--", "apps/exchange-landing", "--", "--port", "80" ]

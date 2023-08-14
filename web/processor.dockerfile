@@ -4,9 +4,9 @@ COPY . .
 RUN npm ci
 
 FROM installer AS builder
-WORKDIR /app/apps/processor
-RUN npm run build
+WORKDIR /app
+RUN npm run build -- apps/processor
 
 FROM builder AS runtime
-WORKDIR /app/apps/processor
-ENTRYPOINT [ "npm", "run", "start", "--", "--port", "80" ]
+WORKDIR /app
+ENTRYPOINT [ "npm", "run", "start", "--", "apps/processor", "--", "--port", "80" ]

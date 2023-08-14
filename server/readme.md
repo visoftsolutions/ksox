@@ -52,7 +52,7 @@ sudo apt-get install -y libssl-dev pkg-config protobuf-compiler
 ## sqlx-prepare offline data
 make sure database is running
 ```shell
-cargo sqlx prepare --workspace -D $DATABASE_URL
+cargo sqlx prepare --workspace -D $KSOX_POSTGRES_URL
 ```
 
 ## update Rust crates
