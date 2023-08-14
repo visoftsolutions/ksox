@@ -23,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let database = retry!(PgPoolOptions::new()
         .max_connections(10)
-        .connect(std::env::var("DATABASE_URL").unwrap().as_str()))?;
+        .connect(std::env::var("KSOX_POSTGRES_URL").unwrap().as_str()))?;
 
     let notification_manager_controller =
         NotificationManager::start(database, "engagement").await?;

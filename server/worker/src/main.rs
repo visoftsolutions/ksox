@@ -1,5 +1,4 @@
 mod api;
-mod cache;
 mod database;
 mod models;
 mod ohlcv;
@@ -22,7 +21,6 @@ use sqlx::postgres::PgPoolOptions;
 use std::net::SocketAddr;
 
 use crate::{
-    cache::get_client,
     database::managers::{
         assets::{AssetsManager, AssetsNotificationManager},
         badges::{BadgesManager, BadgesNotificationManager},
@@ -48,14 +46,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let database = retry!(PgPoolOptions::new()
         .max_connections(10)
-        .connect(std::env::var("DATABASE_URL").unwrap().as_str()))?;
+        .connect(std::env::var("KSOX_POSTGRES_URL").unwrap().as_str()))?;
 
     let notification_manager_controller =
         NotificationManager::start(database.clone(), "worker").await?;
 
     let app_state = AppState {
         database: database.clone(),
-        session_store: get_client()?,
+        session_store: redis::Client::open(std::env::var("KSOX_REDIS_URL").unwrap_or_default().as_str())?,
         users_manager: UsersManager::new(database.clone()),
         users_notification_manager: UsersNotificationManager::new(
             notification_manager_controller.get_subscriber(),
@@ -102,9 +100,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Regex::new(r"[^a-zA-Z]+")?,
         ),
         user_recognition: UserRecognition::new(database),
-        engine_client: retry!(EngineClient::connect(std::env::var("ENGINE_URL").unwrap()))?,
+        engine_client: retry!(EngineClient::connect(std::env::var("KSOX_SERVER_ENGINE_URL").unwrap()))?,
         blockchain_client: retry!(BlockchainClient::connect(
-            std::env::var("BLOCKCHAIN_URL").unwrap()
+            std::env::var("KSOX_SERVER_BLOCKCHAIN_URL").unwrap()
         ))?,
     };
 

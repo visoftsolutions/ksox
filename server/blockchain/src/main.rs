@@ -41,10 +41,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let database = retry!(PgPoolOptions::new()
         .max_connections(10)
-        .connect(std::env::var("DATABASE_URL").unwrap().as_str()))?;
-    let engine_client = retry!(EngineClient::connect(std::env::var("ENGINE_URL").unwrap()))?;
+        .connect(std::env::var("KSOX_POSTGRES_URL").unwrap().as_str()))?;
+    let engine_client = retry!(EngineClient::connect(std::env::var("KSOX_SERVER_ENGINE_URL").unwrap()))?;
     let provider = retry!(Provider::<Ws>::connect(
-        std::env::var("WS_PROVIDER_URL").unwrap()
+        std::env::var("KSOX_WS_BLOCKCHAIN_URL").unwrap()
     ))?;
 
     let contract_key_wallet: LocalWallet = std::env::var("CONTRACT_PRIVATE_KEY")?.parse()?;
@@ -55,7 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::sync::Arc::new(provider.clone()),
     );
 
-    let confirmations = BigInt::from_str(std::env::var("KSOX_SERVER_DEPOSIT_CONFIRMATIONS").unwrap().as_str())?;
+    let confirmations = BigInt::from_str(std::env::var("DEPOSIT_CONFIRMATIONS").unwrap().as_str())?;
 
     let deposits_controller = DepositsBlockchainManager {
         database: database.to_owned(),
