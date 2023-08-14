@@ -11,7 +11,7 @@
     "@packages/eslint": "1.0.0",
     "@packages/prettier": "1.0.0",
     "@packages/tailwind": "1.0.0",
-    "solid-start-node": "^0.3.1",
+    "solid-start-node": "^0.3.2",
     "typescript": "^5.1.6",
     "vite": "^4.4.9",
     "vite-plugin-pwa": "^0.16.4"
@@ -23,7 +23,7 @@
     "@web3modal/ethereum": "^2.7.1",
     "@web3modal/html": "^2.7.1",
     "solid-js": "^1.7.11",
-    "solid-start": "^0.3.1",
+    "solid-start": "^0.3.2",
     "undici": "^5.23.0",
     "viem": "^1.6.0"
   },

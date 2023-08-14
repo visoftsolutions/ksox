@@ -22,8 +22,6 @@ services:
     hostname: ksox-redis
     build:
       context: ./redis
-    env_file:
-      - ./redis/.env
     ports:
       - 6379:6379
       - 8001:8001

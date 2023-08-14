@@ -17,7 +17,7 @@ CONTRACT_ADDRESS=""
 ## Production (Docker Compose)
 #### **`.env`**
 ```
-BLOCKCHAIN_URL="http://localhost:8545/"
+BLOCKCHAIN_URL="http://ksox-blockchain:8545/"
 WS_PROVIDER_URL="ws://ksox-blockchain:8545/"
 DATABASE_URL="postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox"
 REDIS_URL="redis://ksox-redis/"
