@@ -17,8 +17,8 @@ use ethers::{
 #[eip712(
     name = "Treasury",
     version = "1",
-    chain_id = 11155111,
-    verifying_contract = "0xe516B9d4F9A3ea0c0ac2e4F664cF9c66B7EA6cd2"
+    chain_id = 31337,
+    verifying_contract = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
 )]
 pub struct Permit {
     pub owner: Address,

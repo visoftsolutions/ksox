@@ -1,5 +1,5 @@
 import NumberInput from "../Inputs/NumberInput";
-import { Show, createSignal } from "solid-js";
+import { Show, createEffect, createSignal } from "solid-js";
 import { useSession } from "@packages/components/providers/SessionProvider";
 import { Asset } from "@packages/types/asset";
 import {
@@ -45,6 +45,10 @@ export function Deposit(props: { asset: Asset; precision: number }) {
     wallet.address,
   );
 
+  createEffect(() => {
+    setAddress(wallet.address);
+  })
+
   return (
     <>
       <div class="font-lexend text-[32px] font-extralight">Deposit assets</div>
@@ -83,7 +87,7 @@ export function Deposit(props: { asset: Asset; precision: number }) {
             );
             console.log(wallet, address_value, wallet.address);
             if (wallet && address_value && wallet.address) {
-              const nonce = (await wallet.publicWSClient?.readContract({
+              const nonce = (await wallet.publicClient?.readContract({
                 address: props.asset.address as Address,
                 abi: ERC20_ABI,
                 functionName: "nonces",
@@ -92,13 +96,13 @@ export function Deposit(props: { asset: Asset; precision: number }) {
               })) as bigint;
 
               const deadline =
-                ((await wallet.publicWSClient?.getBlock())?.timestamp ?? 0n) +
+                ((await wallet.publicClient?.getBlock())?.timestamp ?? 0n) +
                 3600n;
 
               const domain = {
                 name: "TokenPermit",
                 version: "1",
-                chainId: 11155111n,
+                chainId: BigInt(wallet.selected_network.network.id),
                 verifyingContract: props.asset.address as Address,
               };
 
@@ -134,6 +138,7 @@ export function Deposit(props: { asset: Asset; precision: number }) {
               if (signature) {
                 const { r, s, v } = splitSig(signature);
                 await wallet.walletClient?.writeContract({
+                  chain: wallet.selected_network.network,
                   address: TREASURY_ADDRESS,
                   abi: TREASURY_ABI,
                   functionName: "depositPermit",

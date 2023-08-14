@@ -1,4 +1,4 @@
-import { Chain, hardhat } from "viem/chains";
+import { Chain, localhost } from "viem/chains";
 
 export interface Network {
   network: Chain;
@@ -7,7 +7,10 @@ export interface Network {
 
 export const AVAILABLE_CHAINS: Network[] = [
   {
-    network: hardhat,
+    network: {
+      ...localhost,
+      id: 31337,
+    },
     icon: "/gfx/asset_icons/eth.svg",
   },
 ];

@@ -120,6 +120,7 @@ export function Withdraw(props: { asset: Asset; precision: number }) {
               });
 
               await wallet.walletClient?.writeContract({
+                chain: wallet.selected_network.network,
                 address: TREASURY_ADDRESS,
                 abi: TREASURY_ABI,
                 functionName: "withdrawPermit",
