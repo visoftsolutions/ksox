@@ -84,7 +84,6 @@ impl DepositsBlockchainManager {
                                 }
 
                                 t.commit().await?;
-                                tracing::info!("commited");
 
                                 for transfer in transfers.into_iter() {
                                     engine_client.transfer(transfer).await?;

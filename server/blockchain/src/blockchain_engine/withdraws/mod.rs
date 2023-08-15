@@ -152,7 +152,7 @@ impl WithdrawsBlockchainManagerController {
             asset: request.asset.to_owned(),
             amount: request.amount.to_owned(),
             nonce: self.contract.nonces(*request.spender).await?.into(),
-            deadline: deadline,
+            deadline,
         };
 
         let withdraw = WithdrawsManager::insert(&mut t, &insert).await?;

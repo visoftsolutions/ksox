@@ -3,9 +3,15 @@ use sqlx::PgPool;
 use tonic::{Request, Response, Status};
 use uuid::Uuid;
 
-use crate::{base::{self}, database::managers::ValutsManager};
+use crate::{
+    base::{self},
+    database::managers::ValutsManager,
+};
 
-use self::models::{transfer::{RevertTransferRequest, TransferRequest}, submit::SubmitRequest};
+use self::models::{
+    submit::SubmitRequest,
+    transfer::{RevertTransferRequest, TransferRequest},
+};
 
 pub mod cancel;
 pub mod matching_loop;
@@ -25,7 +31,7 @@ impl MatchingEngine {
     pub fn new(database: PgPool, fee_user_id: Uuid) -> Self {
         Self {
             database,
-            fee_user_id
+            fee_user_id,
         }
     }
 }
@@ -44,10 +50,16 @@ impl Engine for MatchingEngine {
 
         let request: SubmitRequest = request.into_inner().try_into()?;
 
-        let quote_fee_valut_id = ValutsManager::get_or_create(&mut t, self.fee_user_id, request.quote_asset_id).await
-            .map_err(|e| Status::invalid_argument(e.to_string()))?.id;
-        let base_fee_valut_id = ValutsManager::get_or_create(&mut t, self.fee_user_id, request.base_asset_id).await
-            .map_err(|e| Status::invalid_argument(e.to_string()))?.id;
+        let quote_fee_valut_id =
+            ValutsManager::get_or_create(&mut t, self.fee_user_id, request.quote_asset_id)
+                .await
+                .map_err(|e| Status::invalid_argument(e.to_string()))?
+                .id;
+        let base_fee_valut_id =
+            ValutsManager::get_or_create(&mut t, self.fee_user_id, request.base_asset_id)
+                .await
+                .map_err(|e| Status::invalid_argument(e.to_string()))?
+                .id;
 
         Ok(Response::new(
             match submit::submit(request, quote_fee_valut_id, base_fee_valut_id, &mut t).await {
@@ -78,8 +90,10 @@ impl Engine for MatchingEngine {
             .await
             .map_err(|e| Status::aborted(e.to_string()))?;
         let request: TransferRequest = request.into_inner().try_into()?;
-        let fee_valut_id = ValutsManager::get_or_create(&mut t, self.fee_user_id, request.asset_id).await
-            .map_err(|e| Status::invalid_argument(e.to_string()))?.id;
+        let fee_valut_id = ValutsManager::get_or_create(&mut t, self.fee_user_id, request.asset_id)
+            .await
+            .map_err(|e| Status::invalid_argument(e.to_string()))?
+            .id;
         Ok(Response::new(
             match transfer::transfer(
                 &TransferRequest {

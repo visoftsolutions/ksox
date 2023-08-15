@@ -34,7 +34,7 @@ pub async fn transfer<'t>(
 
     let mut from_valut = ValutsManager::get_by_id(transaction, &request.from_valut_id).await?;
     let mut to_valut = ValutsManager::get_by_id(transaction, &request.to_valut_id).await?;
-    let mut fee_valut = ValutsManager::get_by_id(transaction, &fee_valut_id).await?;
+    let mut fee_valut = ValutsManager::get_by_id(transaction, fee_valut_id).await?;
 
     if from_valut.balance < Value::Finite(request.amount.to_owned()) {
         return Err(TransferError::InsufficientBalance);
