@@ -1,75 +1,130 @@
-use fraction::num_traits::{CheckedAdd, CheckedSub};
+use fraction::{
+    num_traits::{CheckedAdd, CheckedSub},
+    Fraction,
+};
+use num_traits::Zero;
+use num_traits::{CheckedMul, Inv};
 use sqlx::{Postgres, Transaction};
+use uuid::Uuid;
 use value::Value;
 
 use super::models::transfer::{
-    RevertTransferError, RevertTransferRequest, RevertTransferResponse, TransferError,
-    TransferRequest, TransferResponse,
+    RevertTransferError, RevertTransferResponse, TransferError, TransferRequest, TransferResponse,
 };
 use crate::database::{
     managers::{transfers::TransfersManager, AssetsManager, ValutsManager},
     projections::transfer::Transfer,
 };
 
-pub async fn transfer<'t, 'p>(
-    request: TransferRequest,
-    transaction: &'t mut Transaction<'p, Postgres>,
+pub async fn transfer<'t>(
+    request: &TransferRequest,
+    fee_valut_id: &Uuid,
+    transaction: &'t mut Transaction<'_, Postgres>,
 ) -> Result<TransferResponse, TransferError> {
-    if request.maker_id == request.taker_id {
-        return Err(TransferError::SameUser);
+    if request.from_valut_id == request.to_valut_id
+        || request.to_valut_id == *fee_valut_id
+        || *fee_valut_id == request.from_valut_id
+    {
+        return Err(TransferError::SameValut);
     }
 
-    let asset = AssetsManager::get_by_id(transaction, request.asset_id)
+    let asset = AssetsManager::get_by_id(transaction, &request.asset_id)
         .await?
         .ok_or(TransferError::AssetNotFound)?;
 
-    let mut maker_asset_valut =
-        ValutsManager::get_or_create(transaction, request.maker_id, asset.id).await?;
+    tracing::info!("{}, {}, {}", request.from_valut_id, request.to_valut_id, fee_valut_id);
+    let mut from_valut = ValutsManager::get_by_id(transaction, &request.from_valut_id).await?;
+    let mut to_valut = ValutsManager::get_by_id(transaction, &request.to_valut_id).await?;
+    let mut fee_valut = ValutsManager::get_by_id(transaction, &fee_valut_id).await?;
+    tracing::info!("works");
 
-    let mut taker_asset_valut =
-        ValutsManager::get_or_create(transaction, request.taker_id, asset.id).await?;
+    let reduced_amount = request
+        .amount
+        .checked_sub(
+            &request
+                .amount
+                .checked_mul(&request.fee_fraction)
+                .ok_or(TransferError::CheckedMulFailed)?,
+        )
+        .ok_or(TransferError::CheckedSubFailed)?
+        .checked_ceil_with_accuracy(&asset.decimals.inv())
+        .ok_or(TransferError::CheckedCeilFailed)?;
 
-    let amount = Value::Finite(request.amount.to_owned());
-
-    if maker_asset_valut.balance < amount {
-        return Err(TransferError::InsufficientBalance);
-    }
-
-    // transfer
-    maker_asset_valut.balance = maker_asset_valut
-        .balance
-        .checked_sub(&amount)
+    let fee = request
+        .amount
+        .checked_sub(&reduced_amount)
         .ok_or(TransferError::CheckedSubFailed)?;
-    taker_asset_valut.balance = taker_asset_valut
-        .balance
-        .checked_add(&amount)
-        .ok_or(TransferError::CheckedAddFailed)?;
 
     let transfer = Transfer {
-        maker_id: request.maker_id,
-        taker_id: request.taker_id,
-        asset_id: asset.id,
-        amount: request.amount,
+        from_valut_id: request.from_valut_id.to_owned(),
+        to_valut_id: request.to_valut_id.to_owned(),
+        fee_valut_id: fee_valut_id.to_owned(),
+        asset_id: request.asset_id.to_owned(),
+        amount: request.amount.to_owned(),
+        fee: fee.to_owned(),
     };
 
-    let id = TransfersManager::insert(transaction, transfer).await?;
-    ValutsManager::update(transaction, maker_asset_valut).await?;
-    ValutsManager::update(transaction, taker_asset_valut).await?;
+    // transfer
+    from_valut.balance = from_valut
+        .balance
+        .checked_sub(&Value::Finite(request.amount.to_owned()))
+        .ok_or(TransferError::CheckedSubFailed)?;
 
-    Ok(TransferResponse { id })
+    to_valut.balance = to_valut
+        .balance
+        .checked_add(&Value::Finite(reduced_amount))
+        .ok_or(TransferError::CheckedAddFailed)?;
+
+    fee_valut.balance = fee_valut
+        .balance
+        .checked_add(&Value::Finite(fee))
+        .ok_or(TransferError::CheckedAddFailed)?;
+
+    tracing::info!("works1");
+    let transfer_id = TransfersManager::insert(transaction, transfer).await?;
+    tracing::info!("works2");
+
+    ValutsManager::update(transaction, from_valut).await?;
+    ValutsManager::update(transaction, to_valut).await?;
+    ValutsManager::update(transaction, fee_valut).await?;
+    tracing::info!("works3");
+
+    Ok(TransferResponse { transfer_id })
 }
 
-pub async fn revert_transfer<'t, 'p>(
-    request: RevertTransferRequest,
-    transaction: &'t mut Transaction<'p, Postgres>,
+pub async fn revert_transfer<'t>(
+    transfer_id: Uuid,
+    t: &'t mut Transaction<'_, Postgres>,
 ) -> Result<RevertTransferResponse, RevertTransferError> {
-    let trans = TransfersManager::get_by_id(transaction, request.id).await?;
-    let request = TransferRequest {
-        maker_id: trans.taker_id,
-        taker_id: trans.maker_id,
-        asset_id: trans.asset_id,
-        amount: trans.amount,
-    };
-    let response = transfer(request, transaction).await?;
-    Ok(RevertTransferResponse { id: response.id })
+    let revert_transfer = TransfersManager::get_by_id(t, transfer_id).await?;
+    let amount_transfer = transfer(
+        &TransferRequest {
+            from_valut_id: revert_transfer.to_valut_id,
+            to_valut_id: revert_transfer.from_valut_id,
+            asset_id: revert_transfer.asset_id,
+            amount: revert_transfer.amount,
+            fee_fraction: Fraction::zero(),
+        },
+        &revert_transfer.fee_valut_id,
+        t,
+    )
+    .await?;
+
+    let fee_transfer = transfer(
+        &TransferRequest {
+            from_valut_id: revert_transfer.fee_valut_id,
+            to_valut_id: revert_transfer.from_valut_id,
+            asset_id: revert_transfer.asset_id,
+            amount: revert_transfer.fee,
+            fee_fraction: Fraction::zero(),
+        },
+        &Uuid::default(),
+        t,
+    )
+    .await?;
+
+    Ok(RevertTransferResponse {
+        amount_transfer_id: amount_transfer.transfer_id,
+        fee_transfer_id: fee_transfer.transfer_id,
+    })
 }

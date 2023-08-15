@@ -11,7 +11,8 @@ prop_compose! {
         decimals in 1..1000000000000000000000u128,
         maker_fee in arb_fraction_not_bigger_than_one(),
         taker_fee in arb_fraction_not_bigger_than_one(),
+        transfer_fee in arb_fraction_not_bigger_than_one(),
     ) -> Asset {
-        Asset {id: Uuid::new_v4(), decimals: Fraction::from((BigInt::from(decimals), BigInt::from(1))), maker_fee, taker_fee}
+        Asset {id: Uuid::new_v4(), decimals: Fraction::from((BigInt::from(decimals), BigInt::from(1))), maker_fee, taker_fee, transfer_fee}
     }
 }

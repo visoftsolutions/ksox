@@ -1,28 +1,38 @@
+use crate::matching_engine::transfer::transfer;
 use fraction::{
-    num_traits::{CheckedAdd, CheckedDiv, CheckedSub, One, Zero},
+    num_traits::{CheckedDiv, CheckedSub, One, Zero},
     Fraction,
 };
 use sqlx::{Postgres, Transaction};
+use uuid::Uuid;
 use value::Value;
 
 use super::{
     matching_loop::matching_loop,
-    models::submit::{SubmitRequest, SubmitRequestError, SubmitResponse},
+    models::{
+        submit::{SubmitRequest, SubmitRequestError, SubmitResponse},
+        transfer::TransferRequest,
+    },
 };
-use crate::database::managers::{AssetsManager, OrdersManager, TradesManager, ValutsManager};
+use crate::database::{
+    managers::{AssetsManager, OrdersManager, TradesManager, ValutsManager},
+    projections::trade::Trade,
+};
 
-pub async fn submit<'t, 'p>(
+pub async fn submit<'t>(
     request: SubmitRequest,
-    transaction: &'t mut Transaction<'p, Postgres>,
+    quote_fee_valut_id: Uuid,
+    base_fee_valut_id: Uuid,
+    transaction: &'t mut Transaction<'_, Postgres>,
 ) -> Result<SubmitResponse, SubmitRequestError> {
-    let quote_asset = AssetsManager::get_by_id(transaction, request.quote_asset_id)
+    let taker_quote_asset = AssetsManager::get_by_id(transaction, &request.quote_asset_id)
         .await?
         .ok_or(SubmitRequestError::AssetNotFound)?;
-    let base_asset = AssetsManager::get_by_id(transaction, request.base_asset_id)
+    let taker_base_asset = AssetsManager::get_by_id(transaction, &request.base_asset_id)
         .await?
         .ok_or(SubmitRequestError::AssetNotFound)?;
 
-    let mut taker_quote_asset_valut =
+    let taker_quote_asset_valut =
         ValutsManager::get_or_create(transaction, request.user_id, request.quote_asset_id).await?;
 
     let request_quote_asset_volume = Value::Finite(request.quote_asset_volume.to_owned());
@@ -46,20 +56,12 @@ pub async fn submit<'t, 'p>(
         request.user_id,
         request.price,
         request.quote_asset_volume.to_owned(),
-        quote_asset,
-        base_asset,
+        taker_quote_asset.to_owned(),
+        taker_base_asset.to_owned(),
         matching_orders,
         request.presentation,
     )
     .await?;
-
-    // saving to db
-
-    taker_quote_asset_valut.balance = taker_quote_asset_valut
-        .balance
-        .checked_sub(&request_quote_asset_volume)
-        .ok_or(SubmitRequestError::CheckedSubFailed)?;
-    ValutsManager::update(transaction, taker_quote_asset_valut).await?;
 
     // apply order
     if let Some(order) = matching.order {
@@ -67,15 +69,30 @@ pub async fn submit<'t, 'p>(
     }
 
     // apply trades
-    for trade in matching.trades.into_iter() {
-        let mut maker_order = OrdersManager::get_by_id(transaction, trade.order_id)
+    for trade_insert in matching.trades.into_iter() {
+        let mut maker_order = OrdersManager::get_by_id(transaction, trade_insert.order_id)
             .await?
             .ok_or(SubmitRequestError::OrderNotFound)?;
 
-        let mut taker_base_asset_valut =
-            ValutsManager::get_or_create(transaction, trade.taker_id, maker_order.quote_asset_id)
+        let taker_quote_asset_valut = ValutsManager::get_or_create(
+            transaction,
+            trade_insert.taker_id,
+            request.quote_asset_id,
+        )
+        .await?;
+
+        let taker_base_asset_valut =
+            ValutsManager::get_or_create(transaction, trade_insert.taker_id, request.base_asset_id)
                 .await?;
-        let mut maker_base_asset_valut = ValutsManager::get_or_create(
+
+        let maker_quote_asset_valut = ValutsManager::get_or_create(
+            transaction,
+            maker_order.maker_id,
+            maker_order.quote_asset_id,
+        )
+        .await?;
+
+        let maker_base_asset_valut = ValutsManager::get_or_create(
             transaction,
             maker_order.maker_id,
             maker_order.base_asset_id,
@@ -83,18 +100,42 @@ pub async fn submit<'t, 'p>(
         .await?;
 
         // apply changes
-        taker_base_asset_valut.balance = taker_base_asset_valut
-            .balance
-            .checked_add(&Value::Finite(trade.taker_base_volume.to_owned()))
-            .ok_or(SubmitRequestError::CheckedAddFailed)?;
-        maker_base_asset_valut.balance = maker_base_asset_valut
-            .balance
-            .checked_add(&Value::Finite(trade.maker_base_volume.to_owned()))
-            .ok_or(SubmitRequestError::CheckedAddFailed)?;
+        let taker_quote_volume_transfer = transfer(
+            &TransferRequest {
+                from_valut_id: taker_quote_asset_valut.id,
+                to_valut_id: maker_base_asset_valut.id,
+                asset_id: taker_quote_asset.id,
+                amount: trade_insert.taker_quote_volume.to_owned(),
+                fee_fraction: taker_quote_asset.maker_fee.to_owned(),
+            },
+            &quote_fee_valut_id,
+            transaction,
+        )
+        .await?;
+
+        let maker_quote_volume_transfer = transfer(
+            &TransferRequest {
+                from_valut_id: maker_quote_asset_valut.id,
+                to_valut_id: taker_base_asset_valut.id,
+                asset_id: maker_order.quote_asset_id,
+                amount: trade_insert.maker_quote_volume.to_owned(),
+                fee_fraction: taker_base_asset.taker_fee.to_owned(),
+            },
+            &base_fee_valut_id,
+            transaction,
+        )
+        .await?;
+
+        let base_asset_decimals_inv = Fraction::one()
+            .checked_div(&taker_base_asset.decimals)
+            .ok_or(SubmitRequestError::CheckedDivFailed)?;
+
         maker_order.quote_asset_volume_left = maker_order
             .quote_asset_volume_left
-            .checked_sub(&trade.maker_quote_volume)
-            .ok_or(SubmitRequestError::CheckedSubFailed)?;
+            .checked_sub(&trade_insert.maker_quote_volume)
+            .ok_or(SubmitRequestError::CheckedSubFailed)?
+            .checked_floor_with_accuracy(&base_asset_decimals_inv)
+            .ok_or(SubmitRequestError::CheckedAddFailed)?;
 
         if maker_order.quote_asset_volume_left <= Fraction::zero() {
             maker_order.is_active = false;
@@ -102,9 +143,22 @@ pub async fn submit<'t, 'p>(
 
         // save changes
         OrdersManager::update(transaction, maker_order.into()).await?;
-        ValutsManager::update(transaction, taker_base_asset_valut).await?;
-        ValutsManager::update(transaction, maker_base_asset_valut).await?;
-        TradesManager::insert(transaction, trade).await?;
+        TradesManager::insert(
+            transaction,
+            Trade {
+                quote_asset_id: trade_insert.quote_asset_id,
+                base_asset_id: trade_insert.base_asset_id,
+                taker_id: trade_insert.taker_id,
+                taker_presentation: trade_insert.taker_presentation,
+                order_id: trade_insert.order_id,
+                taker_price: trade_insert.taker_price,
+                taker_quote_volume: trade_insert.taker_quote_volume,
+                maker_quote_volume: trade_insert.maker_quote_volume,
+                taker_quote_volume_transfer_id: taker_quote_volume_transfer.transfer_id,
+                maker_quote_volume_transfer_id: maker_quote_volume_transfer.transfer_id,
+            },
+        )
+        .await?;
     }
 
     Ok(SubmitResponse {})

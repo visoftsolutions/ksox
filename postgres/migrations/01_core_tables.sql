@@ -17,7 +17,8 @@ CREATE TABLE "assets" (
   "decimals" fraction NOT NULL,
   "symbol" VARCHAR NOT NULL,
   "maker_fee" fraction NOT NULL,
-  "taker_fee" fraction NOT NULL
+  "taker_fee" fraction NOT NULL,
+  "transfer_fee" fraction NOT NULL
 );
 
 CREATE TABLE "valuts" (
@@ -64,14 +65,17 @@ CREATE TABLE "transfers" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "maker_id" uuid NOT NULL,
-  "taker_id" uuid NOT NULL,
+  "from_valut_id" uuid NOT NULL,
+  "to_valut_id" uuid NOT NULL,
+  "fee_valut_id" uuid NOT NULL,
   "asset_id" uuid NOT NULL,
-  "amount" fraction NOT NULL
+  "amount" fraction NOT NULL,
+  "fee" fraction NOT NULL
 );
 
-ALTER TABLE "transfers" ADD FOREIGN KEY ("maker_id") REFERENCES "users" ("id");
-ALTER TABLE "transfers" ADD FOREIGN KEY ("taker_id") REFERENCES "users" ("id");
+ALTER TABLE "transfers" ADD FOREIGN KEY ("from_valut_id") REFERENCES "valuts" ("id");
+ALTER TABLE "transfers" ADD FOREIGN KEY ("to_valut_id") REFERENCES "valuts" ("id");
+ALTER TABLE "transfers" ADD FOREIGN KEY ("fee_valut_id") REFERENCES "valuts" ("id");
 ALTER TABLE "transfers" ADD FOREIGN KEY ("asset_id") REFERENCES "assets" ("id");
 
 CREATE TABLE "spot"."orders" (
@@ -99,20 +103,23 @@ CREATE TABLE "spot"."trades" (
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "quote_asset_id" uuid NOT NULL,
   "base_asset_id" uuid NOT NULL,
-  "order_id" uuid NOT NULL,
   "taker_id" uuid NOT NULL,
+  "maker_id" uuid NOT NULL,
+  "order_id" uuid NOT NULL,
   "taker_presentation" BOOLEAN NOT NULL DEFAULT false,
   "price" fraction NOT NULL,
   "taker_quote_volume" fraction NOT NULL,
-  "taker_base_volume" fraction NOT NULL,
   "maker_quote_volume" fraction NOT NULL,
-  "maker_base_volume" fraction NOT NULL
+  "taker_quote_volume_transfer_id" uuid NOT NULL,
+  "maker_quote_volume_transfer_id" uuid NOT NULL
 );
 
 ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("taker_id") REFERENCES "users" ("id");
 ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("order_id") REFERENCES "spot"."orders" ("id");
 ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "assets" ("id");
 ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("base_asset_id") REFERENCES "assets" ("id");
+ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("taker_quote_volume_transfer_id") REFERENCES "transfers" ("id");
+ALTER TABLE "spot"."trades" ADD FOREIGN KEY ("maker_quote_volume_transfer_id") REFERENCES "transfers" ("id");
 
 CREATE TABLE "spot"."candlesticks" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),

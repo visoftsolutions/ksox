@@ -8,30 +8,33 @@ use tonic::Status;
 use crate::base;
 
 pub struct TransferRequest {
-    pub maker_id: Uuid,
-    pub taker_id: Uuid,
+    pub from_valut_id: Uuid,
+    pub to_valut_id: Uuid,
     pub asset_id: Uuid,
     pub amount: Fraction,
+    pub fee_fraction: Fraction,
 }
 
 impl TryFrom<base::TransferRequest> for TransferRequest {
     type Error = Status;
     fn try_from(value: base::TransferRequest) -> Result<Self, Self::Error> {
         Ok(Self {
-            maker_id: Uuid::from_str(&value.maker_id)
+            from_valut_id: Uuid::from_str(&value.from_valut_id)
                 .map_err(|e| Status::invalid_argument(e.to_string()))?,
-            taker_id: Uuid::from_str(&value.taker_id)
+            to_valut_id: Uuid::from_str(&value.to_valut_id)
                 .map_err(|e| Status::invalid_argument(e.to_string()))?,
             asset_id: Uuid::from_str(&value.asset_id)
                 .map_err(|e| Status::invalid_argument(e.to_string()))?,
             amount: serde_json::from_str(&value.amount)
+                .map_err(|e| Status::invalid_argument(e.to_string()))?,
+            fee_fraction: serde_json::from_str(&value.fee_fraction)
                 .map_err(|e| Status::invalid_argument(e.to_string()))?,
         })
     }
 }
 
 pub struct TransferResponse {
-    pub id: Uuid,
+    pub transfer_id: Uuid,
 }
 
 impl TryFrom<Result<TransferResponse, TransferError>> for base::TransferResponse {
@@ -39,7 +42,7 @@ impl TryFrom<Result<TransferResponse, TransferError>> for base::TransferResponse
     fn try_from(value: Result<TransferResponse, TransferError>) -> Result<Self, Self::Error> {
         let v = value.map_err(|e| Status::aborted(e.to_string()))?;
         Ok(Self {
-            id: v.id.to_string(),
+            transfer_id: v.transfer_id.to_string(),
         })
     }
 }
@@ -64,28 +67,33 @@ pub enum TransferError {
     #[error("div fractions failed")]
     CheckedDivFailed,
 
-    #[error("maker_id taker_id the same")]
-    SameUser,
+    #[error("ceil fractions failed")]
+    CheckedCeilFailed,
+
+    #[error("from to fee are not diffirent")]
+    SameValut,
 
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),
 }
 
 pub struct RevertTransferRequest {
-    pub id: Uuid,
+    pub transfer_id: Uuid,
 }
 
 impl TryFrom<base::RevertTransferRequest> for RevertTransferRequest {
     type Error = Status;
     fn try_from(value: base::RevertTransferRequest) -> Result<Self, Self::Error> {
         Ok(Self {
-            id: Uuid::from_str(&value.id).map_err(|e| Status::invalid_argument(e.to_string()))?,
+            transfer_id: Uuid::from_str(&value.transfer_id)
+                .map_err(|e| Status::invalid_argument(e.to_string()))?,
         })
     }
 }
 
 pub struct RevertTransferResponse {
-    pub id: Uuid,
+    pub amount_transfer_id: Uuid,
+    pub fee_transfer_id: Uuid,
 }
 
 impl TryFrom<Result<RevertTransferResponse, RevertTransferError>> for base::RevertTransferResponse {
@@ -95,7 +103,8 @@ impl TryFrom<Result<RevertTransferResponse, RevertTransferError>> for base::Reve
     ) -> Result<Self, Self::Error> {
         let v = value.map_err(|e| Status::aborted(e.to_string()))?;
         Ok(Self {
-            id: v.id.to_string(),
+            amount_transfer_id: v.amount_transfer_id.to_string(),
+            fee_transfer_id: v.fee_transfer_id.to_string(),
         })
     }
 }

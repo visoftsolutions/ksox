@@ -5,9 +5,9 @@ use value::Value;
 use super::models::cancel::{CancelRequest, CancelRequestError, CancelResponse};
 use crate::database::managers::{OrdersManager, ValutsManager};
 
-pub async fn cancel<'t, 'p>(
+pub async fn cancel<'t>(
     request: CancelRequest,
-    transaction: &'t mut Transaction<'p, Postgres>,
+    transaction: &'t mut Transaction<'_, Postgres>,
 ) -> Result<CancelResponse, CancelRequestError> {
     let mut order = OrdersManager::get_by_id(transaction, request.order_id)
         .await?

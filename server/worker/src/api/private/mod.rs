@@ -133,9 +133,7 @@ pub struct ResponseTrade {
     pub base_asset_id: Uuid,
     pub price: Fraction,
     pub taker_quote_volume: Fraction,
-    pub taker_base_volume: Fraction,
     pub maker_quote_volume: Fraction,
-    pub maker_base_volume: Fraction,
     pub direction: Direction,
 }
 
@@ -150,9 +148,7 @@ impl ResponseTrade {
                     base_asset_id: value.base_asset_id,
                     price: value.price,
                     taker_quote_volume: value.taker_quote_volume,
-                    taker_base_volume: value.taker_base_volume,
                     maker_quote_volume: value.maker_quote_volume,
-                    maker_base_volume: value.maker_base_volume,
                     direction: Direction::Buy,
                 }
             } else {
@@ -162,10 +158,8 @@ impl ResponseTrade {
                     quote_asset_id: value.base_asset_id,
                     base_asset_id: value.quote_asset_id,
                     price: value.price.inv(),
-                    taker_quote_volume: value.taker_base_volume,
-                    taker_base_volume: value.taker_quote_volume,
-                    maker_quote_volume: value.maker_base_volume,
-                    maker_base_volume: value.maker_quote_volume,
+                    taker_quote_volume: value.maker_quote_volume,
+                    maker_quote_volume: value.taker_quote_volume,
                     direction: Direction::Sell,
                 }
             }
@@ -177,10 +171,8 @@ impl ResponseTrade {
                     quote_asset_id: value.base_asset_id,
                     base_asset_id: value.quote_asset_id,
                     price: value.price.inv(),
-                    taker_quote_volume: value.taker_base_volume,
-                    taker_base_volume: value.taker_quote_volume,
-                    maker_quote_volume: value.maker_base_volume,
-                    maker_base_volume: value.maker_quote_volume,
+                    taker_quote_volume: value.maker_quote_volume,
+                    maker_quote_volume: value.taker_quote_volume,
                     direction: Direction::Buy,
                 }
             } else {
@@ -191,9 +183,7 @@ impl ResponseTrade {
                     base_asset_id: value.base_asset_id,
                     price: value.price,
                     taker_quote_volume: value.taker_quote_volume,
-                    taker_base_volume: value.taker_base_volume,
                     maker_quote_volume: value.maker_quote_volume,
-                    maker_base_volume: value.maker_base_volume,
                     direction: Direction::Sell,
                 }
             }

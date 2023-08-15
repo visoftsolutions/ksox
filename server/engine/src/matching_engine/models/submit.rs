@@ -5,7 +5,7 @@ use sqlx::types::Uuid;
 use thiserror::Error;
 use tonic::Status;
 
-use super::MatchingLoopError;
+use super::{transfer::TransferError, MatchingLoopError};
 use crate::base;
 
 pub struct SubmitRequest {
@@ -69,6 +69,9 @@ pub enum SubmitRequestError {
 
     #[error("div fractions failed")]
     CheckedDivFailed,
+
+    #[error("transfer failed")]
+    TransferError(#[from] TransferError),
 
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),

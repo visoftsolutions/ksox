@@ -10,6 +10,25 @@ use crate::database::projections::valut::Valut;
 pub struct ValutsManager {}
 
 impl ValutsManager {
+    pub async fn get_by_id<'t>(
+        t: &'t mut Transaction<'_, Postgres>,
+        id: &Uuid,
+    ) -> sqlx::Result<Valut> {
+        sqlx::query_as!(
+            Valut,
+            r#"
+            SELECT
+                id,
+                balance as "balance: Value"
+            FROM valuts
+            WHERE id = $1
+            "#,
+            id
+        )
+        .fetch_one(t.as_mut())
+        .await
+    }
+
     pub async fn get<'t>(
         t: &'t mut Transaction<'_, Postgres>,
         user_id: Uuid,

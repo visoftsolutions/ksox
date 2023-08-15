@@ -16,18 +16,28 @@ impl TransfersManager {
         sqlx::query_as!(
             Id,
             r#"
-            INSERT INTO transfers
-                (created_at, last_modification_at, maker_id, taker_id, asset_id, amount)
+            INSERT INTO transfers (
+                created_at,
+                last_modification_at,
+                from_valut_id,
+                to_valut_id,
+                fee_valut_id,
+                asset_id,
+                amount,
+                fee
+            )
             VALUES
-                ($1, $2, $3, $4, $5, $6::fraction)
+                ($1, $2, $3, $4, $5, $6, $7::fraction, $8::fraction)
             RETURNING id
             "#,
             now,
             now,
-            element.maker_id,
-            element.taker_id,
+            element.from_valut_id,
+            element.to_valut_id,
+            element.fee_valut_id,
             element.asset_id,
             element.amount.to_tuple_string() as _,
+            element.fee.to_tuple_string() as _,
         )
         .fetch_one(t.as_mut())
         .await
@@ -42,10 +52,12 @@ impl TransfersManager {
             Transfer,
             r#"
             SELECT 
-                maker_id,
-                taker_id,
+                from_valut_id,
+                to_valut_id,
+                fee_valut_id,
                 asset_id,
-                amount as "amount: Fraction"
+                amount as "amount: Fraction",
+                fee as "fee: Fraction"
             FROM transfers
             WHERE id = $1
             "#,
