@@ -6,8 +6,18 @@ import SideMenu from "~/components/SideMenu";
 import { SessionProvider } from "@packages/components/providers/SessionProvider";
 import { PrecisionProvider } from "@packages/components/providers/PrecisionProvider";
 import { api } from "~/root";
+import { useContractAddress } from "@packages/components/providers/ContractAddressProvider";
+import { createEffect } from "solid-js";
 
 export default function Index() {
+  const contractAddress = useContractAddress();
+
+  createEffect(() => {
+    if (contractAddress) {
+      console.log(contractAddress());
+    }
+  });
+
   return (
     <SessionProvider api_url={api}>
       <MarketProvider>

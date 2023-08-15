@@ -9,6 +9,7 @@ use database::managers::{
     valuts::{ValutsManager, ValutsNotificationManager},
 };
 use engine_base::engine_client::EngineClient;
+use evm::address::Address;
 use sqlx::PgPool;
 use tonic::transport::Channel;
 
@@ -29,6 +30,7 @@ use crate::{
 
 #[derive(Clone)]
 pub struct AppState {
+    pub contract_address: Address,
     pub database: PgPool,
     pub session_store: redis::Client,
     pub users_manager: UsersManager,
