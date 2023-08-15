@@ -32,11 +32,13 @@ pub async fn transfer<'t>(
         .await?
         .ok_or(TransferError::AssetNotFound)?;
 
-    tracing::info!("{}, {}, {}", request.from_valut_id, request.to_valut_id, fee_valut_id);
     let mut from_valut = ValutsManager::get_by_id(transaction, &request.from_valut_id).await?;
     let mut to_valut = ValutsManager::get_by_id(transaction, &request.to_valut_id).await?;
     let mut fee_valut = ValutsManager::get_by_id(transaction, &fee_valut_id).await?;
-    tracing::info!("works");
+
+    if from_valut.balance < Value::Finite(request.amount.to_owned()) {
+        return Err(TransferError::InsufficientBalance);
+    }
 
     let reduced_amount = request
         .amount
@@ -80,14 +82,11 @@ pub async fn transfer<'t>(
         .checked_add(&Value::Finite(fee))
         .ok_or(TransferError::CheckedAddFailed)?;
 
-    tracing::info!("works1");
     let transfer_id = TransfersManager::insert(transaction, transfer).await?;
-    tracing::info!("works2");
 
     ValutsManager::update(transaction, from_valut).await?;
     ValutsManager::update(transaction, to_valut).await?;
     ValutsManager::update(transaction, fee_valut).await?;
-    tracing::info!("works3");
 
     Ok(TransferResponse { transfer_id })
 }
@@ -118,7 +117,7 @@ pub async fn revert_transfer<'t>(
             amount: revert_transfer.fee,
             fee_fraction: Fraction::zero(),
         },
-        &Uuid::default(),
+        &revert_transfer.to_valut_id,
         t,
     )
     .await?;
