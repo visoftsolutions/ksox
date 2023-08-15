@@ -32,6 +32,8 @@ services:
     build:
       context: ./server
       dockerfile: ./engagement.dockerfile
+      args:
+        - SQLX_OFFLINE=true
     env_file:
       - ./server/.env
     depends_on:
@@ -45,6 +47,8 @@ services:
     build:
       context: ./server
       dockerfile: ./engine.dockerfile
+      args:
+        - SQLX_OFFLINE=true
     env_file:
       - ./server/.env
     depends_on:
@@ -58,6 +62,8 @@ services:
     build:
       context: ./server
       dockerfile: ./blockchain.dockerfile
+      args:
+        - SQLX_OFFLINE=true
     env_file:
       - ./server/.env
     depends_on:
@@ -72,6 +78,8 @@ services:
     build:
       context: ./server
       dockerfile: ./worker.dockerfile
+      args:
+        - SQLX_OFFLINE=true
     env_file:
       - ./server/.env
     depends_on:

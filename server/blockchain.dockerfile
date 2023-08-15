@@ -20,7 +20,8 @@ RUN cargo chef cook --release --recipe-path recipe.json
 # Build application
 COPY . .
 # sqlx ensure offline mode
-ENV SQLX_OFFLINE=true
+ARG SQLX_OFFLINE
+ENV SQLX_OFFLINE ${SQLX_OFFLINE}
 RUN cargo build --release -p blockchain
 
 # We do not need the Rust toolchain to run the binary!
