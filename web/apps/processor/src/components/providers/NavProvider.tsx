@@ -10,6 +10,7 @@ export enum Nav {
   App,
   Account,
   Asset,
+  Deposit,
 }
 
 export const [nav, setNav] = createSignal<Nav>(Nav.App);
