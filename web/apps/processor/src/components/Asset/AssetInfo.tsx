@@ -70,7 +70,7 @@ export function AssetInfo(props: {
       </div>
       <div class="row-start-3 row-end-4 text-center font-lexend text-2xl font-bold">
         {balance()?.Finite != undefined
-          ? format(ev(balance()?.Finite), formatTemplate(props.precision ?? 3))
+          ? format(ev(balance()?.Finite!), formatTemplate(props.precision ?? 3))
           : "---"}
       </div>
     </div>

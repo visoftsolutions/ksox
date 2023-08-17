@@ -18,7 +18,7 @@ use ethers::{
     name = "Treasury",
     version = "1",
     chain_id = 31337,
-    verifying_contract = "0x0165878A594ca255338adfa4d48449f69242Eb8F"
+    verifying_contract = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
 )]
 pub struct Permit {
     pub owner: Address,

@@ -5,28 +5,53 @@ async function main() {
 
   const TokenFactory = await ethers.getContractFactory("Token");
 
-  const bitcoinToken = await TokenFactory.deploy("Wrapped Bitcoin", "BTC");
-  await bitcoinToken.waitForDeployment();
-  await (await bitcoinToken.mint(owner, 1_000_000n * 10n ** 18n)).wait();
-  console.log(
-    "bitcoinToken Contract Address: ",
-    await bitcoinToken.getAddress()
-  );
-
-  const etherToken = await TokenFactory.deploy("Wrapped Ether", "ETH");
-  await etherToken.waitForDeployment();
-  await (await etherToken.mint(owner, 1_000_000n * 10n ** 18n)).wait();
-  console.log("etherToken Contract Address: ", await etherToken.getAddress());
-
-  const usdtToken = await TokenFactory.deploy("Tether USD", "USDT");
-  await usdtToken.waitForDeployment();
-  await (await usdtToken.mint(owner, 1_000_000n * 10n ** 18n)).wait();
-  console.log("usdtToken Contract Address: ", await usdtToken.getAddress());
+  const tokens = [
+    await TokenFactory.deploy("Wrapped Bitcoin", "BTC"),
+    await TokenFactory.deploy("Wrapped Ether", "ETH"),
+    await TokenFactory.deploy("Tether USD", "USDT"),
+  ];
 
   const TreasuryFactory = await ethers.getContractFactory("Treasury");
   const treasury = await TreasuryFactory.deploy("Treasury", owner);
+
+  console.log("waiting for token contracts to be deployed...");
+  for (let i = 0; i < tokens.length; i += 1) {
+    const token = tokens[i];
+    await token.waitForDeployment();
+  }
+  console.log("token contracts deployed");
+
+  console.log("waiting for treasury contract to be deployed...");
   await treasury.waitForDeployment();
-  console.log("Treasury Contract Address: ", await treasury.getAddress());
+  console.log("treasury contract deployed");
+
+  const accounts = await ethers.getSigners();
+  const value = 1_000_000_000n * 10n ** 18n;
+  let transactionResponses = [];
+
+  console.log("minting tokens...");
+  for (let i = 0; i < tokens.length; i += 1) {
+    const token = tokens[i];
+    for (let j = 0; j < accounts.length; j += 1) {
+      const account = accounts[j];
+      const contractTransactionResponse = await token.mint(
+        account.address,
+        value
+      );
+      transactionResponses.push(contractTransactionResponse);
+    }
+  }
+  for (let i = 0; i < transactionResponses.length; i += 1) {
+    const transactionResponse = transactionResponses[i];
+    await transactionResponse.wait();
+  }
+  console.log("tokens minted");
+
+  for (let i = 0; i < tokens.length; i += 1) {
+    const token = tokens[i];
+    console.log(`${await token.name()}: ${await token.getAddress()}`);
+  }
+  console.log(`${await treasury.name()}: ${await treasury.getAddress()}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

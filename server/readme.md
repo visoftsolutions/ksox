@@ -2,7 +2,6 @@
 ## Development
 #### **`.cargo/config.toml`**
 ```
-[env]
 KSOX_SERVER_BLOCKCHAIN_URL="http://ksox-server-blockchain/"
 KSOX_WS_BLOCKCHAIN_URL="http://localhost:8545/"
 KSOX_POSTGRES_URL="postgresql://ksoxuser:ksoxuserp4ssword@localhost/ksox"
@@ -14,6 +13,7 @@ DEPOSIT_CONFIRMATIONS="5"
 TESTS_CASES="10000"
 TESTS_FRACTION_BYTES="2"
 RUST_BACKTRACE="full"
+SQLX_OFFLINE="true"
 ```
 ## Production (Docker Compose)
 #### **`.env`**

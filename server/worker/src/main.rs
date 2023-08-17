@@ -16,9 +16,10 @@ pub mod blockchain_base {
 use axum::{routing::get, Router};
 use blockchain_base::blockchain_client::BlockchainClient;
 use engine_base::engine_client::EngineClient;
+use evm::address::Address;
 use regex::Regex;
 use sqlx::postgres::PgPoolOptions;
-use std::net::SocketAddr;
+use std::{net::SocketAddr, str::FromStr};
 
 use crate::{
     database::managers::{
@@ -52,6 +53,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         NotificationManager::start(database.clone(), "worker").await?;
 
     let app_state = AppState {
+        contract_address: Address::from_str(std::env::var("CONTRACT_ADDRESS").unwrap().as_str())
+            .unwrap(),
         database: database.clone(),
         session_store: redis::Client::open(
             std::env::var("KSOX_REDIS_URL").unwrap_or_default().as_str(),

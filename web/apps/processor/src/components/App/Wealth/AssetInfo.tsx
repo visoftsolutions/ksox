@@ -68,7 +68,7 @@ export function AssetInfo(props: {
         <div class="col-start-2 col-end-3 text-ellipsis text-right text-xl font-bold">
           {balance()?.Finite != undefined
             ? format(
-                ev(balance()?.Finite),
+                ev(balance()?.Finite!),
                 formatTemplate(props.precision ?? 3),
               )
             : "---"}

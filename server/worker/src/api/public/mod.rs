@@ -1,4 +1,5 @@
 pub mod assets;
+pub mod contract;
 pub mod depth;
 pub mod engagement;
 pub mod ohlcv;
@@ -26,17 +27,17 @@ pub fn router(app_state: &AppState) -> Router {
     Router::new()
         .route("/", get(root))
         .route("/sse", get(sse))
-        .with_state(app_state.clone())
         .nest("/depth", depth::router(app_state))
         .nest("/ohlcv", ohlcv::router(app_state))
         .nest("/trades", trades::router(app_state))
         .nest("/assets", assets::router(app_state))
         .nest("/users", users::router(app_state))
         .nest("/engagement", engagement::router(app_state))
+        .nest("/contract", contract::router(app_state))
 }
 
-pub async fn root() -> &'static str {
-    "Hello, World public!"
+pub async fn root() -> String {
+    format!("Hello, World public!, time: {}", Utc::now())
 }
 
 pub async fn sse() -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
