@@ -7,24 +7,27 @@ export interface IButton {
   icon?: SVGComponent;
   onClick?: () => void;
   color?: string;
+  darkColor?: string;
   textColor?: string;
   width?: string;
   height?: string;
+  textClass?: string;
+  buttonClass?: string;
 }
 
 export default function Button(props: IButton) {
-
+  console.log(props);
   return (
     <button
       class={`relative rounded-full ${props.width || "w-12"} ${
         props.height || "h-12"
-      } m-2 p-0 ${props.color || "bg-r-blue-light-backdrop"} ${
-        props.textColor || "text-r-blue"
-      } flex items-center justify-center text-xs`}
+      } m-0 p-0 ${props.color ? props.color : "bg-r-blue-light-backdrop"} ${props.darkColor ? props.darkColor : ""} ${
+        `text-${props.textColor}` || "text-r-blue"
+      } flex items-center justify-center text-xs ${props.buttonClass}`}
       onClick={props.onClick || (() => {})}
     >
       {props.icon ? props.icon() : null}
-      {props.text || null}
+      <p class={props.textClass}>{props.text || null}</p>
     </button>
   );
 }

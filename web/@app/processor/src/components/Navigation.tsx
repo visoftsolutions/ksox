@@ -7,7 +7,7 @@ import HomeIcon from "./Atoms/Icons/HomeIcon";
 export default function Navigation() {
   const nav = useNav();
   return (
-    <div class="grid grid-cols-2 bg-gray-2">
+    <div class="grid grid-cols-2 ">
       <A href="/">
         <NavButton
           name="Home"

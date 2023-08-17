@@ -1,3 +1,4 @@
+import Button from "../Atoms/Buttons/Button";
 import Transaction, { ITransaction } from "./Transaction";
 
 export interface ITransactions {
@@ -6,9 +7,8 @@ export interface ITransactions {
 }
 
 export default function Transactions(props: ITransactions) {
-
   return (
-    <div class="rounded-xl bg-r-dark-foreground">
+    <div class="rounded-xl bg-r-light-foreground dark:bg-r-dark-foreground">
       {props.transactions.length > 0 ? (
         props.transactions.map((transaction, index) => (
           <Transaction
@@ -36,10 +36,20 @@ export default function Transactions(props: ITransactions) {
               />
             ))
           ) : (
-            <p>No transactions available.</p>
+            <p class="text-r-light-text dark:text-r-dark-text">No transactions available.</p>
           )}
         </div>
       )}
+      {props.transactions.length > 0 ? (
+        <div class="m-0 flex flex-col items-center p-0">
+          <Button
+            text="See all"
+            textColor="r-blue"
+            color="white"
+            textClass="text-sm"
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

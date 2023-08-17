@@ -16,6 +16,9 @@ import "~/root.css";
 import { joinPaths } from "solid-start/islands/server-router";
 import { Nav, NavProvider, setNav } from "~/components/providers/NavProvider";
 import { WalletProvider } from "@web/components/providers/WalletProvider";
+import HomeView from "./components/Views/HomeView";
+import TransfersView from "./components/Views/TransfersView";
+import { CurrencyProvider } from "./components/providers/CurrencyProvider";
 
 export const base = import.meta.env.BASE_URL;
 export const api = joinPaths(base, "/api");
@@ -23,12 +26,11 @@ export const projectId = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID;
 export const alchemyId = import.meta.env.VITE_ALCHEMY_API_KEY;
 
 const Index = lazy(() => import("~/routes"));
-const App = lazy(() => import("./components/App"));
-const Asset = lazy(() => import("./components/Asset"));
+const App = lazy(() => import("./components/Views/HomeView"));
 
 export default function Root() {
   return (
-    <Html lang="en">
+    <Html lang="en" class="dark">
       <Head>
         <Title>KSOX - Payment Processor</Title>
         <Meta charset="utf-8" />
@@ -60,23 +62,25 @@ export default function Root() {
         <Suspense>
           <ErrorBoundary>
             <NavProvider>
-              <WalletProvider projectId={projectId} alchemyId={alchemyId}>
-                <Routes>
-                  <Route path="/" component={Index}>
-                    <Route
-                      path="/"
-                      // element={<App />}
-                      preload={() => setNav(Nav.Home)}
-                    />
-                    <Route
-                      path="/1"
-                      // element={<App />}
-                      preload={() => setNav(Nav.Transfer)}
-                    />
-                  </Route>
-                  <FileRoutes />
-                </Routes>
-              </WalletProvider>
+              <CurrencyProvider>
+                <WalletProvider projectId={projectId} alchemyId={alchemyId}>
+                  <Routes>
+                    <Route path="/" component={Index}>
+                      <Route
+                        path="/"
+                        element={<HomeView />}
+                        preload={() => setNav(Nav.Home)}
+                      />
+                      <Route
+                        path="/1"
+                        element={<TransfersView />}
+                        preload={() => setNav(Nav.Transfer)}
+                      />
+                    </Route>
+                    <FileRoutes />
+                  </Routes>
+                </WalletProvider>
+              </CurrencyProvider>
             </NavProvider>
           </ErrorBoundary>
         </Suspense>

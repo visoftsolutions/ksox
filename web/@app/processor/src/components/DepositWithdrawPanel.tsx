@@ -7,13 +7,10 @@ import { Palette } from "./Atoms/Palette";
 
 export default function DepositWithdrawPanel() {
 
-    const depositIcon = DepositIcon({stroke: Palette["r-blue"], size: "26px"});
-    const withdrawIcon = WithdrawIcon({stroke: Palette["r-blue"], size: "26px"});
-
     return (
         <div class="flex flex-row justify-center">
-            <ButtonTile button={{icon: DepositIcon({ stroke: Palette["r-blue"], size: "22px" })}} text="Deposit" />
-            <ButtonTile button={{icon: WithdrawIcon({ stroke: Palette["r-blue"], size: "22px" })}} text="Withdraw" />
+            <ButtonTile button={{icon: DepositIcon({ stroke: Palette["r-blue"], size: "22px" }), color: 'bg-r-blue-dark-backdrop', darkColor: 'dark:bg-r-blue-dark-backdrop'}} text="Deposit"/>
+            <ButtonTile button={{icon: WithdrawIcon({ stroke: Palette["r-blue"], size: "22px" }), color: 'bg-r-blue-dark-backdrop', darkColor: 'dark:bg-r-blue-dark-backdrop'}} text="Withdraw" />
         </div>
     )
 }
