@@ -6,17 +6,17 @@ import {
   createSignal,
   JSX,
   onMount,
-  Resource,
   useContext,
 } from "solid-js";
 import { ContractResponse } from "@packages/types/contract";
 import { Address } from "./SessionProvider/models";
+import { api } from "@apps/exchange/src/root";
 
 const ContractAddressContext = createContext<Accessor<Address>>();
 
 export function ContractAddressProvider(props: { children: JSX.Element }) {
   const [data, { refetch }] = createResource(async () => {
-    return await fetch(`/api/public/contract`)
+    return await fetch(`${api}/public/contract`)
       .then((r) => r.json())
       .then((r) => ContractResponse.parse(r));
   });
@@ -30,6 +30,7 @@ export function ContractAddressProvider(props: { children: JSX.Element }) {
     const result = data();
     if (result && result?.contract_address) {
       setContractAddress(result.contract_address);
+      console.log(`Treasury Contract Address: ${result.contract_address}`);
     }
   });
 

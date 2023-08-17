@@ -40,7 +40,7 @@ impl DepositsBlockchainManager {
         let database = self.database.to_owned();
         let provider = self.provider.to_owned();
         let contract = self.contract.to_owned();
-        let confirmations = Fraction::from_raw((BigInt::from(0), self.confirmations.to_owned()))
+        let confirmations = Fraction::from_raw((BigInt::from(1), self.confirmations.to_owned()))
             .unwrap_or_default();
 
         let join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>> = tokio::spawn(
