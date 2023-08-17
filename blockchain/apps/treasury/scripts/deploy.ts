@@ -33,8 +33,12 @@ async function main() {
   for (let i = 0; i < tokens.length; i += 1) {
     const token = tokens[i];
     for (let j = 0; j < accounts.length; j += 1) {
-      const account = accounts[i];
-      transactionResponses.push(await token.mint(account.address, value));
+      const account = accounts[j];
+      const contractTransactionResponse = await token.mint(
+        account.address,
+        value
+      );
+      transactionResponses.push(contractTransactionResponse);
     }
   }
   for (let i = 0; i < transactionResponses.length; i += 1) {
