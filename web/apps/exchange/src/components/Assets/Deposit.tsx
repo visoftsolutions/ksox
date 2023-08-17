@@ -99,7 +99,7 @@ export function Deposit(props: { asset: Asset; precision: number }) {
                 3600n;
 
               const domain = {
-                name: "TokenPermit",
+                name: props.asset.name,
                 version: "1",
                 chainId: BigInt(wallet.selected_network.network.id),
                 verifyingContract: props.asset.address as Address,
