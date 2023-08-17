@@ -66,8 +66,8 @@ export default function Root() {
         <Suspense>
           <ErrorBoundary>
             <NavProvider>
-              <WalletProvider projectId={projectId}>
-                <ContractAddressProvider>
+              <ContractAddressProvider>
+                <WalletProvider projectId={projectId}>
                   <Routes>
                     <Route path="/" component={Index}>
                       <Route
@@ -83,8 +83,8 @@ export default function Root() {
                     </Route>
                     <FileRoutes />
                   </Routes>
-                </ContractAddressProvider>
-              </WalletProvider>
+                </WalletProvider>
+              </ContractAddressProvider>
             </NavProvider>
           </ErrorBoundary>
         </Suspense>
