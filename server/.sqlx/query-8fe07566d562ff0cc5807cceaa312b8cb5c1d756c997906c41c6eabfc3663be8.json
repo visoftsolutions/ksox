@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO valuts\n                (user_id, asset_id, balance, last_modification_at, created_at)\n            VALUES ($1, $2, $3::text, $4, $5)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8fe07566d562ff0cc5807cceaa312b8cb5c1d756c997906c41c6eabfc3663be8"
+}
