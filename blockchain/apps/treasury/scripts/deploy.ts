@@ -52,7 +52,6 @@ async function main() {
     console.log(`${await token.name()}: ${await token.getAddress()}`);
   }
   console.log(`${await treasury.name()}: ${await treasury.getAddress()}`);
-  console.log(`PERMIT_TYPEHASH: ${await treasury.getTypeHash()}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
