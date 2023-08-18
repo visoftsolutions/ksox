@@ -27,6 +27,10 @@ contract Treasury is Ownable, EIP712 {
     name_ = _name;
   }
 
+  function getTypeHash() public pure returns (bytes32) {
+    return _PERMIT_TYPEHASH;
+  }
+
   /**
    * @dev Returns the name of the contract.
    */
