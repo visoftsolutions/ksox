@@ -3,7 +3,7 @@ import { joinPaths } from "solid-start/islands/server-router";
 import { SVGComponent } from "../Atoms/Icons/SVGComponent";
 import { Palette } from "../Atoms/Palette";
 
-interface NavButtonProps {
+export interface NavButtonProps {
   icon: SVGComponent;
   name: string;
   highlighted?: boolean;

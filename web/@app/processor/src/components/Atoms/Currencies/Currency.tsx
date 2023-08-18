@@ -14,13 +14,12 @@ export default function Currency(props: ICurrency) {
 
     const handleClick = () => {
         if (props.onClick) {
-          props.onClick(); // Invoke the provided onClick function
-        //   setCurrentColor("bg-r-light-foreground dark:bg-r-dark-modal-selected");
+          props.onClick();
         }
       };
 
     return (<div
-        class={`rounded-xl ${props.selected ? "bg-r-light-foreground dark:bg-r-dark-modal-selected" : "bg-r-light-foreground dark:bg-r-dark-modal-foreground"} active:bg-black`}
+        class={`rounded-xl ${props.selected ? "bg-r-light-modal-selected dark:bg-r-dark-modal-selected" : "bg-r-light-foreground dark:bg-r-dark-modal-foreground"}`}
         onClick={handleClick}
       >
         <div class="flex justify-between">

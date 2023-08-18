@@ -31,6 +31,7 @@ module.exports = {
         "r-light-foreground": "#FFFFFF",
         "r-light-text": "#191C1F",
         "r-light-search-bar": "#EEEFF3",
+        "r-light-modal-selected": "#F3F6FD",
         "r-blue": "#0666EB",
         "r-blue-light-backdrop": "#E6F0FD",
         "r-blue-dark-backdrop": "#1A2431",

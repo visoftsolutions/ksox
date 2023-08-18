@@ -2,13 +2,13 @@ import { createSignal } from "solid-js";
 import { createEffect } from "solid-js";
 import Currencies from "../Currencies/Currencies";
 
-export interface ISlidingModal {
+export interface IModal {
   isOpen: boolean;
   onClose: () => void;
   heightCells?: number;
 }
 
-export default function SlidingModal(props: ISlidingModal) {
+export default function Modal(props: IModal) {
   const [isAnimating, setIsAnimating] = createSignal(false);
   const [isVisible, setIsVisible] = createSignal(props.isOpen);
 
@@ -49,10 +49,10 @@ export default function SlidingModal(props: ISlidingModal) {
   ];
 
   return (
-    <div class={`fixed inset-0 z-50 flex items-end justify-center`}>
+    <div class="fixed inset-0 z-50 flex items-end justify-center xl:grid-cols-3 xl:grid-rows-3">
       {/* Backdrop */}
       <div
-        class={`fixed inset-0 bg-black opacity-30 ${
+        class={`fixed inset-0 bg-black opacity-50 ${
           isVisible() ? "transition-opacity duration-1000" : ""
         }`}
         onClick={props.onClose}
@@ -60,11 +60,11 @@ export default function SlidingModal(props: ISlidingModal) {
 
       {/* Modal */}
       <div
-        class={`absolute bottom-0 w-full rounded-t-xl bg-r-light-background p-4 shadow-lg dark:bg-r-dark-foreground md:p-8 ${
+        class={`absolute w-full rounded-t-xl bg-r-light-background p-4 shadow-lg dark:bg-r-dark-foreground md:p-8 ${
           isVisible()
             ? "translate-y-0 transform transition-transform duration-1000"
             : "translate-y-full transform"
-        }`}
+        } xl:col-start-2 xl:bottom-1/3 xl:w-1/3 xl:rounded-xl`}
       >
         {/* Modal content */}
         <h2 class="mb-4 text-lg font-semibold">Currencies</h2>

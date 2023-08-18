@@ -3,11 +3,10 @@ import { SVGComponent } from "./SVGComponent";
 import { IIcon } from "./IIcon";
 
 export default function HomeIcon(props: IIcon): SVGComponent {
-  console.log("HomeIcon props", props);
   return (svgProps) => (
     <svg
-      width={props.size || "32px"}
-      height={props.size || "32px"}
+      width={svgProps!.size || "32px"}
+      height={svgProps!.size || "32px"}
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

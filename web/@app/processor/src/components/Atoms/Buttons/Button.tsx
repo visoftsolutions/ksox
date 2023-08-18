@@ -1,5 +1,3 @@
-import { joinPaths } from "solid-start/islands/server-router";
-import { base } from "~/root";
 import { SVGComponent } from "../Icons/SVGComponent";
 
 export interface IButton {
@@ -16,7 +14,6 @@ export interface IButton {
 }
 
 export default function Button(props: IButton) {
-  console.log(props);
   return (
     <button
       class={`relative rounded-full ${props.width || "w-12"} ${
@@ -27,7 +24,7 @@ export default function Button(props: IButton) {
       onClick={props.onClick || (() => {})}
     >
       {props.icon ? props.icon() : null}
-      <p class={props.textClass}>{props.text || null}</p>
+      <p class={`${props.textClass || ""} text-${props.textColor}`}>{props.text || null}</p>
     </button>
   );
 }

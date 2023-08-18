@@ -8,7 +8,9 @@ import {
 
 export enum Nav {
   Home,
-  Transfer
+  Transfer,
+  Settings,
+  Notifications
 }
 
 export const [nav, setNav] = createSignal<Nav>(Nav.Home);

@@ -1,8 +1,8 @@
 import { A } from "solid-start";
-import NavButton from "./Navigation/NavButton";
+import NavButton from "../Navigation/NavButton";
 import { useNav, Nav } from "~/components/providers/NavProvider";
-import TransferIcon from "./Atoms/Icons/TransferIcon";
-import HomeIcon from "./Atoms/Icons/HomeIcon";
+import TransferIcon from "../Atoms/Icons/TransferIcon";
+import HomeIcon from "../Atoms/Icons/HomeIcon";
 
 export default function Navigation() {
   const nav = useNav();

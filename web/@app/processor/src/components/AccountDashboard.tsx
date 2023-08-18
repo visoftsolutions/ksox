@@ -37,7 +37,7 @@ export default function AccountDashboard() {
   
   return (
     <div class="m-6 my-2 rounded-xl bg-r-light-foreground dark:bg-r-dark-foreground">
-        <CurrencyDisplay amount={1.314} code="BTH" currency="Bitcoin" img="gfx/bitcoin_placeholder.png"/>
+        <CurrencyDisplay/>
         <DepositWithdrawPanel />
       <div>
         <p class="text-sans mx-5 text-sm text-bold text-r-dark-secondary-text">

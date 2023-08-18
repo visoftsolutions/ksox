@@ -11,7 +11,7 @@ export default function ButtonTile(props: IButtonTile) {
       <button
         class={`relative rounded-full ${props.button.width || "w-12"} ${
           props.button.height || "h-12"
-        } m-2 p-0 ${props.button.color || "bg-r-blue-dark-backdrop"} ${
+        } m-2 p-0 ${props.button.color || "bg-r-blue-light-backdrop"} ${props.button.darkColor || "dark:bg-r-blue-dark-backdrop"} ${
           props.button.textColor || "text-r-blue"
         } flex items-center justify-center text-xs`}
         onClick={props.button.onClick || (() => {})}

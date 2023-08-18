@@ -3,7 +3,7 @@ import Button from "./Atoms/Buttons/Button";
 import ArrowDownIcon from "./Atoms/Icons/ArrowDownIcon";
 import { Palette } from "./Atoms/Palette";
 import Picture from "./Atoms/Picture";
-import SlidingModal from "./Atoms/Modals/SlidingModal";
+import SlidingModal from "./Atoms/Modals/Modal";
 import { useCurrencyContext } from "./providers/CurrencyProvider";
 
 
@@ -25,7 +25,7 @@ export default function CurrencyDisplay() {
       <div class="px-4 pt-4">
         <div class="flex flex-row justify-between">
           <div>
-            <div class="flex flex-row">
+            <div class="flex flex-row items-center">
               <p class="text-bold font-sans text-3xl text-r-light-text dark:text-r-dark-text">
                 {currentCurrency.currency().amount}
               </p>
@@ -37,11 +37,12 @@ export default function CurrencyDisplay() {
                   stroke: Palette["r-blue"],
                   size: "20px",
                 })}
-                color="bg-r-blue-dark-backdrop"
-                darkColor="bg-r-blue-dark-backdrop"
-                width="14"
-                height="14"
+                color="bg-r-blue-light-backdrop"
+                darkColor="dark:bg-r-blue-dark-backdrop"
+                width="w-6"
+                height="h-6"
                 onClick={openModal}
+                buttonClass="ml-2"
               />
               {isModalOpen() && (
                 <SlidingModal
