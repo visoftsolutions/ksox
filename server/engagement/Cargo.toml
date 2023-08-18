@@ -20,7 +20,7 @@ prost = "0.11.9"
 rand = "0.8.5"
 regex = "1.9.3"
 serde = { version = "1.0.183", features = ["derive"] }
-serde_json = "1.0.104"
+serde_json = "1.0.105"
 sqlx = { version = "0.7.1", features = [
     "runtime-tokio-native-tls",
     "postgres",
@@ -29,8 +29,8 @@ sqlx = { version = "0.7.1", features = [
     "chrono"
 ] }
 strum = { version = "0.25", features = ["derive"] }
-thiserror = "1.0.44"
-tokio = { version = "1.31.0", features = ["full"] }
+thiserror = "1.0.47"
+tokio = { version = "1.32.0", features = ["full"] }
 tokio-stream = "0.1.14"
 tonic = "0.9.2"
 tower = "0.4.13"
