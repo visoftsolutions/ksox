@@ -16,7 +16,6 @@ import "~/root.css";
 import { joinPaths } from "solid-start/islands/server-router";
 import { Nav, NavProvider, setNav } from "~/components/providers/NavProvider";
 import { WalletProvider } from "@packages/components/providers/WalletProvider";
-import { ContractAddressProvider } from "@packages/components/providers/ContractAddressProvider";
 
 export const base = import.meta.env.BASE_URL;
 export const api = joinPaths(base, "/api");
@@ -63,28 +62,26 @@ export default function Root() {
         )}
       </Head>
       <Body>
-        <Suspense>
-          <ErrorBoundary>
+        <Suspense fallback={<p>Loading...</p>}>
+          <ErrorBoundary fallback={(e) => <div>{e.message}</div>}>
             <NavProvider>
-              <ContractAddressProvider>
-                <WalletProvider projectId={projectId}>
-                  <Routes>
-                    <Route path="/" component={Index}>
-                      <Route
-                        path={["/", "/:baseAssetId/:quoteAssetId"]}
-                        element={<App />}
-                        preload={() => setNav(Nav.App)}
-                      />
-                      <Route
-                        path="/assets"
-                        element={<Assets />}
-                        preload={() => setNav(Nav.Assets)}
-                      />
-                    </Route>
-                    <FileRoutes />
-                  </Routes>
-                </WalletProvider>
-              </ContractAddressProvider>
+              <WalletProvider projectId={projectId}>
+                <Routes>
+                  <Route path="/" component={Index}>
+                    <Route
+                      path={["/", "/:baseAssetId/:quoteAssetId"]}
+                      element={<App />}
+                      preload={() => setNav(Nav.App)}
+                    />
+                    <Route
+                      path="/assets"
+                      element={<Assets />}
+                      preload={() => setNav(Nav.Assets)}
+                    />
+                  </Route>
+                  <FileRoutes />
+                </Routes>
+              </WalletProvider>
             </NavProvider>
           </ErrorBoundary>
         </Suspense>

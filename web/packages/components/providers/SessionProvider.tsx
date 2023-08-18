@@ -47,10 +47,7 @@ export function useSession() {
   return useContext<Accessor<SessionResponse | undefined>>(SessionContext);
 }
 
-export async function login(
-  api_url: string,
-  wallet: WalletClient,
-) {
+export async function login(api_url: string, wallet: WalletClient) {
   const address = await wallet.getAddresses().then((addresses) => addresses[0]);
 
   const generateMessageResponse = await fetch(

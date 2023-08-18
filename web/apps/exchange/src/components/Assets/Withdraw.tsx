@@ -42,7 +42,7 @@ export function Withdraw(props: { asset: Asset; precision: number }) {
   const session = useSession();
   const wallet = useWallet();
   const [address, setAddress] = createSignal<Address | undefined>(
-    wallet.address
+    wallet.address,
   );
   return (
     <>
@@ -79,7 +79,7 @@ export function Withdraw(props: { asset: Asset; precision: number }) {
           onClick={async () => {
             const address_value = address();
             const value = BigInt(
-              Math.floor(ev(fmul(props.asset.decimals, amount())))
+              Math.floor(ev(fmul(props.asset.decimals, amount()))),
             );
             const deadline = new Date(new Date().getTime() + 60 * 1000);
             if (wallet && address_value && wallet.address) {
@@ -97,7 +97,7 @@ export function Withdraw(props: { asset: Asset; precision: number }) {
                     amount: amount(),
                     deadline,
                   }),
-                  (_, v) => (typeof v === "bigint" ? v.toString() : v)
+                  (_, v) => (typeof v === "bigint" ? v.toString() : v),
                 ),
               })
                 .then((r) => r.json())
