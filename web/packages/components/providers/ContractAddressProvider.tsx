@@ -15,21 +15,15 @@ import { api } from "@apps/exchange/src/root";
 const ContractAddressContext = createContext<Accessor<Address>>();
 
 export function ContractAddressProvider(props: { children: JSX.Element }) {
-  const [data, { refetch }] = createResource(async () => {
-    return await fetch(`${api}/public/contract`)
-      .then((r) => r.json())
-      .then((r) => ContractResponse.parse(r));
-  });
   const [contractAddress, setContractAddress] = createSignal("0x");
 
-  onMount(() => {
-    refetch();
-  });
+  onMount(async () => {
+    let result = await fetch(`${api}/public/contract`)
+      .then((r) => r.json())
+      .then((r) => ContractResponse.parse(r));
 
-  createEffect(() => {
-    const result = data();
+    setContractAddress(result.contract_address);
     if (result && result?.contract_address) {
-      setContractAddress(result.contract_address);
       console.log(`Treasury Contract Address: ${result.contract_address}`);
     }
   });

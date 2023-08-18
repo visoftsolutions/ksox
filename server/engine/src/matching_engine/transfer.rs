@@ -40,7 +40,7 @@ pub async fn transfer<'t>(
         .balance
         .checked_sub(&Value::Finite(request.amount.to_owned()))
         .ok_or(TransferError::CheckedSubFailed)?;
-    if from_valut.balance <= Value::Finite(Fraction::zero()) {
+    if from_valut.balance < Value::Finite(Fraction::zero()) {
         return Err(TransferError::InsufficientBalance);
     }
     ValutsManager::update(transaction, from_valut).await?;
@@ -58,7 +58,7 @@ pub async fn transfer<'t>(
         .balance
         .checked_sub(&Value::Finite(fee.to_owned()))
         .ok_or(TransferError::CheckedSubFailed)?;
-    if fee_provider_valut.balance <= Value::Finite(Fraction::zero()) {
+    if fee_provider_valut.balance < Value::Finite(Fraction::zero()) {
         return Err(TransferError::InsufficientBalanceFee);
     }
     ValutsManager::update(transaction, fee_provider_valut).await?;
