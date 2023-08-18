@@ -5,7 +5,6 @@ import {
   createResource,
   createSignal,
   JSX,
-  onMount,
   useContext,
 } from "solid-js";
 import { ContractResponse } from "@packages/types/contract";
@@ -15,16 +14,12 @@ import { api } from "@apps/exchange/src/root";
 const ContractAddressContext = createContext<Accessor<Address>>();
 
 export function ContractAddressProvider(props: { children: JSX.Element }) {
-  const [data, { refetch }] = createResource(async () => {
+  const [data] = createResource(async () => {
     return await fetch(`${api}/public/contract`)
       .then((r) => r.json())
       .then((r) => ContractResponse.parse(r));
   });
-  const [contractAddress, setContractAddress] = createSignal("0x");
-
-  onMount(() => {
-    refetch();
-  });
+  const [contractAddress, setContractAddress] = createSignal("");
 
   createEffect(() => {
     const result = data();
