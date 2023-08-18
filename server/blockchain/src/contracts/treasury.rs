@@ -596,7 +596,7 @@ pub mod treasury {
         > {
             let factory = ::ethers::contract::ContractFactory::new(
                 TREASURY_ABI.clone(),
-                TREASURY_BYTECODE.clone().into(),
+                TREASURY_BYTECODE.clone(),
                 client,
             );
             let deployer = factory.deploy(constructor_args)?;

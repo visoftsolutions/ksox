@@ -59,9 +59,9 @@ impl Eip712 for Permit {
             Token::Address(self.owner.to_owned().into()),
             Token::Address(self.spender.to_owned().into()),
             Token::Address(self.token.to_owned().into()),
-            Token::Uint(self.value.into()),
-            Token::Uint(self.nonce.into()),
-            Token::Uint(self.deadline.into()),
+            Token::Uint(self.value),
+            Token::Uint(self.nonce),
+            Token::Uint(self.deadline),
         ];
         Ok(keccak256(abi::encode(tokens.as_slice())))
     }
