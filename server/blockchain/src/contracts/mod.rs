@@ -3,30 +3,68 @@ use std::pin::Pin;
 
 use async_stream::try_stream;
 use ethers::{
+    abi::{ParamType, Token},
     prelude::*,
     providers::{Provider, Ws},
+    types::{
+        transaction::eip712::{make_type_hash, EIP712Domain, Eip712, Eip712Error},
+        U256,
+    },
+    utils::keccak256,
 };
+use evm::address::Address;
 use tokio_stream::{Stream, StreamExt};
 
-use ethers::{
-    contract::{Eip712, EthAbiType},
-    core::types::{Address, U256},
-};
-
-#[derive(Eip712, EthAbiType, Clone, Debug)]
-#[eip712(
-    name = "Treasury",
-    version = "1",
-    chain_id = 31337,
-    verifying_contract = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
-)]
+#[derive(Debug, Clone)]
 pub struct Permit {
+    pub chain_id: U256,
+    pub name: String,
+    pub verifying_contract: Address,
     pub owner: Address,
     pub spender: Address,
     pub token: Address,
     pub value: U256,
     pub nonce: U256,
     pub deadline: U256,
+}
+impl Eip712 for Permit {
+    type Error = Eip712Error;
+
+    fn domain(&self) -> Result<EIP712Domain, Self::Error> {
+        Ok(EIP712Domain {
+            name: Some(self.name.to_owned()),
+            version: Some("1".to_string()),
+            chain_id: Some(U256::from(31337)),
+            verifying_contract: Some(self.verifying_contract.to_owned().into()),
+            salt: None,
+        })
+    }
+
+    fn type_hash() -> Result<[u8; 32], Self::Error> {
+        let primary_type = "Permit".to_string();
+        let fields = vec![
+            ("owner".to_string(), ParamType::Address),
+            ("spender".to_string(), ParamType::Address),
+            ("token".to_string(), ParamType::Address),
+            ("value".to_string(), ParamType::Uint(256)),
+            ("nonce".to_string(), ParamType::Uint(256)),
+            ("deadline".to_string(), ParamType::Uint(256)),
+        ];
+        Ok(make_type_hash(primary_type, fields.as_slice()))
+    }
+
+    fn struct_hash(&self) -> Result<[u8; 32], Self::Error> {
+        let tokens = vec![
+            Token::FixedBytes(Self::type_hash()?.to_vec()),
+            Token::Address(self.owner.to_owned().into()),
+            Token::Address(self.spender.to_owned().into()),
+            Token::Address(self.token.to_owned().into()),
+            Token::Uint(self.value),
+            Token::Uint(self.nonce),
+            Token::Uint(self.deadline),
+        ];
+        Ok(keccak256(abi::encode(tokens.as_slice())))
+    }
 }
 
 pub async fn transaction_block(

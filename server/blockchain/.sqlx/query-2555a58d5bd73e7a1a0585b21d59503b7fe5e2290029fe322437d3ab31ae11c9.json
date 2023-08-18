@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE \n                spot.orders \n            SET\n                is_active = $2,\n                last_modification_at = $3\n            WHERE\n                id = $1\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "2555a58d5bd73e7a1a0585b21d59503b7fe5e2290029fe322437d3ab31ae11c9"
+}

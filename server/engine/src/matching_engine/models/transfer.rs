@@ -55,6 +55,9 @@ pub enum TransferError {
     #[error("not enough balance in valut")]
     InsufficientBalance,
 
+    #[error("not enough balance in fee valut")]
+    InsufficientBalanceFee,
+
     #[error("add fractions failed")]
     CheckedAddFailed,
 
@@ -67,8 +70,8 @@ pub enum TransferError {
     #[error("div fractions failed")]
     CheckedDivFailed,
 
-    #[error("ceil fractions failed")]
-    CheckedCeilFailed,
+    #[error("floor fractions failed")]
+    CheckedFloorFailed,
 
     #[error("from to fee are not diffirent")]
     SameValut,

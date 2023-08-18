@@ -31,8 +31,8 @@ impl ValutsManager {
 
     pub async fn get<'t>(
         t: &'t mut Transaction<'_, Postgres>,
-        user_id: Uuid,
-        asset_id: Uuid,
+        user_id: &Uuid,
+        asset_id: &Uuid,
     ) -> sqlx::Result<Option<Valut>> {
         sqlx::query_as!(
             Valut,
@@ -53,8 +53,8 @@ impl ValutsManager {
 
     pub async fn create<'t>(
         t: &'t mut Transaction<'_, Postgres>,
-        user_id: Uuid,
-        asset_id: Uuid,
+        user_id: &Uuid,
+        asset_id: &Uuid,
     ) -> sqlx::Result<Valut> {
         let now = Utc::now();
         let value = Value::Finite(Fraction::zero());
@@ -101,8 +101,8 @@ impl ValutsManager {
 
     pub async fn get_or_create<'t>(
         t: &'t mut Transaction<'_, Postgres>,
-        user_id: Uuid,
-        asset_id: Uuid,
+        user_id: &Uuid,
+        asset_id: &Uuid,
     ) -> sqlx::Result<Valut> {
         Ok(
             if let Some(valut) = Self::get(t, user_id, asset_id).await? {

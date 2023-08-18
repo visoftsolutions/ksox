@@ -1,0 +1,61 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO transfers (\n                created_at,\n                last_modification_at,\n                from_valut_id,\n                to_valut_id,\n                fee_harvester_user_id,\n                asset_id,\n                amount,\n                fee\n            )\n            VALUES\n                ($1, $2, $3, $4, $5, $6, $7::fraction, $8::fraction)\n            RETURNING id\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "Timestamptz",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "c35c0471456bbf04004ba057f7ac8ed99bd272396a6b240ff3be308cfcda316a"
+}

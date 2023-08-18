@@ -5,6 +5,8 @@ RUN npm ci
 
 FROM installer AS builder
 WORKDIR /app
+ARG NODE_ENV
+ENV NODE_ENV ${NODE_ENV}
 RUN npm run build -- apps/dashboard
 
 FROM builder AS runtime

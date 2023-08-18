@@ -1,0 +1,106 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                transfers.id,\n                transfers.created_at,\n                transfers.last_modification_at,\n                transfers.from_valut_id,\n                from_valuts.user_id as from_user_id,\n                transfers.to_valut_id,\n                to_valuts.user_id as to_user_id,\n                transfers.asset_id,\n                transfers.amount as \"amount: Fraction\",\n                transfers.fee as \"fee: Fraction\"\n            FROM transfers\n            JOIN valuts from_valuts ON transfers.from_valut_id = from_valuts.id\n            JOIN valuts to_valuts ON transfers.to_valut_id = to_valuts.id\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 2,
+        "name": "last_modification_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 3,
+        "name": "from_valut_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 4,
+        "name": "from_user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 5,
+        "name": "to_valut_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 6,
+        "name": "to_user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 7,
+        "name": "asset_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 8,
+        "name": "amount: Fraction",
+        "type_info": {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "fee: Fraction",
+        "type_info": {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "2f8dbb1d2d5ba67391495189c60af594d83dbd744061b0fd713e271ac57100be"
+}

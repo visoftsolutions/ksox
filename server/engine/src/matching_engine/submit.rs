@@ -21,8 +21,7 @@ use crate::database::{
 
 pub async fn submit<'t>(
     request: SubmitRequest,
-    quote_fee_valut_id: Uuid,
-    base_fee_valut_id: Uuid,
+    fee_harvester_user_id: &Uuid,
     transaction: &'t mut Transaction<'_, Postgres>,
 ) -> Result<SubmitResponse, SubmitRequestError> {
     let taker_quote_asset = AssetsManager::get_by_id(transaction, &request.quote_asset_id)
@@ -33,7 +32,8 @@ pub async fn submit<'t>(
         .ok_or(SubmitRequestError::AssetNotFound)?;
 
     let taker_quote_asset_valut =
-        ValutsManager::get_or_create(transaction, request.user_id, request.quote_asset_id).await?;
+        ValutsManager::get_or_create(transaction, &request.user_id, &request.quote_asset_id)
+            .await?;
 
     let request_quote_asset_volume = Value::Finite(request.quote_asset_volume.to_owned());
 
@@ -76,26 +76,29 @@ pub async fn submit<'t>(
 
         let taker_quote_asset_valut = ValutsManager::get_or_create(
             transaction,
-            trade_insert.taker_id,
-            request.quote_asset_id,
+            &trade_insert.taker_id,
+            &request.quote_asset_id,
         )
         .await?;
 
-        let taker_base_asset_valut =
-            ValutsManager::get_or_create(transaction, trade_insert.taker_id, request.base_asset_id)
-                .await?;
+        let taker_base_asset_valut = ValutsManager::get_or_create(
+            transaction,
+            &trade_insert.taker_id,
+            &request.base_asset_id,
+        )
+        .await?;
 
         let maker_quote_asset_valut = ValutsManager::get_or_create(
             transaction,
-            maker_order.maker_id,
-            maker_order.quote_asset_id,
+            &maker_order.maker_id,
+            &maker_order.quote_asset_id,
         )
         .await?;
 
         let maker_base_asset_valut = ValutsManager::get_or_create(
             transaction,
-            maker_order.maker_id,
-            maker_order.base_asset_id,
+            &maker_order.maker_id,
+            &maker_order.base_asset_id,
         )
         .await?;
 
@@ -108,7 +111,7 @@ pub async fn submit<'t>(
                 amount: trade_insert.taker_quote_volume.to_owned(),
                 fee_fraction: taker_quote_asset.maker_fee.to_owned(),
             },
-            &quote_fee_valut_id,
+            &fee_harvester_user_id,
             transaction,
         )
         .await?;
@@ -121,7 +124,7 @@ pub async fn submit<'t>(
                 amount: trade_insert.maker_quote_volume.to_owned(),
                 fee_fraction: taker_base_asset.taker_fee.to_owned(),
             },
-            &base_fee_valut_id,
+            &fee_harvester_user_id,
             transaction,
         )
         .await?;

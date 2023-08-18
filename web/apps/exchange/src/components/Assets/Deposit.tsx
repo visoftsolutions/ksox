@@ -10,12 +10,10 @@ import {
 } from "@packages/types/primitives/fraction";
 import TextInput from "../Inputs/TextInput";
 import { useWallet } from "@packages/components/providers/WalletProvider";
-import {
-  ABI as TREASURY_ABI,
-  ADDRESS as TREASURY_ADDRESS,
-} from "~/contract/treasury";
+import { ABI as TREASURY_ABI } from "~/contract/treasury";
 import { ABI as ERC20_ABI } from "~/contract/erc20";
 import { Address } from "viem";
+import { useContractAddress } from "@packages/components/providers/ContractAddressProvider";
 
 export default function CreateDeposit(asset?: Asset, precision?: number) {
   return () => (
@@ -38,16 +36,17 @@ const splitSig = (sig: string) => {
 };
 
 export function Deposit(props: { asset: Asset; precision: number }) {
+  const contractAddress = useContractAddress();
   const [amount, setAmount] = createSignal<Fraction>(fFromBigint(0n));
   const session = useSession();
   const wallet = useWallet();
   const [address, setAddress] = createSignal<Address | undefined>(
-    wallet.address,
+    wallet.address
   );
 
   createEffect(() => {
     setAddress(wallet.address);
-  })
+  });
 
   return (
     <>
@@ -83,7 +82,7 @@ export function Deposit(props: { asset: Asset; precision: number }) {
           onClick={async () => {
             const address_value = address();
             const value = BigInt(
-              Math.floor(ev(fmul(props.asset.decimals, amount()))),
+              Math.floor(ev(fmul(props.asset.decimals, amount())))
             );
             if (wallet && address_value && wallet.address) {
               const nonce = (await wallet.publicClient?.readContract({
@@ -99,7 +98,7 @@ export function Deposit(props: { asset: Asset; precision: number }) {
                 3600n;
 
               const domain = {
-                name: "TokenPermit",
+                name: props.asset.name,
                 version: "1",
                 chainId: BigInt(wallet.selected_network.network.id),
                 verifyingContract: props.asset.address as Address,
@@ -107,7 +106,7 @@ export function Deposit(props: { asset: Asset; precision: number }) {
 
               const permit = {
                 owner: wallet.address as Address,
-                spender: TREASURY_ADDRESS as Address,
+                spender: contractAddress!() as Address,
                 value,
                 nonce,
                 deadline,
@@ -138,7 +137,7 @@ export function Deposit(props: { asset: Asset; precision: number }) {
                 const { r, s, v } = splitSig(signature);
                 await wallet.walletClient?.writeContract({
                   chain: wallet.selected_network.network,
-                  address: TREASURY_ADDRESS,
+                  address: contractAddress!() as Address,
                   abi: TREASURY_ABI,
                   functionName: "depositPermit",
                   account: wallet.address as Address,

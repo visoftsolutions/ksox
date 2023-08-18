@@ -67,7 +67,7 @@ CREATE TABLE "transfers" (
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "from_valut_id" uuid NOT NULL,
   "to_valut_id" uuid NOT NULL,
-  "fee_valut_id" uuid NOT NULL,
+  "fee_harvester_user_id" uuid NOT NULL,
   "asset_id" uuid NOT NULL,
   "amount" fraction NOT NULL,
   "fee" fraction NOT NULL
@@ -75,7 +75,7 @@ CREATE TABLE "transfers" (
 
 ALTER TABLE "transfers" ADD FOREIGN KEY ("from_valut_id") REFERENCES "valuts" ("id");
 ALTER TABLE "transfers" ADD FOREIGN KEY ("to_valut_id") REFERENCES "valuts" ("id");
-ALTER TABLE "transfers" ADD FOREIGN KEY ("fee_valut_id") REFERENCES "valuts" ("id");
+ALTER TABLE "transfers" ADD FOREIGN KEY ("fee_harvester_user_id") REFERENCES "users" ("id");
 ALTER TABLE "transfers" ADD FOREIGN KEY ("asset_id") REFERENCES "assets" ("id");
 
 CREATE TABLE "spot"."orders" (

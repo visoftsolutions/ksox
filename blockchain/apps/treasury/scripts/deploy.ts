@@ -3,23 +3,55 @@ import { ethers } from "hardhat";
 async function main() {
   const [owner] = await ethers.getSigners();
 
+  const TokenFactory = await ethers.getContractFactory("Token");
+
+  const tokens = [
+    await TokenFactory.deploy("Wrapped Bitcoin", "BTC"),
+    await TokenFactory.deploy("Wrapped Ether", "ETH"),
+    await TokenFactory.deploy("Tether USD", "USDT"),
+  ];
+
   const TreasuryFactory = await ethers.getContractFactory("Treasury");
   const treasury = await TreasuryFactory.deploy("Treasury", owner);
+
+  console.log("waiting for token contracts to be deployed...");
+  for (let i = 0; i < tokens.length; i += 1) {
+    const token = tokens[i];
+    await token.waitForDeployment();
+  }
+  console.log("token contracts deployed");
+
+  console.log("waiting for treasury contract to be deployed...");
   await treasury.waitForDeployment();
-  console.log("Treasury Contract Address: ", await treasury.getAddress());
+  console.log("treasury contract deployed");
 
-  const TokenPermitFactory = await ethers.getContractFactory("TokenPermit");
-  const tokenPermit = await TokenPermitFactory.deploy("TokenPermit", "TOKP");
-  await tokenPermit.waitForDeployment();
-  console.log("tokenPermit Contract Address: ", await tokenPermit.getAddress());
+  const accounts = await ethers.getSigners();
+  const value = 1_000_000_000n * 10n ** 18n;
+  let transactionResponses = [];
 
-  const WethFactory = await ethers.getContractFactory("WETH");
-  const weth = await WethFactory.deploy("Wrapped Ether", "WETH");
-  await weth.waitForDeployment();
-  console.log("weth Contract Address: ", await weth.getAddress());
+  console.log("minting tokens...");
+  for (let i = 0; i < tokens.length; i += 1) {
+    const token = tokens[i];
+    for (let j = 0; j < accounts.length; j += 1) {
+      const account = accounts[j];
+      const contractTransactionResponse = await token.mint(
+        account.address,
+        value
+      );
+      transactionResponses.push(contractTransactionResponse);
+    }
+  }
+  for (let i = 0; i < transactionResponses.length; i += 1) {
+    const transactionResponse = transactionResponses[i];
+    await transactionResponse.wait();
+  }
+  console.log("tokens minted");
 
-  await (await tokenPermit.mint(owner.address, 100000n * 10n ** 18n)).wait();
-  console.log(`tokenPermit: ${owner.address} balance: ${await tokenPermit.balanceOf(owner.address)}`);
+  for (let i = 0; i < tokens.length; i += 1) {
+    const token = tokens[i];
+    console.log(`${await token.name()}: ${await token.getAddress()}`);
+  }
+  console.log(`${await treasury.name()}: ${await treasury.getAddress()}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

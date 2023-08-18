@@ -1,0 +1,32 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO valuts\n                (user_id, asset_id, balance, last_modification_at, created_at)\n            VALUES ($1, $2, $3::text, $4, $5)\n            RETURNING id, balance as \"balance: Value\"\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "balance: Value",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "e2b384665390c86352097e54703aa9f14ed2429c308beb7ec4bd40aae6cba610"
+}

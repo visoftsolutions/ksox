@@ -1,0 +1,102 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                owner as \"owner: Address\",\n                spender as \"spender: Address\",\n                asset as \"asset: Address\",\n                amount as \"amount: Fraction\",\n                tx_hash as \"tx_hash: TxHash\",\n                confirmations as \"confirmations: Fraction\"\n            FROM deposits\n            WHERE spender = $1\n            ORDER BY last_modification_at DESC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 2,
+        "name": "last_modification_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 3,
+        "name": "owner: Address",
+        "type_info": "Bpchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "spender: Address",
+        "type_info": "Bpchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "asset: Address",
+        "type_info": "Bpchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "amount: Fraction",
+        "type_info": {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "tx_hash: TxHash",
+        "type_info": "Bpchar"
+      },
+      {
+        "ordinal": 8,
+        "name": "confirmations: Fraction",
+        "type_info": {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bpchar"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "dc1d902015380c03c0c5d7fd7f50a23bd56c5c9a72a8a63fdbe61a2ab0857873"
+}

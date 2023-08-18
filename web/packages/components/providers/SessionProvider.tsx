@@ -6,8 +6,7 @@ import {
   onMount,
   useContext,
 } from "solid-js";
-import { sepolia } from "@wagmi/core";
-import { CustomTransport, WalletClient } from "viem";
+import { WalletClient } from "viem";
 import params from "@packages/utils/params";
 import {
   GenerateMessageRequest,
@@ -50,7 +49,7 @@ export function useSession() {
 
 export async function login(
   api_url: string,
-  wallet: WalletClient<CustomTransport, typeof sepolia>,
+  wallet: WalletClient,
 ) {
   const address = await wallet.getAddresses().then((addresses) => addresses[0]);
 

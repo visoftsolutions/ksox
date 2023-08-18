@@ -11,6 +11,7 @@ use ethers::{
     types::Signature,
 };
 
+use evm::address::Address;
 use sqlx::PgPool;
 use tokio::{
     select,
@@ -181,9 +182,12 @@ impl WithdrawsBlockchainManagerController {
             .await?;
 
         let permit = Permit {
-            owner: withdraw.owner.into(),
-            spender: withdraw.spender.into(),
-            token: withdraw.asset.into(),
+            chain_id: U256::from(31337),
+            name: "Treasury".to_string(),
+            verifying_contract: Address::from(self.contract.address()),
+            owner: withdraw.owner,
+            spender: withdraw.spender,
+            token: withdraw.asset,
             value: (withdraw.amount * asset.decimals).into(),
             nonce: withdraw.nonce.into(),
             deadline: U256::from(timestamp),

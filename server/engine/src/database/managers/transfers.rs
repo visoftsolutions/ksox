@@ -21,7 +21,7 @@ impl TransfersManager {
                 last_modification_at,
                 from_valut_id,
                 to_valut_id,
-                fee_valut_id,
+                fee_harvester_user_id,
                 asset_id,
                 amount,
                 fee
@@ -34,7 +34,7 @@ impl TransfersManager {
             now,
             element.from_valut_id,
             element.to_valut_id,
-            element.fee_valut_id,
+            element.fee_harvester_user_id,
             element.asset_id,
             element.amount.to_tuple_string() as _,
             element.fee.to_tuple_string() as _,
@@ -54,7 +54,7 @@ impl TransfersManager {
             SELECT 
                 from_valut_id,
                 to_valut_id,
-                fee_valut_id,
+                fee_harvester_user_id,
                 asset_id,
                 amount as "amount: Fraction",
                 fee as "fee: Fraction"
