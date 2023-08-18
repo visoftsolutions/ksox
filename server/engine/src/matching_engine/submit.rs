@@ -111,7 +111,7 @@ pub async fn submit<'t>(
                 amount: trade_insert.taker_quote_volume.to_owned(),
                 fee_fraction: taker_quote_asset.maker_fee.to_owned(),
             },
-            &fee_harvester_user_id,
+            fee_harvester_user_id,
             transaction,
         )
         .await?;
@@ -124,7 +124,7 @@ pub async fn submit<'t>(
                 amount: trade_insert.maker_quote_volume.to_owned(),
                 fee_fraction: taker_base_asset.taker_fee.to_owned(),
             },
-            &fee_harvester_user_id,
+            fee_harvester_user_id,
             transaction,
         )
         .await?;

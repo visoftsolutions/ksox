@@ -8,7 +8,7 @@ BEGIN
    LOOP
       INSERT INTO "valuts" ("user_id","asset_id","balance") VALUES ('00000000-0000-0000-0000-000000000000', asset.id, '{"Infinite":"Positive"}');
    END LOOP;
-END; $$;
+END; $$
 
 INSERT INTO "users" ("id", "address") VALUES ('ce3876ba-15b7-4409-8cf2-035fcc9d8687', '0x414822a3702e75973029060dac6438b6d6aaa55f');
 

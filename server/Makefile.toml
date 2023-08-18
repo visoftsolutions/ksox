@@ -23,7 +23,7 @@ script = "cargo udeps"
 [tasks.test]
 script = "cargo test --release"
 
-[tasks.sqlx-prepare]
+[tasks.sqlx]
 script = "cargo sqlx prepare --workspace --database-url postgresql://ksoxuser:ksoxuserp4ssword@localhost/ksox"
 
 [tasks.clean]
@@ -41,14 +41,6 @@ script = "sudo docker compose stop postgres"
 [tasks.default]
 alias = "total"
 
-[tasks.sqlx]
-dependencies = [
-    "delete_postgres",
-    "run_postgres",
-    "sqlx-prepare",
-    "stop_postgres",
-]
-
 [tasks.total]
 dependencies = [
     "delete_postgres",
@@ -61,5 +53,6 @@ dependencies = [
     "check",
     "clippy",
     "test",
+    "stop_postgres",
     # "udeps",
 ]
