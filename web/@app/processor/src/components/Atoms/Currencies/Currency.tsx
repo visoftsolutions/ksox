@@ -19,7 +19,7 @@ export default function Currency(props: ICurrency) {
       };
 
     return (<div
-        class={`rounded-xl ${props.selected ? "bg-r-light-modal-selected dark:bg-r-dark-modal-selected" : "bg-r-light-foreground dark:bg-r-dark-modal-foreground"}`}
+        class={`rounded-xl ${props.selected ? "bg-r-light-modal-selected dark:bg-r-dark-modal-selected" : "bg-r-light-foreground dark:bg-r-dark-modal-foreground"} cursor-pointer`}
         onClick={handleClick}
       >
         <div class="flex justify-between">

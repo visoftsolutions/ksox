@@ -10,7 +10,7 @@ import BellIcon from "../Atoms/Icons/BellIcon";
 export default function SideNavigation() {
   const nav = useNav();
   return (
-    <div class="grid grid-rows-3 ">
+    <div class="grid ">
       <A href="/">
         <SideNavButton
           name="Home"

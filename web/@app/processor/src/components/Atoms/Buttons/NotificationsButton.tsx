@@ -7,23 +7,40 @@ import { Palette } from "../Palette";
 import { useDarkModeContext } from "~/components/providers/DarkModeProvider";
 
 export interface INotificationsButton {
-    status?: boolean;
-    className?: string;
+  status?: boolean;
+  className?: string;
 }
 
 export default function NotificationsButton(props: INotificationsButton) {
+  const darkMode = useDarkModeContext();
+  const [status, setStatus] = createSignal(props.status);
 
-    const darkMode = useDarkModeContext();
-    const [status, setStatus] = createSignal(props.status);
+  const toggleStatus = () => {
+    setStatus(!status());
+  };
 
-    const toggleStatus = () => {
-        setStatus(!status());
-    }
-
-    return (
-            <button class={`relative w-8 h-8 p-0 ${props.className}`} onClick={toggleStatus}>
-                <Icon icon={darkMode.darkMode() ? BellIcon({stroke: Palette["r-dark-text"]}) : BellIcon({stroke:Palette["r-light-text"]})}/>
-                {status() ? <div class="absolute top-0 right-1 w-1 h-1 bg-red rounded-full z-100"></div> : null}
-            </button>
-    )
+  return (
+    <button
+      class={`relative h-8 w-8 p-0 ${props.className}`}
+      onClick={toggleStatus}
+    >
+      <div class={darkMode.darkMode() ? "" : "hidden"}>
+        <Icon
+          icon={
+            BellIcon({ stroke: Palette["r-dark-text"] })
+          }
+        />
+      </div>
+      <div class={darkMode.darkMode() ? "hidden" : ""}>
+        <Icon
+          icon={
+            BellIcon({ stroke: Palette["r-light-text"] })
+          }
+        />
+      </div>
+      {status() ? (
+        <div class="z-100 absolute right-1 top-0 h-1 w-1 rounded-full bg-red"></div>
+      ) : null}
+    </button>
+  );
 }

@@ -3,7 +3,7 @@ import Button from "./Atoms/Buttons/Button";
 import ArrowDownIcon from "./Atoms/Icons/ArrowDownIcon";
 import { Palette } from "./Atoms/Palette";
 import Picture from "./Atoms/Picture";
-import SlidingModal from "./Atoms/Modals/Modal";
+import Modal from "./Atoms/Modals/Modal";
 import { useCurrencyContext } from "./providers/CurrencyProvider";
 
 
@@ -45,7 +45,7 @@ export default function CurrencyDisplay() {
                 buttonClass="ml-2"
               />
               {isModalOpen() && (
-                <SlidingModal
+                <Modal
                   isOpen={isModalOpen()}
                   onClose={closeModal}
                   heightCells={8}

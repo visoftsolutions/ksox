@@ -14,7 +14,7 @@ export interface ITransaction {
 export default function Transaction(props: ITransaction) {
   return (
     <div
-      class="rounded-xl bg-r-light-foreground active:bg-r-light-background dark:bg-r-dark-foreground dark:active:bg-r-dark-active"
+      class="rounded-xl bg-r-light-foreground active:bg-r-light-background dark:bg-r-dark-foreground dark:active:bg-r-dark-active cursor-pointer"
       onClick={props.onClick || (() => {})}
     >
       <div class="flex justify-between">
