@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: server-config
+  namespace: ksox-finance
+data:
+  contract-address: "0x7a51979FD280B0A3210E115c0810298A7Bff98D3"
