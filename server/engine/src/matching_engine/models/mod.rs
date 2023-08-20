@@ -4,12 +4,12 @@ pub mod transfer;
 
 use thiserror::Error;
 
-use crate::database::projections::{order::OrderInsert, trade::Trade};
+use crate::database::projections::{order::OrderInsert, trade::TradeInsert};
 
 #[derive(Debug)]
 pub struct MatchingLoopResponse {
     pub order: Option<OrderInsert>,
-    pub trades: Vec<Trade>,
+    pub trades: Vec<TradeInsert>,
 }
 
 impl MatchingLoopResponse {

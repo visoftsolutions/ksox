@@ -10,7 +10,7 @@ pub struct AssetsManager {}
 impl AssetsManager {
     pub async fn get_by_id<'t>(
         t: &'t mut Transaction<'_, Postgres>,
-        id: Uuid,
+        id: &Uuid,
     ) -> sqlx::Result<Option<Asset>> {
         sqlx::query_as!(
             Asset,
@@ -19,7 +19,8 @@ impl AssetsManager {
                 id,
                 decimals as "decimals: Fraction",
                 maker_fee as "maker_fee: Fraction",
-                taker_fee as "taker_fee: Fraction"
+                taker_fee as "taker_fee: Fraction",
+                transfer_fee as "transfer_fee: Fraction"
             FROM assets
             WHERE assets.id = $1
             "#,

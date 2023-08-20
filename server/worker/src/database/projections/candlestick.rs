@@ -28,9 +28,7 @@ pub struct Candlestick {
     pub close: Fraction,
     pub span: i64,
     pub taker_quote_volume: Fraction,
-    pub taker_base_volume: Fraction,
     pub maker_quote_volume: Fraction,
-    pub maker_base_volume: Fraction,
 }
 
 impl Candlestick {
@@ -66,9 +64,7 @@ impl Candlestick {
             close: data.price,
             span,
             taker_quote_volume: data.taker_quote_volume,
-            taker_base_volume: data.taker_base_volume,
             maker_quote_volume: data.maker_quote_volume,
-            maker_base_volume: data.maker_base_volume,
         }
     }
 }
@@ -81,9 +77,7 @@ pub struct CandlestickData {
     pub time: DateTime<Utc>,
     pub price: Fraction,
     pub taker_quote_volume: Fraction,
-    pub taker_base_volume: Fraction,
     pub maker_quote_volume: Fraction,
-    pub maker_base_volume: Fraction,
 }
 
 impl From<Trade> for CandlestickData {
@@ -96,9 +90,7 @@ impl From<Trade> for CandlestickData {
             time: value.created_at,
             price: value.price,
             taker_quote_volume: value.taker_quote_volume,
-            taker_base_volume: value.taker_base_volume,
             maker_quote_volume: value.maker_quote_volume,
-            maker_base_volume: value.maker_base_volume,
         }
     }
 }

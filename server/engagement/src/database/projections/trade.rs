@@ -16,7 +16,5 @@ pub struct Trade {
     pub maker_presentation: bool,
     pub price: Fraction,
     pub taker_quote_volume: Fraction,
-    pub taker_base_volume: Fraction,
     pub maker_quote_volume: Fraction,
-    pub maker_base_volume: Fraction,
 }

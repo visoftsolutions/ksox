@@ -16,9 +16,7 @@ pub struct Trade {
     pub maker_presentation: bool,
     pub price: Fraction,
     pub taker_quote_volume: Fraction,
-    pub taker_base_volume: Fraction,
     pub maker_quote_volume: Fraction,
-    pub maker_base_volume: Fraction,
 }
 
 impl Trade {
@@ -37,10 +35,8 @@ impl Trade {
             maker_id: self.maker_id,
             maker_presentation: self.maker_presentation,
             price: self.price.inv(),
-            taker_quote_volume: self.taker_base_volume,
-            taker_base_volume: self.taker_quote_volume,
-            maker_quote_volume: self.maker_base_volume,
-            maker_base_volume: self.maker_quote_volume,
+            taker_quote_volume: self.maker_quote_volume,
+            maker_quote_volume: self.taker_quote_volume,
         }
     }
 }

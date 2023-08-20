@@ -8,4 +8,5 @@ pub struct Asset {
     pub decimals: Fraction,
     pub maker_fee: Fraction,
     pub taker_fee: Fraction,
+    pub transfer_fee: Fraction,
 }

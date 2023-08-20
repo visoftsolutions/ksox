@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT COALESCE(COUNT(*), 0) as count\n            FROM transfers\n            WHERE transfers.taker_id = $1\n            ",
+  "query": "\n            SELECT COALESCE(COUNT(*), 0) as count\n            FROM transfers\n            WHERE transfers.to_valut_id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -18,5 +18,5 @@
       null
     ]
   },
-  "hash": "99e48bc886b65b2652d0941979e9c4f6b093244412399ac19fd753271acec754"
+  "hash": "c66759fbec29d651649eb71da1897fcdc59a70aa4d04b1d237bbcf0ac4fd0320"
 }

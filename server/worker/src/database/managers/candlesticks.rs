@@ -43,9 +43,7 @@ impl CandlesticksManager {
                 close as "close: Fraction",
                 span,
                 taker_quote_volume as "taker_quote_volume: Fraction",
-                taker_base_volume as "taker_base_volume: Fraction",
-                maker_quote_volume as "maker_quote_volume: Fraction",
-                maker_base_volume as "maker_base_volume: Fraction"
+                maker_quote_volume as "maker_quote_volume: Fraction"
             FROM spot.candlesticks
             WHERE spot.candlesticks.quote_asset_id = $1 AND spot.candlesticks.base_asset_id = $2
             AND spot.candlesticks.topen = $3 AND spot.candlesticks.tclose = $4
@@ -81,9 +79,7 @@ impl CandlesticksManager {
                 close as "close: Fraction",
                 span,
                 taker_quote_volume as "taker_quote_volume: Fraction",
-                taker_base_volume as "taker_base_volume: Fraction",
-                maker_quote_volume as "maker_quote_volume: Fraction",
-                maker_base_volume as "maker_base_volume: Fraction"
+                maker_quote_volume as "maker_quote_volume: Fraction"
             FROM spot.candlesticks
             WHERE last_modification_at > $1
             ORDER BY last_modification_at ASC
@@ -115,9 +111,7 @@ impl CandlesticksManager {
                     close,
                     span,
                     taker_quote_volume,
-                    taker_base_volume,
-                    maker_quote_volume,
-                    maker_base_volume    
+                    maker_quote_volume
                 )
             VALUES
                 (
@@ -135,9 +129,7 @@ impl CandlesticksManager {
                     $12::fraction,
                     $13,
                     $14::fraction,
-                    $15::fraction,
-                    $16::fraction,
-                    $17::fraction
+                    $15::fraction
                 )
             "#,
             element.id,
@@ -154,9 +146,7 @@ impl CandlesticksManager {
             element.close.to_tuple_string() as _,
             element.span,
             element.taker_quote_volume.to_tuple_string() as _,
-            element.taker_base_volume.to_tuple_string() as _,
             element.maker_quote_volume.to_tuple_string() as _,
-            element.maker_base_volume.to_tuple_string() as _
         )
         .execute(&self.database)
         .await
