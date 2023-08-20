@@ -55,9 +55,7 @@ impl Ohlcv {
             candlestick.low = min(&candlestick.low, &data.price).to_owned();
             candlestick.close = data.price;
             candlestick.taker_quote_volume += data.taker_quote_volume;
-            candlestick.taker_base_volume += data.taker_base_volume;
             candlestick.maker_quote_volume += data.maker_quote_volume;
-            candlestick.maker_base_volume += data.maker_base_volume;
             Ok(candlestick)
         } else {
             Ok(Candlestick::from_data(

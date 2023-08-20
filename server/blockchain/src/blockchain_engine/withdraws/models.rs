@@ -37,6 +37,10 @@ impl WithdrawQueue {
         self.entries.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+
     pub fn eval(&mut self, time: &DateTime<Utc>) -> Vec<WithdrawQueueValue> {
         let mut expired = Vec::new();
         while let Some((_, value)) = self.entries.front() {

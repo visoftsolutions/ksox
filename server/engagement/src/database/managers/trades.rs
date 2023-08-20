@@ -41,9 +41,7 @@ impl TradesManager {
                 spot.orders.maker_presentation,
                 spot.trades.price as "price: Fraction",
                 spot.trades.taker_quote_volume as "taker_quote_volume: Fraction",
-                spot.trades.taker_base_volume as "taker_base_volume: Fraction",
-                spot.trades.maker_quote_volume as "maker_quote_volume: Fraction",
-                spot.trades.maker_base_volume as "maker_base_volume: Fraction"
+                spot.trades.maker_quote_volume as "maker_quote_volume: Fraction"
             FROM spot.trades
             JOIN spot.orders ON spot.orders.id = spot.trades.order_id
             WHERE spot.trades.last_modification_at > $1

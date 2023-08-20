@@ -91,7 +91,7 @@ impl WithdrawsBlockchainManager {
 
                                 for expired in withdraw_queue.eval(&time) {
                                     engine_client.revert_transfer(engine_base::RevertTransferRequest {
-                                        id: expired.transfer.to_string()
+                                        transfer_id: expired.transfer.to_string()
                                     }).await?;
                                 }
 
@@ -153,7 +153,7 @@ impl WithdrawsBlockchainManagerController {
             asset: request.asset.to_owned(),
             amount: request.amount.to_owned(),
             nonce: self.contract.nonces(*request.spender).await?.into(),
-            deadline
+            deadline,
         };
 
         let withdraw = WithdrawsManager::insert(&mut t, &insert).await?;
@@ -163,7 +163,7 @@ impl WithdrawsBlockchainManagerController {
                 .transfer(withdraw.as_transfer_request(&mut t).await?)
                 .await?
                 .into_inner()
-                .id
+                .transfer_id
                 .as_str(),
         )?;
 

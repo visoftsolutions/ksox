@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            INSERT INTO \n                spot.candlesticks \n                (\n                    id,\n                    created_at,\n                    last_modification_at,\n                    quote_asset_id,\n                    base_asset_id,\n                    kind,\n                    topen,\n                    tclose,\n                    open,\n                    high,\n                    low,\n                    close,\n                    span,\n                    taker_quote_volume,\n                    taker_base_volume,\n                    maker_quote_volume,\n                    maker_base_volume    \n                )\n            VALUES\n                (\n                    $1,\n                    $2,\n                    $3,\n                    $4,\n                    $5,\n                    $6::candlestick_type,\n                    $7,\n                    $8,\n                    $9::fraction,\n                    $10::fraction,\n                    $11::fraction,\n                    $12::fraction,\n                    $13,\n                    $14::fraction,\n                    $15::fraction,\n                    $16::fraction,\n                    $17::fraction\n                )\n            ",
+  "query": "\n            INSERT INTO \n                spot.candlesticks \n                (\n                    id,\n                    created_at,\n                    last_modification_at,\n                    quote_asset_id,\n                    base_asset_id,\n                    kind,\n                    topen,\n                    tclose,\n                    open,\n                    high,\n                    low,\n                    close,\n                    span,\n                    taker_quote_volume,\n                    maker_quote_volume\n                )\n            VALUES\n                (\n                    $1,\n                    $2,\n                    $3,\n                    $4,\n                    $5,\n                    $6::candlestick_type,\n                    $7,\n                    $8,\n                    $9::fraction,\n                    $10::fraction,\n                    $11::fraction,\n                    $12::fraction,\n                    $13,\n                    $14::fraction,\n                    $15::fraction\n                )\n            ",
   "describe": {
     "columns": [],
     "parameters": {
@@ -125,44 +125,10 @@
               ]
             }
           }
-        },
-        {
-          "Custom": {
-            "name": "fraction",
-            "kind": {
-              "Composite": [
-                [
-                  "numer",
-                  "Numeric"
-                ],
-                [
-                  "denom",
-                  "Numeric"
-                ]
-              ]
-            }
-          }
-        },
-        {
-          "Custom": {
-            "name": "fraction",
-            "kind": {
-              "Composite": [
-                [
-                  "numer",
-                  "Numeric"
-                ],
-                [
-                  "denom",
-                  "Numeric"
-                ]
-              ]
-            }
-          }
         }
       ]
     },
     "nullable": []
   },
-  "hash": "b5f6e065e842b3a4297044ef768518eb9623ff72f99413ecdd2e7d027f4c5d4a"
+  "hash": "9cc2166deaf32ac975e8897e889b154e2cbc3e3c7add746cd8d2192daf8927d7"
 }

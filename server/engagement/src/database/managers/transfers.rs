@@ -32,8 +32,8 @@ impl TransfersManager {
                 transfers.id,
                 transfers.created_at,
                 transfers.last_modification_at,
-                transfers.maker_id,
-                transfers.taker_id,
+                transfers.from_valut_id,
+                transfers.to_valut_id,
                 transfers.asset_id,
                 transfers.amount as "amount: Fraction"
             FROM transfers
@@ -52,7 +52,7 @@ impl TransfersManager {
             r#"
             SELECT COALESCE(COUNT(*), 0) as count
             FROM transfers
-            WHERE transfers.maker_id = $1
+            WHERE transfers.from_valut_id = $1
             "#,
             user_id
         )
@@ -67,7 +67,7 @@ impl TransfersManager {
             r#"
             SELECT COALESCE(COUNT(*), 0) as count
             FROM transfers
-            WHERE transfers.taker_id = $1
+            WHERE transfers.to_valut_id = $1
             "#,
             user_id
         )

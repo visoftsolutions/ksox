@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                name,\n                symbol,\n                address as \"address: Address\",\n                decimals as \"decimals: Fraction\",\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\"\n            FROM assets\n            WHERE last_modification_at > $1\n            ORDER BY last_modification_at ASC\n            ",
+  "query": "\n            SELECT\n                transfers.id,\n                transfers.created_at,\n                transfers.last_modification_at,\n                transfers.from_valut_id,\n                from_valuts.user_id as from_user_id,\n                transfers.to_valut_id,\n                to_valuts.user_id as to_user_id,\n                transfers.asset_id,\n                transfers.amount as \"amount: Fraction\",\n                transfers.fee as \"fee: Fraction\"\n            FROM transfers\n            JOIN valuts from_valuts ON transfers.from_valut_id = from_valuts.id\n            JOIN valuts to_valuts ON transfers.to_valut_id = to_valuts.id\n            ",
   "describe": {
     "columns": [
       {
@@ -20,43 +20,32 @@
       },
       {
         "ordinal": 3,
-        "name": "name",
-        "type_info": "Varchar"
+        "name": "from_valut_id",
+        "type_info": "Uuid"
       },
       {
         "ordinal": 4,
-        "name": "symbol",
-        "type_info": "Varchar"
+        "name": "from_user_id",
+        "type_info": "Uuid"
       },
       {
         "ordinal": 5,
-        "name": "address: Address",
-        "type_info": "Bpchar"
+        "name": "to_valut_id",
+        "type_info": "Uuid"
       },
       {
         "ordinal": 6,
-        "name": "decimals: Fraction",
-        "type_info": {
-          "Custom": {
-            "name": "fraction",
-            "kind": {
-              "Composite": [
-                [
-                  "numer",
-                  "Numeric"
-                ],
-                [
-                  "denom",
-                  "Numeric"
-                ]
-              ]
-            }
-          }
-        }
+        "name": "to_user_id",
+        "type_info": "Uuid"
       },
       {
         "ordinal": 7,
-        "name": "maker_fee: Fraction",
+        "name": "asset_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 8,
+        "name": "amount: Fraction",
         "type_info": {
           "Custom": {
             "name": "fraction",
@@ -76,8 +65,8 @@
         }
       },
       {
-        "ordinal": 8,
-        "name": "taker_fee: Fraction",
+        "ordinal": 9,
+        "name": "fee: Fraction",
         "type_info": {
           "Custom": {
             "name": "fraction",
@@ -98,11 +87,10 @@
       }
     ],
     "parameters": {
-      "Left": [
-        "Timestamptz"
-      ]
+      "Left": []
     },
     "nullable": [
+      false,
       false,
       false,
       false,
@@ -114,5 +102,5 @@
       false
     ]
   },
-  "hash": "216a8a580a79ae399446698a4ea522ade35c5a7de07ded6630242a118f552028"
+  "hash": "2f8dbb1d2d5ba67391495189c60af594d83dbd744061b0fd713e271ac57100be"
 }

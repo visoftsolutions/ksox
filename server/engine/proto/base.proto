@@ -18,20 +18,22 @@ message CancelRequest {
 message CancelResponse {}
 
 message TransferRequest {
-    string maker_id = 1;
-    string taker_id = 2;
+    string from_valut_id = 1;
+    string to_valut_id = 2;
     string asset_id = 3;
     string amount = 4;
+    string fee_fraction = 5;
 }
 message TransferResponse {
-    string id = 1;
+    string transfer_id = 1;
 }
 
 message RevertTransferRequest {
-    string id = 1;
+    string transfer_id = 1;
 }
 message RevertTransferResponse {
-    string id = 1;
+    string amount_transfer_id = 1;
+    string fee_transfer_id = 2;
 }
 
 service Engine {

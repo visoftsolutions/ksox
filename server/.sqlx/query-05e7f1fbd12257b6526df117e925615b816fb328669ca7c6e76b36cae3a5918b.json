@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT\n                spot.trades.id,\n                spot.trades.created_at,\n                spot.trades.last_modification_at,\n                spot.trades.quote_asset_id,\n                spot.trades.base_asset_id,\n                spot.trades.taker_id,\n                spot.trades.taker_presentation,\n                spot.orders.maker_id,\n                spot.orders.maker_presentation,\n                spot.trades.price as \"price: Fraction\",\n                spot.trades.taker_quote_volume as \"taker_quote_volume: Fraction\",\n                spot.trades.taker_base_volume as \"taker_base_volume: Fraction\",\n                spot.trades.maker_quote_volume as \"maker_quote_volume: Fraction\",\n                spot.trades.maker_base_volume as \"maker_base_volume: Fraction\"\n            FROM spot.trades\n            JOIN spot.orders ON spot.orders.id = spot.trades.order_id\n            WHERE (spot.trades.quote_asset_id = $1 AND spot.trades.base_asset_id = $2) OR (spot.trades.quote_asset_id = $2 AND spot.trades.base_asset_id = $1)\n            ORDER BY spot.trades.created_at DESC\n            LIMIT 1\n            ",
+  "query": "\n            SELECT\n                spot.trades.id,\n                spot.trades.created_at,\n                spot.trades.last_modification_at,\n                spot.trades.quote_asset_id,\n                spot.trades.base_asset_id,\n                spot.trades.taker_id,\n                spot.trades.taker_presentation,\n                spot.orders.maker_id,\n                spot.orders.maker_presentation,\n                spot.trades.price as \"price: Fraction\",\n                spot.trades.taker_quote_volume as \"taker_quote_volume: Fraction\",\n                spot.trades.maker_quote_volume as \"maker_quote_volume: Fraction\"\n            FROM spot.trades\n            JOIN spot.orders ON spot.orders.id = spot.trades.order_id\n            WHERE ((spot.trades.quote_asset_id = $1 AND spot.trades.base_asset_id = $2) OR (spot.trades.quote_asset_id = $2 AND spot.trades.base_asset_id = $1)) AND spot.trades.created_at >= $3 AND spot.trades.created_at < $4\n            ",
   "describe": {
     "columns": [
       {
@@ -92,49 +92,7 @@
       },
       {
         "ordinal": 11,
-        "name": "taker_base_volume: Fraction",
-        "type_info": {
-          "Custom": {
-            "name": "fraction",
-            "kind": {
-              "Composite": [
-                [
-                  "numer",
-                  "Numeric"
-                ],
-                [
-                  "denom",
-                  "Numeric"
-                ]
-              ]
-            }
-          }
-        }
-      },
-      {
-        "ordinal": 12,
         "name": "maker_quote_volume: Fraction",
-        "type_info": {
-          "Custom": {
-            "name": "fraction",
-            "kind": {
-              "Composite": [
-                [
-                  "numer",
-                  "Numeric"
-                ],
-                [
-                  "denom",
-                  "Numeric"
-                ]
-              ]
-            }
-          }
-        }
-      },
-      {
-        "ordinal": 13,
-        "name": "maker_base_volume: Fraction",
         "type_info": {
           "Custom": {
             "name": "fraction",
@@ -157,7 +115,9 @@
     "parameters": {
       "Left": [
         "Uuid",
-        "Uuid"
+        "Uuid",
+        "Timestamptz",
+        "Timestamptz"
       ]
     },
     "nullable": [
@@ -172,10 +132,8 @@
       false,
       false,
       false,
-      false,
-      false,
       false
     ]
   },
-  "hash": "4f2ba127b08dd2459f07312b7ca5e30919a0f3325dc1d4683fcab36dada4f69a"
+  "hash": "05e7f1fbd12257b6526df117e925615b816fb328669ca7c6e76b36cae3a5918b"
 }

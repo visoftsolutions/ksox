@@ -3,6 +3,7 @@ use ethers::prelude::LogMeta;
 use evm::{address::Address, txhash::TxHash};
 use fraction::{num_traits::One, Fraction};
 use num_bigint::BigInt;
+use num_traits::Zero;
 use serde::{Deserialize, Serialize};
 use sqlx::{Postgres, Transaction};
 use uuid::Uuid;
@@ -11,7 +12,7 @@ use super::Confirmable;
 use crate::{
     blockchain_engine::models::BlockchainEngineError,
     contracts::treasury::DepositFilter,
-    database::managers::{assets::AssetsManager, users::UsersManager},
+    database::managers::{assets::AssetsManager, users::UsersManager, valuts::ValutsManager},
     engine_base,
 };
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
@@ -28,19 +29,28 @@ pub struct Deposit {
 }
 
 impl Deposit {
-    pub async fn as_transfer_request<'t, 'p>(
+    pub async fn as_transfer_request<'t>(
         &self,
-        t: &'t mut Transaction<'p, Postgres>,
+        transaction: &'t mut Transaction<'_, Postgres>,
     ) -> Result<engine_base::TransferRequest, BlockchainEngineError> {
-        let taker_id = UsersManager::get_or_create_by_address(t, &self.owner)
+        let taker_id = UsersManager::get_or_create_by_address(transaction, &self.owner)
             .await?
             .id;
-        let asset_id = AssetsManager::get_by_address(t, &self.asset).await?.id;
+        let asset_id = AssetsManager::get_by_address(transaction, &self.asset)
+            .await?
+            .id;
+        let from_valut_id = ValutsManager::get_or_create(transaction, Uuid::default(), asset_id)
+            .await?
+            .id;
+        let to_valut_id = ValutsManager::get_or_create(transaction, taker_id, asset_id)
+            .await?
+            .id;
         Ok::<engine_base::TransferRequest, BlockchainEngineError>(engine_base::TransferRequest {
-            maker_id: Uuid::default().to_string(),
-            taker_id: taker_id.to_string(),
+            from_valut_id: from_valut_id.to_string(),
+            to_valut_id: to_valut_id.to_string(),
             asset_id: asset_id.to_string(),
             amount: serde_json::to_string(&self.amount)?,
+            fee_fraction: serde_json::to_string(&Fraction::zero())?,
         })
     }
 }

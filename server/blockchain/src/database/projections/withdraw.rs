@@ -2,6 +2,7 @@ use chrono::{DateTime, NaiveDateTime, Utc};
 use evm::address::Address;
 use fraction::Fraction;
 use num_traits::ToPrimitive;
+use num_traits::Zero;
 use serde::{Deserialize, Serialize};
 use sqlx::{Postgres, Transaction};
 use uuid::Uuid;
@@ -9,7 +10,7 @@ use uuid::Uuid;
 use crate::{
     blockchain_engine::models::BlockchainEngineError,
     contracts::treasury::WithdrawFilter,
-    database::managers::{assets::AssetsManager, users::UsersManager},
+    database::managers::{assets::AssetsManager, users::UsersManager, valuts::ValutsManager},
     engine_base,
 };
 
@@ -29,17 +30,28 @@ pub struct Withdraw {
 }
 
 impl Withdraw {
-    pub async fn as_transfer_request<'t, 'p>(
+    pub async fn as_transfer_request<'t>(
         &self,
-        t: &'t mut Transaction<'p, Postgres>,
+        transaction: &'t mut Transaction<'_, Postgres>,
     ) -> Result<engine_base::TransferRequest, BlockchainEngineError> {
-        let maker_id = UsersManager::get_by_address(t, &self.spender).await?.id;
-        let asset_id = AssetsManager::get_by_address(t, &self.asset).await?.id;
+        let maker_id = UsersManager::get_by_address(transaction, &self.spender)
+            .await?
+            .id;
+        let asset_id = AssetsManager::get_by_address(transaction, &self.asset)
+            .await?
+            .id;
+        let from_valut_id = ValutsManager::get_or_create(transaction, maker_id, asset_id)
+            .await?
+            .id;
+        let to_valut_id = ValutsManager::get_or_create(transaction, Uuid::default(), asset_id)
+            .await?
+            .id;
         Ok::<engine_base::TransferRequest, BlockchainEngineError>(engine_base::TransferRequest {
-            maker_id: maker_id.to_string(),
-            taker_id: Uuid::default().to_string(),
+            from_valut_id: from_valut_id.to_string(),
+            to_valut_id: to_valut_id.to_string(),
             asset_id: asset_id.to_string(),
             amount: serde_json::to_string(&self.amount)?,
+            fee_fraction: serde_json::to_string(&Fraction::zero())?,
         })
     }
 }

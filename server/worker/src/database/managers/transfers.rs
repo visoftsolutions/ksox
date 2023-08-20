@@ -31,12 +31,17 @@ impl TransfersManager {
                 transfers.id,
                 transfers.created_at,
                 transfers.last_modification_at,
-                transfers.maker_id,
-                transfers.taker_id,
+                transfers.from_valut_id,
+                from_valuts.user_id as from_user_id,
+                transfers.to_valut_id,
+                to_valuts.user_id as to_user_id,
                 transfers.asset_id,
-                transfers.amount as "amount: Fraction"
+                transfers.amount as "amount: Fraction",
+                transfers.fee as "fee: Fraction"
             FROM transfers
-            WHERE last_modification_at > $1
+            JOIN valuts from_valuts ON transfers.from_valut_id = from_valuts.id
+            JOIN valuts to_valuts ON transfers.to_valut_id = to_valuts.id
+            WHERE transfers.last_modification_at > $1
             ORDER BY last_modification_at ASC
             "#,
             last_modification_at
@@ -53,11 +58,16 @@ impl TransfersManager {
                 transfers.id,
                 transfers.created_at,
                 transfers.last_modification_at,
-                transfers.maker_id,
-                transfers.taker_id,
+                transfers.from_valut_id,
+                from_valuts.user_id as from_user_id,
+                transfers.to_valut_id,
+                to_valuts.user_id as to_user_id,
                 transfers.asset_id,
-                transfers.amount as "amount: Fraction"
+                transfers.amount as "amount: Fraction",
+                transfers.fee as "fee: Fraction"
             FROM transfers
+            JOIN valuts from_valuts ON transfers.from_valut_id = from_valuts.id
+            JOIN valuts to_valuts ON transfers.to_valut_id = to_valuts.id
             "#
         )
         .fetch(&self.database)
@@ -76,12 +86,17 @@ impl TransfersManager {
                 transfers.id,
                 transfers.created_at,
                 transfers.last_modification_at,
-                transfers.maker_id,
-                transfers.taker_id,
+                transfers.from_valut_id,
+                from_valuts.user_id as from_user_id,
+                transfers.to_valut_id,
+                to_valuts.user_id as to_user_id,
                 transfers.asset_id,
-                transfers.amount as "amount: Fraction"
+                transfers.amount as "amount: Fraction",
+                transfers.fee as "fee: Fraction"
             FROM transfers
-            WHERE transfers.taker_id = $1 OR transfers.maker_id = $1
+            JOIN valuts from_valuts ON transfers.from_valut_id = from_valuts.id
+            JOIN valuts to_valuts ON transfers.to_valut_id = to_valuts.id
+            WHERE transfers.to_valut_id = $1 OR transfers.from_valut_id = $1
             ORDER BY transfers.created_at DESC
             LIMIT $2
             OFFSET $3
@@ -112,7 +127,7 @@ impl TransfersNotificationManager {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
                 NotificationManagerPredicateInput::Transfers(transfer) => {
-                    transfer.taker_id == user_id
+                    transfer.to_user_id == user_id
                 }
                 _ => false,
             }
@@ -143,7 +158,7 @@ impl TransfersNotificationManager {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
                 NotificationManagerPredicateInput::Transfers(transfer) => {
-                    transfer.taker_id == user_id || transfer.maker_id == user_id
+                    transfer.from_user_id == user_id || transfer.to_user_id == user_id
                 }
                 _ => false,
             }

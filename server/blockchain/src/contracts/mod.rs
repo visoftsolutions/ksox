@@ -34,7 +34,7 @@ impl Eip712 for Permit {
         Ok(EIP712Domain {
             name: Some(self.name.to_owned()),
             version: Some("1".to_string()),
-            chain_id: Some(U256::from(31337)),
+            chain_id: Some(self.chain_id),
             verifying_contract: Some(self.verifying_contract.to_owned().into()),
             salt: None,
         })

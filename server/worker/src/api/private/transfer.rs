@@ -11,7 +11,8 @@ use crate::{
 
 #[derive(Deserialize, Serialize)]
 pub struct Request {
-    pub taker_id: Uuid,
+    pub from_user_id: Uuid,
+    pub to_user_id: Uuid,
     pub asset_id: Uuid,
     pub amount: Fraction,
 }
@@ -23,16 +24,28 @@ pub struct Response {
 
 pub async fn root(
     State(mut state): State<AppState>,
-    user_id: UserId,
+    _user_id: UserId,
     Json(payload): Json<Request>,
 ) -> Result<Json<Response>, AppError> {
+    let from_valut_id = state
+        .valuts_manager
+        .get_for_user_asset(payload.from_user_id, payload.asset_id)
+        .await?
+        .id;
+    let to_valut_id = state
+        .valuts_manager
+        .get_for_user_asset(payload.to_user_id, payload.asset_id)
+        .await?
+        .id;
+    let asset = state.assets_manager.get_by_id(&payload.asset_id).await?;
     let response = state
         .engine_client
         .transfer(TransferRequest {
-            maker_id: (*user_id).to_string(),
-            taker_id: payload.taker_id.to_string(),
-            asset_id: payload.asset_id.to_string(),
+            from_valut_id: from_valut_id.to_string(),
+            to_valut_id: to_valut_id.to_string(),
+            asset_id: asset.id.to_string(),
             amount: serde_json::to_string(&payload.amount)?,
+            fee_fraction: asset.transfer_fee.to_string(),
         })
         .await?
         .into_inner();
