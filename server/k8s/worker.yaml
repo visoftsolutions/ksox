@@ -38,9 +38,15 @@ spec:
             - name: KSOX_SERVER_ENGINE_URL
               value: "http://ksox-server-engine/"
             - name: CONTRACT_PRIVATE_KEY
-              value: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+              valueFrom:
+                secretKeyRef:
+                  name: contract-private-key
+                  key: key
             - name: CONTRACT_ADDRESS
-              value: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
+              valueFrom:
+                configMapKeyRef:
+                  name: server-config
+                  key: contract-address
             - name: DEPOSIT_CONFIRMATIONS
               value: "5"
             - name: TESTS_CASES
