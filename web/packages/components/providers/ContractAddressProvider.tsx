@@ -1,8 +1,7 @@
 import {
   Accessor,
   createContext,
-  createEffect,
-  createResource,
+  onMount,
   createSignal,
   JSX,
   useContext,
