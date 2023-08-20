@@ -30,7 +30,10 @@ spec:
             - name: KSOX_SERVER_BLOCKCHAIN_URL
               value: "http://ksox-server-blockchain/"
             - name: KSOX_WS_BLOCKCHAIN_URL
-              value: "ws://ksox-blockchain:8545/"
+              valueFrom:
+                secretKeyRef:
+                  name: ws-blockchain-url
+                  key: url
             - name: KSOX_POSTGRES_URL
               value: "postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox"
             - name: KSOX_REDIS_URL
