@@ -1,7 +1,7 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
-  name: web-processor-deployment
+  name: web-processor-daemonset
   namespace: ksox-finance
   labels:
     app: web-processor
@@ -49,7 +49,7 @@ metadata:
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$1
 spec:
-  ingressClassName: ingress-nginx
+  ingressClassName: ingress-nginx-prod
   tls:
     - hosts:
         - pay.ksox.finance

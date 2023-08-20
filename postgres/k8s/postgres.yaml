@@ -1,3 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pv-claim
+  namespace: ksox-finance
+spec:
+  storageClassName: rook-ceph-ec-block
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1024Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:

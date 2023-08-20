@@ -16,3 +16,11 @@ spec:
         selector:
           dnsZones:
             - ksox.finance
+
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: ksox-finance-selfsigned
+  namespace: ksox-finance
+spec:
+  selfSigned: {}
