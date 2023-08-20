@@ -10,7 +10,7 @@
     "@packages/eslint": "1.0.0",
     "@packages/prettier": "1.0.0",
     "@packages/tailwind": "1.0.0",
-    "solid-start-node": "^0.3.2",
+    "solid-start-node": "^0.3.3",
     "typescript": "^5.1.6",
     "vite": "^4.4.9"
   },
@@ -22,10 +22,10 @@
     "@web3modal/html": "^2.7.1",
     "numerable": "^0.3.15",
     "solid-js": "^1.7.11",
-    "solid-start": "^0.3.2",
+    "solid-start": "^0.3.3",
     "undici": "^5.23.0",
     "viem": "^1.6.0",
-    "zod": "^3.21.4"
+    "zod": "^3.22.1"
   },
   "engines": {
     "node": ">=18"

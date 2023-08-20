@@ -41,7 +41,7 @@ export function Deposit(props: { asset: Asset; precision: number }) {
   const session = useSession();
   const wallet = useWallet();
   const [address, setAddress] = createSignal<Address | undefined>(
-    wallet.address
+    wallet.address,
   );
 
   createEffect(() => {
@@ -82,7 +82,7 @@ export function Deposit(props: { asset: Asset; precision: number }) {
           onClick={async () => {
             const address_value = address();
             const value = BigInt(
-              Math.floor(ev(fmul(props.asset.decimals, amount())))
+              Math.floor(ev(fmul(props.asset.decimals, amount()))),
             );
             if (wallet && address_value && wallet.address) {
               const nonce = (await wallet.publicClient?.readContract({

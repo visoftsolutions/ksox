@@ -66,9 +66,9 @@ export function AssetInfo(props: {
       <div class="col-start-2 col-end-3 grid grid-cols-[auto_1fr] items-center justify-center">
         <div class="col-start-1 col-end-2 text-ellipsis text-white">{`${props.asset?.name} (${props.asset?.symbol})`}</div>
         <div class="col-start-2 col-end-3 text-ellipsis text-right text-xl font-bold">
-          {balance()?.Finite != undefined
+          {balance()?.Finite
             ? format(
-                ev(balance()?.Finite!),
+                ev(balance()?.Finite),
                 formatTemplate(props.precision ?? 3),
               )
             : "---"}
