@@ -23,17 +23,11 @@ script = "cargo udeps"
 [tasks.test]
 script = "cargo test --release"
 
+[tasks.sqlx]
+script = "cargo sqlx prepare --workspace --database-url postgresql://ksoxuser:ksoxuserp4ssword@localhost/ksox"
+
 [tasks.clean]
 script = "cargo clean"
-dependencies = [
-    { name = "clean", path = "blockchain" },
-    { name = "clean", path = "engagement" },
-    { name = "clean", path = "engine" },
-    { name = "clean", path = "worker" },
-    { name = "clean", path = "types/fraction" },
-    { name = "clean", path = "types/pricelevel" },
-    { name = "clean", path = "types/evm" },
-]
 
 [tasks.delete_postgres]
 script = "sudo docker compose rm -vsf postgres"
@@ -47,17 +41,6 @@ script = "sudo docker compose stop postgres"
 [tasks.default]
 alias = "total"
 
-[tasks.sqlx]
-dependencies = [
-    "delete_postgres",
-    "run_postgres",
-    { name = "sqlx", path = "engagement" },
-    { name = "sqlx", path = "engine" },
-    { name = "sqlx", path = "worker" },
-    { name = "sqlx", path = "blockchain" },
-    "stop_postgres",
-]
-
 [tasks.total]
 dependencies = [
     "delete_postgres",
@@ -65,13 +48,11 @@ dependencies = [
     "clean",
     "fmt",
     "sort",
-    { name = "sqlx", path = "engagement" },
-    { name = "sqlx", path = "engine" },
-    { name = "sqlx", path = "worker" },
-    { name = "sqlx", path = "blockchain" },
+    "sqlx",
     "build",
     "check",
     "clippy",
     "test",
+    "stop_postgres",
     # "udeps",
 ]

@@ -5,9 +5,9 @@ use value::Value;
 use super::models::cancel::{CancelRequest, CancelRequestError, CancelResponse};
 use crate::database::managers::{OrdersManager, ValutsManager};
 
-pub async fn cancel<'t, 'p>(
+pub async fn cancel<'t>(
     request: CancelRequest,
-    transaction: &'t mut Transaction<'p, Postgres>,
+    transaction: &'t mut Transaction<'_, Postgres>,
 ) -> Result<CancelResponse, CancelRequestError> {
     let mut order = OrdersManager::get_by_id(transaction, request.order_id)
         .await?
@@ -18,7 +18,7 @@ pub async fn cancel<'t, 'p>(
     }
 
     let valut =
-        ValutsManager::get_or_create(transaction, order.maker_id, order.quote_asset_id).await?;
+        ValutsManager::get_or_create(transaction, &order.maker_id, &order.quote_asset_id).await?;
     valut
         .balance
         .checked_add(&Value::Finite(order.quote_asset_volume_left.to_owned()))

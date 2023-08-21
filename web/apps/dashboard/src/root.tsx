@@ -20,7 +20,8 @@ import { WalletProvider } from "@packages/components/providers/WalletProvider";
 
 export const base = import.meta.env.BASE_URL;
 export const api = joinPaths(base, "/api");
-export const projectId = import.meta.env.VITE_KSOX_WEB_WALLET_CONNECT_PROJECT_ID;
+export const projectId = import.meta.env
+  .VITE_KSOX_WEB_WALLET_CONNECT_PROJECT_ID;
 
 const Index = lazy(() => import("~/routes"));
 const App = lazy(() => import("~/components/App"));

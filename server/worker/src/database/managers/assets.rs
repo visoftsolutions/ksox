@@ -21,6 +21,30 @@ impl AssetsManager {
         Self { database }
     }
 
+    pub async fn get_by_id(&self, asset_id: &Uuid) -> Result<Asset> {
+        sqlx::query_as!(
+            Asset,
+            r#"
+            SELECT
+                id,
+                created_at,
+                last_modification_at,
+                name,
+                symbol,
+                address as "address: Address",
+                decimals as "decimals: Fraction",
+                maker_fee as "maker_fee: Fraction",
+                taker_fee as "taker_fee: Fraction",
+                transfer_fee as "transfer_fee: Fraction"
+            FROM assets
+            WHERE id = $1
+            "#,
+            asset_id
+        )
+        .fetch_one(&self.database)
+        .await
+    }
+
     pub async fn get_modified(
         &self,
         last_modification_at: chrono::DateTime<chrono::Utc>,
@@ -37,7 +61,8 @@ impl AssetsManager {
                 address as "address: Address",
                 decimals as "decimals: Fraction",
                 maker_fee as "maker_fee: Fraction",
-                taker_fee as "taker_fee: Fraction"
+                taker_fee as "taker_fee: Fraction",
+                transfer_fee as "transfer_fee: Fraction"
             FROM assets
             WHERE last_modification_at > $1
             ORDER BY last_modification_at ASC
@@ -61,7 +86,8 @@ impl AssetsManager {
                 address as "address: Address",
                 decimals as "decimals: Fraction",
                 maker_fee as "maker_fee: Fraction",
-                taker_fee as "taker_fee: Fraction"
+                taker_fee as "taker_fee: Fraction",
+                transfer_fee as "transfer_fee: Fraction"
             FROM assets
             "#
         )

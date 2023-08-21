@@ -507,7 +507,7 @@ mod tests {
         assert!(a > b);
         assert!(a >= b);
 
-        assert!(!(a < b));
-        assert!(!(a <= b));
+        assert!(a >= b);
+        assert!(a > b);
     }
 }

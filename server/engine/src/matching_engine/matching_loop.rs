@@ -1,7 +1,7 @@
 use std::pin::Pin;
 
 use fraction::{
-    num_traits::{CheckedDiv, CheckedMul, CheckedSub, Inv, One, Zero},
+    num_traits::{CheckedDiv, CheckedMul, CheckedSub, One, Zero},
     Fraction,
 };
 use tokio_stream::{Stream, StreamExt};
@@ -11,7 +11,7 @@ use super::models::{MatchingLoopError, MatchingLoopResponse};
 use crate::database::projections::{
     asset::Asset,
     order::{OrderGet, OrderInsert},
-    trade::Trade,
+    trade::TradeInsert,
 };
 
 /*  matching engine axioms:
@@ -34,16 +34,22 @@ pub async fn matching_loop(
         return Err(MatchingLoopError::VolumeIsZero);
     }
 
-    let mut quote_asset_volume_left = quote_asset_volume
-        .to_owned()
-        .checked_floor_with_accuracy(&quote_asset.to_owned().decimals.inv())
-        .ok_or(MatchingLoopError::CheckedFloorFailed)?;
+    let quote_asset_decimals_inv = Fraction::one()
+        .checked_div(&quote_asset.decimals)
+        .ok_or(MatchingLoopError::CheckedDivFailed)?;
 
-    // let mut quote_asset_volume_left = quote_asset_volume.to_owned();
+    let base_asset_decimals_inv = Fraction::one()
+        .checked_div(&base_asset.decimals)
+        .ok_or(MatchingLoopError::CheckedDivFailed)?;
 
     let price_inv = Fraction::one()
         .checked_div(&price)
         .ok_or(MatchingLoopError::CheckedDivFailed)?;
+
+    let mut quote_asset_volume_left = quote_asset_volume
+        .to_owned()
+        .checked_floor_with_accuracy(&quote_asset_decimals_inv)
+        .ok_or(MatchingLoopError::CheckedFloorFailed)?;
 
     while let Some(matching_order) = matching_orders.next().await {
         if quote_asset_volume_left <= Fraction::zero() {
@@ -67,8 +73,13 @@ pub async fn matching_loop(
             if quote_asset_volume_left >= maker_order_base_asset_volume_left {
                 // eat whole maker_order
                 (
-                    maker_order.quote_asset_volume_left,
-                    maker_order_base_asset_volume_left,
+                    maker_order
+                        .quote_asset_volume_left
+                        .checked_floor_with_accuracy(&base_asset_decimals_inv)
+                        .ok_or(MatchingLoopError::CheckedFloorFailed)?,
+                    maker_order_base_asset_volume_left
+                        .checked_floor_with_accuracy(&quote_asset_decimals_inv)
+                        .ok_or(MatchingLoopError::CheckedFloorFailed)?,
                 )
             } else {
                 // eat maker_order partially
@@ -77,7 +88,9 @@ pub async fn matching_loop(
                         .checked_mul(&maker_order.quote_asset_volume_left)
                         .ok_or(MatchingLoopError::CheckedMulFailed)?
                         .checked_div(&maker_order_base_asset_volume_left)
-                        .ok_or(MatchingLoopError::CheckedDivFailed)?,
+                        .ok_or(MatchingLoopError::CheckedDivFailed)?
+                        .checked_floor_with_accuracy(&base_asset_decimals_inv)
+                        .ok_or(MatchingLoopError::CheckedFloorFailed)?,
                     quote_asset_volume_left.to_owned(),
                 )
             };
@@ -86,12 +99,9 @@ pub async fn matching_loop(
             .checked_sub(&taker_quote_asset_volume_taken)
             .ok_or(MatchingLoopError::CheckedSubFailed)?;
 
-        let (maker_base_asset_volume_given, maker_quote_asset_volume_taken) = (
-            taker_quote_asset_volume_taken.to_owned(),
-            taker_base_asset_volume_given.to_owned(),
-        );
+        let maker_quote_asset_volume_taken = taker_base_asset_volume_given;
 
-        response.trades.push(Trade {
+        response.trades.push(TradeInsert {
             quote_asset_id: quote_asset.id,
             base_asset_id: base_asset.id,
             taker_id: user_id,
@@ -101,25 +111,7 @@ pub async fn matching_loop(
                 .checked_div(&maker_order.price)
                 .ok_or(MatchingLoopError::CheckedDivFailed)?,
             taker_quote_volume: taker_quote_asset_volume_taken,
-            taker_base_volume: taker_base_asset_volume_given
-                .checked_sub(
-                    &taker_base_asset_volume_given
-                        .checked_mul(&base_asset.taker_fee)
-                        .ok_or(MatchingLoopError::CheckedMulFailed)?,
-                )
-                .ok_or(MatchingLoopError::CheckedSubFailed)?
-                .checked_floor_with_accuracy(&base_asset.to_owned().decimals.inv())
-                .ok_or(MatchingLoopError::CheckedFloorFailed)?,
             maker_quote_volume: maker_quote_asset_volume_taken,
-            maker_base_volume: maker_base_asset_volume_given
-                .checked_sub(
-                    &maker_base_asset_volume_given
-                        .checked_mul(&maker_order.maker_fee)
-                        .ok_or(MatchingLoopError::CheckedMulFailed)?,
-                )
-                .ok_or(MatchingLoopError::CheckedSubFailed)?
-                .checked_floor_with_accuracy(&quote_asset.to_owned().decimals.inv())
-                .ok_or(MatchingLoopError::CheckedFloorFailed)?,
         });
     }
 

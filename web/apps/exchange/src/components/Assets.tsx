@@ -11,6 +11,7 @@ import { useSession } from "@packages/components/providers/SessionProvider";
 import TriElementHeader from "~/components/App/TriElement/TriElementHeader";
 import CreateDeposit from "~/components/Assets/Deposit";
 import CreateWithdraw from "~/components/Assets/Withdraw";
+import { ContractAddressProvider } from "@packages/components/providers/ContractAddressProvider";
 
 enum Tab {
   Deposit,
@@ -31,7 +32,7 @@ export default function Assets() {
   );
 
   return (
-    <>
+    <ContractAddressProvider>
       <div class="col-start-2 col-end-6 row-start-2 row-end-4 grid grid-cols-[320px_200px_1fr] grid-rows-1 gap-[1px] bg-gray-1 font-sanspro">
         <div class="col-start-1 col-end-2 grid h-full grid-rows-[76px_1fr] bg-gray-2">
           <div class="row-start-1 row-end-2 grid items-center px-3">
@@ -175,6 +176,6 @@ export default function Assets() {
           </Switch>
         </div>
       </div>
-    </>
+    </ContractAddressProvider>
   );
 }

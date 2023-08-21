@@ -8,8 +8,11 @@ pub struct Transfer {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,
     pub last_modification_at: DateTime<Utc>,
-    pub maker_id: Uuid,
-    pub taker_id: Uuid,
+    pub from_valut_id: Uuid,
+    pub from_user_id: Uuid,
+    pub to_valut_id: Uuid,
+    pub to_user_id: Uuid,
     pub asset_id: Uuid,
     pub amount: Fraction,
+    pub fee: Fraction,
 }

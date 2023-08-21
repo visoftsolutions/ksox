@@ -13,10 +13,8 @@ import { api } from "~/root";
 import { WithdrawRequest, WithdrawResponse } from "@packages/types/mod";
 import { useWallet } from "@packages/components/providers/WalletProvider";
 import { Address } from "viem";
-import {
-  ABI as TREASURY_ABI,
-  ADDRESS as TREASURY_ADDRESS,
-} from "~/contract/treasury";
+import { ABI as TREASURY_ABI } from "~/contract/treasury";
+import { useContractAddress } from "@packages/components/providers/ContractAddressProvider";
 
 export default function CreateWithdraw(asset?: Asset, precision?: number) {
   return () => (
@@ -39,6 +37,7 @@ const splitSig = (sig: string) => {
 };
 
 export function Withdraw(props: { asset: Asset; precision: number }) {
+  const contractAddress = useContractAddress();
   const [amount, setAmount] = createSignal<Fraction>(fFromBigint(0n));
   const session = useSession();
   const wallet = useWallet();
@@ -107,7 +106,7 @@ export function Withdraw(props: { asset: Asset; precision: number }) {
               const { r, s, v } = splitSig(response.response);
               await wallet.walletClient?.writeContract({
                 chain: wallet.selected_network.network,
-                address: TREASURY_ADDRESS,
+                address: contractAddress!() as Address,
                 abi: TREASURY_ABI,
                 functionName: "withdrawPermit",
                 account: wallet.address as Address,

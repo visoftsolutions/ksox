@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "solid-js"
+import { Suspense, lazy } from "solid-js";
 import {
   Body,
   ErrorBoundary,
@@ -11,21 +11,22 @@ import {
   Routes,
   Scripts,
   Title,
-} from "solid-start"
-import "~/root.css"
-import { joinPaths } from "solid-start/islands/server-router"
-import { Nav, NavProvider, setNav } from "~/components/providers/NavProvider"
-import { WalletProvider } from "@packages/components/providers/WalletProvider"
-import { Deposit } from "./components/Deposit"
+} from "solid-start";
+import "~/root.css";
+import { joinPaths } from "solid-start/islands/server-router";
+import { Nav, NavProvider, setNav } from "~/components/providers/NavProvider";
+import { WalletProvider } from "@packages/components/providers/WalletProvider";
+import { Deposit } from "./components/Deposit";
 
-export const base = import.meta.env.BASE_URL
-export const api = joinPaths(base, "/api")
-export const projectId = import.meta.env.VITE_KSOX_WEB_WALLET_CONNECT_PROJECT_ID
+export const base = import.meta.env.BASE_URL;
+export const api = joinPaths(base, "/api");
+export const projectId = import.meta.env
+  .VITE_KSOX_WEB_WALLET_CONNECT_PROJECT_ID;
 
-const Index = lazy(() => import("~/routes"))
-const App = lazy(() => import("~/components/App"))
-const Account = lazy(() => import("~/components/Account"))
-const Asset = lazy(() => import("~/components/Asset"))
+const Index = lazy(() => import("~/routes"));
+const App = lazy(() => import("~/components/App"));
+const Account = lazy(() => import("~/components/Account"));
+const Asset = lazy(() => import("~/components/Asset"));
 
 export default function Root() {
   return (
@@ -100,5 +101,5 @@ export default function Root() {
         <Scripts />
       </Body>
     </Html>
-  )
+  );
 }

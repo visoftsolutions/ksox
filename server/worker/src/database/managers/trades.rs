@@ -41,9 +41,7 @@ impl TradesManager {
                 spot.orders.maker_presentation,
                 spot.trades.price as "price: Fraction",
                 spot.trades.taker_quote_volume as "taker_quote_volume: Fraction",
-                spot.trades.taker_base_volume as "taker_base_volume: Fraction",
-                spot.trades.maker_quote_volume as "maker_quote_volume: Fraction",
-                spot.trades.maker_base_volume as "maker_base_volume: Fraction"
+                spot.trades.maker_quote_volume as "maker_quote_volume: Fraction"
             FROM spot.trades
             JOIN spot.orders ON spot.orders.id = spot.trades.order_id
             WHERE spot.trades.last_modification_at > $1
@@ -76,9 +74,7 @@ impl TradesManager {
                 spot.orders.maker_presentation,
                 spot.trades.price as "price: Fraction",
                 spot.trades.taker_quote_volume as "taker_quote_volume: Fraction",
-                spot.trades.taker_base_volume as "taker_base_volume: Fraction",
-                spot.trades.maker_quote_volume as "maker_quote_volume: Fraction",
-                spot.trades.maker_base_volume as "maker_base_volume: Fraction"
+                spot.trades.maker_quote_volume as "maker_quote_volume: Fraction"
             FROM spot.trades
             JOIN spot.orders ON spot.orders.id = spot.trades.order_id
             WHERE spot.trades.taker_id = $1 OR spot.orders.maker_id = $1
@@ -115,9 +111,7 @@ impl TradesManager {
                 spot.orders.maker_presentation,
                 spot.trades.price as "price: Fraction",
                 spot.trades.taker_quote_volume as "taker_quote_volume: Fraction",
-                spot.trades.taker_base_volume as "taker_base_volume: Fraction",
-                spot.trades.maker_quote_volume as "maker_quote_volume: Fraction",
-                spot.trades.maker_base_volume as "maker_base_volume: Fraction"
+                spot.trades.maker_quote_volume as "maker_quote_volume: Fraction"
             FROM spot.trades
             JOIN spot.orders ON spot.orders.id = spot.trades.order_id
             WHERE (spot.trades.quote_asset_id = $1 AND spot.trades.base_asset_id = $2) OR (spot.trades.quote_asset_id = $2 AND spot.trades.base_asset_id = $1)
@@ -153,9 +147,7 @@ impl TradesManager {
                 spot.orders.maker_presentation,
                 spot.trades.price as "price: Fraction",
                 spot.trades.taker_quote_volume as "taker_quote_volume: Fraction",
-                spot.trades.taker_base_volume as "taker_base_volume: Fraction",
-                spot.trades.maker_quote_volume as "maker_quote_volume: Fraction",
-                spot.trades.maker_base_volume as "maker_base_volume: Fraction"
+                spot.trades.maker_quote_volume as "maker_quote_volume: Fraction"
             FROM spot.trades
             JOIN spot.orders ON spot.orders.id = spot.trades.order_id
             WHERE (spot.trades.quote_asset_id = $1 AND spot.trades.base_asset_id = $2) OR (spot.trades.quote_asset_id = $2 AND spot.trades.base_asset_id = $1)
@@ -190,9 +182,7 @@ impl TradesManager {
                 spot.orders.maker_presentation,
                 spot.trades.price as "price: Fraction",
                 spot.trades.taker_quote_volume as "taker_quote_volume: Fraction",
-                spot.trades.taker_base_volume as "taker_base_volume: Fraction",
-                spot.trades.maker_quote_volume as "maker_quote_volume: Fraction",
-                spot.trades.maker_base_volume as "maker_base_volume: Fraction"
+                spot.trades.maker_quote_volume as "maker_quote_volume: Fraction"
             FROM spot.trades
             JOIN spot.orders ON spot.orders.id = spot.trades.order_id
             WHERE ((spot.trades.quote_asset_id = $1 AND spot.trades.base_asset_id = $2) OR (spot.trades.quote_asset_id = $2 AND spot.trades.base_asset_id = $1)) AND spot.trades.created_at >= $3
@@ -227,9 +217,7 @@ impl TradesManager {
                 spot.orders.maker_presentation,
                 spot.trades.price as "price: Fraction",
                 spot.trades.taker_quote_volume as "taker_quote_volume: Fraction",
-                spot.trades.taker_base_volume as "taker_base_volume: Fraction",
-                spot.trades.maker_quote_volume as "maker_quote_volume: Fraction",
-                spot.trades.maker_base_volume as "maker_base_volume: Fraction"
+                spot.trades.maker_quote_volume as "maker_quote_volume: Fraction"
             FROM spot.trades
             JOIN spot.orders ON spot.orders.id = spot.trades.order_id
             WHERE ((spot.trades.quote_asset_id = $1 AND spot.trades.base_asset_id = $2) OR (spot.trades.quote_asset_id = $2 AND spot.trades.base_asset_id = $1)) AND spot.trades.created_at >= $3 AND spot.trades.created_at < $4
