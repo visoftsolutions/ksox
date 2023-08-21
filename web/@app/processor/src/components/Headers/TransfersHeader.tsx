@@ -3,7 +3,7 @@ import Button from "../Atoms/Buttons/Button";
 import Picture from "../Atoms/Picture";
 import SearchBar from "../Atoms/SearchBar";
 import PlusIcon from "../Atoms/Icons/PlusIcon";
-import SlidingModal from "../Atoms/Modals/Modal";
+import SlidingModal from "../Atoms/Modals/CurrenciesModal";
 import NewButton from "../Atoms/Buttons/NewButton";
 import { useDarkModeContext } from "../providers/DarkModeProvider";
 

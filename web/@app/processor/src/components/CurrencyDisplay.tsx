@@ -3,7 +3,7 @@ import Button from "./Atoms/Buttons/Button";
 import ArrowDownIcon from "./Atoms/Icons/ArrowDownIcon";
 import { Palette } from "./Atoms/Palette";
 import Picture from "./Atoms/Picture";
-import Modal from "./Atoms/Modals/Modal";
+import Modal from "./Atoms/Modals/CurrenciesModal";
 import { useCurrencyContext } from "./providers/CurrencyProvider";
 
 
