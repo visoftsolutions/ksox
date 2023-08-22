@@ -4,6 +4,7 @@ import {
   onMount,
   createSignal,
   JSX,
+  onMount,
   useContext,
 } from "solid-js";
 import { ContractResponse } from "@packages/types/contract";

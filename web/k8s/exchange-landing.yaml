@@ -1,7 +1,7 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
-  name: web-exchange-landing-deployment
+  name: web-exchange-landing-daemonset
   namespace: ksox-finance
   labels:
     app: web-exchange-landing
@@ -50,7 +50,7 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /$1
     nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
 spec:
-  ingressClassName: ingress-nginx
+  ingressClassName: ingress-nginx-prod
   tls:
     - hosts:
         - ksox.finance

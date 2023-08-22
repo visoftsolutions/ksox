@@ -27,10 +27,35 @@ spec:
               memory: 500Mi
               cpu: 500m
           env:
-            - name: DATABASE_URL
-              value: postgresql://ksoxuser:ksoxuserp4ssword@postgres-service/ksox
-            - name: ENGINE_FRACTION_ACCURACY
-              value: 1/10000
+            - name: KSOX_SERVER_BLOCKCHAIN_URL
+              value: "http://ksox-server-blockchain/"
+            - name: KSOX_WS_BLOCKCHAIN_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ws-blockchain-url
+                  key: url
+            - name: KSOX_POSTGRES_URL
+              value: "postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox"
+            - name: KSOX_REDIS_URL
+              value: "redis://ksox-redis/"
+            - name: KSOX_SERVER_ENGINE_URL
+              value: "http://ksox-server-engine/"
+            - name: CONTRACT_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: contract-private-key
+                  key: key
+            - name: CONTRACT_ADDRESS
+              valueFrom:
+                configMapKeyRef:
+                  name: server-config
+                  key: contract-address
+            - name: DEPOSIT_CONFIRMATIONS
+              value: "5"
+            - name: TESTS_CASES
+              value: "10000"
+            - name: TESTS_FRACTION_BYTES
+              value: "2"
       initContainers:
         - name: wait-for-postgres
           image: busybox
