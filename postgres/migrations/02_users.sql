@@ -1,10 +1,8 @@
 CREATE TABLE "users"."user" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "comission_id" uuid NOT NULL
+  "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-ALTER TABLE "users"."user" ADD FOREIGN KEY ("comission_id") REFERENCES "fees"."revenue" ("id");
 CREATE OR REPLACE FUNCTION users_user_changed_trigger() 
 RETURNS TRIGGER AS $$
 DECLARE
@@ -24,7 +22,7 @@ CREATE TABLE "users"."address" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "network_id" uuid NOT NULL
+  "network_id" uuid NOT NULL,
   "address" VARCHAR(256) UNIQUE NOT NULL
 );
 ALTER TABLE "users"."address" ADD FOREIGN KEY ("network_id") REFERENCES "networks"."network" ("id");
@@ -47,7 +45,7 @@ CREATE TABLE "users"."username" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "user_id" uuid NOT NULL
+  "user_id" uuid NOT NULL,
   "username" CHAR(50) UNIQUE NOT NULL
 );
 ALTER TABLE "users"."username" ADD FOREIGN KEY ("user_id") REFERENCES "users"."user" ("id");

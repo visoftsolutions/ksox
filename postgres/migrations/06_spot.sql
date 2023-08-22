@@ -13,8 +13,8 @@ CREATE TABLE "spot"."order" (
   "maker_fee" fraction NOT NULL
 );
 ALTER TABLE "spot"."order" ADD FOREIGN KEY ("maker_id") REFERENCES "users"."user" ("id");
-ALTER TABLE "spot"."order" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "evm"."asset" ("id");
-ALTER TABLE "spot"."order" ADD FOREIGN KEY ("base_asset_id") REFERENCES "evm"."asset" ("id");
+ALTER TABLE "spot"."order" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "assets"."asset" ("id");
+ALTER TABLE "spot"."order" ADD FOREIGN KEY ("base_asset_id") REFERENCES "assets"."asset" ("id");
 CREATE OR REPLACE FUNCTION spot_order_changed_trigger() 
 RETURNS TRIGGER AS $$
 DECLARE
@@ -47,9 +47,9 @@ CREATE TABLE "spot"."trade" (
   "maker_quote_volume_transfer_id" uuid NOT NULL
 );
 ALTER TABLE "spot"."trade" ADD FOREIGN KEY ("taker_id") REFERENCES "users"."user" ("id");
-ALTER TABLE "spot"."trade" ADD FOREIGN KEY ("order_id") REFERENCES "spot"."orders" ("id");
-ALTER TABLE "spot"."trade" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "evm"."asset" ("id");
-ALTER TABLE "spot"."trade" ADD FOREIGN KEY ("base_asset_id") REFERENCES "evm"."asset" ("id");
+ALTER TABLE "spot"."trade" ADD FOREIGN KEY ("order_id") REFERENCES "spot"."order" ("id");
+ALTER TABLE "spot"."trade" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "assets"."asset" ("id");
+ALTER TABLE "spot"."trade" ADD FOREIGN KEY ("base_asset_id") REFERENCES "assets"."asset" ("id");
 ALTER TABLE "spot"."trade" ADD FOREIGN KEY ("taker_quote_volume_transfer_id") REFERENCES "transfers"."transfer" ("id");
 ALTER TABLE "spot"."trade" ADD FOREIGN KEY ("maker_quote_volume_transfer_id") REFERENCES "transfers"."transfer" ("id");
 CREATE OR REPLACE FUNCTION spot_trade_changed_trigger() 
@@ -86,8 +86,8 @@ CREATE TABLE "spot"."candlestick" (
   "maker_quote_volume" fraction NOT NULL,
   "maker_base_volume" fraction NOT NULL
 );
-ALTER TABLE "spot"."candlestick" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "evm"."asset" ("id");
-ALTER TABLE "spot"."candlestick" ADD FOREIGN KEY ("base_asset_id") REFERENCES "evm"."asset" ("id");
+ALTER TABLE "spot"."candlestick" ADD FOREIGN KEY ("quote_asset_id") REFERENCES "assets"."asset" ("id");
+ALTER TABLE "spot"."candlestick" ADD FOREIGN KEY ("base_asset_id") REFERENCES "assets"."asset" ("id");
 CREATE OR REPLACE FUNCTION spot_candlestick_changed_trigger() 
 RETURNS TRIGGER AS $$
 DECLARE

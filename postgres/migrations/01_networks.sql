@@ -25,7 +25,9 @@ CREATE TABLE "networks"."network" (
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "family_id" uuid NOT NULL,
   "name" VARCHAR(50) UNIQUE,
-  "icon_path" VARCHAR(50) UNIQUE,
+  "icon_path" VARCHAR(50),
+  "deposit_user_id" uuid NOT NULL,
+  "withdraw_user_id" uuid NOT NULL,
   "contract_address" VARCHAR(50)
 );
 ALTER TABLE "networks"."network" ADD FOREIGN KEY ("family_id") REFERENCES "networks"."family" ("id");
@@ -48,8 +50,8 @@ CREATE TABLE "networks"."provider" (
   "id" uuid PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "name" VARCHAR(50) UNIQUE,
   "network_id" uuid NOT NULL,
+  "name" VARCHAR(50) UNIQUE,
   "url" VARCHAR(50) NOT NULL
 );
 ALTER TABLE "networks"."provider" ADD FOREIGN KEY ("network_id") REFERENCES "networks"."network" ("id");

@@ -4,6 +4,11 @@ ALTER SYSTEM SET max_connections = 50;
 -- Add migration script here
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+CREATE TYPE confirmations AS (
+    actual NUMERIC(78),
+    desired NUMERIC(78)
+);
+
 CREATE TYPE fraction AS (
     numer NUMERIC(78),
     denom NUMERIC(78)
@@ -116,8 +121,14 @@ CREATE CAST (fraction AS json) WITH FUNCTION to_json(fraction) AS ASSIGNMENT;
 
 CREATE CAST (numeric AS json) WITH FUNCTION to_json(numeric) AS ASSIGNMENT;
 
+CREATE SCHEMA "networks";
+CREATE SCHEMA "users";
+CREATE SCHEMA "assets";
+CREATE SCHEMA "vaults";
+CREATE SCHEMA "transfers";
 CREATE SCHEMA "spot";
 CREATE SCHEMA "engagement";
+CREATE SCHEMA "fees";
 
 CREATE OR REPLACE FUNCTION notify_channel(channel_name text, val text)
 RETURNS VOID AS $$
