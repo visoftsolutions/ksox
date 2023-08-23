@@ -9,6 +9,7 @@ export const Asset = z.object({
   created_at: Datetime,
   last_modification_at: Datetime,
   name: z.string(),
+  icon_path: z.string(),
   symbol: z.string(),
   address: Address,
   decimals: Fraction,

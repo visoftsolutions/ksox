@@ -72,12 +72,7 @@ export default function Assets() {
                     <div class="col-start-1 col-end-2 inline-grid items-center">
                       <div class="col-start-1 col-end-2 mr-1">
                         <img
-                          src={joinPaths(
-                            base,
-                            "/gfx/asset_icons/" +
-                              element().symbol.toLowerCase() +
-                              ".svg",
-                          )}
+                          src={element().icon_path}
                           width="28px"
                           height="28px"
                         />
