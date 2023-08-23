@@ -6,6 +6,7 @@ edition = "2021"
 
 [dependencies]
 ethereum-types = "0.14.1"
+num-bigint = { version = "0.4.3", features = ["serde", "arbitrary", "quickcheck"] }
 prefix-hex = "0.7.1"
 serde = { version = "1.0.183", features = ["derive"] }
 sqlx = { version = "0.7.1", features = [

@@ -1432,6 +1432,7 @@ name = "evm"
 version = "0.1.0"
 dependencies = [
  "ethereum-types",
+ "num-bigint",
  "prefix-hex",
  "serde",
  "sqlx",

@@ -4,6 +4,11 @@ ALTER SYSTEM SET max_connections = 50;
 -- Add migration script here
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+CREATE TYPE confirmations AS (
+    actual NUMERIC(78),
+    desired NUMERIC(78)
+);
+
 CREATE TYPE fraction AS (
     numer NUMERIC(78),
     denom NUMERIC(78)
