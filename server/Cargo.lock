@@ -2412,6 +2412,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "network"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "uuid 1.4.1",
+]
+
+[[package]]
 name = "new_debug_unreachable"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"

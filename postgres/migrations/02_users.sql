@@ -23,9 +23,11 @@ CREATE TABLE "users"."address" (
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "network_id" uuid NOT NULL,
+  "user_id" uuid NOT NULL,
   "address" VARCHAR(256) UNIQUE NOT NULL
 );
 ALTER TABLE "users"."address" ADD FOREIGN KEY ("network_id") REFERENCES "networks"."network" ("id");
+ALTER TABLE "users"."address" ADD FOREIGN KEY ("user_id") REFERENCES "users"."user" ("id");
 CREATE OR REPLACE FUNCTION users_address_changed_trigger() 
 RETURNS TRIGGER AS $$
 DECLARE

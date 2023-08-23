@@ -14,19 +14,30 @@ impl UsersManager {
         address: &Address,
     ) -> Result<User> {
         let now = Utc::now();
-        sqlx::query_as!(
+        let user = sqlx::query_as!(
             User,
             r#"
-            INSERT INTO 
-                users
-                (last_modification_at, address) VALUES ($1, $2)
-                RETURNING id, address as "address: Address"
+            INSERT INTO "users"."user"
+                (created_at, last_modification_at)
+            VALUES
+                ($1, $2)
+            RETURNING id
             "#,
             now,
-            &address.to_string()
+            now,
         )
         .fetch_one(t.as_mut())
-        .await
+        .await?;
+        sqlx::query!(
+            r#"
+            INSERT INTO "users"."address"
+                (network_id, user_id, address)
+            VALUES
+                ($1, $2)
+            RETURNING id
+            "#
+        );
+        user
     }
 
     pub async fn get_by_address<'t>(
@@ -36,11 +47,11 @@ impl UsersManager {
         sqlx::query_as!(
             User,
             r#"
-            SELECT
-                id,
-                address as "address: Address"
-            FROM users
-            WHERE address = $1
+            SELECT 
+                u.id
+            FROM "users"."user" u
+            JOIN "users"."address" a ON u.id = a.user_id
+            WHERE a.address = $1
             "#,
             address.to_string()
         )

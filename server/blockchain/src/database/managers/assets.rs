@@ -34,7 +34,7 @@ impl AssetsManager {
         sqlx::query_as!(
             Asset,
             r#"
-            SELECT 
+            SELECT
                 a.id,
                 em.address as "address: Address",
                 em.decimals as "decimals: Fraction"

@@ -4,11 +4,25 @@ members = [
     "blockchain",
     "engagement",
     "engine",
-    "types/evm",
-    "types/fraction",
-    "types/infinity",
-    "types/macros",
-    "types/pricelevel",
-    "types/value",
+    "types/*",
     "worker",
 ]
+
+[workspace.package]
+name = "ksox-server"
+version = "0.1.0"
+edition = "2021"
+
+[workspace.dependencies]
+ethereum-types = "0.14.1"
+num-bigint = { version = "0.4.3", features = ["serde", "arbitrary", "quickcheck"] }
+prefix-hex = "0.7.1"
+serde = { version = "1.0.183", features = ["derive"] }
+sqlx = { version = "0.7.1", features = [
+    "runtime-tokio-native-tls",
+    "postgres",
+    "uuid",
+    "bigdecimal",
+    "chrono"
+] }
+uuid = { version = "1.4.1", features = ["v4", "serde"] }
