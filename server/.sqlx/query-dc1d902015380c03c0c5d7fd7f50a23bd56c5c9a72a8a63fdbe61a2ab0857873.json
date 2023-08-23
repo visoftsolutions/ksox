@@ -64,15 +64,15 @@
         "name": "confirmations: Fraction",
         "type_info": {
           "Custom": {
-            "name": "fraction",
+            "name": "confirmations",
             "kind": {
               "Composite": [
                 [
-                  "numer",
+                  "actual",
                   "Numeric"
                 ],
                 [
-                  "denom",
+                  "desired",
                   "Numeric"
                 ]
               ]

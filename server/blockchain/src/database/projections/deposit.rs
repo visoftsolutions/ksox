@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use ethers::prelude::LogMeta;
-use evm::{address::Address, txhash::TxHash};
-use fraction::{num_traits::One, Fraction};
+use evm::{address::Address, confirmations::Confirmations, txhash::TxHash};
+use fraction::Fraction;
 use num_bigint::BigInt;
 use num_traits::Zero;
 use serde::{Deserialize, Serialize};
@@ -15,7 +15,7 @@ use crate::{
     database::managers::{assets::AssetsManager, users::UsersManager, valuts::ValutsManager},
     engine_base,
 };
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Deposit {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,
@@ -25,7 +25,7 @@ pub struct Deposit {
     pub asset: Address,
     pub amount: Fraction,
     pub tx_hash: TxHash,
-    pub confirmations: Fraction,
+    pub confirmations: Confirmations,
 }
 
 impl Deposit {
@@ -56,23 +56,22 @@ impl Deposit {
 }
 
 impl Confirmable for Deposit {
-    fn set(&mut self, confirmations: BigInt) {
-        let (_, denom) = self.confirmations.0.clone().into();
-        self.confirmations = Fraction::from_raw((confirmations, denom)).unwrap_or_default()
+    fn set(&mut self, actual: BigInt) {
+        self.confirmations = Confirmations::from_raw(actual, self.confirmations.desired().to_owned());
     }
     fn is_confirmed(&self) -> bool {
-        self.confirmations >= Fraction::one()
+        self.confirmations.actual() >= self.confirmations.desired()
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DepositInsert {
     pub owner: Address,
     pub spender: Address,
     pub asset: Address,
     pub amount: Fraction,
     pub tx_hash: TxHash,
-    pub confirmations: Fraction,
+    pub confirmations: Confirmations,
 }
 
 impl DepositInsert {
@@ -80,7 +79,7 @@ impl DepositInsert {
         t: &'t mut Transaction<'_, Postgres>,
         filter: &DepositFilter,
         meta: &LogMeta,
-        confirmations: Fraction,
+        confirmations: Confirmations,
     ) -> sqlx::Result<Self> {
         let asset = AssetsManager::get_by_address(t, &Address(filter.token)).await?;
         Ok(Self {

@@ -4,6 +4,7 @@ use ethers::{
     prelude::LogMeta,
     providers::{Middleware, Provider, Ws},
 };
+use evm::confirmations::Confirmations;
 use fraction::Fraction;
 use futures::stream::StreamExt;
 use num_bigint::BigInt;
@@ -40,8 +41,7 @@ impl DepositsBlockchainManager {
         let database = self.database.to_owned();
         let provider = self.provider.to_owned();
         let contract = self.contract.to_owned();
-        let confirmations = Fraction::from_raw((BigInt::from(1), self.confirmations.to_owned()))
-            .unwrap_or_default();
+        let confirmations = Confirmations::from_raw(BigInt::from(0), self.confirmations.to_owned());
 
         let join_handle: tokio::task::JoinHandle<Result<(), BlockchainManagerError>> = tokio::spawn(
             async move {

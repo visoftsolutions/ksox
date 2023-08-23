@@ -43,7 +43,7 @@ CREATE TABLE "deposits" (
   "asset" CHAR(42) NOT NULL,
   "amount" fraction NOT NULL,
   "tx_hash" CHAR(66) NOT NULL,
-  "confirmations" fraction NOT NULL
+  "confirmations" confirmations NOT NULL
 );
 
 CREATE TABLE "withdraws" (
