@@ -27,6 +27,7 @@ export default function AccountDashboard() {
     last_modification_at: new Date(Date.now()),
     name: "Wrapped Bitcoin",
     symbol: "BTC",
+    icon_path: "/gfx/asset_icons/btc.svg",
     address: "0x5fbdb2315678afecb367f032d93f642f64180aa3",
     decimals: {
       numer: 1000000000000000000n,
