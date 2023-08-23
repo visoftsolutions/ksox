@@ -1,4 +1,4 @@
-import { AssetsProvider } from "~/components/providers/AssetsProvider";
+import { AssetsProvider } from "@packages/components/providers/AssetsProvider";
 import { MarketProvider } from "~/components/providers/MarketProvider";
 import { Outlet } from "solid-start";
 import MainMenu from "~/components/MainMenu";
@@ -18,7 +18,7 @@ export default function Index() {
           <div class="col-start-1 col-end-2 row-start-1 row-end-4 bg-gray-1">
             <SideMenu />
           </div>
-          <AssetsProvider>
+          <AssetsProvider api_url={api}>
             <PrecisionProvider>
               <Outlet />
             </PrecisionProvider>

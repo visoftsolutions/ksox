@@ -6,7 +6,7 @@ import params from "@packages/utils/params";
 import { PrivateOrder } from "@packages/types/order";
 import { z } from "zod";
 import { Uuid } from "@packages/types/primitives/uuid";
-import { useAssets } from "~/components/providers/AssetsProvider";
+import { useAssets } from "@packages/components/providers/AssetsProvider";
 import { Market } from "~/components/providers/MarketProvider";
 import { format } from "numerable";
 import { formatTemplate } from "@packages/utils/precision";

@@ -5,7 +5,7 @@ import { Asset } from "@packages/types/asset";
 import { Market } from "~/components/providers/MarketProvider";
 import { ev, finv, fmul } from "@packages/types/primitives/fraction";
 import { Uuid } from "@packages/types/primitives/uuid";
-import { useAssets } from "~/components/providers/AssetsProvider";
+import { useAssets } from "@packages/components/providers/AssetsProvider";
 import { PrivateOrder } from "@packages/types/order";
 import { api } from "~/root";
 import params from "@packages/utils/params";

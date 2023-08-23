@@ -3,7 +3,7 @@ import { createStore } from "solid-js/store";
 import { SessionResponse } from "@packages/components/providers/SessionProvider/models";
 import { Asset } from "@packages/types/asset";
 import { Market } from "~/components/providers/MarketProvider";
-import { useAssets } from "~/components/providers/AssetsProvider";
+import { useAssets } from "@packages/components/providers/AssetsProvider";
 import { Uuid } from "@packages/types/primitives/uuid";
 import { format } from "numerable";
 import { formatTemplate } from "@packages/utils/precision";

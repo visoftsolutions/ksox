@@ -9,7 +9,7 @@ import {
 import { useParams } from "solid-start";
 import { Asset } from "@packages/types/asset";
 import { Uuid } from "@packages/types/primitives/uuid";
-import { useAssets } from "~/components/providers/AssetsProvider";
+import { useAssets } from "@packages/components/providers/AssetsProvider";
 
 export type Market = { quote_asset?: Asset; base_asset?: Asset };
 

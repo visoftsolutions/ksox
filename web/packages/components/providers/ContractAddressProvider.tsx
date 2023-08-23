@@ -16,7 +16,7 @@ export function ContractAddressProvider(props: { children: JSX.Element }) {
   const [contractAddress, setContractAddress] = createSignal("0x");
 
   onMount(async () => {
-    let result = await fetch(`${api}/public/contract`)
+    const result = await fetch(`${api}/public/contract`)
       .then((r) => r.json())
       .then((r) => ContractResponse.parse(r));
 

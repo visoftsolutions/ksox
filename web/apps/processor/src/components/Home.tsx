@@ -1,0 +1,17 @@
+import Header from "~/components/Home/Header";
+import AccountDashboard from "~/components/Home/AccountDashboard";
+
+export default function Home() {
+  return (
+    <div class="grid grid-rows-[128px_1fr] p-6 h-full">
+      <div class="row-start-1 row-end-2">
+        <Header />
+      </div>
+      <div class="row-start-2 row-end-3 relative overflow-clip">
+        <div class="absolute top-0 bottom-0 left-0 right-0 overflow-y-auto">
+          <AccountDashboard />
+        </div>
+      </div>
+    </div>
+  );
+}

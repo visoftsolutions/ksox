@@ -1,32 +1,40 @@
-import { AssetsProvider } from "~/components/providers/AssetsProvider";
 import { Outlet } from "solid-start";
 import { SessionProvider } from "@packages/components/providers/SessionProvider";
 import { PrecisionProvider } from "@packages/components/providers/PrecisionProvider";
-import Header from "~/components/Header";
-import Navigation from "~/components/Navigation";
-import { AssetProvider } from "~/components/providers/AssetProvider";
+import SideNav from "~/components/SideNav";
+import Nav from "~/components/Nav";
+import { AssetsProvider } from "@packages/components/providers/AssetsProvider";
 import { api } from "~/root";
+import Wallet from "~/components/Wallet";
 
 export default function Index() {
   return (
     <SessionProvider api_url={api}>
-      <main class="h-screen w-screen overflow-auto bg-gray-1 font-sanspro text-white">
-        <div class="fixed left-0 right-0 top-0 z-20">
-          <Header />
-        </div>
-        <div class="mb-14 mt-24">
-          <AssetsProvider>
-            <AssetProvider>
-              <PrecisionProvider>
-                <Outlet />
-              </PrecisionProvider>
-            </AssetProvider>
-          </AssetsProvider>
-        </div>
-        <div class="fixed bottom-0 left-0 right-0 z-20">
-          <Navigation />
-        </div>
-      </main>
+      <AssetsProvider api_url={api}>
+        <main
+          class="h-screen w-screen bg-r-light-background dark:bg-r-dark-background font-sanspro
+          text-r-light-text dark:text-r-dark-text grid grid-rows-[1fr_auto]"
+        >
+          <div class="grid grid-cols-1 xl:grid-cols-[256px_1fr_256px] row-start-1 row-end-2">
+            <div class="hidden xl:block">
+              <SideNav />
+            </div>
+            <div class="xl:col-span-1">
+              <div class="max-w-[500px] mx-auto h-full">
+                <PrecisionProvider>
+                  <Outlet />
+                </PrecisionProvider>
+              </div>
+            </div>
+            <div class="hidden xl:block">
+              <Wallet />
+            </div>
+          </div>
+          <div class="xl:hidden block row-start-2 row-end-3">
+            <Nav />
+          </div>
+        </main>
+      </AssetsProvider>
     </SessionProvider>
   );
 }

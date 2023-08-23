@@ -1,7 +1,7 @@
 import { base } from "~/root";
 import { joinPaths } from "solid-start/islands/server-router";
 import { Index, Match, Switch, createMemo, createSignal } from "solid-js";
-import { useAssets } from "~/components/providers/AssetsProvider";
+import { useAssets } from "@packages/components/providers/AssetsProvider";
 import SearchInput from "~/components/Inputs/SearchInput";
 import { usePrecision } from "@packages/components/providers/PrecisionProvider";
 import { Dynamic } from "solid-js/web";

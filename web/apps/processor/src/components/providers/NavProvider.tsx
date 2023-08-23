@@ -7,12 +7,13 @@ import {
 } from "solid-js";
 
 export enum Nav {
-  App,
-  Account,
-  Asset,
+  Home,
+  Transfer,
+  Settings,
+  Notifications,
 }
 
-export const [nav, setNav] = createSignal<Nav>(Nav.App);
+export const [nav, setNav] = createSignal<Nav>(Nav.Home);
 const NavContext = createContext<Accessor<Nav>>(nav);
 export function NavProvider(props: { children: JSX.Element }) {
   return (
