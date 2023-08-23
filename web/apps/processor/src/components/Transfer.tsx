@@ -40,7 +40,7 @@ export default function Transfer() {
         <Header />
       </div>
       <div class="row-start-2 row-end-3 relative overflow-clip">
-        <div class="absolute top-0 bottom-0 left-0 right-0 overflow-y-auto">
+        <div class="absolute inset-0 overflow-y-auto">
           <Transfers transfers={transfersMockData} />
         </div>
       </div>

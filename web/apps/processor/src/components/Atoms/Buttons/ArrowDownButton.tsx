@@ -8,6 +8,7 @@ import {
 
 export interface IArrowDownButton {
   class?: string;
+  onClick: () => void;
 }
 
 export default function ArrowDownButton(props: IArrowDownButton) {
@@ -16,6 +17,7 @@ export default function ArrowDownButton(props: IArrowDownButton) {
   return (
     <div
       class={`rounded-full bg-r-blue-light-backdrop dark:bg-r-blue-dark-backdrop ${props.class}`}
+      onClick={() => props.onClick()}
     >
       <Switch>
         <Match when={colorMode.colorMode() == ColorMode.Light}>
