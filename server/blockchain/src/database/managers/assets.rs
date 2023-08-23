@@ -16,12 +16,13 @@ impl AssetsManager {
         sqlx::query_as!(
             Asset,
             r#"
-            SELECT
-                id,
-                address as "address: Address",
-                decimals as "decimals: Fraction"
-            FROM assets
-            WHERE address = $1
+            SELECT 
+                a.id,
+                em.address as "address: Address",
+                em.decimals as "decimals: Fraction"
+            FROM "assets"."asset" a
+            JOIN "assets"."evm_metadata" em ON a.id = em.asset_id
+            WHERE em.address = $1
             "#,
             address.to_string()
         )
@@ -33,12 +34,13 @@ impl AssetsManager {
         sqlx::query_as!(
             Asset,
             r#"
-            SELECT
-                id,
-                address as "address: Address",
-                decimals as "decimals: Fraction"
-            FROM assets
-            WHERE id = $1
+            SELECT 
+                a.id,
+                em.address as "address: Address",
+                em.decimals as "decimals: Fraction"
+            FROM "assets"."asset" a
+            JOIN "assets"."evm_metadata" em ON a.id = em.asset_id
+            WHERE a.id = $1
             "#,
             id
         )

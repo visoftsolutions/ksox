@@ -1,8 +1,7 @@
 use chrono::{DateTime, Utc};
 use ethers::prelude::LogMeta;
-use evm::{address::Address, txhash::TxHash};
-use fraction::{num_traits::One, Fraction};
-use num_bigint::BigInt;
+use evm::{address::Address, txhash::TxHash, confirmations_counter::Confirmations};
+use fraction::Fraction;
 use num_traits::Zero;
 use serde::{Deserialize, Serialize};
 use sqlx::{Postgres, Transaction};
@@ -15,7 +14,7 @@ use crate::{
     database::managers::{assets::AssetsManager, users::UsersManager, valuts::ValutsManager},
     engine_base,
 };
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Serialize, Deserialize, Clone, Hash)]
 pub struct Deposit {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,
@@ -25,7 +24,7 @@ pub struct Deposit {
     pub asset: Address,
     pub amount: Fraction,
     pub tx_hash: TxHash,
-    pub confirmations: Fraction,
+    pub confirmations: Confirmations,
 }
 
 impl Deposit {
@@ -56,12 +55,12 @@ impl Deposit {
 }
 
 impl Confirmable for Deposit {
-    fn set(&mut self, confirmations: BigInt) {
-        let (_, denom) = self.confirmations.0.clone().into();
-        self.confirmations = Fraction::from_raw((confirmations, denom)).unwrap_or_default()
+    fn set(&mut self, actual: u64) {
+        let desired = self.confirmations.desired();
+        self.confirmations = Confirmations::from_raw(actual, desired);
     }
     fn is_confirmed(&self) -> bool {
-        self.confirmations >= Fraction::one()
+        self.confirmations.actual() >= self.confirmations.desired()
     }
 }
 

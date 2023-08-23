@@ -27,9 +27,9 @@ CREATE TABLE "assets"."evm_metadata" (
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "asset_id" uuid NOT NULL,
   "address" CHAR(42) UNIQUE NOT NULL,
-  "name" VARCHAR(128),
-  "symbol" VARCHAR(8),
-  "decimals" text
+  "name" VARCHAR(128) NOT NULL,
+  "symbol" VARCHAR(8) NOT NULL,
+  "decimals" text NOT NULL
 );
 ALTER TABLE "assets"."evm_metadata" ADD FOREIGN KEY ("asset_id") REFERENCES "assets"."asset" ("id");
 CREATE OR REPLACE FUNCTION assets_evm_metadata_changed_trigger() 

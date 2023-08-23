@@ -1,7 +1,6 @@
 use crate::database::projections::deposit::{Deposit, DepositInsert};
 use chrono::Utc;
-use evm::address::Address;
-use evm::txhash::TxHash;
+use evm::{address::Address, txhash::TxHash, confirmations_counter::Confirmations};
 use fraction::Fraction;
 use sqlx::{postgres::PgQueryResult, Postgres, Transaction};
 
@@ -17,10 +16,10 @@ impl DepositsManager {
         sqlx::query_as!(
             Deposit,
             r#"
-            INSERT INTO deposits
+            INSERT INTO "assets"."deposit_evm_metadata"
             (created_at, last_modification_at, owner, spender, asset, amount, tx_hash, confirmations)
             VALUES
-                ($1, $2, $3, $4, $5, $6::fraction, $7, $8::fraction)
+                ($1, $2, $3, $4, $5, $6::fraction, $7, $8::confirmations)
             RETURNING 
                 id,
                 created_at,
@@ -30,7 +29,7 @@ impl DepositsManager {
                 asset as "asset: Address",
                 amount as "amount: Fraction",
                 tx_hash as "tx_hash: TxHash",
-                confirmations as "confirmations: Fraction"
+                confirmations as "confirmations: Confirmations"
             "#,
             now,
             now,
