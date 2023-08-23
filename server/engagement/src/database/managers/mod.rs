@@ -1,4 +1,5 @@
 pub mod assets;
+pub mod assigned_badges;
 pub mod badges;
 pub mod candlesticks;
 pub mod notifications;

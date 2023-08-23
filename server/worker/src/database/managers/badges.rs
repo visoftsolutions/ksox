@@ -7,7 +7,7 @@ use uuid::Uuid;
 use super::notifications::{
     NotificationManagerOutput, NotificationManagerPredicateInput, NotificationManagerSubscriber,
 };
-use crate::database::projections::badge::{Badge, BadgeName};
+use crate::database::projections::badge::Badge;
 
 #[derive(Debug, Clone)]
 pub struct BadgesManager {
@@ -18,49 +18,13 @@ impl BadgesManager {
     pub fn new(database: PgPool) -> Self {
         Self { database }
     }
-
-    pub async fn get_modified(
-        &self,
-        last_modification_at: chrono::DateTime<chrono::Utc>,
-    ) -> sqlx::Result<Vec<Badge>> {
+    pub fn badge_id_to_badge(&self, badge_id: String) -> sqlx::Result<Badge> {
         sqlx::query_as!(
             Badge,
             r#"
-            SELECT
-                engagement.assigned_badges.id,
-                engagement.assigned_badges.created_at,
-                engagement.assigned_badges.last_modification_at,
-                engagement.assigned_badges.user_id,
-                engagement.assigned_badges.badge_name as "badge_name: BadgeName"
-            FROM engagement.assigned_badges
-            WHERE engagement.assigned_badges.last_modification_at > $1
-            ORDER BY engagement.assigned_badges.last_modification_at ASC
-            "#,
-            last_modification_at
+            SELECT 
+            "#
         )
-        .fetch_all(&self.database)
-        .await
-    }
-
-    pub fn get_for_user_id(
-        &self,
-        user_id: Uuid,
-    ) -> Pin<Box<dyn Stream<Item = sqlx::Result<Badge>> + Send + '_>> {
-        sqlx::query_as!(
-            Badge,
-            r#"
-            SELECT
-                engagement.assigned_badges.id,
-                engagement.assigned_badges.created_at,
-                engagement.assigned_badges.last_modification_at,
-                engagement.assigned_badges.user_id,
-                engagement.assigned_badges.badge_name as "badge_name: BadgeName"
-            FROM engagement.assigned_badges
-            WHERE engagement.assigned_badges.user_id = $1
-            "#,
-            user_id
-        )
-        .fetch(&self.database)
     }
 }
 

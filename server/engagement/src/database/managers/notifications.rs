@@ -57,6 +57,8 @@ impl NotificationManager {
             // let mut badges_last_modification_at = Utc::now();
             let users_manager = managers::users::UsersManager::new(database.clone());
             let mut users_last_modification_at = Utc::now();
+            let assigned_badges_manager =
+                managers::assigned_badges::AssignedBadgesManager::new(database.clone());
 
             loop {
                 select! {
@@ -72,13 +74,14 @@ impl NotificationManager {
                                             Ok(elements) => {
                                                 let users: HashSet<Uuid> = elements.iter().cloned().map(|e| e.user_id).collect();
                                                 for user_id in users {
-                                                    match badges_manager.get_for_user_id(user_id).await.map(|e| e.into_iter().map(|e| e.badge_name).collect::<HashSet<BadgeName>>()) {
+                                                    let current_badges = assigned_badges_manager.get_badges_id_for_user_id(user_id).await.map(|e| e.into_iter().map(|e| e.badge_name).collect::<HashSet<String>>());
+                                                    match current_badges {
                                                         Ok(current_badges) => {
                                                             match (ValutBadge::metric())(&valut::MetricInput{valuts_manager: &valuts_manager, user_id}).await {
                                                             Ok(mut metric) => {
-                                                                let badges_to_assign = ValutBadge::eval_recived(&mut metric).into_iter().map(BadgeName::ValutBadge).collect::<HashSet<BadgeName>>().difference(&current_badges).cloned().collect::<HashSet<BadgeName>>();
+                                                                let badges_to_assign = ValutBadge::eval_recived(&mut metric).into_iter().map(BadgeName::ValutBadge).collect::<HashSet<String>>().difference(&current_badges).cloned().collect::<HashSet<String>>();
                                                                 for badge in badges_to_assign {
-                                                                    if let Err(err) = badges_manager.assign_badge(user_id, badge).await {
+                                                                    if let Err(err) = assigned_badges_manager.assign_badge(user_id, badge).await {
                                                                         tracing::error!("Error: {}", err);
                                                                     }
                                                                 }

@@ -1,4 +1,5 @@
 pub mod asset;
+pub mod assigned_badge;
 pub mod badge;
 pub mod candlestick;
 pub mod order;

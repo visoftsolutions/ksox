@@ -1,8 +1,7 @@
-use chrono::Utc;
-use sqlx::postgres::{PgPool, PgQueryResult};
+use sqlx::postgres::PgPool;
 use uuid::Uuid;
 
-use crate::database::projections::badge::{Badge, BadgeName};
+use crate::database::projections::badge::Badge;
 
 #[derive(Debug, Clone)]
 pub struct BadgesManager {
@@ -14,67 +13,84 @@ impl BadgesManager {
         Self { database }
     }
 
-    pub async fn get_modified(
-        &self,
-        last_modification_at: chrono::DateTime<chrono::Utc>,
-    ) -> sqlx::Result<Vec<Badge>> {
+    pub async fn badge_id_to_badge(&self, badge_id: String) -> sqlx::Result<Badge> {
+        sqlx::query_as!(
+            Badge,
+            r#"
+        SELECT
+            engagement.badges.id,
+            engagement.badges.name as "badge_name: String",
+            engagement.badges.family as "badge_family: String",
+            engagement.badges.description as "badge_description: String",
+            engagement.badges.value,
+            engagement.badges.created_at
+        FROM
+            engagement.badges
+        WHERE
+            engagmenet.badges.id = $1
+        "#,
+            badge_id
+        )
+        .fetch_one(&self.database)
+        .await
+    }
+
+    pub async fn get_all_badges(&self) -> sqlx::Result<Vec<Badge>> {
         sqlx::query_as!(
             Badge,
             r#"
             SELECT
-                engagement.assigned_badges.id,
-                engagement.assigned_badges.created_at,
-                engagement.assigned_badges.last_modification_at,
-                engagement.assigned_badges.user_id,
-                engagement.assigned_badges.badge_name as "badge_name: BadgeName"
-            FROM engagement.assigned_badges
-            WHERE engagement.assigned_badges.last_modification_at > $1
-            ORDER BY engagement.assigned_badges.last_modification_at ASC
-            "#,
-            last_modification_at
+                engagement.badges.id,
+                engagement.badges.name as "badge_name: String",
+                engagement.badges.family as "badge_family: String",
+                engagement.badges.description as "badge_description: String",
+                engagement.badges.value,
+                engagement.badges.created_at
+            FROM
+                engagement.badges
+            "#
         )
         .fetch_all(&self.database)
         .await
     }
 
-    pub async fn get_for_user_id(&self, user_id: Uuid) -> sqlx::Result<Vec<Badge>> {
+    pub async fn get_badges_for_family(&self, family: String) -> sqlx::Result<Vec<Badge>> {
         sqlx::query_as!(
             Badge,
             r#"
-            SELECT
-                engagement.assigned_badges.id,
-                engagement.assigned_badges.created_at,
-                engagement.assigned_badges.last_modification_at,
-                engagement.assigned_badges.user_id,
-                engagement.assigned_badges.badge_name as "badge_name: BadgeName"
-            FROM engagement.assigned_badges
-            WHERE engagement.assigned_badges.user_id = $1
+            SELECT 
+                engagement.badges.id,
+                engagement.badges.name as "badge_name: String",
+                engagement.badges.family as "badge_family: String",
+                engagement.badges.description as "badge_description: String",
+                engagement.badges.value,
+                engagement.badges.created_at
+            FROM
+                engagement.badges
+            WHERE
+                engagement.badges.family = $1
             "#,
-            user_id
+            family
         )
         .fetch_all(&self.database)
         .await
     }
 
-    pub async fn assign_badge(
-        &self,
-        user_id: Uuid,
-        badge_name: BadgeName,
-    ) -> sqlx::Result<PgQueryResult> {
-        let now = Utc::now();
-        sqlx::query!(
+    pub async fn get_badge_id(&self, family: String, value: u64) -> sqlx::Result<Uuid> {
+        sqlx::query_as!(
+            Uuid,
             r#"
-            INSERT INTO engagement.assigned_badges
-                (created_at, last_modification_at, user_id, badge_name)
-            VALUES
-                ($1, $2, $3, $4)
-            "#,
-            now,
-            now,
-            user_id,
-            badge_name as _
+            SELECT 
+                engagement.badges.id
+            FROM
+                engagement.badges
+            WHERE
+                engagement.badges.family = $1 AND engagement.badges.value = $2
+        "#,
+            family,
+            value
         )
-        .execute(&self.database)
+        .fetch_one(&self.database)
         .await
     }
 }
