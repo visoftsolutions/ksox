@@ -33,7 +33,7 @@ services:
       context: ./server
       dockerfile: ./engagement.dockerfile
       args:
-        - SQLX_OFFLINE=true
+        - SQLX_OFFLINE="true"
     env_file:
       - ./server/.env
     depends_on:
@@ -48,7 +48,7 @@ services:
       context: ./server
       dockerfile: ./engine.dockerfile
       args:
-        - SQLX_OFFLINE=true
+        - SQLX_OFFLINE="true"
     env_file:
       - ./server/.env
     depends_on:
@@ -63,7 +63,7 @@ services:
       context: ./server
       dockerfile: ./blockchain.dockerfile
       args:
-        - SQLX_OFFLINE=true
+        - SQLX_OFFLINE="true"
     env_file:
       - ./server/.env
     depends_on:
@@ -79,7 +79,7 @@ services:
       context: ./server
       dockerfile: ./worker.dockerfile
       args:
-        - SQLX_OFFLINE=true
+        - SQLX_OFFLINE="true"
     env_file:
       - ./server/.env
     depends_on:
@@ -99,7 +99,7 @@ services:
       context: ./web
       dockerfile: ./exchange.dockerfile
       args:
-        - NODE_ENV=development
+        - NODE_ENV="development"
     depends_on:
       - server-worker
 
@@ -110,7 +110,7 @@ services:
       context: ./web
       dockerfile: ./exchange-landing.dockerfile
       args:
-        - NODE_ENV=development
+        - NODE_ENV="development"
     depends_on:
       - server-worker
 
@@ -121,7 +121,7 @@ services:
       context: ./web
       dockerfile: ./processor.dockerfile
       args:
-        - NODE_ENV=development
+        - NODE_ENV="development"
     depends_on:
       - server-worker
 
@@ -132,7 +132,7 @@ services:
       context: ./web
       dockerfile: ./dashboard.dockerfile
       args:
-        - NODE_ENV=development
+        - NODE_ENV="development"
     depends_on:
       - server-worker
 
