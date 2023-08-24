@@ -27,7 +27,9 @@ export const handleDeposit = async ({
     args: [wallet.address as Address],
   })) as bigint;
 
-  const deadline = new Date(new Date().getTime() + 60 * 1000);
+  const deadline = BigInt(
+    Math.floor((new Date().getTime() + 60 * 1000) / 1000)
+  );
 
   const domain = {
     name: asset.name,
@@ -41,7 +43,7 @@ export const handleDeposit = async ({
     spender: treasury_address as Address,
     value,
     nonce,
-    deadline: BigInt(Math.floor(deadline.getTime() / 1000)),
+    deadline,
   };
 
   const signature = await wallet.walletClient?.signTypedData({
