@@ -5,19 +5,22 @@ import { useSelectedAsset } from "~/components/providers/SelectedAssetProvider";
 import { createSignal } from "solid-js";
 import { Fraction } from "@packages/types/primitives/fraction";
 import ActionButton from "~/components/Atoms/Buttons/ActionButton";
-import { handleDeposit } from "@packages/utils/handlers/depositPermit";
+import { handleWithdraw } from "@packages/utils/handlers/withdrawPermit";
 import {
   useWallet,
 } from "@packages/components/providers/WalletProvider";
 import { useContractAddress } from "@packages/components/providers/ContractAddressProvider";
+import { Address } from "viem";
+import TextInput from "../Inputs/TextInput";
 
-export default function DepositDashboard() {
+export default function WithdrawDashboard() {
   const precision = usePrecision();
   const { selectedAsset } = useSelectedAsset();
   const [amount, setAmount] = createSignal(
     Fraction.parse({ numer: 0, denom: 1 })
   );
   const wallet = useWallet();
+  const [withdrawAddress, setWithdrawAddress] = createSignal(wallet.address!);
   const treasury_address = useContractAddress();
 
   return (
@@ -36,13 +39,24 @@ export default function DepositDashboard() {
           }}
         />
         <div class="h-4" />
+        <TextInput
+          class="bg-r-light-foreground p-1 text-submit-label"
+          precision={precision()}
+          left={"Withdraw to"}
+          value={withdrawAddress()}
+          onChange={(f) => {
+            setWithdrawAddress(f.toLowerCase() as Address);
+          }}
+        />
+        <div class="h-4" />
         <ActionButton
-          text="Deposit"
+          text="Withdraw"
           onClick={async () => {
             const asset = selectedAsset();
             const treasury = treasury_address!();
             if (asset && treasury) {
-              await handleDeposit({
+              await handleWithdraw({
+                address_value: withdrawAddress(),
                 asset: asset,
                 amount: amount(),
                 wallet,
@@ -56,7 +70,7 @@ export default function DepositDashboard() {
 
       <div>
         <p class="text-sans mx-5 text-sm text-bold text-r-dark-secondary-text">
-          Deposits
+          Withdrawals
         </p>
         {/* <DepositTransactions /> */}
       </div>
