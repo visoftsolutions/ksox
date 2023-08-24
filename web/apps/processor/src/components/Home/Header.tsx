@@ -6,32 +6,23 @@ import {
   useColorMode,
 } from "@packages/components/providers/ColorModeProvider";
 import NewButton from "~/components/Atoms/Buttons/NewButton";
+import Wallet from "../Wallet";
+import WalletButton from "../Wallet/WalletButton";
+import { api, base } from "~/root";
 
 export default function Header(props: { class?: string }) {
   const colorMode = useColorMode();
   return (
     <div
-      class={`grid grid-cols-[1fr_auto_1fr] grid-rows-[auto_auto] justify-center gap-4 ${props.class}`}
+      class={`grid grid-cols-[1fr_auto] grid-rows-[auto_auto] justify-center gap-4 ${props.class}`}
     >
-      <div
-        class="row-start-1 row-end-2 col-span-1 xl:hidden"
-        onClick={() => {
-          const enumValues = Object.values(ColorMode);
-          colorMode.setColorMode(
-            enumValues[
-              (enumValues.indexOf(colorMode.colorMode()) + 1) %
-                enumValues.length
-            ],
-          );
-        }}
-      >
-        <Picture src="gfx/bitcoin_placeholder.png" alt="test" size={32} />
-      </div>
-      <div class="text-xl xl:text-3xl font-sans font-bold text-r-light-text dark:text-r-dark-text row-start-1 row-end-2 col-span-1 xl:col-span-2">
+      <div class="text-3xl font-sans font-bold text-r-light-text dark:text-r-dark-text row-start-1 row-end-2 col-start-1 col-end-2">
         Home
       </div>
-      <NotificationsButton class="justify-self-end row-start-1 row-end-2 col-span-1 xl:hidden" />
-      <div class="row-start-2 row-end-3 col-span-3">
+      <div class="justify-self-end row-start-1 row-end-2 col-start-2 col-end-3 xl:hidden">
+        <WalletButton base_url={base} api_url={api} />
+      </div>
+      <div class="row-start-2 row-end-3 col-span-2">
         <SearchBar placeholder="Search" />
       </div>
     </div>

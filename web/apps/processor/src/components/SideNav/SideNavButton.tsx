@@ -9,13 +9,13 @@ export interface SideNavButtonProps {
 export default function SideNavButton(props: SideNavButtonProps) {
   return (
     <div
-      class={`rounded-xl flex items-center justify-start p-2 ${
+      class={`rounded-xl grid grid-cols-[3rem_1fr] items-center justify-start p-2 ${
         props.highlighted
           ? "bg-r-light-foreground dark:bg-r-dark-foreground"
           : "bg-r-light-background dark:bg-r-dark-background"
       }`}
     >
-      <div class="flex flex-col items-center m-1 mx-3">{props.icon}</div>
+      <div class="justify-self-center">{props.icon}</div>
       <div
         class={`font-sans text-sm font-bold ${
           props.highlighted ? "text-r-blue" : "text-r-dark-secondary-text"

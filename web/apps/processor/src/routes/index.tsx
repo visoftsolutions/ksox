@@ -15,12 +15,12 @@ export default function Index() {
           class="h-screen w-screen bg-r-light-background dark:bg-r-dark-background font-sanspro
           text-r-light-text dark:text-r-dark-text grid grid-rows-[1fr_auto]"
         >
-          <div class="grid grid-cols-1 xl:grid-cols-[256px_1fr_256px] row-start-1 row-end-2">
+          <div class="grid grid-cols-1 xl:grid-cols-[256px_1fr_256px] row-start-1 row-end-2 p-6">
             <div class="hidden xl:block">
               <SideNav />
             </div>
             <div class="xl:col-span-1">
-              <div class="max-w-[500px] mx-auto h-full">
+              <div class="max-w-xl mx-auto h-full">
                 <PrecisionProvider>
                   <Outlet />
                 </PrecisionProvider>

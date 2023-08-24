@@ -35,7 +35,7 @@ export default function Transfer() {
     },
   ];
   return (
-    <div class="grid grid-rows-[128px_1fr] p-6 h-full">
+    <div class="grid grid-rows-[128px_1fr] h-full">
       <div class="row-start-1 row-end-2">
         <Header />
       </div>
