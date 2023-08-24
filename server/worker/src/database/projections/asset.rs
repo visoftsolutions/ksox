@@ -10,6 +10,7 @@ pub struct Asset {
     pub created_at: DateTime<Utc>,
     pub last_modification_at: DateTime<Utc>,
     pub name: String,
+    pub icon_path: String,
     pub symbol: String,
     pub address: Address,
     pub decimals: Fraction,

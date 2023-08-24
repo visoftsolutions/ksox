@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                name,\n                symbol,\n                address as \"address: Address\",\n                decimals as \"decimals: Fraction\",\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\",\n                transfer_fee as \"transfer_fee: Fraction\"\n            FROM assets\n            WHERE id = $1\n            ",
+  "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                name,\n                icon_path,\n                symbol,\n                address as \"address: Address\",\n                decimals as \"decimals: Fraction\",\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\",\n                transfer_fee as \"transfer_fee: Fraction\"\n            FROM assets\n            WHERE id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -25,16 +25,21 @@
       },
       {
         "ordinal": 4,
-        "name": "symbol",
+        "name": "icon_path",
         "type_info": "Varchar"
       },
       {
         "ordinal": 5,
+        "name": "symbol",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
         "name": "address: Address",
         "type_info": "Bpchar"
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "decimals: Fraction",
         "type_info": {
           "Custom": {
@@ -55,7 +60,7 @@
         }
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "maker_fee: Fraction",
         "type_info": {
           "Custom": {
@@ -76,7 +81,7 @@
         }
       },
       {
-        "ordinal": 8,
+        "ordinal": 9,
         "name": "taker_fee: Fraction",
         "type_info": {
           "Custom": {
@@ -97,7 +102,7 @@
         }
       },
       {
-        "ordinal": 9,
+        "ordinal": 10,
         "name": "transfer_fee: Fraction",
         "type_info": {
           "Custom": {
@@ -133,8 +138,9 @@
       false,
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "c939aaefef9adb4ca0638919ce257fd3545d501a2262714119a95bdd38364815"
+  "hash": "28d80798d01a45486c5c1eb6e5b302a16e55ea625841d14a6f6cb96f4af389b0"
 }

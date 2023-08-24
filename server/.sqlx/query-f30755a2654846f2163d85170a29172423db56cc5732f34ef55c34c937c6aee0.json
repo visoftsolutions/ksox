@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            INSERT INTO deposits\n            (created_at, last_modification_at, owner, spender, asset, amount, tx_hash, confirmations)\n            VALUES\n                ($1, $2, $3, $4, $5, $6::fraction, $7, $8::fraction)\n            RETURNING \n                id,\n                created_at,\n                last_modification_at,\n                owner as \"owner: Address\",\n                spender as \"spender: Address\",\n                asset as \"asset: Address\",\n                amount as \"amount: Fraction\",\n                tx_hash as \"tx_hash: TxHash\",\n                confirmations as \"confirmations: Fraction\"\n            ",
+  "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                name,\n                icon_path,\n                symbol,\n                address as \"address: Address\",\n                decimals as \"decimals: Fraction\",\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\",\n                transfer_fee as \"transfer_fee: Fraction\"\n            FROM assets\n            WHERE last_modification_at > $1\n            ORDER BY last_modification_at ASC\n            ",
   "describe": {
     "columns": [
       {
@@ -20,22 +20,27 @@
       },
       {
         "ordinal": 3,
-        "name": "owner: Address",
-        "type_info": "Bpchar"
+        "name": "name",
+        "type_info": "Varchar"
       },
       {
         "ordinal": 4,
-        "name": "spender: Address",
-        "type_info": "Bpchar"
+        "name": "icon_path",
+        "type_info": "Varchar"
       },
       {
         "ordinal": 5,
-        "name": "asset: Address",
-        "type_info": "Bpchar"
+        "name": "symbol",
+        "type_info": "Varchar"
       },
       {
         "ordinal": 6,
-        "name": "amount: Fraction",
+        "name": "address: Address",
+        "type_info": "Bpchar"
+      },
+      {
+        "ordinal": 7,
+        "name": "decimals: Fraction",
         "type_info": {
           "Custom": {
             "name": "fraction",
@@ -55,13 +60,50 @@
         }
       },
       {
-        "ordinal": 7,
-        "name": "tx_hash: TxHash",
-        "type_info": "Bpchar"
+        "ordinal": 8,
+        "name": "maker_fee: Fraction",
+        "type_info": {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        }
       },
       {
-        "ordinal": 8,
-        "name": "confirmations: Fraction",
+        "ordinal": 9,
+        "name": "taker_fee: Fraction",
+        "type_info": {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "transfer_fee: Fraction",
         "type_info": {
           "Custom": {
             "name": "fraction",
@@ -83,46 +125,7 @@
     ],
     "parameters": {
       "Left": [
-        "Timestamptz",
-        "Timestamptz",
-        "Bpchar",
-        "Bpchar",
-        "Bpchar",
-        {
-          "Custom": {
-            "name": "fraction",
-            "kind": {
-              "Composite": [
-                [
-                  "numer",
-                  "Numeric"
-                ],
-                [
-                  "denom",
-                  "Numeric"
-                ]
-              ]
-            }
-          }
-        },
-        "Bpchar",
-        {
-          "Custom": {
-            "name": "fraction",
-            "kind": {
-              "Composite": [
-                [
-                  "numer",
-                  "Numeric"
-                ],
-                [
-                  "denom",
-                  "Numeric"
-                ]
-              ]
-            }
-          }
-        }
+        "Timestamptz"
       ]
     },
     "nullable": [
@@ -134,8 +137,10 @@
       false,
       false,
       false,
+      false,
+      false,
       false
     ]
   },
-  "hash": "45f12473415796781c6672e01133e4f282138732c1fd2fdfa6b09fd3080f9699"
+  "hash": "f30755a2654846f2163d85170a29172423db56cc5732f34ef55c34c937c6aee0"
 }

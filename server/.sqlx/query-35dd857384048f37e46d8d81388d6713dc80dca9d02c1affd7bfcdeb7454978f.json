@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT\n                id,\n                created_at,\n                last_modification_at,\n                name,\n                symbol,\n                address as \"address: Address\",\n                decimals as \"decimals: Fraction\",\n                maker_fee as \"maker_fee: Fraction\",\n                taker_fee as \"taker_fee: Fraction\",\n                transfer_fee as \"transfer_fee: Fraction\"\n            FROM assets\n            ",
+  "query": "\n            INSERT INTO deposits\n            (created_at, last_modification_at, owner, spender, asset, amount, tx_hash, confirmations)\n            VALUES\n                ($1, $2, $3, $4, $5, $6::fraction, $7, $8::confirmations)\n            RETURNING \n                id,\n                created_at,\n                last_modification_at,\n                owner as \"owner: Address\",\n                spender as \"spender: Address\",\n                asset as \"asset: Address\",\n                amount as \"amount: Fraction\",\n                tx_hash as \"tx_hash: TxHash\",\n                confirmations as \"confirmations: Confirmations\"\n            ",
   "describe": {
     "columns": [
       {
@@ -20,22 +20,22 @@
       },
       {
         "ordinal": 3,
-        "name": "name",
-        "type_info": "Varchar"
+        "name": "owner: Address",
+        "type_info": "Bpchar"
       },
       {
         "ordinal": 4,
-        "name": "symbol",
-        "type_info": "Varchar"
+        "name": "spender: Address",
+        "type_info": "Bpchar"
       },
       {
         "ordinal": 5,
-        "name": "address: Address",
+        "name": "asset: Address",
         "type_info": "Bpchar"
       },
       {
         "ordinal": 6,
-        "name": "decimals: Fraction",
+        "name": "amount: Fraction",
         "type_info": {
           "Custom": {
             "name": "fraction",
@@ -56,60 +56,23 @@
       },
       {
         "ordinal": 7,
-        "name": "maker_fee: Fraction",
-        "type_info": {
-          "Custom": {
-            "name": "fraction",
-            "kind": {
-              "Composite": [
-                [
-                  "numer",
-                  "Numeric"
-                ],
-                [
-                  "denom",
-                  "Numeric"
-                ]
-              ]
-            }
-          }
-        }
+        "name": "tx_hash: TxHash",
+        "type_info": "Bpchar"
       },
       {
         "ordinal": 8,
-        "name": "taker_fee: Fraction",
+        "name": "confirmations: Confirmations",
         "type_info": {
           "Custom": {
-            "name": "fraction",
+            "name": "confirmations",
             "kind": {
               "Composite": [
                 [
-                  "numer",
+                  "actual",
                   "Numeric"
                 ],
                 [
-                  "denom",
-                  "Numeric"
-                ]
-              ]
-            }
-          }
-        }
-      },
-      {
-        "ordinal": 9,
-        "name": "transfer_fee: Fraction",
-        "type_info": {
-          "Custom": {
-            "name": "fraction",
-            "kind": {
-              "Composite": [
-                [
-                  "numer",
-                  "Numeric"
-                ],
-                [
-                  "denom",
+                  "desired",
                   "Numeric"
                 ]
               ]
@@ -119,10 +82,50 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Left": [
+        "Timestamptz",
+        "Timestamptz",
+        "Bpchar",
+        "Bpchar",
+        "Bpchar",
+        {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        },
+        "Bpchar",
+        {
+          "Custom": {
+            "name": "confirmations",
+            "kind": {
+              "Composite": [
+                [
+                  "actual",
+                  "Numeric"
+                ],
+                [
+                  "desired",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        }
+      ]
     },
     "nullable": [
-      false,
       false,
       false,
       false,
@@ -134,5 +137,5 @@
       false
     ]
   },
-  "hash": "6a76b9d3284b0a75aa38c519e7705e005543f1eeb8fe2d39ce99600f8760ceac"
+  "hash": "35dd857384048f37e46d8d81388d6713dc80dca9d02c1affd7bfcdeb7454978f"
 }

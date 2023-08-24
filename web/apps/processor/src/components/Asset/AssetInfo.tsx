@@ -1,7 +1,6 @@
 import { format } from "numerable";
 import { Show, createSignal, onCleanup, onMount } from "solid-js";
-import { joinPaths } from "solid-start/islands/server-router";
-import { api, base } from "~/root";
+import { api } from "~/root";
 import { Asset } from "@packages/types/asset";
 import { ev } from "@packages/types/primitives/fraction";
 import { Valut } from "@packages/types/valut";
@@ -28,7 +27,7 @@ export function AssetInfo(props: {
   asset?: Asset;
   precision?: number;
 }) {
-  const [balance, setBalance] = createSignal<Value | undefined>(undefined);
+  const [balance, setBalance] = createSignal<Value>();
 
   let eventsource: EventSource | undefined;
 
@@ -55,10 +54,7 @@ export function AssetInfo(props: {
     <div class="grid grid-rows-[auto_auto_auto] items-center gap-3">
       <div class="row-start-1 row-end-2">
         <img
-          src={joinPaths(
-            base,
-            "/gfx/asset_icons/" + props.asset?.symbol.toLowerCase() + ".svg",
-          )}
+          src={props.asset?.icon_path}
           width="60px"
           height="60px"
           class="m-auto"

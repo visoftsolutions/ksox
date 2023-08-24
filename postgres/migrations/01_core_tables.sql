@@ -13,6 +13,7 @@ CREATE TABLE "assets" (
   "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "last_modification_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "name" VARCHAR NOT NULL,
+  "icon_path" VARCHAR(50) NOT NULL,
   "address" CHAR(42) UNIQUE NOT NULL,
   "decimals" fraction NOT NULL,
   "symbol" VARCHAR NOT NULL,
@@ -43,7 +44,7 @@ CREATE TABLE "deposits" (
   "asset" CHAR(42) NOT NULL,
   "amount" fraction NOT NULL,
   "tx_hash" CHAR(66) NOT NULL,
-  "confirmations" fraction NOT NULL
+  "confirmations" confirmations NOT NULL
 );
 
 CREATE TABLE "withdraws" (
