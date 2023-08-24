@@ -5,18 +5,11 @@ import { api, base } from "~/root";
 import ArrowDownButton from "~/components/Atoms/Buttons/ArrowDownButton";
 import {
   Index,
-<<<<<<< HEAD
   Setter,
   Show,
   createMemo,
   createSignal,
   onCleanup,
-=======
-  Show,
-  createEffect,
-  createMemo,
-  createSignal,
->>>>>>> 42b93dc (wallet works)
   onMount,
 } from "solid-js";
 import HalfScreenModal from "~/components/Modals/HalfScreenModal";
