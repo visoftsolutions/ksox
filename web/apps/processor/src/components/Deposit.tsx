@@ -1,5 +1,5 @@
 import Header from "~/components/Header";
-import DepositDashboard from "~/components/Deposit/DepositDashboard";
+import DepositDashboard from "~/components/ExternalTransfers/DepositDashboard";
 import { ContractAddressProvider } from "@packages/components/providers/ContractAddressProvider";
 
 export default function Deposit() {

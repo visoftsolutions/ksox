@@ -1,6 +1,6 @@
 import Header from "~/components/Header";
 import { ContractAddressProvider } from "@packages/components/providers/ContractAddressProvider";
-import WithdrawDashboard from "./Withdraw/WithdrawDashboard";
+import WithdrawDashboard from "~/components/ExternalTransfers/WithdrawDashboard";
 
 export default function Deposit() {
   return (
