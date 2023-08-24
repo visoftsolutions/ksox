@@ -7,7 +7,7 @@ export interface IPicture {
   alt?: string;
   size?: number;
   class?: string;
-  skeleton: boolean
+  skeleton: boolean;
 }
 
 export default function Picture(props: IPicture) {
@@ -16,22 +16,24 @@ export default function Picture(props: IPicture) {
       <Switch>
         <Match when={!props.skeleton}>
           <img
-          src={joinPaths(base, props.src)}
-          alt={props.alt || ""}
-          style={{
-            width: `${props.size || 42}px`,
-            height: `${props.size || 42}px`,
-          }}/>
+            src={joinPaths(base, props.src)}
+            alt={props.alt || ""}
+            style={{
+              width: `${props.size || 42}px`,
+              height: `${props.size || 42}px`,
+            }}
+          />
         </Match>
         <Match when={props.skeleton}>
-        <div style={{
-          width: `${props.size || 42}px`,
-          height: `${props.size || 42}px`,
-
-          }} class="bg-r-blue-light-backdrop dark:bg-r-blue-dark-backdrop aspect-square rounded-full"></div>
+          <div
+            style={{
+              width: `${props.size || 42}px`,
+              height: `${props.size || 42}px`,
+            }}
+            class="bg-r-blue-light-backdrop dark:bg-r-blue-dark-backdrop aspect-square rounded-full"
+          />
         </Match>
       </Switch>
-      
-      </div>
+    </div>
   );
 }
