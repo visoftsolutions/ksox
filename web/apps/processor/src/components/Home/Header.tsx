@@ -2,7 +2,7 @@ import SearchBar from "~/components/Atoms/SearchBar";
 import WalletButton from "~/components/Atoms/Buttons/WalletButton";
 import { api } from "~/root";
 
-export default function Header(props: { class?: string, text?: string }) {
+export default function Header(props: { class?: string; text?: string }) {
   return (
     <div
       class={`grid grid-cols-[1fr_auto] xl:grid-cols-1 grid-rows-[3rem_auto] items-center justify-center gap-4 ${props.class}`}

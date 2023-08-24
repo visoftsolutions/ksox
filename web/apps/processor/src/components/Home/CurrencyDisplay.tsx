@@ -93,35 +93,31 @@ const CreateCurrencyDisplayAssetView = (
     });
 
     return (
-      <div class="px-4 pt-4">
-        <div class="flex flex-row justify-between">
-          <div>
-            <div class="flex flex-row items-center">
-              <p class="text-bold font-sans text-3xl text-r-light-text dark:text-r-dark-text">
-                {balance()
-                  ? format(ev(balance()!), formatTemplate(precision ?? 3))
-                  : "---"}
-              </p>
-              <p class="pl-2 font-sans text-3xl text-r-dark-secondary-text">
-                {selectedAsset?.symbol}
-              </p>
-              <ArrowDownButton class="m-1" onClick={() => setModal(true)} />
-            </div>
-            <p class="text-sans text-sm text-r-dark-secondary-text">
-              {selectedAsset?.name}
+      <div class="flex flex-row justify-between">
+        <div>
+          <div class="flex flex-row items-center">
+            <p class="text-bold font-sans text-3xl text-r-light-text dark:text-r-dark-text">
+              {balance()
+                ? format(ev(balance()!), formatTemplate(precision ?? 3))
+                : "---"}
             </p>
+            <p class="pl-2 font-sans text-3xl text-r-dark-secondary-text">
+              {selectedAsset?.symbol}
+            </p>
+            <ArrowDownButton class="m-1" onClick={() => setModal(true)} />
           </div>
-          <Picture
-            src={joinPaths(
-              base,
-              "/gfx/asset_icons/" +
-                selectedAsset?.symbol.toLowerCase() +
-                ".svg",
-            )}
-            alt="test"
-            skeleton={selectedAsset == undefined}
-          />
+          <p class="text-sans text-sm text-r-dark-secondary-text">
+            {selectedAsset?.name}
+          </p>
         </div>
+        <Picture
+          src={joinPaths(
+            base,
+            "/gfx/asset_icons/" + selectedAsset?.symbol.toLowerCase() + ".svg",
+          )}
+          alt="test"
+          skeleton={selectedAsset == undefined}
+        />
       </div>
     );
   };

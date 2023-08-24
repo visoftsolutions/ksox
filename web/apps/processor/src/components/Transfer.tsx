@@ -1,47 +1,27 @@
-import Transfers from "~/components/Transfer/Transfers";
 import Header from "~/components/Transfer/Header";
+import { Index, createSignal } from "solid-js";
+import TransferElement, { ITransferElement } from "./Transfer/TransferElement";
 
 export default function Transfer() {
-  const transfersMockData = [
-    {
-      name: "Filip Dziurdzia",
-      text: "You sent 0.0001 BTC",
-      date: new Date(Date.now()),
-      img: "gfx/bitcoin_placeholder.png",
-    },
-    {
-      name: "Filip Dziurdzia",
-      text: "You sent 0.0001 BTC",
-      date: new Date(Date.now()),
-      img: "gfx/bitcoin_placeholder.png",
-    },
-    {
-      name: "Filip Dziurdzia",
-      text: "You sent 0.0001 BTC",
-      date: new Date(Date.now()),
-      img: "gfx/bitcoin_placeholder.png",
-    },
-    {
-      name: "Filip Dziurdzia",
-      text: "You sent 0.0001 BTC",
-      date: new Date(Date.now()),
-      img: "gfx/bitcoin_placeholder.png",
-    },
-    {
-      name: "Filip Dziurdzia",
-      text: "You sent 0.0001 BTC",
-      date: new Date(Date.now()),
-      img: "gfx/bitcoin_placeholder.png",
-    },
-  ];
+  const [transfers, setTransfers] = createSignal<ITransferElement[]>([]);
+
   return (
     <div class="grid grid-rows-[128px_1fr] h-full">
-      <div class="row-start-1 row-end-2">
-        <Header />
-      </div>
-      <div class="row-start-2 row-end-3 relative overflow-clip">
+      <Header />
+      <div class="relative">
         <div class="absolute inset-0 overflow-y-auto">
-          <Transfers transfers={transfersMockData} />
+          <div class="grid grid-flow-row gap-4 ">
+            <Index each={transfers()}>
+              {(element) => (
+                <TransferElement
+                  user={element().user}
+                  date={element().date}
+                  amount={element().amount}
+                  asset={element().asset}
+                />
+              )}
+            </Index>
+          </div>
         </div>
       </div>
     </div>

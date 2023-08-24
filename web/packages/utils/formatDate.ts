@@ -14,5 +14,5 @@ export function formatDate(date: Date) {
     "Nov",
     "Dec",
   ];
-  return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+  return `${months[date.getMonth()]} ${date.getDate()} ${date.getFullYear()}`;
 }

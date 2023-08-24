@@ -14,5 +14,6 @@ export const Asset = z.object({
   decimals: Fraction,
   maker_fee: Fraction,
   taker_fee: Fraction,
+  transfer_fee: Fraction,
 });
 export type Asset = z.infer<typeof Asset>;

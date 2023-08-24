@@ -6,16 +6,14 @@ import { createSignal } from "solid-js";
 import { Fraction } from "@packages/types/primitives/fraction";
 import ActionButton from "~/components/Atoms/Buttons/ActionButton";
 import { handleDeposit } from "@packages/utils/handlers/depositPermit";
-import {
-  useWallet,
-} from "@packages/components/providers/WalletProvider";
+import { useWallet } from "@packages/components/providers/WalletProvider";
 import { useContractAddress } from "@packages/components/providers/ContractAddressProvider";
 
 export default function DepositDashboard() {
   const precision = usePrecision();
   const { selectedAsset } = useSelectedAsset();
   const [amount, setAmount] = createSignal(
-    Fraction.parse({ numer: 0, denom: 1 })
+    Fraction.parse({ numer: 0, denom: 1 }),
   );
   const wallet = useWallet();
   const treasury_address = useContractAddress();

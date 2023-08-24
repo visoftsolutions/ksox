@@ -36,7 +36,7 @@ export const handleWithdraw = async ({
         amount: amount,
         deadline,
       }),
-      (_, v) => (typeof v === "bigint" ? v.toString() : v)
+      (_, v) => (typeof v === "bigint" ? v.toString() : v),
     ),
   })
     .then((r) => r.json())

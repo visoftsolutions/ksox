@@ -1,6 +1,6 @@
 export interface IActionButton {
   text?: string;
-  onClick?: () => void
+  onClick?: () => void;
 }
 
 export default function ActionButton(props: IActionButton) {

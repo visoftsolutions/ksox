@@ -28,7 +28,7 @@ export const handleDeposit = async ({
   })) as bigint;
 
   const deadline = BigInt(
-    Math.floor((new Date().getTime() + 60 * 1000) / 1000)
+    Math.floor((new Date().getTime() + 60 * 1000) / 1000),
   );
 
   const domain = {

@@ -12,7 +12,7 @@ export enum Nav {
   Settings,
   Notifications,
   Deposit,
-  Withdraw
+  Withdraw,
 }
 
 export const [nav, setNav] = createSignal<Nav>(Nav.Home);
