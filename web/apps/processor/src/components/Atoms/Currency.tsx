@@ -1,7 +1,16 @@
 import Picture from "~/components/Atoms/Picture";
 import { Asset } from "@packages/types/asset";
 import { joinPaths } from "solid-start/islands/server-router";
-import { base } from "~/root";
+import { api, base } from "~/root";
+import { useSession } from "@packages/components/providers/SessionProvider";
+import { usePrecision } from "@packages/components/providers/PrecisionProvider";
+import { createSignal, onCleanup, onMount } from "solid-js";
+import params from "@packages/utils/params";
+import { Fraction, ev } from "@packages/types/primitives/fraction";
+import { Valut } from "@packages/types/valut";
+import subscribeEvents from "@packages/utils/subscribeEvents";
+import { format } from "numerable";
+import { formatTemplate } from "@packages/utils/precision";
 
 export interface ICurrency {
   asset: Asset;
@@ -10,6 +19,31 @@ export interface ICurrency {
 }
 
 export default function Currency(props: ICurrency) {
+  const session = useSession();
+  const precision = usePrecision();
+  const [balance, setBalance] = createSignal(
+    Fraction.parse({ numer: 0, denom: 1 })
+  );
+
+  let eventsource: EventSource | undefined;
+
+  onMount(async () => {
+    if (session() && props.asset && precision()) {
+      eventsource = await subscribeEvents(
+        `${api}/private/balance`,
+        params({ asset_id: props.asset.id }),
+        params({ asset_id: props.asset.id }),
+        (data) => {
+          setBalance(Fraction.parse(Valut.parse(data).balance.Finite));
+        }
+      );
+    }
+  });
+
+  onCleanup(() => {
+    eventsource?.close();
+  });
+
   return (
     <div
       class={`rounded-xl ${
@@ -28,7 +62,7 @@ export default function Currency(props: ICurrency) {
           <Picture
             src={joinPaths(
               base,
-              "/gfx/asset_icons/" + props.asset.symbol.toLowerCase() + ".svg",
+              "/gfx/asset_icons/" + props.asset.symbol.toLowerCase() + ".svg"
             )}
             alt="test"
             size={42}
@@ -44,7 +78,9 @@ export default function Currency(props: ICurrency) {
         </div>
         <div class="m-4 flex flex-col items-end">
           <p class="text-r-light-text dark:text-r-dark-text font-sans ">
-            {0.01}
+            {balance()
+              ? format(ev(balance()!), formatTemplate(precision() ?? 3))
+              : "---"}
           </p>
         </div>
       </div>

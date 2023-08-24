@@ -65,7 +65,7 @@ export function AssetInfo(props: {
       <div class="col-start-2 col-end-3 grid">
         <div class="row-start-1 row-end-2 text-ellipsis text-white">{`${props.asset?.name} (${props.asset?.symbol})`}</div>
         <div class="row-start-2 row-end-3 text-ellipsis text-orderbook-item">
-          {balance() != undefined
+          {balance()
             ? format(ev(balance()!), formatTemplate(props.precision ?? 3))
             : "---"}
         </div>
