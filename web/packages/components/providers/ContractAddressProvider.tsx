@@ -8,7 +8,6 @@ import {
 } from "solid-js";
 import { ContractResponse } from "@packages/types/contract";
 import { Address } from "./SessionProvider/models";
-import { api } from "@apps/exchange/src/root";
 
 const ContractAddressContext = createContext<Accessor<Address>>();
 
@@ -16,7 +15,7 @@ export function ContractAddressProvider(props: { children: JSX.Element }) {
   const [contractAddress, setContractAddress] = createSignal("0x");
 
   onMount(async () => {
-    const result = await fetch(`${api}/public/contract`)
+    const result = await fetch(`/api/public/contract`)
       .then((r) => r.json())
       .then((r) => ContractResponse.parse(r));
 

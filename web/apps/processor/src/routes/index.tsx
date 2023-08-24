@@ -4,10 +4,7 @@ import { PrecisionProvider } from "@packages/components/providers/PrecisionProvi
 import SideNav from "~/components/SideNav";
 import Nav from "~/components/Nav";
 import { AssetsProvider } from "@packages/components/providers/AssetsProvider";
-import { api, base } from "~/root";
-import { Portal } from "solid-js/web";
-import WalletButton from "~/components/Atoms/Buttons/WalletButton";
-import { createSignal, onMount } from "solid-js";
+import { api } from "~/root";
 
 export default function Index() {
   return (

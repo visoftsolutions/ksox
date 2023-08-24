@@ -30,6 +30,8 @@ export const projectId = import.meta.env
 const Index = lazy(() => import("~/routes"));
 const Home = lazy(() => import("~/components/Home"));
 const Transfer = lazy(() => import("~/components/Transfer"));
+const Deposit = lazy(() => import("~/components/Deposit"));
+const Withdraw = lazy(() => import("~/components/Withdraw"));
 
 export default function Root() {
   return (
@@ -97,6 +99,16 @@ export default function Root() {
                         path="/settings"
                         element={<Home />}
                         preload={() => setNav(Nav.Settings)}
+                      />
+                      <Route
+                        path="/deposit"
+                        element={<Deposit />}
+                        preload={() => setNav(Nav.Deposit)}
+                      />
+                      <Route
+                        path="/withdraw"
+                        element={<Withdraw />}
+                        preload={() => setNav(Nav.Withdraw)}
                       />
                     </Route>
                     <FileRoutes />

@@ -7,7 +7,7 @@ export interface IPicture {
   alt?: string;
   size?: number;
   class?: string;
-  skeleton: boolean;
+  skeleton?: boolean;
 }
 
 export default function Picture(props: IPicture) {
