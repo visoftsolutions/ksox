@@ -5,7 +5,7 @@ import { useNav, Nav } from "~/components/providers/NavProvider";
 export default function Navigation() {
   const nav = useNav();
   return (
-    <div class="grid grid-cols-2 bg-gray-2">
+    <div class="grid grid-cols-4 bg-gray-2">
       <A href="/">
         <NavButton
           name="Home"
@@ -18,6 +18,20 @@ export default function Navigation() {
           name="Account"
           imgPath="/gfx/user.svg"
           highlighted={nav() == Nav.Account}
+        />
+      </A>
+      <A href="/deposit">
+        <NavButton
+          name="Deposit"
+          imgPath="/gfx/assets_arrow_down.svg"
+          highlighted={nav() == Nav.Deposit}
+        />
+      </A>
+      <A href="/withdraw">
+        <NavButton
+          name="Withdraw"
+          imgPath="/gfx/assets_arrow_up.svg"
+          highlighted={nav() == Nav.Withdraw}
         />
       </A>
     </div>

@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "solid-js";
+import { Suspense, lazy } from 'solid-js'
 import {
   Body,
   ErrorBoundary,
@@ -11,21 +11,22 @@ import {
   Routes,
   Scripts,
   Title,
-} from "solid-start";
-import "~/root.css";
-import { joinPaths } from "solid-start/islands/server-router";
-import { Nav, NavProvider, setNav } from "~/components/providers/NavProvider";
-import { WalletProvider } from "@packages/components/providers/WalletProvider";
+} from 'solid-start'
+import '~/root.css'
+import { joinPaths } from 'solid-start/islands/server-router'
+import { Nav, NavProvider, setNav } from '~/components/providers/NavProvider'
+import { WalletProvider } from '@packages/components/providers/WalletProvider'
+import { Deposit } from './components/Deposit'
+import { Withdraw } from './components/Withdraw'
 
-export const base = import.meta.env.BASE_URL;
-export const api = joinPaths(base, "/api");
-export const projectId = import.meta.env
-  .VITE_KSOX_WEB_WALLET_CONNECT_PROJECT_ID;
+export const base = import.meta.env.BASE_URL
+export const api = joinPaths(base, '/api')
+export const projectId = import.meta.env.VITE_KSOX_WEB_WALLET_CONNECT_PROJECT_ID
 
-const Index = lazy(() => import("~/routes"));
-const App = lazy(() => import("~/components/App"));
-const Account = lazy(() => import("~/components/Account"));
-const Asset = lazy(() => import("~/components/Asset"));
+const Index = lazy(() => import('~/routes'))
+const App = lazy(() => import('~/components/App'))
+const Account = lazy(() => import('~/components/Account'))
+const Asset = lazy(() => import('~/components/Asset'))
 
 export default function Root() {
   return (
@@ -49,9 +50,9 @@ export default function Root() {
           <>
             <Link
               rel="manifest"
-              href={joinPaths(base, "/manifest.webmanifest")}
+              href={joinPaths(base, '/manifest.webmanifest')}
             />
-            <script src={joinPaths(base, "/registerSW.js")} />
+            <script src={joinPaths(base, '/registerSW.js')} />
             <script
               async
               src="https://www.googletagmanager.com/gtag/js?id=G-HS7VCPVSGW"
@@ -76,6 +77,16 @@ export default function Root() {
                       preload={() => setNav(Nav.App)}
                     />
                     <Route
+                      path="/deposit"
+                      element={<Deposit />}
+                      preload={() => setNav(Nav.Deposit)}
+                    />
+                    <Route
+                      path="/withdraw"
+                      element={<Withdraw />}
+                      preload={() => setNav(Nav.Withdraw)}
+                    />
+                    <Route
                       path="/account"
                       element={<Account />}
                       preload={() => setNav(Nav.Account)}
@@ -95,5 +106,5 @@ export default function Root() {
         <Scripts />
       </Body>
     </Html>
-  );
+  )
 }
