@@ -1,6 +1,6 @@
 import SearchBar from "~/components/Atoms/SearchBar";
 import WalletButton from "~/components/Atoms/Buttons/WalletButton";
-import { api } from "~/root";
+import { api, base } from "~/root";
 
 export default function Header(props: { class?: string; text?: string }) {
   return (
@@ -11,7 +11,7 @@ export default function Header(props: { class?: string; text?: string }) {
         {props.text}
       </div>
       <div class="justify-self-end row-start-1 row-end-2 col-start-2 col-end-3 grid">
-        <WalletButton api_url={api} class="justify-self-end" />
+        <WalletButton base_url={base} api_url={api} class="justify-self-end" />
       </div>
       <div class="row-start-2 row-end-3 col-span-2">
         <SearchBar placeholder="Search" />
