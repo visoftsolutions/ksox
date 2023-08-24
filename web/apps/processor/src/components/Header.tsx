@@ -8,7 +8,7 @@ export default function Header(props: { class?: string; text?: string }) {
       class={`grid grid-cols-[1fr_auto] xl:grid-cols-1 grid-rows-[3rem_auto] items-center justify-center gap-4 ${props.class}`}
     >
       <div class="text-3xl font-sans font-bold text-r-light-text dark:text-r-dark-text row-start-1 row-end-2 col-start-1 col-end-2">
-        {props.text || "Home"}
+        {props.text}
       </div>
       <div class="justify-self-end row-start-1 row-end-2 col-start-2 col-end-3 grid">
         <WalletButton api_url={api} class="justify-self-end" />

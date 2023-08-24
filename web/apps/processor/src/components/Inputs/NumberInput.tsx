@@ -70,7 +70,7 @@ export default function NumberInput(props: NumberInputComponent) {
 
   return (
     <div
-      class={`grid cursor-text grid-cols-[auto_1fr_auto] items-center rounded-md bg-r-light-foreground dark:bg-r-dark-foreground ${
+      class={`grid cursor-text grid-cols-[auto_1fr_auto] items-center rounded-xl bg-r-light-foreground dark:bg-r-dark-foreground ${
         props.class
       } ${props.disabled ? props.disabledClass : ""}`}
       onClick={() => {
@@ -87,7 +87,7 @@ export default function NumberInput(props: NumberInputComponent) {
         <input
           id={id}
           class={
-            "number_input w-full max-w-[150px] bg-transparent p-1 text-right outline-none"
+            "number_input w-full bg-transparent p-1 text-right outline-none"
           }
           type="text"
           spellcheck={true}

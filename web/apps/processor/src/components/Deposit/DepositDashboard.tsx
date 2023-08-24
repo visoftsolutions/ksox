@@ -2,12 +2,13 @@ import CurrencyDisplay from "~/components/Home/CurrencyDisplay";
 import NumberInput from "~/components/Inputs/NumberInput";
 import { usePrecision } from "@packages/components/providers/PrecisionProvider";
 import { useSelectedAsset } from "~/components/providers/SelectedAssetProvider";
-import { createSignal } from "solid-js";
+import { Index, createSignal } from "solid-js";
 import { Fraction } from "@packages/types/primitives/fraction";
 import ActionButton from "~/components/Atoms/Buttons/ActionButton";
 import { handleDeposit } from "@packages/utils/handlers/depositPermit";
 import { useWallet } from "@packages/components/providers/WalletProvider";
 import { useContractAddress } from "@packages/components/providers/ContractAddressProvider";
+import TransferElement, { ITransferElement } from "../Home/TransferElement";
 
 export default function DepositDashboard() {
   const precision = usePrecision();
@@ -17,14 +18,14 @@ export default function DepositDashboard() {
   );
   const wallet = useWallet();
   const treasury_address = useContractAddress();
+  const [transfers, setTransfers] = createSignal<ITransferElement[]>([]);
 
   return (
-    <div class="rounded-xl bg-r-light-foreground dark:bg-r-dark-foreground scrollbar-thumb-r-dark-secondary-text dark:scrollbar-thumb-r-dark-active">
+    <div class="grid grid-rows-[auto_auto_auto_1fr] h-full gap-4">
       <CurrencyDisplay />
-      <div class="h-4" />
-      <div class="grid">
+      <div class="grid grid-cols-[auto_auto] gap-5">
         <NumberInput
-          class="p-1 text-submit-label justify-self-center"
+          class="w-full p-1 border text-md justify-self-center"
           precision={precision()}
           left={"Quantity"}
           right={selectedAsset()?.symbol}
@@ -33,7 +34,6 @@ export default function DepositDashboard() {
             setAmount(f);
           }}
         />
-        <div class="h-4" />
         <ActionButton
           text="Deposit"
           onClick={async () => {
@@ -49,14 +49,25 @@ export default function DepositDashboard() {
             }
           }}
         />
-        <div class="h-4" />
       </div>
-
-      <div>
-        <p class="text-sans mx-5 text-sm text-bold text-r-dark-secondary-text">
-          Deposits
-        </p>
-        {/* <DepositTransactions /> */}
+      <p class="text-sans text-sm text-bold text-r-dark-secondary-text">
+        Deposits
+      </p>
+      <div class="relative">
+        <div class="absolute inset-0 overflow-y-auto">
+          <div class="grid grid-flow-row gap-4 ">
+            <Index each={transfers()}>
+              {(element) => (
+                <TransferElement
+                  user={element().user}
+                  date={element().date}
+                  amount={element().amount}
+                  asset={element().asset}
+                />
+              )}
+            </Index>
+          </div>
+        </div>
       </div>
     </div>
   );
