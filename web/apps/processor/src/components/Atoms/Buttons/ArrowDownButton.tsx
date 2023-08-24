@@ -15,7 +15,7 @@ export default function ArrowDownButton(props: IArrowDownButton) {
   const colorMode = useColorMode();
 
   return (
-    <div
+    <button
       class={`rounded-full bg-r-blue-light-backdrop dark:bg-r-blue-dark-backdrop ${props.class}`}
       onClick={() => props.onClick()}
     >
@@ -35,6 +35,6 @@ export default function ArrowDownButton(props: IArrowDownButton) {
           />
         </Match>
       </Switch>
-    </div>
+    </button>
   );
 }

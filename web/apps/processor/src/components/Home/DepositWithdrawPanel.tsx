@@ -5,7 +5,7 @@ export default function DepositWithdrawPanel() {
   return (
     <div class="text-center">
       <div class="inline-grid grid-cols-2 gap-6">
-        <div class="grid grid-rows-[auto_auto] justify-items-center ">
+        <button class="grid grid-rows-[auto_auto] justify-items-center ">
           <div class="rounded-full p-3 aspect-square bg-r-blue-light-backdrop dark:bg-r-blue-dark-backdrop grid justify-center">
             <img
               src={joinPaths(base, "/gfx/deposit.svg")}
@@ -14,8 +14,8 @@ export default function DepositWithdrawPanel() {
             />
           </div>
           <div class="text-xs font-semibold text-r-blue">deposit</div>
-        </div>
-        <div class="grid grid-rows-[auto_auto] justify-items-center ">
+        </button>
+        <button class="grid grid-rows-[auto_auto] justify-items-center ">
           <div class="rounded-full p-3 aspect-square bg-r-blue-light-backdrop dark:bg-r-blue-dark-backdrop grid justify-center">
             <img
               src={joinPaths(base, "/gfx/withdraw.svg")}
@@ -24,7 +24,7 @@ export default function DepositWithdrawPanel() {
             />
           </div>
           <div class="text-xs font-semibold text-r-blue">withdraw</div>
-        </div>
+        </button>
       </div>
     </div>
   );

@@ -19,6 +19,10 @@ export default function WalletButton(props: {
   const wallet = useWallet();
   const session = useSession();
 
+  createEffect(() => {
+    console.log(wallet.walletClient);
+  });
+
   createEffect(async () => {
     if (wallet.walletClient && untrack(() => !session())) {
       setSession(await login(props.api_url, wallet.walletClient));
@@ -26,14 +30,15 @@ export default function WalletButton(props: {
   });
 
   return (
-    <div
-      class={`border-r-light-text dark:border-r-dark-text border rounded-xl grid items-center justify-center justify-items-center font-bold text-sm p-2 ${props.class}`}
+    <button
+      class={`cursor-pointer border-r-light-text dark:border-r-dark-text border rounded-xl grid items-center justify-center justify-items-center font-bold text-sm p-2 ${props.class}`}
       onClick={async () => {
         if (!wallet.walletClient) {
           await walletClientConnect();
         } else if (session()) {
           setSession(await logout(props.api_url));
         } else {
+          console.log("logging in if");
           setSession(await login(props.api_url, wallet.walletClient));
         }
       }}
@@ -45,6 +50,6 @@ export default function WalletButton(props: {
           ? "LOGIN"
           : firstLastChars(session()?.address ?? "", 6, 6)}
       </div>
-    </div>
+    </button>
   );
 }

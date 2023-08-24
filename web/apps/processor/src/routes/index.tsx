@@ -4,8 +4,10 @@ import { PrecisionProvider } from "@packages/components/providers/PrecisionProvi
 import SideNav from "~/components/SideNav";
 import Nav from "~/components/Nav";
 import { AssetsProvider } from "@packages/components/providers/AssetsProvider";
-import { api } from "~/root";
-import Wallet from "~/components/Wallet";
+import { api, base } from "~/root";
+import { Portal } from "solid-js/web";
+import WalletButton from "~/components/Atoms/Buttons/WalletButton";
+import { createSignal, onMount } from "solid-js";
 
 export default function Index() {
   return (
@@ -25,9 +27,6 @@ export default function Index() {
                   <Outlet />
                 </PrecisionProvider>
               </div>
-            </div>
-            <div class="hidden xl:block">
-              <Wallet />
             </div>
           </div>
           <div class="xl:hidden block row-start-2 row-end-3">
