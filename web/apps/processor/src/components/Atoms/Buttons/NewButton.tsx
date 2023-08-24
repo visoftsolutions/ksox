@@ -1,7 +1,7 @@
 import { joinPaths } from "solid-start/islands/server-router";
 import { base } from "~/root";
 
-export default function NewButton(props: { class: string }) {
+export default function NewButton(props: { class?: string }) {
   return (
     <button
       class={`rounded-full justify-self-end grid items-center justify-center justify-items-center bg-r-blue p-1 px-2 ${props.class}`}

@@ -10,7 +10,7 @@ export default function SearchBar(props: ISearchBar) {
   const [query, setQuery] = createSignal("");
 
   return (
-    <div class="flex items-center rounded-full bg-r-light-search-bar dark:bg-r-dark-search-bar my-4">
+    <div class="grid grid-flow-col grid-cols-[auto_1fr] rounded-full bg-r-light-search-bar dark:bg-r-dark-search-bar">
       <img
         src={joinPaths(base, "gfx/search.svg")}
         alt="Search Icon"
