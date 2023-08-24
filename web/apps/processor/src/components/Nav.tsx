@@ -25,14 +25,14 @@ export default function SideNavigation() {
                   src={joinPaths(base, "/gfx/home-light.svg")}
                   width={30}
                   height={30}
-                ></img>
+                />
               </Match>
               <Match when={colorMode.colorMode() == ColorMode.Dark}>
                 <img
                   src={joinPaths(base, "/gfx/home-dark.svg")}
                   width={30}
                   height={30}
-                ></img>
+                />
               </Match>
             </Switch>
           }
@@ -49,14 +49,14 @@ export default function SideNavigation() {
                   src={joinPaths(base, "/gfx/transfer-light.svg")}
                   width={30}
                   height={30}
-                ></img>
+                />
               </Match>
               <Match when={colorMode.colorMode() == ColorMode.Dark}>
                 <img
                   src={joinPaths(base, "/gfx/transfer-dark.svg")}
                   width={30}
                   height={30}
-                ></img>
+                />
               </Match>
             </Switch>
           }

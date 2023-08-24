@@ -1,4 +1,3 @@
-import { joinPaths } from "solid-start/islands/server-router";
 import {
   setSession,
   login,

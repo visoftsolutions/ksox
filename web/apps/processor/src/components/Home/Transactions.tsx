@@ -11,7 +11,7 @@ export default function Transactions(props: ITransactions) {
   return (
     <div class="rounded-xl bg-r-light-foreground dark:bg-r-dark-foreground">
       {props.transactions.length > 0 ? (
-        props.transactions.map((transaction, index) => (
+        props.transactions.map((transaction) => (
           <Transaction
             title={transaction.title}
             img={transaction.img}
@@ -25,7 +25,7 @@ export default function Transactions(props: ITransactions) {
       ) : (
         <div class="p-4">
           {props.noTransactions ? (
-            Array.from({ length: props.noTransactions }).map((_, index) => (
+            Array.from({ length: props.noTransactions }).map(() => (
               <Transaction
                 title="No Transaction"
                 img="placeholder.png"

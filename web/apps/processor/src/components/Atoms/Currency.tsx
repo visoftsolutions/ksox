@@ -22,7 +22,7 @@ export default function Currency(props: ICurrency) {
   const session = useSession();
   const precision = usePrecision();
   const [balance, setBalance] = createSignal(
-    Fraction.parse({ numer: 0, denom: 1 })
+    Fraction.parse({ numer: 0, denom: 1 }),
   );
 
   let eventsource: EventSource | undefined;
@@ -35,7 +35,7 @@ export default function Currency(props: ICurrency) {
         params({ asset_id: props.asset.id }),
         (data) => {
           setBalance(Fraction.parse(Valut.parse(data).balance.Finite));
-        }
+        },
       );
     }
   });
@@ -62,7 +62,7 @@ export default function Currency(props: ICurrency) {
           <Picture
             src={joinPaths(
               base,
-              "/gfx/asset_icons/" + props.asset.symbol.toLowerCase() + ".svg"
+              "/gfx/asset_icons/" + props.asset.symbol.toLowerCase() + ".svg",
             )}
             alt="test"
             size={42}

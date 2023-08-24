@@ -25,7 +25,7 @@ export default function NotificationsButton(props: INotificationsButton) {
         </Match>
       </Switch>
       {props.highlighted ? (
-        <div class="z-100 absolute right-1 top-0 h-1 w-1 rounded-full bg-red"></div>
+        <div class="z-100 absolute right-1 top-0 h-1 w-1 rounded-full bg-red" />
       ) : null}
     </button>
   );
