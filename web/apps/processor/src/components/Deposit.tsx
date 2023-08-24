@@ -173,8 +173,6 @@ export const Deposit: Component<{}> = ({}) => {
       <Dynamic
         component={CreateProccessorDeposit(selectedAsset(), precision())}
       />
-      {selectedAsset() && selectedAsset()!.name}
-      {/*  */}
     </div>
   );
 };

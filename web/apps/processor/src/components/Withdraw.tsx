@@ -5,73 +5,74 @@ import {
   createMemo,
   createSignal,
   onCleanup,
-} from 'solid-js'
-import { useAssets } from './providers/AssetsProvider'
-import { Asset } from '@packages/types/asset'
-import { joinPaths } from 'solid-start/islands/server-router'
-import { api, base } from '~/root'
-import { AVAILABLE_CHAINS } from '@packages/components/providers/WalletProvider/chains'
-import { unwrap } from 'solid-js/store'
-import { useWallet } from '@packages/components/providers/WalletProvider'
-import { CreateProccessorDeposit } from './Asset/DepositCore'
-import { usePrecision } from '@packages/components/providers/PrecisionProvider'
-import { Dynamic } from 'solid-js/web'
-import { Fraction, ev } from '@packages/types/primitives/fraction'
-import { useSession } from '@packages/components/providers/SessionProvider'
-import subscribeEvents from '@packages/utils/subscribeEvents'
-import params from '@packages/utils/params'
-import { Valut } from '@packages/types/valut'
-import { format } from 'numerable'
-import { formatTemplate } from '@packages/utils/precision'
+} from "solid-js";
+import { useAssets } from "./providers/AssetsProvider";
+import { Asset } from "@packages/types/asset";
+import { joinPaths } from "solid-start/islands/server-router";
+import { api, base } from "~/root";
+import { AVAILABLE_CHAINS } from "@packages/components/providers/WalletProvider/chains";
+import { unwrap } from "solid-js/store";
+import { useWallet } from "@packages/components/providers/WalletProvider";
+import { CreateProccessorDeposit } from "./Asset/DepositCore";
+import { usePrecision } from "@packages/components/providers/PrecisionProvider";
+import { Dynamic } from "solid-js/web";
+import { Fraction, ev } from "@packages/types/primitives/fraction";
+import { useSession } from "@packages/components/providers/SessionProvider";
+import subscribeEvents from "@packages/utils/subscribeEvents";
+import params from "@packages/utils/params";
+import { Valut } from "@packages/types/valut";
+import { format } from "numerable";
+import { formatTemplate } from "@packages/utils/precision";
+import { CreateProccessorWithdraw } from "./Asset/WithdrawCore";
 
 export const Withdraw: Component<{}> = ({}) => {
-  const assets = useAssets()
-  const wallet = useWallet()
-  const session = useSession()
-  const precision = usePrecision()
-  const assetsList = createMemo(() => [...assets().values()])
+  const assets = useAssets();
+  const wallet = useWallet();
+  const session = useSession();
+  const precision = usePrecision();
+  const assetsList = createMemo(() => [...assets().values()]);
 
-  const [selectedAsset, setSelectedAsset] = createSignal<Asset | undefined>()
+  const [selectedAsset, setSelectedAsset] = createSignal<Asset | undefined>();
 
   const assetMap = createMemo(() => {
-    const map = new Map()
-    assetsList().forEach((asset) => map.set(asset.id, asset))
-    return map
-  })
+    const map = new Map();
+    assetsList().forEach((asset) => map.set(asset.id, asset));
+    return map;
+  });
 
   const handleChangeCoin = (event: Event) => {
-    const assetId = (event.target as HTMLSelectElement).value
-    setSelectedAsset(assetMap().get(assetId))
-  }
+    const assetId = (event.target as HTMLSelectElement).value;
+    setSelectedAsset(assetMap().get(assetId));
+  };
 
   createEffect(() => {
     if (assetsList().length > 0) {
-      setSelectedAsset(assetsList()[0])
+      setSelectedAsset(assetsList()[0]);
     }
-  })
+  });
 
-  const [balance, setBalance] = createSignal<Fraction | undefined>(undefined)
+  const [balance, setBalance] = createSignal<Fraction | undefined>(undefined);
 
-  let eventsource: EventSource | undefined
+  let eventsource: EventSource | undefined;
 
   createEffect(async () => {
     if (session() && selectedAsset() && precision()) {
-      const asset = selectedAsset()
+      const asset = selectedAsset();
 
       eventsource = await subscribeEvents(
         `${api}/private/balance`,
         params({ asset_id: asset!.id }),
         params({ asset_id: asset!.id }),
         (data) => {
-          setBalance(Valut.parse(data).balance.Finite)
+          setBalance(Valut.parse(data).balance.Finite);
         }
-      )
+      );
     }
-  })
+  });
 
   onCleanup(() => {
-    eventsource?.close()
-  })
+    eventsource?.close();
+  });
 
   return (
     <div class="p-4">
@@ -89,17 +90,17 @@ export const Withdraw: Component<{}> = ({}) => {
                   try {
                     await wallet.walletClient?.addChain({
                       chain: unwrap(network.network),
-                    })
+                    });
                   } catch (error) {
-                    console.log(error)
+                    console.log(error);
                   }
 
                   try {
                     await wallet.walletClient?.switchChain({
                       id: unwrap(network.network).id,
-                    })
+                    });
                   } catch (error) {
-                    console.log(error)
+                    console.log(error);
                   }
                 }}
               >
@@ -151,9 +152,9 @@ export const Withdraw: Component<{}> = ({}) => {
           <img
             src={joinPaths(
               base,
-              '/gfx/asset_icons/' +
+              "/gfx/asset_icons/" +
                 (selectedAsset() as Asset).symbol.toLowerCase() +
-                '.svg'
+                ".svg"
             )}
             width="36px"
             height="36px"
@@ -167,14 +168,12 @@ export const Withdraw: Component<{}> = ({}) => {
                 ev(balance()!),
                 formatTemplate(precision() ?? 3)
               )} ${selectedAsset()?.symbol}`
-            : 'Your balance: '}
+            : "Your balance: "}
         </p>
       </Show>
       <Dynamic
-        component={CreateProccessorDeposit(selectedAsset(), precision())}
+        component={CreateProccessorWithdraw(selectedAsset(), precision())}
       />
-      {selectedAsset() && selectedAsset()!.name}
-      {/*  */}
     </div>
-  )
-}
+  );
+};

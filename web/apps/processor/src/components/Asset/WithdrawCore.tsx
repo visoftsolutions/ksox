@@ -10,19 +10,20 @@ import {
 import { DepositTextInput } from "../Inputs/DepositTextInput";
 import { useWallet } from "@packages/components/providers/WalletProvider";
 import {
-  ADDRESS,
   ABI as TREASURY_ABI,
   ADDRESS as TREASURY_ADDRESS,
 } from "../../../../../packages/contracts/treasury";
 import { ABI as ERC20_ABI } from "../../../../../packages/contracts/erc20";
 import { Address } from "viem";
 import { DepositNumberInput } from "../Inputs/DepositNumberInput";
-import { handleDeposit } from "~/helpers/handleDeposit";
+import { WithdrawRequest, WithdrawResponse } from "@packages/types/mod";
+import { api } from "~/root";
+import { handleWithdraw } from "~/helpers/handleWithdraw";
 
-export function CreateProccessorDeposit(asset?: Asset, precision?: number) {
+export function CreateProccessorWithdraw(asset?: Asset, precision?: number) {
   return () => (
     <Show when={asset && precision}>
-      <DepositCore asset={asset!} precision={precision!} />
+      <WithdrawCore asset={asset!} precision={precision!} />
     </Show>
   );
 }
@@ -39,7 +40,7 @@ const splitSig = (sig: string) => {
   };
 };
 
-export function DepositCore(props: { asset: Asset; precision: number }) {
+export function WithdrawCore(props: { asset: Asset; precision: number }) {
   const [amount, setAmount] = createSignal<Fraction>(fFromBigint(0n));
   const session = useSession();
   const wallet = useWallet();
@@ -83,11 +84,11 @@ export function DepositCore(props: { asset: Asset; precision: number }) {
           `}
           onClick={async () => {
             try {
-              await handleDeposit({
+              await handleWithdraw({
                 asset: props.asset,
                 address_value: address(),
                 amount: amount(),
-                treasury_address: ADDRESS,
+                treasury_address: TREASURY_ADDRESS,
                 wallet: wallet,
               });
             } catch (error) {
@@ -95,7 +96,7 @@ export function DepositCore(props: { asset: Asset; precision: number }) {
             }
           }}
         >
-          Deposit
+          Withdraw
         </div>
       </div>
     </>
