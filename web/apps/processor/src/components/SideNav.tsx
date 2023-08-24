@@ -111,6 +111,40 @@ export default function SideNavigation() {
           }
         />
       </A>
+      <SideNavButton
+        name={(() => {
+          switch (colorMode.colorMode()) {
+            case ColorMode.Light:
+              return "Dark Mode";
+            case ColorMode.Dark:
+              return "Light Mode";
+          }
+        })()}
+        icon={
+          <Switch>
+            <Match when={colorMode.colorMode() == ColorMode.Light}>
+              <img
+                src={joinPaths(base, "/gfx/mode-light.svg")}
+                width={24}
+                height={24}
+              />
+            </Match>
+            <Match when={colorMode.colorMode() == ColorMode.Dark}>
+              <img
+                src={joinPaths(base, "/gfx/mode-dark.svg")}
+                width={24}
+                height={24}
+              />
+            </Match>
+          </Switch>
+        }
+        onClick={() => {
+          const values = Object.values(ColorMode);
+          colorMode.setColorMode(
+            values[(values.indexOf(colorMode.colorMode()) + 1) % values.length],
+          );
+        }}
+      />
     </div>
   );
 }
