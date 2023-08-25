@@ -21,7 +21,7 @@ export default function WithdrawDashboard() {
   const precision = usePrecision();
   const { selectedAsset } = useSelectedAsset();
   const [amount, setAmount] = createSignal(
-    Fraction.parse({ numer: 0, denom: 1 })
+    Fraction.parse({ numer: 0, denom: 1 }),
   );
   const wallet = useWallet();
   const [withdrawAddress, setWithdrawAddress] = createSignal(wallet.address!);
@@ -35,8 +35,7 @@ export default function WithdrawDashboard() {
       from:
         element.from_user_name ||
         firstLastChars(element.from_user_address, 4, 4),
-      to:
-        element.to_user_name || firstLastChars(element.to_user_address, 4, 4),
+      to: element.to_user_name || firstLastChars(element.to_user_address, 4, 4),
       amount: ev(element.amount),
       date: element.created_at,
       symbol: element.asset_symbol,
@@ -54,9 +53,9 @@ export default function WithdrawDashboard() {
             .array(DisplayTransfer)
             .parse(data)
             .map(convertTransfer)
-            .concat(state)
+            .concat(state),
         );
-      }
+      },
     );
   });
 

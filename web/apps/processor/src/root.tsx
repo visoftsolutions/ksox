@@ -91,16 +91,6 @@ export default function Root() {
                         preload={() => setNav(Nav.Transfer)}
                       />
                       <Route
-                        path="/notifications"
-                        element={<Home />}
-                        preload={() => setNav(Nav.Notifications)}
-                      />
-                      <Route
-                        path="/settings"
-                        element={<Home />}
-                        preload={() => setNav(Nav.Settings)}
-                      />
-                      <Route
                         path="/deposit"
                         element={<Deposit />}
                         preload={() => setNav(Nav.Deposit)}

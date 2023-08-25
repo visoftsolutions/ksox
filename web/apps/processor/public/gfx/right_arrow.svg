@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" class="icon flat-line" data-name="Flat Line" viewBox="0 0 24 24">
-    <g fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+    <g fill="none" stroke="#0666EB" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
         <path d="M3 12h18" />
         <path d="m18 15 3-3-3-3" data-name="primary" />
     </g>

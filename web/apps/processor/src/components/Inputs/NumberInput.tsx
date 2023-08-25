@@ -15,7 +15,7 @@ export interface NumberInputComponent {
   onChange?: (f: Fraction) => void;
 }
 
-function formatHumanReadable(input: string, precision: number) {
+export function formatHumanReadable(input: string, precision: number) {
   // Remove all non-digit and non-dot characters
   let formatted =
     precision > 0
@@ -49,7 +49,7 @@ function formatHumanReadable(input: string, precision: number) {
   return formatted;
 }
 
-function humanReadableToBigint(input: string) {
+export function humanReadableToBigint(input: string) {
   const decimalNumber = input.replace(/,/g, "");
   const index = decimalNumber.indexOf(".");
   const decimalPlaces =

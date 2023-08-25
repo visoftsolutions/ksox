@@ -52,8 +52,7 @@ export function CreateTransfers(session: SessionResponse | undefined) {
           element.from_user_name ||
           firstLastChars(element.from_user_address, 4, 4),
         to:
-          element.to_user_name ||
-          firstLastChars(element.to_user_address, 4, 4),
+          element.to_user_name || firstLastChars(element.to_user_address, 4, 4),
         amount: ev(element.amount),
         date: element.created_at,
         symbol: element.asset_symbol,

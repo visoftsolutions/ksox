@@ -27,11 +27,9 @@ const SelectedAssetContext = createContext<SelectedAssetContextValue>({
   selectedAsset,
   setSelectedAsset,
 });
-export function NavProvider(props: {
+export function SelectedAssetProvider(props: {
   children: JSX.Element;
-  selected_asset: Asset;
 }) {
-  setSelectedAsset(props.selected_asset);
   return (
     <SelectedAssetContext.Provider value={{ selectedAsset, setSelectedAsset }}>
       {props.children}
