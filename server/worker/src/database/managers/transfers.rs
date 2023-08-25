@@ -144,6 +144,46 @@ impl TransfersManager {
         .fetch(&self.database)
     }
 
+    pub fn get_display_for_user_id(
+        &self,
+        user_id: Uuid,
+        limit: i64,
+        offset: i64,
+    ) -> Pin<Box<dyn Stream<Item = sqlx::Result<DisplayTransfer>> + Send + '_>> {
+        sqlx::query_as!(
+            DisplayTransfer,
+            r#"
+            SELECT
+                transfers.id,
+                transfers.created_at,
+                from_valuts.user_id as from_user_id,
+                from_users.address as "from_user_address: Address",
+                to_valuts.user_id as to_user_id,
+                to_users.address as "to_user_address: Address",
+                assets.id as asset_id,
+                assets.icon_path as asset_icon_path,
+                assets.name as asset_name,
+                assets.symbol as asset_symbol,
+                transfers.amount as "amount: Fraction",
+                transfers.fee as "fee: Fraction"
+            FROM transfers
+            JOIN valuts from_valuts ON transfers.from_valut_id = from_valuts.id
+            JOIN valuts to_valuts ON transfers.to_valut_id = to_valuts.id
+            JOIN assets ON transfers.asset_id = assets.id
+            JOIN users from_users ON from_valuts.user_id = from_users.id
+            JOIN users to_users ON to_valuts.user_id = to_users.id
+            WHERE to_valuts.user_id = $1 OR from_valuts.user_id = $1
+            ORDER BY transfers.created_at DESC
+            LIMIT $2
+            OFFSET $3
+            "#,
+            user_id,
+            limit,
+            offset
+        )
+        .fetch(&self.database)
+    }
+
     pub fn get_only_external_for_user_id(
         &self,
         user_id: Uuid,
@@ -255,6 +295,42 @@ impl TransfersNotificationManager {
                 while let Some(notification) = rx.recv().await {
                     if let NotificationManagerOutput::Transfers(transfers) = notification {
                         yield transfers;
+                    }
+                }
+            };
+            Ok(Box::pin(stream))
+        } else {
+            Err(sqlx::Error::RowNotFound)
+        }
+    }
+
+    pub async fn subscribe_display_to_user(
+        &self,
+        user_id: Uuid,
+    ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Result<DisplayTransfer>> + Send>>> {
+        let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
+            match input {
+                NotificationManagerPredicateInput::Transfers(transfer) => {
+                    transfer.from_user_id == user_id || transfer.to_user_id == user_id
+                }
+                _ => false,
+            }
+        });
+
+        if let Ok(mut rx) = self
+            .notification_manager_subscriber
+            .subscribe_to(Box::new(p))
+            .await
+        {
+            let transfers_manager = self.transfers_manager.clone();
+            let stream = async_stream::try_stream! {
+                while let Some(notification) = rx.recv().await {
+                    if let NotificationManagerOutput::Transfers(transfers) = notification {
+                        let transfers_ids: Vec<Uuid> = transfers.iter().map(|x| x.id).collect();
+                        let mut results = transfers_manager.get_display_transfers_by_ids(transfers_ids.as_slice());
+                        while let Some(result) = results.next().await {
+                            yield result?;
+                        }
                     }
                 }
             };
