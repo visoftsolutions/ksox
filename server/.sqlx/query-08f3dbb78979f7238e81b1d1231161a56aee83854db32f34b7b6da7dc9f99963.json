@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            INSERT INTO \n                users\n                (last_modification_at, address) VALUES ($1, $2)\n                RETURNING id, created_at, last_modification_at, address as \"address: Address\", users.name, users.phone, users.email\n            ",
+  "query": "\n            SELECT\n                users.id,\n                users.created_at,\n                users.last_modification_at,\n                users.address as \"address: Address\",\n                users.name\n            FROM users\n            WHERE users.id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -27,22 +27,11 @@
         "ordinal": 4,
         "name": "name",
         "type_info": "Varchar"
-      },
-      {
-        "ordinal": 5,
-        "name": "phone",
-        "type_info": "Varchar"
-      },
-      {
-        "ordinal": 6,
-        "name": "email",
-        "type_info": "Varchar"
       }
     ],
     "parameters": {
       "Left": [
-        "Timestamptz",
-        "Bpchar"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -50,10 +39,8 @@
       false,
       false,
       false,
-      true,
-      true,
       true
     ]
   },
-  "hash": "11ec484abd90476622e7a9cee000d5f941565ae67d155885a3ba105330b33d52"
+  "hash": "08f3dbb78979f7238e81b1d1231161a56aee83854db32f34b7b6da7dc9f99963"
 }

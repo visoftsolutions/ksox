@@ -43,8 +43,6 @@ pub async fn update_metadata(
 ) -> Result<Json<User>, AppError> {
     let mut user = state.users_manager.get_by_id(*user_id).await?;
     user.name = params.name;
-    user.email = params.email;
-    user.phone = params.phone;
     state.users_manager.update(user.clone()).await?;
     Ok(Json(user))
 }

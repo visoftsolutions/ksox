@@ -33,9 +33,7 @@ impl UsersManager {
                 users.created_at,
                 users.last_modification_at,
                 users.address as "address: Address",
-                users.name,
-                users.phone,
-                users.email
+                users.name
             FROM users
             WHERE users.address = $1
             "#,
@@ -52,7 +50,7 @@ impl UsersManager {
             INSERT INTO 
                 users
                 (last_modification_at, address) VALUES ($1, $2)
-                RETURNING id, created_at, last_modification_at, address as "address: Address", users.name, users.phone, users.email
+                RETURNING id, created_at, last_modification_at, address as "address: Address", users.name
             "#,
             Utc::now(),
             &address.to_string()
@@ -73,9 +71,7 @@ impl UsersManager {
                 users.created_at,
                 users.last_modification_at,
                 users.address as "address: Address",
-                users.name,
-                users.phone,
-                users.email
+                users.name
             FROM users
             WHERE users.last_modification_at > $1
             ORDER BY last_modification_at ASC
@@ -95,9 +91,7 @@ impl UsersManager {
                 users.created_at,
                 users.last_modification_at,
                 users.address as "address: Address",
-                users.name,
-                users.phone,
-                users.email
+                users.name
             FROM users
             WHERE users.id = $1
             "#,
@@ -116,9 +110,7 @@ impl UsersManager {
                 users.created_at,
                 users.last_modification_at,
                 users.address as "address: Address",
-                users.name,
-                users.phone,
-                users.email
+                users.name
             FROM users
             "#
         )
@@ -133,16 +125,12 @@ impl UsersManager {
             UPDATE users
             SET
                 last_modification_at = $2,
-                name = $3,
-                phone = $4,
-                email = $5
+                name = $3
             WHERE users.id = $1
             "#,
             user.id,
             now,
             user.name,
-            user.phone,
-            user.email,
         )
         .execute(&self.database)
         .await

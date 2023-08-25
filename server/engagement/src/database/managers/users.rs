@@ -24,9 +24,7 @@ impl UsersManager {
                 users.created_at,
                 users.last_modification_at,
                 users.address as "address: EvmAddress",
-                users.name,
-                users.phone,
-                users.email
+                users.name
             FROM users
             WHERE users.last_modification_at > $1
             ORDER BY last_modification_at ASC

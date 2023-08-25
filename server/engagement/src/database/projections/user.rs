@@ -15,9 +15,7 @@ pub struct User {
     pub created_at: DateTime<Utc>,
     pub last_modification_at: DateTime<Utc>,
     pub address: EvmAddress,
-    pub name: Option<String>,
-    pub phone: Option<String>,
-    pub email: Option<String>,
+    pub name: Option<String>
 }
 
 impl FromRow<'_, PgRow> for User {
@@ -35,8 +33,6 @@ impl FromRow<'_, PgRow> for User {
             last_modification_at: row.try_get("last_modification_at")?,
             address: evm_address,
             name: row.try_get("name")?,
-            phone: row.try_get("phone")?,
-            email: row.try_get("email")?,
         })
     }
 }

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT\n                transfers.id,\n                transfers.created_at,\n                from_valuts.user_id as from_user_id,\n                from_users.address as \"from_user_address: Address\",\n                to_valuts.user_id as to_user_id,\n                to_users.address as \"to_user_address: Address\",\n                assets.id as asset_id,\n                assets.icon_path as asset_icon_path,\n                assets.name as asset_name,\n                assets.symbol as asset_symbol,\n                transfers.amount as \"amount: Fraction\",\n                transfers.fee as \"fee: Fraction\"\n            FROM transfers\n            JOIN valuts from_valuts ON transfers.from_valut_id = from_valuts.id\n            JOIN valuts to_valuts ON transfers.to_valut_id = to_valuts.id\n            JOIN assets ON transfers.asset_id = assets.id\n            JOIN users from_users ON from_valuts.user_id = from_users.id\n            JOIN users to_users ON to_valuts.user_id = to_users.id\n            WHERE (to_valuts.user_id = $1 AND from_valuts.user_id = '00000000-0000-0000-0000-000000000000')\n                OR (to_valuts.user_id = '00000000-0000-0000-0000-000000000000' AND from_valuts.user_id = $1)\n            ORDER BY transfers.created_at DESC\n            LIMIT $2\n            OFFSET $3\n            ",
+  "query": "\n            SELECT\n                transfers.id,\n                transfers.created_at,\n                from_valuts.user_id as from_user_id,\n                from_users.address as \"from_user_address: Address\",\n                from_users.name as from_user_name,\n                to_valuts.user_id as to_user_id,\n                to_users.address as \"to_user_address: Address\",\n                to_users.name as to_user_name,\n                assets.id as asset_id,\n                assets.icon_path as asset_icon_path,\n                assets.name as asset_name,\n                assets.symbol as asset_symbol,\n                transfers.amount as \"amount: Fraction\",\n                transfers.fee as \"fee: Fraction\"\n            FROM transfers\n            JOIN valuts from_valuts ON transfers.from_valut_id = from_valuts.id\n            JOIN valuts to_valuts ON transfers.to_valut_id = to_valuts.id\n            JOIN assets ON transfers.asset_id = assets.id\n            JOIN users from_users ON from_valuts.user_id = from_users.id\n            JOIN users to_users ON to_valuts.user_id = to_users.id\n            WHERE (to_valuts.user_id = $1 AND from_valuts.user_id = '00000000-0000-0000-0000-000000000000')\n                OR (to_valuts.user_id = '00000000-0000-0000-0000-000000000000' AND from_valuts.user_id = $1)\n            ORDER BY transfers.created_at DESC\n            LIMIT $2\n            OFFSET $3\n            ",
   "describe": {
     "columns": [
       {
@@ -25,36 +25,46 @@
       },
       {
         "ordinal": 4,
+        "name": "from_user_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
         "name": "to_user_id",
         "type_info": "Uuid"
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "to_user_address: Address",
         "type_info": "Bpchar"
       },
       {
-        "ordinal": 6,
-        "name": "asset_id",
-        "type_info": "Uuid"
-      },
-      {
         "ordinal": 7,
-        "name": "asset_icon_path",
+        "name": "to_user_name",
         "type_info": "Varchar"
       },
       {
         "ordinal": 8,
-        "name": "asset_name",
-        "type_info": "Varchar"
+        "name": "asset_id",
+        "type_info": "Uuid"
       },
       {
         "ordinal": 9,
-        "name": "asset_symbol",
+        "name": "asset_icon_path",
         "type_info": "Varchar"
       },
       {
         "ordinal": 10,
+        "name": "asset_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 11,
+        "name": "asset_symbol",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 12,
         "name": "amount: Fraction",
         "type_info": {
           "Custom": {
@@ -75,7 +85,7 @@
         }
       },
       {
-        "ordinal": 11,
+        "ordinal": 13,
         "name": "fee: Fraction",
         "type_info": {
           "Custom": {
@@ -108,8 +118,10 @@
       false,
       false,
       false,
+      true,
       false,
       false,
+      true,
       false,
       false,
       false,
@@ -118,5 +130,5 @@
       false
     ]
   },
-  "hash": "ac2a463d2376a2f88f9e46134c479288ed9236f7d0595804e9fef4417aedd5f7"
+  "hash": "7a7955ef7a83e0fd9015e612e740fa12b04bea5f027de9e5c8753b1413b017b9"
 }

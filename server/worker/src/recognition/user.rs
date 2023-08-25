@@ -44,8 +44,6 @@ impl UserRecognition {
                     Some(user.id.to_string().to_lowercase()),
                     Some(user.address.to_string().to_lowercase()),
                     user.name.as_ref().map(|f| f.to_lowercase()),
-                    user.email.as_ref().map(|f| f.to_lowercase()),
-                    user.phone.as_ref().map(|f| f.to_lowercase()),
                 ],
             )
         });

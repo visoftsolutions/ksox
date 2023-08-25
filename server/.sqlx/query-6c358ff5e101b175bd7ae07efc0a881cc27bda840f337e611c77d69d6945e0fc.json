@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT\n                users.id,\n                users.created_at,\n                users.last_modification_at,\n                users.address as \"address: Address\",\n                users.name,\n                users.phone,\n                users.email\n            FROM users\n            ",
+  "query": "\n            SELECT\n                users.id,\n                users.created_at,\n                users.last_modification_at,\n                users.address as \"address: Address\",\n                users.name\n            FROM users\n            ",
   "describe": {
     "columns": [
       {
@@ -27,16 +27,6 @@
         "ordinal": 4,
         "name": "name",
         "type_info": "Varchar"
-      },
-      {
-        "ordinal": 5,
-        "name": "phone",
-        "type_info": "Varchar"
-      },
-      {
-        "ordinal": 6,
-        "name": "email",
-        "type_info": "Varchar"
       }
     ],
     "parameters": {
@@ -47,10 +37,8 @@
       false,
       false,
       false,
-      true,
-      true,
       true
     ]
   },
-  "hash": "5726f97626805f6c5a74c31a25162b0456c4e71749775b7662a33affa93fd615"
+  "hash": "6c358ff5e101b175bd7ae07efc0a881cc27bda840f337e611c77d69d6945e0fc"
 }
