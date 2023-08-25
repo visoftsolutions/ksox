@@ -15,7 +15,7 @@ pub struct User {
     pub created_at: DateTime<Utc>,
     pub last_modification_at: DateTime<Utc>,
     pub address: EvmAddress,
-    pub name: Option<String>
+    pub name: Option<String>,
 }
 
 impl FromRow<'_, PgRow> for User {

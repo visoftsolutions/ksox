@@ -5,7 +5,6 @@ import {
   ColorMode,
   useColorMode,
 } from "@packages/components/providers/ColorModeProvider";
-import NewButton from "~/components/Atoms/Buttons/NewButton";
 
 export default function Header(props: { class?: string }) {
   const colorMode = useColorMode();

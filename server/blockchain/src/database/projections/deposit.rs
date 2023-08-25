@@ -57,7 +57,8 @@ impl Deposit {
 
 impl Confirmable for Deposit {
     fn set(&mut self, actual: BigInt) {
-        self.confirmations = Confirmations::from_raw(actual, self.confirmations.desired().to_owned());
+        self.confirmations =
+            Confirmations::from_raw(actual, self.confirmations.desired().to_owned());
     }
     fn is_confirmed(&self) -> bool {
         self.confirmations.actual() >= self.confirmations.desired()

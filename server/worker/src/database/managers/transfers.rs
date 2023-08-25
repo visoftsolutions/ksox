@@ -10,7 +10,7 @@ use uuid::Uuid;
 use super::notifications::{
     NotificationManagerOutput, NotificationManagerPredicateInput, NotificationManagerSubscriber,
 };
-use crate::database::projections::transfer::{DisplayTransfer, Transfer};
+use crate::database::projections::transfer::{ExtendedTransfer, Transfer};
 
 #[derive(Debug, Clone)]
 pub struct TransfersManager {
@@ -113,9 +113,9 @@ impl TransfersManager {
     pub fn get_display_transfers_by_ids(
         &self,
         ids: &[Uuid],
-    ) -> Pin<Box<dyn Stream<Item = sqlx::Result<DisplayTransfer>> + Send + '_>> {
+    ) -> Pin<Box<dyn Stream<Item = sqlx::Result<ExtendedTransfer>> + Send + '_>> {
         sqlx::query_as!(
-            DisplayTransfer,
+            ExtendedTransfer,
             r#"
             SELECT
                 transfers.id,
@@ -151,9 +151,9 @@ impl TransfersManager {
         user_id: Uuid,
         limit: i64,
         offset: i64,
-    ) -> Pin<Box<dyn Stream<Item = sqlx::Result<DisplayTransfer>> + Send + '_>> {
+    ) -> Pin<Box<dyn Stream<Item = sqlx::Result<ExtendedTransfer>> + Send + '_>> {
         sqlx::query_as!(
-            DisplayTransfer,
+            ExtendedTransfer,
             r#"
             SELECT
                 transfers.id,
@@ -193,9 +193,9 @@ impl TransfersManager {
         user_id: Uuid,
         limit: i64,
         offset: i64,
-    ) -> Pin<Box<dyn Stream<Item = sqlx::Result<DisplayTransfer>> + Send + '_>> {
+    ) -> Pin<Box<dyn Stream<Item = sqlx::Result<ExtendedTransfer>> + Send + '_>> {
         sqlx::query_as!(
-            DisplayTransfer,
+            ExtendedTransfer,
             r#"
             SELECT
                 transfers.id,
@@ -313,7 +313,7 @@ impl TransfersNotificationManager {
     pub async fn subscribe_display_to_user(
         &self,
         user_id: Uuid,
-    ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Result<DisplayTransfer>> + Send>>> {
+    ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Result<Vec<ExtendedTransfer>>> + Send>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
                 NotificationManagerPredicateInput::Transfers(transfer) => {
@@ -334,9 +334,11 @@ impl TransfersNotificationManager {
                     if let NotificationManagerOutput::Transfers(transfers) = notification {
                         let transfers_ids: Vec<Uuid> = transfers.iter().map(|x| x.id).collect();
                         let mut results = transfers_manager.get_display_transfers_by_ids(transfers_ids.as_slice());
+                        let mut r = Vec::new();
                         while let Some(result) = results.next().await {
-                            yield result?;
+                            r.push(result?);
                         }
+                        yield r;
                     }
                 }
             };
@@ -349,7 +351,7 @@ impl TransfersNotificationManager {
     pub async fn subscribe_only_external_to_user(
         &self,
         user_id: Uuid,
-    ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Result<DisplayTransfer>> + Send>>> {
+    ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Result<Vec<ExtendedTransfer>>> + Send>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
                 NotificationManagerPredicateInput::Transfers(transfer) => {
@@ -372,9 +374,11 @@ impl TransfersNotificationManager {
                     if let NotificationManagerOutput::Transfers(transfers) = notification {
                         let transfers_ids: Vec<Uuid> = transfers.iter().map(|x| x.id).collect();
                         let mut results = transfers_manager.get_display_transfers_by_ids(transfers_ids.as_slice());
+                        let mut r = Vec::new();
                         while let Some(result) = results.next().await {
-                            yield result?;
+                            r.push(result?);
                         }
+                        yield r;
                     }
                 }
             };

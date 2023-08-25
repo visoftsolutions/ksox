@@ -8,7 +8,11 @@ import {
   useAssets,
 } from "@packages/components/providers/AssetsProvider";
 import { api } from "~/root";
-import { SelectedAssetProvider, selectedAsset, setSelectedAsset } from "~/components/providers/SelectedAssetProvider";
+import {
+  SelectedAssetProvider,
+  selectedAsset,
+  setSelectedAsset,
+} from "~/components/providers/SelectedAssetProvider";
 import { createEffect, createMemo } from "solid-js";
 
 export default function Index() {
@@ -17,9 +21,9 @@ export default function Index() {
 
   createEffect(() => {
     if (selectedAsset() == undefined && assetsList().length > 0) {
-      setSelectedAsset(assetsList()[0])
+      setSelectedAsset(assetsList()[0]);
     }
-  })
+  });
 
   return (
     <SessionProvider api_url={api}>

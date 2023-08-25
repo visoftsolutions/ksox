@@ -19,7 +19,7 @@ pub struct Transfer {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct DisplayTransfer {
+pub struct ExtendedTransfer {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,
     pub from_user_id: Uuid,

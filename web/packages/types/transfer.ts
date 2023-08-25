@@ -18,20 +18,25 @@ export const Transfer = z.object({
 });
 export type Transfer = z.infer<typeof Transfer>;
 
+export enum DisplayTransferDirection {
+  Income = "income",
+  Outcome = "outcome",
+}
 export const DisplayTransfer = z.object({
   id: Uuid,
   created_at: Datetime,
-  from_user_id: Uuid,
-  from_user_address: Address,
-  from_user_name: z.string().nullable(),
-  to_user_id: Uuid,
-  to_user_address: Address,
-  to_user_name: z.string().nullable(),
+  user_id: Uuid,
+  user_address: Address,
+  user_name: z.string().nullable(),
+  other_user_id: Uuid,
+  other_user_address: Address,
+  other_user_name: z.string().nullable(),
   asset_id: Uuid,
   asset_icon_path: z.string(),
   asset_name: z.string(),
   asset_symbol: z.string(),
   amount: Fraction,
   fee: Fraction,
+  direction: z.nativeEnum(DisplayTransferDirection),
 });
 export type DisplayTransfer = z.infer<typeof DisplayTransfer>;

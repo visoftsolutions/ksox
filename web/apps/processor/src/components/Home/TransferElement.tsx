@@ -1,17 +1,16 @@
-import { Asset } from "@packages/types/asset";
 import { formatDate } from "@packages/utils/formatDate";
-import { User } from "@packages/types/user";
-import firstLastChars from "@packages/utils/firstLastChars";
 import { joinPaths } from "solid-start/islands/server-router";
 import { base } from "~/root";
 import { formatHumanReadable } from "../Inputs/NumberInput";
+import { DisplayTransferDirection } from "@packages/types/transfer";
 
 export interface ITransferElement {
-  from: string;
-  to: string;
+  name: string;
+  otherName: string;
   date: Date;
   amount: number;
   symbol: string;
+  direction: DisplayTransferDirection;
 }
 
 export default function TransferElement(props: ITransferElement) {
@@ -20,13 +19,13 @@ export default function TransferElement(props: ITransferElement) {
       <div class="grid grid-cols-[1fr_auto]">
         <div class="grid grid-rows-2 justify-start items-center">
           <div class="font-sans font-bold grid grid-cols-[auto_auto_auto] items-center gap-2">
-            <div>{props.from}</div>
+            <div>{props.name}</div>
             <img
               src={joinPaths(base, "/gfx/right_arrow.svg")}
               width={24}
               height={24}
             />
-            <div>{props.to}</div>
+            <div>{props.otherName}</div>
           </div>
           <p class="font-sans text-xs text-r-dark-secondary-text">
             {`${props.date.getHours().toString().padStart(2, "0")}:${props.date
@@ -37,10 +36,9 @@ export default function TransferElement(props: ITransferElement) {
         </div>
         <div class="grid grid-rows-2 justify-items-end items-center">
           <p class="text-r-light-text dark:text-r-dark-text font-sans ">
-            {`${props.amount > 0 ? "+" : "-"}${formatHumanReadable(
-              props.amount.toString(),
-              3,
-            )}`}
+            {`${
+              props.direction == DisplayTransferDirection.Income ? "+" : "-"
+            }${formatHumanReadable(props.amount.toString(), 3)}`}
           </p>
           <p class="font-sans text-xs text-r-dark-secondary-text">
             {props.symbol}

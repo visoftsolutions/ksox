@@ -1,17 +1,7 @@
 import CurrencyDisplay from "~/components/Home/CurrencyDisplay";
 import DepositWithdrawPanel from "~/components/Home/DepositWithdrawPanel";
-import { useAssets } from "@packages/components/providers/AssetsProvider";
-import {
-  Index,
-  batch,
-  createMemo,
-  createSignal,
-  onCleanup,
-  onMount,
-} from "solid-js";
+import { Index, createSignal, onCleanup, onMount } from "solid-js";
 import TransferElement, { ITransferElement } from "./TransferElement";
-import { User } from "@packages/types/user";
-import { Asset } from "@packages/types/asset";
 import subscribeEvents from "@packages/utils/subscribeEvents";
 import { api } from "~/root";
 import params from "@packages/utils/params";
@@ -48,14 +38,14 @@ export function CreateTransfers(session: SessionResponse | undefined) {
 
     const convertTransfer = (element: DisplayTransfer): ITransferElement => {
       return {
-        from:
-          element.from_user_name ||
-          firstLastChars(element.from_user_address, 4, 4),
-        to:
-          element.to_user_name || firstLastChars(element.to_user_address, 4, 4),
+        name: element.user_name || firstLastChars(element.user_address, 4, 4),
+        otherName:
+          element.other_user_name ||
+          firstLastChars(element.other_user_id, 4, 4),
         amount: ev(element.amount),
         date: element.created_at,
         symbol: element.asset_symbol,
+        direction: element.direction,
       };
     };
 
@@ -70,7 +60,7 @@ export function CreateTransfers(session: SessionResponse | undefined) {
               ...z.array(DisplayTransfer).parse(data).map(convertTransfer),
               ...transfers(),
             ]);
-          },
+          }
         );
       }
     });
@@ -84,11 +74,12 @@ export function CreateTransfers(session: SessionResponse | undefined) {
         <Index each={transfers()}>
           {(element) => (
             <TransferElement
-              from={element().from}
-              to={element().to}
+              name={element().name}
+              otherName={element().otherName}
               date={element().date}
               amount={element().amount}
               symbol={element().symbol}
+              direction={element().direction}
             />
           )}
         </Index>

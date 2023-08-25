@@ -32,13 +32,13 @@ export default function WithdrawDashboard() {
 
   const convertTransfer = (element: DisplayTransfer): ITransferElement => {
     return {
-      from:
-        element.from_user_name ||
-        firstLastChars(element.from_user_address, 4, 4),
-      to: element.to_user_name || firstLastChars(element.to_user_address, 4, 4),
+      name: element.user_name || firstLastChars(element.user_address, 4, 4),
+      otherName:
+        element.other_user_name || firstLastChars(element.other_user_id, 4, 4),
       amount: ev(element.amount),
       date: element.created_at,
       symbol: element.asset_symbol,
+      direction: element.direction,
     };
   };
 
@@ -103,11 +103,12 @@ export default function WithdrawDashboard() {
             <Index each={transfers}>
               {(element) => (
                 <TransferElement
-                  from={element().from}
-                  to={element().to}
+                  name={element().name}
+                  otherName={element().otherName}
                   date={element().date}
                   amount={element().amount}
                   symbol={element().symbol}
+                  direction={element().direction}
                 />
               )}
             </Index>

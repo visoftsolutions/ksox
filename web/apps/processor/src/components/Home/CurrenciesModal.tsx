@@ -11,7 +11,7 @@ export default function Modal() {
         class={`fixed inset-0 bg-black opacity-50 ${
           isVisible() ? "transition-opacity duration-1000" : ""
         }`}
-      ></div>
+      />
 
       {/* Modal */}
       <div

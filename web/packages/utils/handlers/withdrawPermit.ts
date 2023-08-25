@@ -22,7 +22,7 @@ export const handleWithdraw = async ({
 }: HandleWithdrawProps) => {
   const value = BigInt(Math.floor(ev(fmul(asset.decimals, amount))));
   const deadline = new Date(new Date().getTime() + 60 * 1000);
-  const response = await fetch(`/api/private/withdraw`, {
+  const response = await fetch("/api/private/withdraw", {
     method: "POST",
     headers: {
       Accept: "application/json",

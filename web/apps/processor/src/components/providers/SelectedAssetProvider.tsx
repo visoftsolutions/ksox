@@ -27,9 +27,7 @@ const SelectedAssetContext = createContext<SelectedAssetContextValue>({
   selectedAsset,
   setSelectedAsset,
 });
-export function SelectedAssetProvider(props: {
-  children: JSX.Element;
-}) {
+export function SelectedAssetProvider(props: { children: JSX.Element }) {
   return (
     <SelectedAssetContext.Provider value={{ selectedAsset, setSelectedAsset }}>
       {props.children}

@@ -1,5 +1,6 @@
 use std::{
     io::{Error, ErrorKind},
+    ops::Deref,
     time::Duration,
 };
 
@@ -10,7 +11,10 @@ use axum::{
 use futures::stream::Stream;
 use tokio_stream::StreamExt;
 
-use crate::{api::auth::models::UserId, models::AppState};
+use crate::{
+    api::{auth::models::UserId, private::transfers::DisplayTransfer},
+    models::AppState,
+};
 
 pub async fn root(
     State(state): State<AppState>,
@@ -20,8 +24,9 @@ pub async fn root(
         let mut stream = state.transfers_notification_manager.subscribe_display_to_user(*user_id).await
             .map_err(|err| Error::new(ErrorKind::BrokenPipe, err))?;
         while let Some(element) = stream.next().await {
-            if let Ok(e) = element {
-                yield Event::default().json_data(e).map_err(Error::from);
+            if let Ok(t) = element {
+                let result: Vec<DisplayTransfer> = t.iter().map(|x| DisplayTransfer::from_extended_transfer(*user_id.deref(), x.to_owned())).collect();
+                yield Event::default().json_data(result).map_err(Error::from);
             } else {
                 break;
             }

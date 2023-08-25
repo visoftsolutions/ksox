@@ -2,7 +2,6 @@ import Currency from "~/components/Atoms/Currencies/Currency";
 import { useAssets } from "@packages/components/providers/AssetsProvider";
 import { useSelectedAsset } from "~/components/providers/SelectedAssetProvider";
 import { Index, createMemo } from "solid-js";
-import { Asset } from "@packages/types/asset";
 
 export default function Currencies() {
   const assets = useAssets();

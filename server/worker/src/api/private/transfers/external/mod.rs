@@ -1,4 +1,6 @@
 mod sse;
+use std::ops::Deref;
+
 use axum::{
     extract::{Query, State},
     routing::get,
@@ -8,9 +10,10 @@ use tokio_stream::StreamExt;
 
 use crate::{
     api::{auth::models::UserId, AppError, Pagination},
-    database::projections::transfer::DisplayTransfer,
     models::AppState,
 };
+
+use super::{DisplayTransfer, DisplayTransferDirection};
 
 pub fn router(app_state: &AppState) -> Router {
     Router::new()
@@ -24,11 +27,15 @@ pub async fn root(
     user_id: UserId,
     Query(params): Query<Pagination>,
 ) -> Result<Json<Vec<DisplayTransfer>>, AppError> {
-    let mut stream = state.transfers_manager.get_only_external_for_user_id(
-        *user_id,
-        params.limit,
-        params.offset,
-    );
+    let mut stream = state
+        .transfers_manager
+        .get_only_external_for_user_id(*user_id, params.limit, params.offset)
+        .map(|t| {
+            Ok::<DisplayTransfer, sqlx::Error>(DisplayTransfer::from_extended_transfer(
+                *user_id.deref(),
+                t?,
+            ))
+        });
     let mut vec = Vec::<DisplayTransfer>::new();
     while let Some(res) = stream.next().await {
         vec.push(res?);
