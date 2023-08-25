@@ -8,7 +8,7 @@ use tokio_stream::StreamExt;
 
 use crate::{
     api::{auth::models::UserId, AppError, Pagination},
-    database::projections::transfer::UserFriendlyTransfer,
+    database::projections::transfer::DisplayTransfer,
     models::AppState,
 };
 
@@ -23,13 +23,13 @@ pub async fn root(
     State(state): State<AppState>,
     user_id: UserId,
     Query(params): Query<Pagination>,
-) -> Result<Json<Vec<UserFriendlyTransfer>>, AppError> {
+) -> Result<Json<Vec<DisplayTransfer>>, AppError> {
     let mut stream = state.transfers_manager.get_only_external_for_user_id(
         *user_id,
         params.limit,
         params.offset,
     );
-    let mut vec = Vec::<UserFriendlyTransfer>::new();
+    let mut vec = Vec::<DisplayTransfer>::new();
     while let Some(res) = stream.next().await {
         vec.push(res?);
     }

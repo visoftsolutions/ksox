@@ -21,7 +21,7 @@ impl AssetsManager {
         Self { database }
     }
 
-    pub async fn get_by_id(&self, asset_id: &Uuid) -> Result<Asset> {
+    pub async fn get_by_id(&self, asset_id: Uuid) -> Result<Asset> {
         sqlx::query_as!(
             Asset,
             r#"
