@@ -21,9 +21,7 @@ export interface ICurrency {
 export default function Currency(props: ICurrency) {
   const session = useSession();
   const precision = usePrecision();
-  const [balance, setBalance] = createSignal(
-    Fraction.parse({ numer: 0, denom: 1 }),
-  );
+  const [balance, setBalance] = createSignal<Fraction | null>(null);
 
   let eventsource: EventSource | undefined;
 

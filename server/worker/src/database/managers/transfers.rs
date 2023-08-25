@@ -188,9 +188,10 @@ impl TransfersManager {
         .fetch(&self.database)
     }
 
-    pub fn get_only_external_for_user_id(
+    pub fn get_specific_for_user_id(
         &self,
         user_id: Uuid,
+        other_user_id: Uuid,
         limit: i64,
         offset: i64,
     ) -> Pin<Box<dyn Stream<Item = sqlx::Result<ExtendedTransfer>> + Send + '_>> {
@@ -218,13 +219,14 @@ impl TransfersManager {
             JOIN assets ON transfers.asset_id = assets.id
             JOIN users from_users ON from_valuts.user_id = from_users.id
             JOIN users to_users ON to_valuts.user_id = to_users.id
-            WHERE (to_valuts.user_id = $1 AND from_valuts.user_id = '00000000-0000-0000-0000-000000000000')
-                OR (to_valuts.user_id = '00000000-0000-0000-0000-000000000000' AND from_valuts.user_id = $1)
+            WHERE (to_valuts.user_id = $1 AND from_valuts.user_id = $2)
+                OR (to_valuts.user_id = $2 AND from_valuts.user_id = $1)
             ORDER BY transfers.created_at DESC
-            LIMIT $2
-            OFFSET $3
+            LIMIT $3
+            OFFSET $4
             "#,
             user_id,
+            other_user_id,
             limit,
             offset
         )
@@ -348,15 +350,16 @@ impl TransfersNotificationManager {
         }
     }
 
-    pub async fn subscribe_only_external_to_user(
+    pub async fn subscribe_specific_to_user(
         &self,
         user_id: Uuid,
+        other_user_id: Uuid,
     ) -> sqlx::Result<Pin<Box<dyn Stream<Item = Result<Vec<ExtendedTransfer>>> + Send>>> {
         let p = predicates::function::function(move |input: &NotificationManagerPredicateInput| {
             match input {
                 NotificationManagerPredicateInput::Transfers(transfer) => {
-                    (transfer.from_user_id == user_id && transfer.to_user_id == Uuid::from_u128(0))
-                        || (transfer.from_user_id == Uuid::from_u128(0)
+                    (transfer.from_user_id == user_id && transfer.to_user_id == other_user_id)
+                        || (transfer.from_user_id == other_user_id
                             && transfer.to_user_id == user_id)
                 }
                 _ => false,

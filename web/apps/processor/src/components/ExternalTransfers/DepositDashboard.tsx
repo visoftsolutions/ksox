@@ -16,12 +16,13 @@ import params from "@packages/utils/params";
 import { DisplayTransfer } from "@packages/types/transfer";
 import firstLastChars from "@packages/utils/firstLastChars";
 import { z } from "zod";
+import { Uuid } from "@packages/types/primitives/uuid";
 
 export default function DepositDashboard() {
   const precision = usePrecision();
   const { selectedAsset } = useSelectedAsset();
   const [amount, setAmount] = createSignal(
-    Fraction.parse({ numer: 0, denom: 1 }),
+    Fraction.parse({ numer: 0, denom: 1 })
   );
   const wallet = useWallet();
   const treasury_address = useContractAddress();
@@ -44,18 +45,22 @@ export default function DepositDashboard() {
 
   onMount(async () => {
     eventsource = await subscribeEvents(
-      `${api}/private/transfers/external`,
-      params({ limit: 10, offset: 0 }),
-      params({}),
+      `${api}/private/transfers/specific`,
+      params({
+        other_user_id: "00000000-0000-0000-0000-000000000000",
+        limit: 10,
+        offset: 0,
+      }),
+      params({ other_user_id: "00000000-0000-0000-0000-000000000000" }),
       (data) => {
         setTransfers((state) =>
           z
             .array(DisplayTransfer)
             .parse(data)
             .map(convertTransfer)
-            .concat(state),
+            .concat(state)
         );
-      },
+      }
     );
   });
 

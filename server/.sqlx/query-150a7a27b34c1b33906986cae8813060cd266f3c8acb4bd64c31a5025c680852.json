@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT\n                transfers.id,\n                transfers.created_at,\n                from_valuts.user_id as from_user_id,\n                from_users.address as \"from_user_address: Address\",\n                from_users.name as from_user_name,\n                to_valuts.user_id as to_user_id,\n                to_users.address as \"to_user_address: Address\",\n                to_users.name as to_user_name,\n                assets.id as asset_id,\n                assets.icon_path as asset_icon_path,\n                assets.name as asset_name,\n                assets.symbol as asset_symbol,\n                transfers.amount as \"amount: Fraction\",\n                transfers.fee as \"fee: Fraction\"\n            FROM transfers\n            JOIN valuts from_valuts ON transfers.from_valut_id = from_valuts.id\n            JOIN valuts to_valuts ON transfers.to_valut_id = to_valuts.id\n            JOIN assets ON transfers.asset_id = assets.id\n            JOIN users from_users ON from_valuts.user_id = from_users.id\n            JOIN users to_users ON to_valuts.user_id = to_users.id\n            WHERE (to_valuts.user_id = $1 AND from_valuts.user_id = '00000000-0000-0000-0000-000000000000')\n                OR (to_valuts.user_id = '00000000-0000-0000-0000-000000000000' AND from_valuts.user_id = $1)\n            ORDER BY transfers.created_at DESC\n            LIMIT $2\n            OFFSET $3\n            ",
+  "query": "\n            SELECT\n                transfers.id,\n                transfers.created_at,\n                from_valuts.user_id as from_user_id,\n                from_users.address as \"from_user_address: Address\",\n                from_users.name as from_user_name,\n                to_valuts.user_id as to_user_id,\n                to_users.address as \"to_user_address: Address\",\n                to_users.name as to_user_name,\n                assets.id as asset_id,\n                assets.icon_path as asset_icon_path,\n                assets.name as asset_name,\n                assets.symbol as asset_symbol,\n                transfers.amount as \"amount: Fraction\",\n                transfers.fee as \"fee: Fraction\"\n            FROM transfers\n            JOIN valuts from_valuts ON transfers.from_valut_id = from_valuts.id\n            JOIN valuts to_valuts ON transfers.to_valut_id = to_valuts.id\n            JOIN assets ON transfers.asset_id = assets.id\n            JOIN users from_users ON from_valuts.user_id = from_users.id\n            JOIN users to_users ON to_valuts.user_id = to_users.id\n            WHERE (to_valuts.user_id = $1 AND from_valuts.user_id = $2)\n                OR (to_valuts.user_id = $2 AND from_valuts.user_id = $1)\n            ORDER BY transfers.created_at DESC\n            LIMIT $3\n            OFFSET $4\n            ",
   "describe": {
     "columns": [
       {
@@ -109,6 +109,7 @@
     "parameters": {
       "Left": [
         "Uuid",
+        "Uuid",
         "Int8",
         "Int8"
       ]
@@ -130,5 +131,5 @@
       false
     ]
   },
-  "hash": "7a7955ef7a83e0fd9015e612e740fa12b04bea5f027de9e5c8753b1413b017b9"
+  "hash": "150a7a27b34c1b33906986cae8813060cd266f3c8acb4bd64c31a5025c680852"
 }

@@ -5,7 +5,6 @@ use ethers::{
     providers::{Middleware, Provider, Ws},
 };
 use evm::confirmations::Confirmations;
-use fraction::Fraction;
 use futures::stream::StreamExt;
 use num_bigint::BigInt;
 use sqlx::PgPool;

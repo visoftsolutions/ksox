@@ -1,5 +1,5 @@
 mod display;
-mod external;
+mod specific;
 mod sse;
 
 use axum::{
@@ -19,6 +19,30 @@ use crate::{
     database::projections::transfer::{ExtendedTransfer, Transfer},
     models::AppState,
 };
+
+pub fn router(app_state: &AppState) -> Router {
+    Router::new()
+        .route("/", get(root))
+        .route("/sse", get(sse::root))
+        .with_state(app_state.clone())
+        .nest("/specific", specific::router(app_state))
+        .nest("/display", display::router(app_state))
+}
+
+pub async fn root(
+    State(state): State<AppState>,
+    user_id: UserId,
+    Query(params): Query<Pagination>,
+) -> Result<Json<Vec<Transfer>>, AppError> {
+    let mut stream = state
+        .transfers_manager
+        .get_for_user_id(*user_id, params.limit, params.offset);
+    let mut vec = Vec::<Transfer>::new();
+    while let Some(res) = stream.next().await {
+        vec.push(res?);
+    }
+    Ok(Json(vec))
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
@@ -94,28 +118,4 @@ impl DisplayTransfer {
             direction,
         }
     }
-}
-
-pub fn router(app_state: &AppState) -> Router {
-    Router::new()
-        .route("/", get(root))
-        .route("/sse", get(sse::root))
-        .with_state(app_state.clone())
-        .nest("/external", external::router(app_state))
-        .nest("/display", display::router(app_state))
-}
-
-pub async fn root(
-    State(state): State<AppState>,
-    user_id: UserId,
-    Query(params): Query<Pagination>,
-) -> Result<Json<Vec<Transfer>>, AppError> {
-    let mut stream = state
-        .transfers_manager
-        .get_for_user_id(*user_id, params.limit, params.offset);
-    let mut vec = Vec::<Transfer>::new();
-    while let Some(res) = stream.next().await {
-        vec.push(res?);
-    }
-    Ok(Json(vec))
 }

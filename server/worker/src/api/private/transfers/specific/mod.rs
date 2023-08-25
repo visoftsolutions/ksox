@@ -6,14 +6,16 @@ use axum::{
     routing::get,
     Json, Router,
 };
+use serde::Deserialize;
 use tokio_stream::StreamExt;
+use uuid::Uuid;
 
 use crate::{
-    api::{auth::models::UserId, AppError, Pagination},
+    api::{auth::models::UserId, AppError},
     models::AppState,
 };
 
-use super::{DisplayTransfer, DisplayTransferDirection};
+use super::DisplayTransfer;
 
 pub fn router(app_state: &AppState) -> Router {
     Router::new()
@@ -22,14 +24,21 @@ pub fn router(app_state: &AppState) -> Router {
         .with_state(app_state.clone())
 }
 
+#[derive(Deserialize)]
+pub struct Params {
+    pub other_user_id: Uuid,
+    pub limit: i64,
+    pub offset: i64,
+}
+
 pub async fn root(
     State(state): State<AppState>,
     user_id: UserId,
-    Query(params): Query<Pagination>,
+    Query(params): Query<Params>,
 ) -> Result<Json<Vec<DisplayTransfer>>, AppError> {
     let mut stream = state
         .transfers_manager
-        .get_only_external_for_user_id(*user_id, params.limit, params.offset)
+        .get_specific_for_user_id(*user_id, params.other_user_id, params.limit, params.offset)
         .map(|t| {
             Ok::<DisplayTransfer, sqlx::Error>(DisplayTransfer::from_extended_transfer(
                 *user_id.deref(),

@@ -13,7 +13,7 @@ use crate::{
     models::AppState,
 };
 
-use super::{DisplayTransfer, DisplayTransferDirection};
+use super::DisplayTransfer;
 
 pub fn router(app_state: &AppState) -> Router {
     Router::new()
