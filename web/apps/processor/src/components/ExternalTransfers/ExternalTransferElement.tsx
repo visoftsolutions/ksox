@@ -8,7 +8,9 @@ export interface IExternalTransferElement {
   text: string;
 }
 
-export default function ExternalTransferElement(props: IExternalTransferElement) {
+export default function ExternalTransferElement(
+  props: IExternalTransferElement,
+) {
   return (
     <div class="rounded-xl bg-r-light-foreground dark:bg-r-dark-foreground active:bg-r-light-background dark:active:bg-r-dark-active">
       <div class="flex justify-between">

@@ -53,11 +53,7 @@ export function AssetInfo(props: {
   return (
     <div class="grid grid-cols-[50px_1fr] items-center justify-start overflow-clip">
       <div class="col-start-1 col-end-2 mr-2">
-        <img
-          src={props.asset?.icon_path}
-          width="40px"
-          height="40px"
-        />
+        <img src={props.asset?.icon_path} width="40px" height="40px" />
       </div>
       <div class="col-start-2 col-end-3 grid grid-cols-[auto_1fr] items-center justify-center">
         <div class="col-start-1 col-end-2 text-ellipsis text-white">{`${props.asset?.name} (${props.asset?.symbol})`}</div>

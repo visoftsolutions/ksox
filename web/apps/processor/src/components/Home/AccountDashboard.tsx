@@ -1,66 +1,63 @@
 import CurrencyDisplay from "~/components/Home/CurrencyDisplay";
 import DepositWithdrawPanel from "~/components/Home/DepositWithdrawPanel";
 import { useAssets } from "@packages/components/providers/AssetsProvider";
-import { Index, createMemo, createSignal } from "solid-js";
+import {
+  Index,
+  batch,
+  createMemo,
+  createSignal,
+  onCleanup,
+  onMount,
+} from "solid-js";
 import TransferElement, { ITransferElement } from "./TransferElement";
 import { User } from "@packages/types/user";
 import { Asset } from "@packages/types/asset";
+import subscribeEvents from "@packages/utils/subscribeEvents";
+import { api } from "~/root";
+import params from "@packages/utils/params";
+import { z } from "zod";
+import { DisplayTransfer } from "@packages/types/transfer";
+import firstLastChars from "@packages/utils/firstLastChars";
+import { ev } from "@packages/types/primitives/fraction";
 
 export default function AccountDashboard() {
   const assets = useAssets();
   const assetsList = createMemo(() => [...assets().values()]);
   const [transfers, setTransfers] = createSignal<ITransferElement[]>([]);
 
-  const user1: User = {
-    id: "79253ba2-b737-4177-ad6a-3f1c477a0654",
-    address: "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
-    created_at: new Date(Date.now()),
-    last_modification_at: new Date(Date.now()),
-    email: null,
-    name: null,
-    phone: null,
+  let eventsource: EventSource | undefined;
+
+  const convertTransfer = (element: DisplayTransfer): ITransferElement => {
+    return {
+      from:
+        element.from_user_name ||
+        firstLastChars(element.from_user_address, 4, 4),
+      to:
+        element.from_user_name ||
+        firstLastChars(element.from_user_address, 4, 4),
+      amount: ev(element.amount),
+      date: element.created_at,
+      symbol: element.asset_symbol,
+    };
   };
 
-  const asset1: Asset = {
-    id: "8728ad10-1100-4cf3-b48f-73c2f5bc559a",
-    created_at: new Date(Date.now()),
-    last_modification_at: new Date(Date.now()),
-    name: "Wrapped Bitcoin",
-    symbol: "BTC",
-    icon_path: "/gfx/asset_icons/btc.svg",
-    address: "0x5fbdb2315678afecb367f032d93f642f64180aa3",
-    decimals: {
-      numer: 1000000000000000000n,
-      denom: 1n,
-    },
-    maker_fee: {
-      numer: 1000000000000000000n,
-      denom: 1n,
-    },
-    taker_fee: {
-      numer: 1000000000000000000n,
-      denom: 1n,
-    },
-    transfer_fee: {
-      numer: 1000000000000000000n,
-      denom: 1n,
-    },
-  };
+  onMount(async () => {
+    eventsource = await subscribeEvents(
+      `${api}/private/transfers/display`,
+      params({ limit: 10, offset: 0 }),
+      params({}),
+      (data) => {
+        setTransfers([
+          ...z.array(DisplayTransfer).parse(data).map(convertTransfer),
+          ...transfers(),
+        ]);
+      },
+    );
+  });
 
-  setTransfers([
-    {
-      user: user1,
-      date: new Date(Date.now()),
-      amount: 0.1012,
-      asset: asset1,
-    },
-    {
-      user: user1,
-      date: new Date(Date.now()),
-      amount: 0.1012,
-      asset: asset1,
-    },
-  ]);
+  onCleanup(() => {
+    eventsource?.close();
+  });
 
   return (
     <div class="grid grid-rows-[auto_auto_auto_1fr] h-full gap-4">
@@ -75,10 +72,11 @@ export default function AccountDashboard() {
             <Index each={transfers()}>
               {(element) => (
                 <TransferElement
-                  user={element().user}
+                  from={element().from}
+                  to={element().to}
                   date={element().date}
                   amount={element().amount}
-                  asset={element().asset}
+                  symbol={element().symbol}
                 />
               )}
             </Index>
