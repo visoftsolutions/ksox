@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: server-engagement-deployment
+  name: server-blockchain-deployment
   namespace: ksox-finance
   labels:
-    app: server-engagement
+    app: server-blockchain
 spec:
   selector:
     matchLabels:
-      app: server-engagement
+      app: server-blockchain
   template:
     metadata:
       labels:
-        app: server-engagement
+        app: server-blockchain
     spec:
       containers:
-        - name: server-engagement
-          image: registry.internal.visoft.solutions/server-engagement
+        - name: server-blockchain
+          image: registry.internal.visoft.solutions/server-blockchain
           envFrom:
             - secretRef:
                 name: envs
@@ -50,11 +50,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: server-engagement-service
+  name: server-blockchain-service
   namespace: ksox-finance
 spec:
   selector:
-    app: server-engagement
+    app: server-blockchain
   ports:
     - protocol: TCP
       port: 80

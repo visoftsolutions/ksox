@@ -16,7 +16,10 @@ spec:
     spec:
       containers:
         - name: server-engine
-          image: server-engine
+          image: registry.internal.visoft.solutions/server-engine
+          envFrom:
+            - secretRef:
+                name: envs
           ports:
             - containerPort: 80
           resources:
@@ -26,11 +29,6 @@ spec:
             limits:
               memory: 500Mi
               cpu: 500m
-          env:
-            - name: DATABASE_URL
-              value: postgresql://ksoxuser:ksoxuserp4ssword@postgres-service/ksox
-            - name: ENGINE_FRACTION_ACCURACY
-              value: 1/10000
       initContainers:
         - name: wait-for-postgres
           image: busybox

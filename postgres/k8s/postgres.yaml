@@ -20,7 +20,10 @@ spec:
             claimName: postgres-pv-claim
       containers:
         - name: postgres-database
-          image: postgres-database
+          image: registry.internal.visoft.solutions/postgres-database
+          envFrom:
+            - secretRef:
+                name: envs
           ports:
             - containerPort: 5432
           volumeMounts:
@@ -33,13 +36,6 @@ spec:
             limits:
               memory: 500Mi
               cpu: 500m
-          env:
-            - name: POSTGRES_USER
-              value: ksoxuser
-            - name: POSTGRES_PASSWORD
-              value: ksoxuserp4ssword
-            - name: POSTGRES_DB
-              value: ksox
 ---
 apiVersion: v1
 kind: Service

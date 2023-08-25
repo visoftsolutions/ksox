@@ -16,7 +16,10 @@ spec:
     spec:
       containers:
         - name: web-processor
-          image: web-processor
+          image: registry.internal.visoft.solutions/web-processor
+          envFrom:
+            - secretRef:
+                name: envs
           ports:
             - containerPort: 80
           resources:

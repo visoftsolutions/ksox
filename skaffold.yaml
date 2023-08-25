@@ -2,52 +2,61 @@ apiVersion: skaffold/v4beta3
 kind: Config
 build:
   artifacts:
-    - image: busybox
+    - image: registry.internal.visoft.solutions/blockchain-node
+      context: ./blockchain
+      docker:
+        dockerfile: Dockerfile
+    - image: registry.internal.visoft.solutions/busybox
       context: ./containers
       docker:
         dockerfile: busybox.dockerfile
-    - image: postgres-database
+    - image: registry.internal.visoft.solutions/postgres-database
       context: ./postgres
       docker:
         dockerfile: Dockerfile
-    - image: redis-database
+    - image: registry.internal.visoft.solutions/redis-database
       context: ./redis
       docker:
         dockerfile: Dockerfile
-    - image: server-engine
+    - image: registry.internal.visoft.solutions/server-blockchain
+      context: ./server
+      docker:
+        dockerfile: blockchain.dockerfile
+    - image: registry.internal.visoft.solutions/server-engine
       context: ./server
       docker:
         dockerfile: engine.dockerfile
-    - image: server-engagement
+    - image: registry.internal.visoft.solutions/server-engagement
       context: ./server
       docker:
         dockerfile: engagement.dockerfile
-    - image: server-worker
+    - image: registry.internal.visoft.solutions/server-worker
       context: ./server
       docker:
         dockerfile: worker.dockerfile
-    - image: pay-worker
+    - image: registry.internal.visoft.solutions/pay-worker
       context: ./server
       docker:
         dockerfile: worker.dockerfile
-    - image: web-exchange
+    - image: registry.internal.visoft.solutions/web-exchange
       context: ./web
       docker:
         dockerfile: exchange.dockerfile
-    - image: web-exchange-landing
+    - image: registry.internal.visoft.solutions/web-exchange-landing
       context: ./web
       docker:
         dockerfile: exchange-landing.dockerfile
-    - image: web-processor
+    - image: registry.internal.visoft.solutions/web-processor
       context: ./web
       docker:
         dockerfile: processor.dockerfile
-    - image: web-dashboard
+    - image: registry.internal.visoft.solutions/web-dashboard
       context: ./web
       docker:
         dockerfile: dashboard.dockerfile
 manifests:
   rawYaml:
+    - ./blockchain/k8s/*
     - ./postgres/k8s/*
     - ./redis/k8s/*
     - ./server/k8s/*

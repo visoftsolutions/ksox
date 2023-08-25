@@ -16,7 +16,10 @@ spec:
     spec:
       containers:
         - name: server-worker
-          image: server-worker
+          image: registry.internal.visoft.solutions/server-worker
+          envFrom:
+            - secretRef:
+                name: envs
           ports:
             - containerPort: 80
           resources:
@@ -26,15 +29,6 @@ spec:
             limits:
               memory: 500Mi
               cpu: 500m
-          env:
-            - name: DATABASE_URL
-              value: postgresql://ksoxuser:ksoxuserp4ssword@postgres-service/ksox
-            - name: ENGINE_URL
-              value: http://server-engine-service/
-            - name: REDIS_URL
-              value: redis://redis-service/
-            - name: WORKER_FRACTION_ACCURACY
-              value: 1/10000
       initContainers:
         - name: wait-for-postgres
           image: busybox

@@ -20,7 +20,10 @@ spec:
             claimName: redis-pv-claim
       containers:
         - name: redis-database
-          image: redis-database
+          image: registry.internal.visoft.solutions/redis-database
+          envFrom:
+            - secretRef:
+                name: envs
           ports:
             - containerPort: 6379
           volumeMounts:

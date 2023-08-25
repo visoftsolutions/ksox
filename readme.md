@@ -42,15 +42,17 @@ kubectl config use-context minikube
 skaffold delete
 ```
 
-## run code in production
+## deploy code to production
 To deploy application to production do
 ```shell
 kubectl config use-context visoft-prod
-skaffold -d registry.internal.visoft.solutions run
+kubectl -n ksox-finance create secret generic envs --from-env-file .env
+skaffold run
 ```
 
 To remove application from production do
 ```shell
 kubectl config use-context visoft-prod
-skaffold -d registry.internal.visoft.solutions delete
+skaffold delete
+kubectl -n ksox-finance delete secrets envs
 ```

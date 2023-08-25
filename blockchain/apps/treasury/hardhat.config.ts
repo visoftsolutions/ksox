@@ -7,6 +7,9 @@ const config: HardhatUserConfig = {
     local: {
       url: "http://localhost:8545/",
     },
+    testnet: {
+      url: "http://node.ksox.finance/",
+    }
   },
 };
 

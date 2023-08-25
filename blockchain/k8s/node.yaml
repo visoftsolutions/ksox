@@ -1,27 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: server-engagement-deployment
+  name: blockchain-node-deployment
   namespace: ksox-finance
   labels:
-    app: server-engagement
+    app: blockchain-node
 spec:
   selector:
     matchLabels:
-      app: server-engagement
+      app: blockchain-node
   template:
     metadata:
       labels:
-        app: server-engagement
+        app: blockchain-node
     spec:
       containers:
-        - name: server-engagement
-          image: registry.internal.visoft.solutions/server-engagement
+        - name: blockchain-node
+          image: registry.internal.visoft.solutions/blockchain-node
           envFrom:
             - secretRef:
                 name: envs
           ports:
-            - containerPort: 80
+            - containerPort: 8545
           resources:
             requests:
               memory: 200Mi
@@ -50,12 +50,38 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: server-engagement-service
+  name: blockchain-node-service
   namespace: ksox-finance
 spec:
   selector:
-    app: server-engagement
+    app: blockchain-node
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 80
+      port: 8545
+      targetPort: 8545
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: blockchain-node-ingress
+  namespace: ksox-finance
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  ingressClassName: ingress-nginx
+  tls:
+    - hosts:
+        - node.ksox.finance
+      secretName: ksox-finance-tls
+  rules:
+    - host: node.ksox.finance
+      http:
+        paths:
+          - path: /(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: blockchain-node-service
+                port:
+                  number: 8545

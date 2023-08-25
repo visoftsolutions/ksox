@@ -16,7 +16,10 @@ spec:
     spec:
       containers:
         - name: web-exchange
-          image: web-exchange
+          image: registry.internal.visoft.solutions/web-exchange
+          envFrom:
+            - secretRef:
+                name: envs
           ports:
             - containerPort: 80
           resources:

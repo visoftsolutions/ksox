@@ -11,5 +11,6 @@ spec:
     - app.ksox.finance
     - pay.ksox.finance
     - dashboard.ksox.finance
+    - node.ksox.finance
   issuerRef:
     name: ksox-finance-letsencrypt-http01
