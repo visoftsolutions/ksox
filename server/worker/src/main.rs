@@ -87,9 +87,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         transfers_manager: TransfersManager::new(database.clone()),
         transfers_notification_manager: TransfersNotificationManager::new(
             notification_manager_controller.get_subscriber(),
-            UsersManager::new(database.clone()),
-            ValutsManager::new(database.clone()),
-            AssetsManager::new(database.clone()),
+            TransfersManager::new(database.clone()),
         ),
         badges_manager: BadgesManager::new(database.clone()),
         badges_notification_manager: BadgesNotificationManager::new(

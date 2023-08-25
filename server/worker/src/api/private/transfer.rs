@@ -37,7 +37,7 @@ pub async fn root(
         .get_for_user_asset(payload.to_user_id, payload.asset_id)
         .await?
         .id;
-    let asset = state.assets_manager.get_by_id(&payload.asset_id).await?;
+    let asset = state.assets_manager.get_by_id(payload.asset_id).await?;
     let response = state
         .engine_client
         .transfer(TransferRequest {

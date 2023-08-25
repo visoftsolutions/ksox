@@ -1,0 +1,122 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                transfers.id,\n                transfers.created_at,\n                from_valuts.user_id as from_user_id,\n                from_users.address as \"from_user_address: Address\",\n                to_valuts.user_id as to_user_id,\n                to_users.address as \"to_user_address: Address\",\n                assets.id as asset_id,\n                assets.icon_path as asset_icon_path,\n                assets.name as asset_name,\n                assets.symbol as asset_symbol,\n                transfers.amount as \"amount: Fraction\",\n                transfers.fee as \"fee: Fraction\"\n            FROM transfers\n            JOIN valuts from_valuts ON transfers.from_valut_id = from_valuts.id\n            JOIN valuts to_valuts ON transfers.to_valut_id = to_valuts.id\n            JOIN assets ON transfers.asset_id = assets.id\n            JOIN users from_users ON from_valuts.user_id = from_users.id\n            JOIN users to_users ON to_valuts.user_id = to_users.id\n            WHERE (to_valuts.user_id = $1 AND from_valuts.user_id = '00000000-0000-0000-0000-000000000000')\n                OR (to_valuts.user_id = '00000000-0000-0000-0000-000000000000' AND from_valuts.user_id = $1)\n            ORDER BY transfers.created_at DESC\n            LIMIT $2\n            OFFSET $3\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 2,
+        "name": "from_user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "from_user_address: Address",
+        "type_info": "Bpchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "to_user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 5,
+        "name": "to_user_address: Address",
+        "type_info": "Bpchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "asset_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 7,
+        "name": "asset_icon_path",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 8,
+        "name": "asset_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 9,
+        "name": "asset_symbol",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 10,
+        "name": "amount: Fraction",
+        "type_info": {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "fee: Fraction",
+        "type_info": {
+          "Custom": {
+            "name": "fraction",
+            "kind": {
+              "Composite": [
+                [
+                  "numer",
+                  "Numeric"
+                ],
+                [
+                  "denom",
+                  "Numeric"
+                ]
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "ac2a463d2376a2f88f9e46134c479288ed9236f7d0595804e9fef4417aedd5f7"
+}
