@@ -26,6 +26,10 @@ export function fmin(a: Fraction, b: Fraction) {
   return a.numer * b.denom < a.denom * b.numer ? a : b;
 }
 
+export function fToBigint(f: Fraction) {
+  return f.numer / f.denom;
+}
+
 export function ev(f: Fraction) {
   return Number(f.numer) / Number(f.denom);
 }

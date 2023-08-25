@@ -1,6 +1,6 @@
 import { WalletProvider } from "@packages/components/providers/WalletProvider";
 import { Asset } from "@packages/types/asset";
-import { Fraction, ev, fmul } from "@packages/types/primitives/fraction";
+import { Fraction, fToBigint, fmul } from "@packages/types/primitives/fraction";
 import { Address } from "viem";
 import { ABI as ERC20_ABI } from "@packages/contracts/erc20";
 import { ABI as TREASURY_ABI } from "@packages/contracts/treasury";
@@ -18,7 +18,7 @@ export const handleDeposit = async ({
   wallet,
   treasury_address,
 }: HandleDepositProps) => {
-  const value = BigInt(Math.floor(ev(fmul(asset.decimals, amount))));
+  const value = fToBigint(fmul(asset.decimals, amount));
   const nonce = (await wallet.publicClient?.readContract({
     address: asset.address as Address,
     abi: ERC20_ABI,

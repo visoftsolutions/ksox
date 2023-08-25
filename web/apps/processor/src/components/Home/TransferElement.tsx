@@ -26,18 +26,18 @@ export default function TransferElement(props: ITransferElement) {
             <div>{props.name}</div>
             <Switch>
               <Match when={props.direction == DisplayTransferDirection.Income}>
-              <img
-                src={joinPaths(base, "/gfx/left_arrow.svg")}
-                width={24}
-                height={24}
-              />
+                <img
+                  src={joinPaths(base, "/gfx/left_arrow.svg")}
+                  width={24}
+                  height={24}
+                />
               </Match>
               <Match when={props.direction == DisplayTransferDirection.Outcome}>
-              <img
-                src={joinPaths(base, "/gfx/right_arrow.svg")}
-                width={24}
-                height={24}
-              />
+                <img
+                  src={joinPaths(base, "/gfx/right_arrow.svg")}
+                  width={24}
+                  height={24}
+                />
               </Match>
             </Switch>
             <div>{props.otherName}</div>

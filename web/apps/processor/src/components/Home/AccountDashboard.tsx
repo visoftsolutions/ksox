@@ -61,7 +61,7 @@ export function CreateTransfers(session: SessionResponse | undefined) {
               ...z.array(DisplayTransfer).parse(data).map(convertTransfer),
               ...transfers(),
             ]);
-          }
+          },
         );
       }
     });

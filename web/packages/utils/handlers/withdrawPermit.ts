@@ -1,7 +1,12 @@
 import { WalletProvider } from "@packages/components/providers/WalletProvider";
 import { Asset } from "@packages/types/asset";
 import { WithdrawRequest, WithdrawResponse } from "@packages/types/mod";
-import { Fraction, ev, fmul } from "@packages/types/primitives/fraction";
+import {
+  Fraction,
+  ev,
+  fToBigint,
+  fmul,
+} from "@packages/types/primitives/fraction";
 import { Address } from "viem";
 import { ABI as TREASURY_ABI } from "@packages/contracts/treasury";
 
@@ -20,7 +25,7 @@ export const handleWithdraw = async ({
   wallet,
   treasury_address,
 }: HandleWithdrawProps) => {
-  const value = BigInt(Math.floor(ev(fmul(asset.decimals, amount))));
+  const value = fToBigint(fmul(asset.decimals, amount));
   const deadline = new Date(new Date().getTime() + 60 * 1000);
   const response = await fetch("/api/private/withdraw", {
     method: "POST",
