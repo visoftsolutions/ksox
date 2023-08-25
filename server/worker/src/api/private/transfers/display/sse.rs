@@ -17,7 +17,7 @@ pub async fn root(
     user_id: UserId,
 ) -> Sse<impl Stream<Item = Result<Event, std::io::Error>>> {
     let stream = async_stream::stream! {
-        let mut stream = state.transfers_notification_manager.subscribe_only_external_to_user(*user_id).await
+        let mut stream = state.transfers_notification_manager.subscribe_display_to_user(*user_id).await
             .map_err(|err| Error::new(ErrorKind::BrokenPipe, err))?;
         while let Some(element) = stream.next().await {
             if let Ok(e) = element {
