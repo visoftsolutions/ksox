@@ -38,6 +38,7 @@ export default function DepositDashboard() {
       date: element.created_at,
       symbol: element.asset_symbol,
       direction: element.direction,
+      asset_icon_path: element.asset_icon_path,
     };
   };
 
@@ -107,6 +108,7 @@ export default function DepositDashboard() {
                   amount={element().amount}
                   symbol={element().symbol}
                   direction={element().direction}
+                  asset_icon_path={element().asset_icon_path}
                 />
               )}
             </Index>

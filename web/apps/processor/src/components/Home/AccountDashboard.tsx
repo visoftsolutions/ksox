@@ -46,6 +46,7 @@ export function CreateTransfers(session: SessionResponse | undefined) {
         date: element.created_at,
         symbol: element.asset_symbol,
         direction: element.direction,
+        asset_icon_path: element.asset_icon_path,
       };
     };
 
@@ -80,6 +81,7 @@ export function CreateTransfers(session: SessionResponse | undefined) {
               amount={element().amount}
               symbol={element().symbol}
               direction={element().direction}
+              asset_icon_path={element().asset_icon_path}
             />
           )}
         </Index>

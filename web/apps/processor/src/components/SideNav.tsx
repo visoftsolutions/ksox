@@ -72,6 +72,54 @@ export default function SideNavigation() {
           }
         />
       </A>
+      <A href="/deposit">
+        <SideNavButton
+          name="Deposit"
+          highlighted={nav() == Nav.Deposit}
+          icon={
+            <Switch>
+              <Match when={colorMode.colorMode() == ColorMode.Light}>
+                <img
+                  src={joinPaths(base, "/gfx/deposit-light.svg")}
+                  width={24}
+                  height={24}
+                />
+              </Match>
+              <Match when={colorMode.colorMode() == ColorMode.Dark}>
+                <img
+                  src={joinPaths(base, "/gfx/deposit-dark.svg")}
+                  width={24}
+                  height={24}
+                />
+              </Match>
+            </Switch>
+          }
+        />
+      </A>
+      <A href="/withdraw">
+        <SideNavButton
+          name="Withdraw"
+          highlighted={nav() == Nav.Withdraw}
+          icon={
+            <Switch>
+              <Match when={colorMode.colorMode() == ColorMode.Light}>
+                <img
+                  src={joinPaths(base, "/gfx/withdraw-light.svg")}
+                  width={24}
+                  height={24}
+                />
+              </Match>
+              <Match when={colorMode.colorMode() == ColorMode.Dark}>
+                <img
+                  src={joinPaths(base, "/gfx/withdraw-dark.svg")}
+                  width={24}
+                  height={24}
+                />
+              </Match>
+            </Switch>
+          }
+        />
+      </A>
       <SideNavButton
         name={mode()}
         icon={

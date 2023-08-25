@@ -1,5 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" class="icon flat-line" data-name="Flat Line" transform="scale(-1 1)"
-    viewBox="0 0 24 24">
+<svg xmlns="http://www.w3.org/2000/svg" class="icon flat-line" data-name="Flat Line" viewBox="0 0 24 24">
     <g fill="none" stroke="#0666EB" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
         <path d="M21 12H3" />
         <path d="m6 9-3 3 3 3" data-name="primary" />
