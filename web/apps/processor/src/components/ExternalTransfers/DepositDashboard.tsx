@@ -2,23 +2,66 @@ import CurrencyDisplay from "~/components/Home/CurrencyDisplay";
 import NumberInput from "~/components/Inputs/NumberInput";
 import { usePrecision } from "@packages/components/providers/PrecisionProvider";
 import { useSelectedAsset } from "~/components/providers/SelectedAssetProvider";
-import { Index, createSignal } from "solid-js";
-import { Fraction } from "@packages/types/primitives/fraction";
+import { Index, createSignal, onCleanup, onMount } from "solid-js";
+import { Fraction, ev } from "@packages/types/primitives/fraction";
 import ActionButton from "~/components/Atoms/Buttons/ActionButton";
 import { handleDeposit } from "@packages/utils/handlers/depositPermit";
 import { useWallet } from "@packages/components/providers/WalletProvider";
 import { useContractAddress } from "@packages/components/providers/ContractAddressProvider";
 import TransferElement, { ITransferElement } from "../Home/TransferElement";
+import { createStore } from "solid-js/store";
+import subscribeEvents from "@packages/utils/subscribeEvents";
+import { api } from "~/root";
+import params from "@packages/utils/params";
+import { DisplayTransfer } from "@packages/types/transfer";
+import firstLastChars from "@packages/utils/firstLastChars";
+import { z } from "zod";
 
 export default function DepositDashboard() {
   const precision = usePrecision();
   const { selectedAsset } = useSelectedAsset();
   const [amount, setAmount] = createSignal(
-    Fraction.parse({ numer: 0, denom: 1 }),
+    Fraction.parse({ numer: 0, denom: 1 })
   );
   const wallet = useWallet();
   const treasury_address = useContractAddress();
-  const [transfers, setTransfers] = createSignal<ITransferElement[]>([]);
+  const [transfers, setTransfers] = createStore<ITransferElement[]>([]);
+
+  let eventsource: EventSource | undefined;
+
+  const convertTransfer = (element: DisplayTransfer): ITransferElement => {
+    return {
+      from:
+        element.from_user_name ||
+        firstLastChars(element.from_user_address, 4, 4),
+      to:
+        element.to_user_name || firstLastChars(element.to_user_address, 4, 4),
+      amount: ev(element.amount),
+      date: element.created_at,
+      symbol: element.asset_symbol,
+    };
+  };
+
+  onMount(async () => {
+    eventsource = await subscribeEvents(
+      `${api}/private/transfers/external`,
+      params({ limit: 10, offset: 0 }),
+      params({}),
+      (data) => {
+        setTransfers((state) =>
+          z
+            .array(DisplayTransfer)
+            .parse(data)
+            .map(convertTransfer)
+            .concat(state)
+        );
+      }
+    );
+  });
+
+  onCleanup(() => {
+    eventsource?.close();
+  });
 
   return (
     <div class="grid grid-rows-[auto_auto_auto_1fr] h-full gap-4">
@@ -56,13 +99,14 @@ export default function DepositDashboard() {
       <div class="relative">
         <div class="absolute inset-0 overflow-y-auto">
           <div class="grid grid-flow-row gap-4 ">
-            <Index each={transfers()}>
+            <Index each={transfers}>
               {(element) => (
                 <TransferElement
-                  user={element().user}
+                  from={element().from}
+                  to={element().to}
                   date={element().date}
                   amount={element().amount}
-                  asset={element().asset}
+                  symbol={element().symbol}
                 />
               )}
             </Index>
