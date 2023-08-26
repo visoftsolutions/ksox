@@ -74,7 +74,8 @@ export const CancelRequest = z.object({
 export type CancelRequest = z.infer<typeof CancelRequest>;
 
 export const TransferRequest = z.object({
-  taker_id: Uuid,
+  from_user_address: Address,
+  to_user_address: Address,
   asset_id: Uuid,
   amount: Fraction,
 });

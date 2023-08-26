@@ -5,7 +5,7 @@ services:
     build:
       context: ./blockchain
     ports:
-      - 8545:8545
+      - 8545:80
 
   postgres:
     container_name: ksox-postgres

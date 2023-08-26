@@ -8,7 +8,7 @@ import ActionButton from "~/components/Atoms/Buttons/ActionButton";
 import { handleWithdraw } from "@packages/utils/handlers/withdrawPermit";
 import { useWallet } from "@packages/components/providers/WalletProvider";
 import { useContractAddress } from "@packages/components/providers/ContractAddressProvider";
-import TransferElement, { ITransferElement } from "../Home/TransferElement";
+import TransferElement, { ITransferElement } from "../Atoms/TransferElement";
 import { createStore } from "solid-js/store";
 import { DisplayTransfer } from "@packages/types/transfer";
 import firstLastChars from "@packages/utils/firstLastChars";
@@ -16,13 +16,12 @@ import subscribeEvents from "@packages/utils/subscribeEvents";
 import params from "@packages/utils/params";
 import { api } from "~/root";
 import { z } from "zod";
-import { Uuid } from "@packages/types/primitives/uuid";
 
 export default function WithdrawDashboard() {
   const precision = usePrecision();
   const { selectedAsset } = useSelectedAsset();
   const [amount, setAmount] = createSignal(
-    Fraction.parse({ numer: 0, denom: 1 })
+    Fraction.parse({ numer: 0, denom: 1 }),
   );
   const wallet = useWallet();
   const [withdrawAddress, setWithdrawAddress] = createSignal(wallet.address!);
@@ -35,7 +34,8 @@ export default function WithdrawDashboard() {
     return {
       name: element.user_name || firstLastChars(element.user_address, 4, 4),
       otherName:
-        element.other_user_name || firstLastChars(element.other_user_id, 4, 4),
+        element.other_user_name ||
+        firstLastChars(element.other_user_address, 4, 4),
       amount: ev(element.amount),
       date: element.created_at,
       symbol: element.asset_symbol,
@@ -59,9 +59,9 @@ export default function WithdrawDashboard() {
             .array(DisplayTransfer)
             .parse(data)
             .map(convertTransfer)
-            .concat(state)
+            .concat(state),
         );
-      }
+      },
     );
   });
 

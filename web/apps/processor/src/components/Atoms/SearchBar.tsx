@@ -4,11 +4,10 @@ import { base } from "~/root";
 
 export interface ISearchBar {
   placeholder?: string;
+  onInput: (input: string) => void;
 }
 
 export default function SearchBar(props: ISearchBar) {
-  const [query, setQuery] = createSignal("");
-
   return (
     <div class="grid grid-flow-col grid-cols-[auto_1fr] rounded-full bg-r-light-search-bar dark:bg-r-dark-search-bar">
       <img
@@ -18,8 +17,7 @@ export default function SearchBar(props: ISearchBar) {
       />
       <input
         type="text"
-        value={query()}
-        onInput={(e) => setQuery(e.target.value)}
+        onInput={(e) => props.onInput(e.target.value)}
         class="flex-grow rounded-r-full px-1 py-1 outline-none bg-r-light-search-bar dark:bg-r-dark-search-bar m-0 p-0 text-[14px]"
         placeholder={props.placeholder || "Search"}
       />

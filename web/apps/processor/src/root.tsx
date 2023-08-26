@@ -21,6 +21,7 @@ import {
   ColorModeProvider,
   useColorMode,
 } from "@packages/components/providers/ColorModeProvider";
+import TransferTo from "./components/TransferTo";
 
 export const base = import.meta.env.BASE_URL;
 export const api = joinPaths(base, "/api");
@@ -89,6 +90,11 @@ export default function Root() {
                         path="/transfer"
                         element={<Transfer />}
                         preload={() => setNav(Nav.Transfer)}
+                      />
+                      <Route
+                        path={"/transfer_to/:address"}
+                        element={<TransferTo />}
+                        preload={() => setNav(Nav.TransferTo)}
                       />
                       <Route
                         path="/deposit"

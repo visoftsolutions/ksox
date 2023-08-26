@@ -4,7 +4,7 @@ import { base } from "~/root";
 import { formatHumanReadable } from "../Inputs/NumberInput";
 import { DisplayTransferDirection } from "@packages/types/transfer";
 import { Match, Switch } from "solid-js";
-import Picture from "../Atoms/Picture";
+import Picture from "./Picture";
 
 export interface ITransferElement {
   name: string;

@@ -8,8 +8,12 @@ export const User = z.object({
   created_at: Datetime,
   last_modification_at: Datetime,
   address: Address,
-  name: z.nullable(z.string()),
-  phone: z.nullable(z.string()),
-  email: z.nullable(z.string()),
+  name: z.string().nullable(),
 });
 export type User = z.infer<typeof User>;
+
+export const UserRecognitionResult = z.object({
+  score: z.number(),
+  user: User,
+});
+export type UserRecognitionResult = z.infer<typeof UserRecognitionResult>;

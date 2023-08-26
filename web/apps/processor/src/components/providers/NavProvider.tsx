@@ -9,6 +9,7 @@ import {
 export enum Nav {
   Home,
   Transfer,
+  TransferTo,
   Settings,
   Notifications,
   Deposit,

@@ -1,8 +1,13 @@
 import SearchBar from "~/components/Atoms/SearchBar";
 import WalletButton from "~/components/Atoms/Buttons/WalletButton";
 import { api, base } from "~/root";
+import { Setter } from "solid-js";
 
-export default function Header(props: { class?: string; text?: string }) {
+export default function Header(props: {
+  class?: string;
+  text?: string;
+  setSearch: Setter<string | undefined>;
+}) {
   return (
     <div
       class={`grid grid-cols-[1fr_auto] xl:grid-cols-1 grid-rows-[3rem_auto] items-center justify-center gap-4 ${props.class}`}
@@ -14,7 +19,12 @@ export default function Header(props: { class?: string; text?: string }) {
         <WalletButton base_url={base} api_url={api} class="justify-self-end" />
       </div>
       <div class="row-start-2 row-end-3 col-span-2">
-        <SearchBar placeholder="Search" />
+        <SearchBar
+          placeholder="Search"
+          onInput={(input) => {
+            props.setSearch(input);
+          }}
+        />
       </div>
     </div>
   );

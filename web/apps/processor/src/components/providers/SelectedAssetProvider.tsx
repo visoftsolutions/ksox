@@ -8,13 +8,6 @@ import {
   useContext,
 } from "solid-js";
 
-export enum Nav {
-  Home,
-  Transfer,
-  Settings,
-  Notifications,
-}
-
 interface SelectedAssetContextValue {
   selectedAsset: Accessor<Asset | undefined>;
   setSelectedAsset: Setter<Asset | undefined>;

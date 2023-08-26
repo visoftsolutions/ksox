@@ -1,7 +1,7 @@
 import CurrencyDisplay from "~/components/Home/CurrencyDisplay";
 import DepositWithdrawPanel from "~/components/Home/DepositWithdrawPanel";
 import { Index, createSignal, onCleanup, onMount } from "solid-js";
-import TransferElement, { ITransferElement } from "./TransferElement";
+import TransferElement, { ITransferElement } from "../Atoms/TransferElement";
 import subscribeEvents from "@packages/utils/subscribeEvents";
 import { api } from "~/root";
 import params from "@packages/utils/params";
@@ -41,7 +41,7 @@ export function CreateTransfers(session: SessionResponse | undefined) {
         name: element.user_name || firstLastChars(element.user_address, 4, 4),
         otherName:
           element.other_user_name ||
-          firstLastChars(element.other_user_id, 4, 4),
+          firstLastChars(element.other_user_address, 4, 4),
         amount: ev(element.amount),
         date: element.created_at,
         symbol: element.asset_symbol,

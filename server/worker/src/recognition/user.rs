@@ -1,12 +1,13 @@
-use std::io::{Error, ErrorKind};
+use std::{io::{Error, ErrorKind}, future};
 
 use database::{managers::users::UsersManager, projections::user::User};
-use futures::TryStreamExt;
+use futures::{TryStreamExt};
 use nalgebra::DVector;
 use ordered_float::OrderedFloat;
 use serde::Serialize;
 use sqlx::{Pool, Postgres};
 use strsim::sorensen_dice;
+use uuid::Uuid;
 
 use crate::database;
 
@@ -31,6 +32,7 @@ impl UserRecognition {
     async fn get_users(&self) -> Result<Vec<User>, Error> {
         self.users_manager
             .get_all()
+            .try_filter(|user| future::ready( user.id != Uuid::default() ))
             .try_collect()
             .await
             .map_err(|err| Error::new(ErrorKind::BrokenPipe, err))

@@ -14,6 +14,7 @@ import {
   setSelectedAsset,
 } from "~/components/providers/SelectedAssetProvider";
 import { createEffect, createMemo } from "solid-js";
+import { SelectedUserProvider } from "~/components/providers/SelectedUserProvider";
 
 export default function Index() {
   const assets = useAssets();
@@ -40,7 +41,9 @@ export default function Index() {
               <div class="xl:col-span-1">
                 <div class="max-w-xl mx-auto h-full">
                   <PrecisionProvider>
-                    <Outlet />
+                    <SelectedUserProvider>
+                      <Outlet />
+                    </SelectedUserProvider>
                   </PrecisionProvider>
                 </div>
               </div>

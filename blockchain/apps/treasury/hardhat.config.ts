@@ -5,7 +5,7 @@ const config: HardhatUserConfig = {
   solidity: "0.8.18",
   networks: {
     local: {
-      url: "http://localhost/",
+      url: "http://localhost:8545/",
     },
     testnet: {
       url: "https://node.ksox.finance/",
