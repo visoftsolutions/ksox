@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: blockchain-node
-          image: registry.internal.visoft.solutions/blockchain-node
+          image: registry.internal.visoft.solutions/blockchain-node:v0.1.0-164-g8a360d6
           envFrom:
             - secretRef:
                 name: envs
@@ -31,7 +31,7 @@ spec:
               cpu: 400m
       initContainers:
         - name: wait-for-postgres
-          image: busybox
+          image: registry.internal.visoft.solutions/busybox:v0.1.0-164-g8a360d6
           command:
             [
               "sh",
@@ -39,7 +39,7 @@ spec:
               "until nc -z postgres-service 5432; do echo waiting for postgres; sleep 1.$((RANDOM % 100)); done;",
             ]
         - name: wait-for-redis
-          image: busybox
+          image: registry.internal.visoft.solutions/busybox:v0.1.0-164-g8a360d6
           command:
             [
               "sh",

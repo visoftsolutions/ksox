@@ -1,4 +1,7 @@
-import { time, loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import {
+  time,
+  loadFixture,
+} from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
@@ -25,29 +28,67 @@ describe("Permit Deposit & Permit Withdraw Mechanisms", function () {
     const { chainId } = await ethers.provider.getNetwork();
     const [owner, user, otherUser, signingKey] = await ethers.getSigners();
 
-    const TokenFactory = await ethers.getContractFactory("TokenPermit");
+    const WethFactory = await ethers.getContractFactory("WETH");
+    const weth = await WethFactory.connect(owner).deploy("WETH", "WETH");
+    await weth.waitForDeployment();
+
+    const TokenFactory = await ethers.getContractFactory("Token");
     const token = await TokenFactory.connect(owner).deploy("MyToken", "MTK");
+    await token.waitForDeployment();
 
     const TreasuryFactory = await ethers.getContractFactory("Treasury");
-    const treasury = await TreasuryFactory.connect(owner).deploy("Treasury", signingKey.address);
+    const treasury = await TreasuryFactory.connect(owner).deploy(
+      "Treasury",
+      await weth.getAddress(),
+      signingKey.address
+    );
+    await treasury.waitForDeployment();
 
-    return { chainId, owner, user, otherUser, signingKey, token, treasury };
+    return {
+      chainId,
+      owner,
+      user,
+      otherUser,
+      signingKey,
+      weth,
+      token,
+      treasury,
+    };
   }
 
   async function deployTreasuryFixturePremint() {
     const { chainId } = await ethers.provider.getNetwork();
     const [owner, user, otherUser, signingKey] = await ethers.getSigners();
 
-    const TokenFactory = await ethers.getContractFactory("TokenPermit");
+    const WethFactory = await ethers.getContractFactory("WETH");
+    const weth = await WethFactory.connect(owner).deploy("WETH", "WETH");
+    await weth.waitForDeployment();
+
+    const TokenFactory = await ethers.getContractFactory("Token");
     const token = await TokenFactory.connect(owner).deploy("MyToken", "MTK");
+    await token.waitForDeployment();
 
     const TreasuryFactory = await ethers.getContractFactory("Treasury");
-    const treasury = await TreasuryFactory.connect(owner).deploy("Treasury", signingKey.address);
+    const treasury = await TreasuryFactory.connect(owner).deploy(
+      "Treasury",
+      await weth.getAddress(),
+      signingKey.address
+    );
+    await treasury.waitForDeployment();
 
     const MINT_AMOUNT = 100n * 10n ** (await token.decimals());
     await token.connect(owner).mint(user, MINT_AMOUNT);
 
-    return { chainId, owner, user, otherUser, signingKey, token, treasury };
+    return {
+      chainId,
+      owner,
+      user,
+      otherUser,
+      signingKey,
+      weth,
+      token,
+      treasury,
+    };
   }
 
   describe("Token", () => {
@@ -66,7 +107,9 @@ describe("Permit Deposit & Permit Withdraw Mechanisms", function () {
 
   describe("Treasury", () => {
     it("permit deposit funds", async function () {
-      const { chainId, user, token, treasury } = await loadFixture(deployTreasuryFixturePremint);
+      const { chainId, user, token, treasury } = await loadFixture(
+        deployTreasuryFixturePremint
+      );
 
       const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
       const deadline = (await time.latest()) + ONE_YEAR_IN_SECS;
@@ -99,13 +142,18 @@ describe("Permit Deposit & Permit Withdraw Mechanisms", function () {
         deadline: deadline,
       };
 
-      const { r, s, v } = splitSig(await user.signTypedData(domain, { Permit: permitType }, permit));
-      await treasury.connect(user).depositPermit(tokenAddress, value, deadline, v, r, s);
+      const { r, s, v } = splitSig(
+        await user.signTypedData(domain, { Permit: permitType }, permit)
+      );
+      await treasury
+        .connect(user)
+        .depositPermit(tokenAddress, value, deadline, v, r, s);
       expect(await token.balanceOf(treasury)).to.equal(value);
     });
 
     it("permit withdraw funds", async function () {
-      const { chainId, user, otherUser, signingKey, token, treasury } = await loadFixture(deployTreasuryFixturePremint);
+      const { chainId, user, otherUser, signingKey, token, treasury } =
+        await loadFixture(deployTreasuryFixturePremint);
 
       const value = 10n * 10n ** (await token.connect(user).decimals());
       {
@@ -139,8 +187,12 @@ describe("Permit Deposit & Permit Withdraw Mechanisms", function () {
           deadline: deadline,
         };
 
-        const { r, s, v } = splitSig(await user.signTypedData(domain, { Permit: permitType }, permit));
-        await treasury.connect(user).depositPermit(tokenAddress, value, deadline, v, r, s);
+        const { r, s, v } = splitSig(
+          await user.signTypedData(domain, { Permit: permitType }, permit)
+        );
+        await treasury
+          .connect(user)
+          .depositPermit(tokenAddress, value, deadline, v, r, s);
       }
       expect(await token.balanceOf(treasury)).to.equal(value);
       {
@@ -176,8 +228,12 @@ describe("Permit Deposit & Permit Withdraw Mechanisms", function () {
           deadline: deadline,
         };
 
-        const { r, s, v } = splitSig(await signingKey.signTypedData(domain, { Permit: permitType }, permit));
-        await treasury.connect(user).withdrawPermit(tokenAddress, value, deadline, v, r, s, otherUser);
+        const { r, s, v } = splitSig(
+          await signingKey.signTypedData(domain, { Permit: permitType }, permit)
+        );
+        await treasury
+          .connect(user)
+          .withdrawPermit(tokenAddress, value, deadline, v, r, s, otherUser);
       }
       expect(await token.balanceOf(treasury)).to.equal(0);
       expect(await token.balanceOf(otherUser)).to.equal(value);
