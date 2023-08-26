@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "./IWETH.sol";
+import "./WETH.sol";
 
 contract Treasury is Ownable, EIP712 {
   address private publicKey_;

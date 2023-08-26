@@ -238,5 +238,61 @@ describe("Permit Deposit & Permit Withdraw Mechanisms", function () {
       expect(await token.balanceOf(treasury)).to.equal(0);
       expect(await token.balanceOf(otherUser)).to.equal(value);
     });
+    it("weth deposit and withdraw", async function () {
+      const { chainId, user, otherUser, signingKey, weth, token, treasury } =
+        await loadFixture(deployTreasuryFixturePremint);
+      const treasuryAddress = await treasury.getAddress();
+      const treasuryName = await treasury.name();
+      const tokenAddress = await weth.getAddress();
+
+      const value = 10n * 10n ** (await token.connect(user).decimals());
+      {
+        const tx = await user.sendTransaction({
+          to: treasuryAddress,
+          value,
+        });
+        await tx.wait();
+      }
+      expect(await weth.balanceOf(treasuryAddress)).to.equal(value);
+      {
+        const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
+        const deadline = (await time.latest()) + ONE_YEAR_IN_SECS;
+        const nonce = await treasury.nonces(user.address);
+
+        const domain = {
+          name: treasuryName,
+          version: "1",
+          chainId: chainId,
+          verifyingContract: treasuryAddress,
+        };
+
+        const permitType = [
+          { name: "owner", type: "address" },
+          { name: "spender", type: "address" },
+          { name: "token", type: "address" },
+          { name: "value", type: "uint256" },
+          { name: "nonce", type: "uint256" },
+          { name: "deadline", type: "uint256" },
+        ];
+
+        const permit = {
+          owner: signingKey.address,
+          spender: user.address,
+          token: tokenAddress,
+          value: value,
+          nonce: nonce,
+          deadline: deadline,
+        };
+
+        const { r, s, v } = splitSig(
+          await signingKey.signTypedData(domain, { Permit: permitType }, permit)
+        );
+        await treasury
+          .connect(user)
+          .withdrawPermit(tokenAddress, value, deadline, v, r, s, otherUser);
+      }
+      expect(await weth.balanceOf(treasuryAddress)).to.equal(0);
+      expect(await weth.balanceOf(otherUser.address)).to.equal(value);
+    });
   });
 });
