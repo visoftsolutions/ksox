@@ -1,7 +1,6 @@
 import Picture from "~/components/Atoms/Picture";
 import { Asset } from "@packages/types/asset";
-import { joinPaths } from "solid-start/islands/server-router";
-import { api, base } from "~/root";
+import { api } from "~/root";
 import { useSession } from "@packages/components/providers/SessionProvider";
 import { usePrecision } from "@packages/components/providers/PrecisionProvider";
 import { createSignal, onCleanup, onMount } from "solid-js";
@@ -58,10 +57,7 @@ export default function Currency(props: ICurrency) {
       <div class="flex justify-between">
         <div class="m-4 flex">
           <Picture
-            src={joinPaths(
-              base,
-              "/gfx/asset_icons/" + props.asset.symbol.toLowerCase() + ".svg",
-            )}
+            src={props.asset.icon_path}
             alt="test"
             size={42}
           />

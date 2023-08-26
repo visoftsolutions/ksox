@@ -1,4 +1,4 @@
-apiVersion: skaffold/v4beta3
+apiVersion: skaffold/v4beta6
 kind: Config
 build:
   artifacts:
@@ -6,10 +6,6 @@ build:
       context: ./blockchain
       docker:
         dockerfile: Dockerfile
-    - image: registry.internal.visoft.solutions/busybox
-      context: ./containers
-      docker:
-        dockerfile: busybox.dockerfile
     - image: registry.internal.visoft.solutions/postgres-database
       context: ./postgres
       docker:
@@ -31,10 +27,6 @@ build:
       docker:
         dockerfile: engagement.dockerfile
     - image: registry.internal.visoft.solutions/server-worker
-      context: ./server
-      docker:
-        dockerfile: worker.dockerfile
-    - image: registry.internal.visoft.solutions/pay-worker
       context: ./server
       docker:
         dockerfile: worker.dockerfile

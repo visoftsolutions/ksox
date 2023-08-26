@@ -9,8 +9,8 @@ export const AVAILABLE_CHAINS: Network[] = [
   {
     network: {
       id: 74207,
-      name: "Localhost",
-      network: "localhost",
+      name: "Testnet",
+      network: "testnet",
       nativeCurrency: {
         decimals: 18,
         name: "Ether",
@@ -18,10 +18,10 @@ export const AVAILABLE_CHAINS: Network[] = [
       },
       rpcUrls: {
         default: {
-          http: ["http://127.0.0.1:8545"],
+          http: ["https://node.ksox.finance/"],
         },
         public: {
-          http: ["http://127.0.0.1:8545"],
+          http: ["https://node.ksox.finance/"],
         },
       },
     },

@@ -1,4 +1,4 @@
-FROM node AS installer
+FROM node:20.5-alpine AS installer
 WORKDIR /app
 COPY . .
 RUN npm ci

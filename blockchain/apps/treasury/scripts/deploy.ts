@@ -3,6 +3,10 @@ import { ethers } from "hardhat";
 async function main() {
   const [owner] = await ethers.getSigners();
 
+  const WethFactory = await ethers.getContractFactory("WETH");
+  const weth = await WethFactory.deploy("Wrapped Native", "WETH");
+  await weth.waitForDeployment();
+
   const TokenFactory = await ethers.getContractFactory("Token");
 
   const tokens = [
@@ -12,7 +16,11 @@ async function main() {
   ];
 
   const TreasuryFactory = await ethers.getContractFactory("Treasury");
-  const treasury = await TreasuryFactory.deploy("Treasury", owner);
+  const treasury = await TreasuryFactory.deploy(
+    "Treasury",
+    await weth.getAddress(),
+    owner
+  );
 
   console.log("waiting for token contracts to be deployed...");
   for (let i = 0; i < tokens.length; i += 1) {
@@ -47,6 +55,7 @@ async function main() {
   }
   console.log("tokens minted");
 
+  console.log(`${await weth.name()}: ${await weth.getAddress()}`);
   for (let i = 0; i < tokens.length; i += 1) {
     const token = tokens[i];
     console.log(`${await token.name()}: ${await token.getAddress()}`);

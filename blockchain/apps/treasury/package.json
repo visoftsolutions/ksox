@@ -5,7 +5,8 @@
   "scripts": {
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
-    "deploy": "npx hardhat run scripts/deploy.ts --network local"
+    "deploy:local": "npx hardhat run --network local scripts/deploy.ts",
+    "deploy:testnet": "npx hardhat run --network testnet scripts/deploy.ts"
   },
   "author": "",
   "license": "ISC",

@@ -16,7 +16,7 @@ export default function HalfScreenModal(props: IHalfScreenModal) {
     >
       <div
         class={
-          "z-20 max-h-[50%] max-w-[500px] w-full rounded-t-xl xl:rounded-xl shadow-lg bg-r-light-background p-4 dark:bg-r-dark-foreground"
+          "z-20 max-h-[50%] max-w-[500px] overflow-scroll w-full rounded-t-xl xl:rounded-xl shadow-lg bg-r-light-background p-4 dark:bg-r-dark-foreground"
         }
       >
         {props.children}
