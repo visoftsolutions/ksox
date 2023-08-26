@@ -3,7 +3,7 @@
 #### **`.cargo/config.toml`**
 ```
 KSOX_SERVER_BLOCKCHAIN_URL="http://ksox-server-blockchain/"
-KSOX_WS_BLOCKCHAIN_URL="http://localhost:8545/"
+KSOX_WS_BLOCKCHAIN_URL="http://localhost/"
 KSOX_POSTGRES_URL="postgresql://ksoxuser:ksoxuserp4ssword@localhost/ksox"
 KSOX_REDIS_URL="redis://localhost/"
 KSOX_SERVER_ENGINE_URL="http://localhost/"
@@ -19,7 +19,7 @@ SQLX_OFFLINE="true"
 #### **`.env`**
 ```
 KSOX_SERVER_BLOCKCHAIN_URL="http://ksox-server-blockchain/"
-KSOX_WS_BLOCKCHAIN_URL="ws://ksox-blockchain:8545/"
+KSOX_WS_BLOCKCHAIN_URL="ws://ksox-blockchain/"
 KSOX_POSTGRES_URL="postgresql://ksoxuser:ksoxuserp4ssword@ksox-postgres/ksox"
 KSOX_REDIS_URL="redis://ksox-redis/"
 KSOX_SERVER_ENGINE_URL="http://ksox-server-engine/"

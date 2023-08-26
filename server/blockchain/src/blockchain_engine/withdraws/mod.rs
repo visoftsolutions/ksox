@@ -45,6 +45,7 @@ pub struct WithdrawsBlockchainManager {
     pub provider: Provider<Ws>,
     pub contract: Treasury<Provider<Ws>>,
     pub contract_key_wallet: LocalWallet,
+    pub chain_id: U256,
 }
 
 impl WithdrawsBlockchainManager {
@@ -113,6 +114,7 @@ impl WithdrawsBlockchainManager {
             database: self.database.to_owned(),
             contract: self.contract.to_owned(),
             contract_key_wallet: self.contract_key_wallet.to_owned(),
+            chain_id: self.chain_id,
         }
     }
 }
@@ -125,6 +127,7 @@ pub struct WithdrawsBlockchainManagerController {
     database: PgPool,
     contract: Treasury<Provider<Ws>>,
     contract_key_wallet: LocalWallet,
+    chain_id: U256,
 }
 impl WithdrawsBlockchainManagerController {
     pub async fn shutdown(self) -> Result<Result<(), BlockchainManagerError>, JoinError> {
@@ -182,7 +185,7 @@ impl WithdrawsBlockchainManagerController {
             .await?;
 
         let permit = Permit {
-            chain_id: U256::from(31337),
+            chain_id: self.chain_id,
             name: "Treasury".to_string(),
             verifying_contract: Address::from(self.contract.address()),
             owner: withdraw.owner,

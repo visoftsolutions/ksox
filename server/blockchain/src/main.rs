@@ -7,7 +7,7 @@ mod shutdown_signal;
 use contracts::treasury::Treasury;
 use engine_base::engine_client::EngineClient;
 use ethers::{
-    providers::{Provider, Ws},
+    providers::{Provider, Ws, Middleware},
     signers::LocalWallet,
 };
 use num_bigint::BigInt;
@@ -72,6 +72,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         provider: provider.to_owned(),
         contract: treasury.to_owned(),
         contract_key_wallet,
+        chain_id: provider.get_chainid().await?,
     }
     .start(engine_client.to_owned())
     .await;
