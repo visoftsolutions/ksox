@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/interfaces/IERC20.sol";
@@ -74,7 +74,7 @@ contract Treasury is Ownable, EIP712 {
 
   receive() external payable {
     require(!isFrozen_, "Treasury: contract is fronzen");
-    address owner = address(this);
+    address owner = address(msg.sender);
     uint256 amount = msg.value;
     IWETH(weth_).deposit{value: amount}();
     emit Deposit(owner, publicKey_, weth_, amount);

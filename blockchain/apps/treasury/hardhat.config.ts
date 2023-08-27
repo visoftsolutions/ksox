@@ -9,6 +9,9 @@ const config: HardhatUserConfig = {
     },
     testnet: {
       url: "https://node.ksox.finance/",
+    },
+    polygon: {
+      url: "https://polygon-rpc.com/",
     }
   },
 };

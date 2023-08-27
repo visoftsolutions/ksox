@@ -5,6 +5,7 @@
   "scripts": {
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
+    "hardhat": "npx hardhat",
     "deploy:local": "npx hardhat run --network local scripts/deploy.ts",
     "deploy:testnet": "npx hardhat run --network testnet scripts/deploy.ts"
   },
@@ -16,6 +17,7 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.9.3",
+    "@trezor/connect": "^9.1.1",
     "dotenv": "^16.3.1"
   }
 }

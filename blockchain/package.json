@@ -13,6 +13,7 @@
     "node": "npm run start --workspace apps/node",
     "compile": "npm run compile --workspace",
     "test": "npm run test --workspace",
+    "hardhat": "npm run hardhat --workspace",
     "deploy:local": "npm run deploy:local --workspace",
     "deploy:testnet": "npm run deploy:testnet --workspace"
   },
