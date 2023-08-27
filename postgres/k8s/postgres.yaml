@@ -15,27 +15,27 @@ spec:
         app: postgres-database
     spec:
       volumes:
-        - name: postgres-pv-storage
+        - name: postgres-pv
           persistentVolumeClaim:
-            claimName: postgres-pv-claim
+            claimName: postgres-pvc
       containers:
         - name: postgres-database
           image: registry.internal.visoft.solutions/postgres-database
           envFrom:
-            - secretRef:
-                name: envs
+            - configMapRef:
+                name: settings
           ports:
             - containerPort: 5432
           volumeMounts:
             - mountPath: "/var/lib/postgresql/data"
-              name: postgres-pv-storage
+              name: postgres-pv
           resources:
             requests:
-              memory: 300Mi
-              cpu: 300m
+              memory: 100Mi
+              cpu: 100m
             limits:
-              memory: 500Mi
-              cpu: 500m
+              memory: 200Mi
+              cpu: 200m
 ---
 apiVersion: v1
 kind: Service

@@ -21,9 +21,6 @@ spec:
       containers:
         - name: redis-database
           image: registry.internal.visoft.solutions/redis-database
-          envFrom:
-            - secretRef:
-                name: envs
           ports:
             - containerPort: 6379
           volumeMounts:
@@ -31,11 +28,11 @@ spec:
               name: redis-pv-storage
           resources:
             requests:
-              memory: 300Mi
-              cpu: 300m
+              memory: 100Mi
+              cpu: 100m
             limits:
-              memory: 500Mi
-              cpu: 500m
+              memory: 200Mi
+              cpu: 200m
 ---
 apiVersion: v1
 kind: Service

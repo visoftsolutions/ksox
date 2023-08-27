@@ -19,16 +19,18 @@ spec:
           image: registry.internal.visoft.solutions/server-worker
           envFrom:
             - secretRef:
-                name: envs
+                name: keys
+            - configMapRef:
+                name: settings
           ports:
             - containerPort: 80
           resources:
             requests:
+              memory: 100Mi
+              cpu: 100m
+            limits:
               memory: 200Mi
               cpu: 200m
-            limits:
-              memory: 500Mi
-              cpu: 500m
 ---
 apiVersion: v1
 kind: Service
@@ -52,7 +54,7 @@ metadata:
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
-  ingressClassName: ingress-nginx
+  ingressClassName: ingress-nginx-external
   tls:
     - hosts:
         - app.ksox.finance

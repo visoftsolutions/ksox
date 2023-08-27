@@ -19,16 +19,18 @@ spec:
           image: registry.internal.visoft.solutions/server-blockchain
           envFrom:
             - secretRef:
-                name: envs
+                name: keys
+            - configMapRef:
+                name: settings
           ports:
             - containerPort: 80
           resources:
             requests:
+              memory: 100Mi
+              cpu: 100m
+            limits:
               memory: 200Mi
               cpu: 200m
-            limits:
-              memory: 400Mi
-              cpu: 400m
 ---
 apiVersion: v1
 kind: Service
