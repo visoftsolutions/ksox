@@ -16,7 +16,7 @@ BEGIN
    END LOOP;
 END; $$;
 
-INSERT INTO "users" ("id", "address") VALUES ('ce3876ba-15b7-4409-8cf2-035fcc9d8687', '0x414822a3702e75973029060dac6438b6d6aaa55f');
+INSERT INTO "users" ("id", "address") VALUES ('ce3876ba-15b7-4409-8cf2-035fcc9d8687', '0x27ca37670fe706fe9c9ba97a672a1d2d3f49efc6');
 
 DO $$
 DECLARE

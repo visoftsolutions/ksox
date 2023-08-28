@@ -72,7 +72,7 @@ contract Treasury is Ownable, EIP712 {
   }
 
   receive() external payable {
-    require(!isFrozen_, "Treasury: contract is fronzen");
+    require(!isFrozen_, "Treasury: contract is frozen");
     address owner = address(msg.sender);
     uint256 amount = msg.value;
     IWETH(weth_).deposit{value: amount}();
@@ -80,7 +80,7 @@ contract Treasury is Ownable, EIP712 {
   }
 
   function deposit(address token, uint256 amount) external {
-    require(!isFrozen_, "Treasury: contract is fronzen");
+    require(!isFrozen_, "Treasury: contract is frozen");
     require(amount > 0, "Treasury: amount should be greater than zero");
     address owner = address(msg.sender);
     IERC20(token).transferFrom(owner, address(this), amount);
@@ -88,7 +88,7 @@ contract Treasury is Ownable, EIP712 {
   }
 
   function withdraw(address token, uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s, address to) external {
-    require(!isFrozen_, "Treasury: contract is fronzen");
+    require(!isFrozen_, "Treasury: contract is frozen");
     require(amount > 0, "Treasury: amount should be greater than zero");
     address owner = address(msg.sender);
     uint256 nonce = _useNonce(owner);
