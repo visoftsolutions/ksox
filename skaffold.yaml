@@ -1,6 +1,8 @@
 apiVersion: skaffold/v4beta6
 kind: Config
 build:
+  platforms:
+    - linux/amd64
   artifacts:
     - image: registry.internal.visoft.solutions/blockchain-node
       context: ./blockchain
