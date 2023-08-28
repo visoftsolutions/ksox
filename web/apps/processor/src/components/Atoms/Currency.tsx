@@ -5,7 +5,7 @@ import { useSession } from "@packages/components/providers/SessionProvider";
 import { usePrecision } from "@packages/components/providers/PrecisionProvider";
 import { createSignal, onCleanup, onMount } from "solid-js";
 import params from "@packages/utils/params";
-import { Fraction, ev } from "@packages/types/primitives/fraction";
+import { Fraction, ev, floor_with_accuracy } from "@packages/types/primitives/fraction";
 import { Valut } from "@packages/types/valut";
 import subscribeEvents from "@packages/utils/subscribeEvents";
 import { format } from "numerable";
@@ -31,7 +31,12 @@ export default function Currency(props: ICurrency) {
         params({ asset_id: props.asset.id }),
         params({ asset_id: props.asset.id }),
         (data) => {
-          setBalance(Fraction.parse(Valut.parse(data).balance.Finite));
+          setBalance(
+            floor_with_accuracy(
+              Fraction.parse(Valut.parse(data).balance.Finite),
+              precision(),
+            ),
+          );
         },
       );
     }
