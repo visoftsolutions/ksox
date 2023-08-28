@@ -33,3 +33,39 @@ export function fToBigint(f: Fraction) {
 export function ev(f: Fraction) {
   return Number(f.numer) / Number(f.denom);
 }
+
+export function ffloor(f: Fraction) {
+  if (f.numer < 0n) {
+    return Fraction.parse({
+      numer: (f.numer - f.denom + 1n) / f.denom,
+      denom: 1n,
+    });
+  } else {
+    return Fraction.parse({
+      numer: f.numer / f.denom,
+      denom: 1n,
+    });
+  }
+}
+
+export function fceil(f: Fraction) {
+  if (f.numer < 0n) {
+    return Fraction.parse({
+      numer: f.numer / f.denom,
+      denom: 1n,
+    });
+  } else {
+    return Fraction.parse({
+      numer: (f.numer + f.denom - 1n) / f.denom,
+      denom: 1n,
+    });
+  }
+}
+
+export function floor_with_accuracy(f: Fraction, a: Fraction) {
+  return fmul(ffloor(fmul(f, finv(a))), a);
+}
+
+export function ceil_with_accuracy(f: Fraction, a: Fraction) {
+  return fmul(fceil(fmul(f, finv(a))), a);
+}
