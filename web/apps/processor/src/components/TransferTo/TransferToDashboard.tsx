@@ -33,16 +33,21 @@ export default function TransferToDashboard(props: { search?: string }) {
   );
 
   return (
-    <div class="grid grid-rows-[auto_auto_auto_1fr] h-full gap-4">
+    <div class="grid grid-rows-[auto_auto_auto_1fr] h-full gap-6">
       <CurrencyDisplay />
-      <div class="font-sans font-bold grid grid-cols-[auto_auto_auto] items-center gap-4 justify-self-center">
-        <div>{firstLastChars(wallet.address ?? "", 8, 8)}</div>
+      <div class="font-sans font-bold grid xl:grid-cols-[auto_auto_auto] grid-rows-[auto_auto_auto] justify-items-center items-center gap-1 justify-self-center">
+        <div>{firstLastChars(wallet.address?.toLowerCase() ?? "", 8, 8)}</div>
         <img
+          class="xl:rotate-0 rotate-90"
           src={joinPaths(base, "/gfx/right_arrow.svg")}
           width={24}
           height={24}
         />
-        <div>{firstLastChars(params.address ?? "", 8, 8)}</div>
+        <div>
+          {selectedUser.selectedUser()?.name ??
+            firstLastChars(params.address?.toLowerCase() ?? "", 8, 8) ??
+            ""}
+        </div>
       </div>
       <div class="grid grid-cols-[auto_auto] gap-5">
         <NumberInput

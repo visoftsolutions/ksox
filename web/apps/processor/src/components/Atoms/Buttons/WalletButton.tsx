@@ -34,7 +34,6 @@ export default function WalletButton(props: {
         } else if (session()) {
           setSession(await logout(props.api_url));
         } else {
-          console.log("logging in if");
           setSession(await login(props.api_url, wallet.walletClient));
         }
       }}

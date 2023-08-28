@@ -70,7 +70,7 @@ export default function WithdrawDashboard() {
   });
 
   return (
-    <div class="grid grid-rows-[auto_auto_auto_1fr] h-full gap-4">
+    <div class="grid grid-rows-[auto_auto_auto_1fr] h-full gap-6">
       <CurrencyDisplay />
       <div class="grid grid-cols-[auto_auto] gap-5">
         <NumberInput

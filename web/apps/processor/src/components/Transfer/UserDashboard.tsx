@@ -30,7 +30,7 @@ export default function UserDasboard(props: { search?: string }) {
   });
 
   return (
-    <div class="grid grid-rows-[auto_auto_1fr] h-full gap-4">
+    <div class="grid grid-rows-[auto_auto_1fr] h-full gap-6">
       <CurrencyDisplay />
       <p class="text-sans text-sm text-bold text-r-dark-secondary-text p-2">
         Users
