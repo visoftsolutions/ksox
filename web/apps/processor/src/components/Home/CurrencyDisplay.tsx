@@ -21,7 +21,11 @@ import { usePrecision } from "@packages/components/providers/PrecisionProvider";
 import params from "@packages/utils/params";
 import { Valut } from "@packages/types/valut";
 import { format } from "numerable";
-import { Fraction, ev } from "@packages/types/primitives/fraction";
+import {
+  Fraction,
+  ev,
+  floor_with_accuracy,
+} from "@packages/types/primitives/fraction";
 import { formatTemplate } from "@packages/utils/precision";
 import { Asset } from "@packages/types/asset";
 import { Dynamic } from "solid-js/web";
@@ -66,7 +70,7 @@ export default function CurrencyDisplay() {
 }
 
 const CreateCurrencyDisplayAssetView = (
-  precision: number,
+  precision: Fraction,
   session: SessionResponse | undefined,
   selectedAsset: Asset | undefined,
   setModal: Setter<boolean>,
@@ -82,7 +86,12 @@ const CreateCurrencyDisplayAssetView = (
           params({ asset_id: selectedAsset.id }),
           params({ asset_id: selectedAsset.id }),
           (data) => {
-            setBalance(Fraction.parse(Valut.parse(data).balance.Finite));
+            setBalance(
+              floor_with_accuracy(
+                Fraction.parse(Valut.parse(data).balance.Finite),
+                precision,
+              ),
+            );
           },
         );
       }
@@ -97,9 +106,7 @@ const CreateCurrencyDisplayAssetView = (
         <div>
           <div class="flex flex-row items-center">
             <p class="text-bold font-sans text-3xl text-r-light-text dark:text-r-dark-text">
-              {balance()
-                ? format(ev(balance()!), formatTemplate(precision ?? 3))
-                : "---"}
+              {balance() ? format(ev(balance()!), formatTemplate(3)) : "---"}
             </p>
             <p class="pl-2 font-sans text-3xl text-r-dark-secondary-text">
               {selectedAsset?.symbol}

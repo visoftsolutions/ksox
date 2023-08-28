@@ -68,9 +68,7 @@ export default function Currency(props: ICurrency) {
         </div>
         <div class="m-4 flex flex-col items-end">
           <p class="text-r-light-text dark:text-r-dark-text font-sans ">
-            {balance()
-              ? format(ev(balance()!), formatTemplate(precision() ?? 3))
-              : "---"}
+            {balance() ? format(ev(balance()!), formatTemplate(3)) : "---"}
           </p>
         </div>
       </div>

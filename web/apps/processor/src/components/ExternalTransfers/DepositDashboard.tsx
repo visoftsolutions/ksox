@@ -74,7 +74,7 @@ export default function DepositDashboard() {
       <div class="grid grid-cols-[auto_auto] gap-5">
         <NumberInput
           class="w-full p-1 border text-md justify-self-center"
-          precision={precision()}
+          precision={3}
           left={"Quantity"}
           right={selectedAsset()?.symbol}
           value={amount()}

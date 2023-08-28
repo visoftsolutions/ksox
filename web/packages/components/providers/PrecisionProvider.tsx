@@ -1,3 +1,4 @@
+import { Fraction } from "@packages/types/primitives/fraction";
 import {
   Accessor,
   createContext,
@@ -6,8 +7,11 @@ import {
   useContext,
 } from "solid-js";
 
-export const [precision, setPrecision] = createSignal<number>(3);
-const PrecisionContext = createContext<Accessor<number>>(precision);
+export const [precision, setPrecision] = createSignal<Fraction>({
+  numer: 1n,
+  denom: 1000n,
+});
+const PrecisionContext = createContext<Accessor<Fraction>>(precision);
 export function PrecisionProvider(props: { children: JSX.Element }) {
   return (
     <PrecisionContext.Provider value={precision}>
@@ -16,5 +20,5 @@ export function PrecisionProvider(props: { children: JSX.Element }) {
   );
 }
 export function usePrecision() {
-  return useContext<Accessor<number>>(PrecisionContext);
+  return useContext<Accessor<Fraction>>(PrecisionContext);
 }

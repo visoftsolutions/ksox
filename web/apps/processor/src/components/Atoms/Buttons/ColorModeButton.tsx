@@ -6,7 +6,7 @@ import {
   useColorMode,
 } from "@packages/components/providers/ColorModeProvider";
 
-export default function ColorModeButton(props: {class: string}) {
+export default function ColorModeButton(props: { class: string }) {
   const colorMode = useColorMode();
 
   return (

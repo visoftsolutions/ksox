@@ -17,8 +17,12 @@ export default function Header(props: {
         {props.text}
       </div>
       <div class="justify-self-end row-start-1 row-end-2 col-start-2 col-end-3 grid grid-cols-[auto-auto] justify-end items-center justify-items-center gap-2">
-        <div class="col-start-1 col-end-2"><ColorModeButton class="xl:hidden" /></div>
-        <div class="col-start-2 col-end-3"><WalletButton base_url={base} api_url={api} /></div>
+        <div class="col-start-1 col-end-2">
+          <ColorModeButton class="xl:hidden" />
+        </div>
+        <div class="col-start-2 col-end-3">
+          <WalletButton base_url={base} api_url={api} />
+        </div>
       </div>
       <div class="row-start-2 row-end-3 col-span-2">
         <SearchBar
