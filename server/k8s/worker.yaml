@@ -19,7 +19,7 @@ spec:
           image: registry.internal.visoft.solutions/server-worker
           envFrom:
             - secretRef:
-                name: keys
+                name: secrets
             - configMapRef:
                 name: settings
           ports:

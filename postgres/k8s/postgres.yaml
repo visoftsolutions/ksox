@@ -22,13 +22,14 @@ spec:
         - name: postgres-database
           image: registry.internal.visoft.solutions/postgres-database
           envFrom:
-            - configMapRef:
-                name: settings
+            - secretRef:
+                name: secrets
           ports:
             - containerPort: 5432
           volumeMounts:
             - mountPath: "/var/lib/postgresql/data"
               name: postgres-pv
+              subPath: postgres
           resources:
             requests:
               memory: 100Mi

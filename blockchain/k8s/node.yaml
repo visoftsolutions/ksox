@@ -19,7 +19,7 @@ spec:
           image: registry.internal.visoft.solutions/blockchain-node
           envFrom:
             - secretRef:
-                name: envs
+                name: secrets
           ports:
             - containerPort: 80
           resources:
@@ -52,7 +52,7 @@ metadata:
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$1
 spec:
-  ingressClassName: ingress-nginx
+  ingressClassName: ingress-nginx-external
   tls:
     - hosts:
         - node.ksox.finance

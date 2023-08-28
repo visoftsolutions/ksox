@@ -19,7 +19,7 @@ spec:
           image: registry.internal.visoft.solutions/web-exchange-landing
           envFrom:
             - secretRef:
-                name: keys
+                name: secrets
             - configMapRef:
                 name: settings
           ports:
@@ -29,7 +29,7 @@ spec:
               memory: 50Mi
               cpu: 50m
             limits:
-              memory: 100Mi
+              memory: 300Mi
               cpu: 100m
 ---
 apiVersion: v1

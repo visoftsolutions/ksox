@@ -15,9 +15,9 @@ spec:
         app: redis-database
     spec:
       volumes:
-        - name: redis-pv-storage
+        - name: redis-pv
           persistentVolumeClaim:
-            claimName: redis-pv-claim
+            claimName: redis-pvc
       containers:
         - name: redis-database
           image: registry.internal.visoft.solutions/redis-database
@@ -25,7 +25,8 @@ spec:
             - containerPort: 6379
           volumeMounts:
             - mountPath: "/data"
-              name: redis-pv-storage
+              name: redis-pv
+              subPath: redis
           resources:
             requests:
               memory: 100Mi
