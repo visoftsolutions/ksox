@@ -45,11 +45,11 @@ export default function Root() {
         <Link rel="icon" href="/gfx/logo.svg" />
         {import.meta.env.PROD == true ? (
           <>
-            <Link
+            {/* <Link
               rel="manifest"
               href={joinPaths(base, "/manifest.webmanifest")}
             />
-            <script src={joinPaths(base, "/registerSW.js")} />
+            <script src={joinPaths(base, "/registerSW.js")} /> */}
             <script
               async
               src="https://www.googletagmanager.com/gtag/js?id=G-HS7VCPVSGW"
