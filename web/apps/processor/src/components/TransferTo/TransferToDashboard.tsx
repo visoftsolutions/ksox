@@ -8,16 +8,11 @@ import { useParams } from "@solidjs/router";
 import NumberInput from "../Inputs/NumberInput";
 import ActionButton from "../Atoms/Buttons/ActionButton";
 import { usePrecision } from "@packages/components/providers/PrecisionProvider";
-import { Index, createSignal, onCleanup, onMount } from "solid-js";
-import { Fraction, ev } from "@packages/types/primitives/fraction";
-import { useContractAddress } from "@packages/components/providers/ContractAddressProvider";
+import { createSignal } from "solid-js";
+import { Fraction } from "@packages/types/primitives/fraction";
 import { TransferRequest } from "@packages/types/mod";
 import { useSelectedUser } from "../providers/SelectedUserProvider";
 import { useSession } from "@packages/components/providers/SessionProvider";
-import TransferElement, { ITransferElement } from "../Atoms/TransferElement";
-import { DisplayTransfer } from "@packages/types/transfer";
-import subscribeEvents from "@packages/utils/subscribeEvents";
-import { z } from "zod";
 import { Dynamic } from "solid-js/web";
 import { CreateTransfers } from "../Home/AccountDashboard";
 
@@ -52,7 +47,7 @@ export default function TransferToDashboard(props: { search?: string }) {
       <div class="grid grid-cols-[auto_auto] gap-5">
         <NumberInput
           class="w-full p-1 border text-md justify-self-center"
-          precision={precision()}
+          precision={3}
           left={"Quantity"}
           right={selectedAsset()?.symbol}
           value={amount()}
