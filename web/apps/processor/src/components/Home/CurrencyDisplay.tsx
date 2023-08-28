@@ -43,7 +43,7 @@ export default function CurrencyDisplay() {
           precision(),
           session(),
           selectedAsset(),
-          setModal
+          setModal,
         )}
       />
       <Show when={modal()}>
@@ -69,7 +69,7 @@ const CreateCurrencyDisplayAssetView = (
   precision: number,
   session: SessionResponse | undefined,
   selectedAsset: Asset | undefined,
-  setModal: Setter<boolean>
+  setModal: Setter<boolean>,
 ) => {
   return () => {
     const [balance, setBalance] = createSignal<Fraction | null>(null);
@@ -83,7 +83,7 @@ const CreateCurrencyDisplayAssetView = (
           params({ asset_id: selectedAsset.id }),
           (data) => {
             setBalance(Fraction.parse(Valut.parse(data).balance.Finite));
-          }
+          },
         );
       }
     });

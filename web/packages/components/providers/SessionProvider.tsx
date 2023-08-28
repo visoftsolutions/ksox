@@ -15,11 +15,12 @@ import {
   SessionResponse,
 } from "./SessionProvider/models";
 
-export const [session, setSession] = createSignal<SessionResponse | undefined>(
-  undefined,
-);
+export const [session, setSession] = createSignal<
+  SessionResponse | undefined | null
+>(undefined);
+
 const SessionContext =
-  createContext<Accessor<SessionResponse | undefined>>(session);
+  createContext<Accessor<SessionResponse | undefined | null>>(session);
 export function SessionProvider(props: {
   children: JSX.Element;
   api_url: string;
@@ -44,7 +45,9 @@ export function SessionProvider(props: {
   );
 }
 export function useSession() {
-  return useContext<Accessor<SessionResponse | undefined>>(SessionContext);
+  return useContext<Accessor<SessionResponse | undefined | null>>(
+    SessionContext,
+  );
 }
 
 export async function login(api_url: string, wallet: WalletClient) {

@@ -11,6 +11,7 @@ import { Web3Modal } from "@web3modal/html";
 import { configureChains, createConfig } from "@wagmi/core";
 import { createWalletClient, custom } from "viem";
 import { AVAILABLE_CHAINS, Network } from "./WalletProvider/chains";
+import { logout, setSession } from "./SessionProvider";
 
 export interface WalletProvider {
   walletConnectProjectId: string | undefined;
@@ -32,10 +33,11 @@ export function WalletProvider(props: {
   projectId: string;
   children: JSX.Element;
 }) {
-  onMount(() => {
+  onMount(async () => {
     setWallet({
       walletConnectProjectId: props.projectId,
     });
+    await walletClientInit(props.projectId);
   });
 
   return (
@@ -65,6 +67,7 @@ const walletAccount = async (account: GetAccountResult) => {
       walletClient: undefined,
       address: undefined,
     });
+    setSession(undefined);
   }
 };
 
@@ -75,30 +78,35 @@ const walletNetwork = async (network: GetNetworkResult) => {
   }
 };
 
+export const walletClientInit = async (projectId: string) => {
+  const { publicClient, chains } = configureChains(
+    AVAILABLE_CHAINS.map((e) => e.network),
+    [w3mProvider({ projectId })],
+  );
+  const wagmiConfig = createConfig({
+    autoConnect: true,
+    connectors: w3mConnectors({
+      projectId,
+      chains,
+    }),
+    publicClient,
+  });
+  const ethereumClient = new EthereumClient(wagmiConfig, chains);
+
+  ethereumClient.watchAccount(async (account) => await walletAccount(account));
+  ethereumClient.watchNetwork(async (network) => await walletNetwork(network));
+
+  return ethereumClient;
+};
+
 export const walletClientConnect = async () => {
   if (wallet.walletConnectProjectId) {
-    const { publicClient, chains } = configureChains(
-      AVAILABLE_CHAINS.map((e) => e.network),
-      [w3mProvider({ projectId: wallet.walletConnectProjectId })],
+    const ethereumClient = await walletClientInit(
+      wallet.walletConnectProjectId,
     );
-    const wagmiConfig = createConfig({
-      autoConnect: true,
-      connectors: w3mConnectors({
-        projectId: wallet.walletConnectProjectId,
-        chains,
-      }),
-      publicClient,
-    });
-    const ethereumClient = new EthereumClient(wagmiConfig, chains);
     const web3modal = new Web3Modal(
       { projectId: wallet.walletConnectProjectId },
       ethereumClient,
-    );
-    ethereumClient.watchAccount(
-      async (account) => await walletAccount(account),
-    );
-    ethereumClient.watchNetwork(
-      async (network) => await walletNetwork(network),
     );
     await web3modal.openModal();
   }

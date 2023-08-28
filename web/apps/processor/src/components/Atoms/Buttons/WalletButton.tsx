@@ -19,10 +19,6 @@ export default function WalletButton(props: {
   const wallet = useWallet();
   const session = useSession();
 
-  createEffect(() => {
-    console.log(wallet.walletClient);
-  });
-
   createEffect(async () => {
     if (wallet.walletClient && untrack(() => !session())) {
       setSession(await login(props.api_url, wallet.walletClient));
@@ -44,11 +40,11 @@ export default function WalletButton(props: {
       }}
     >
       <div class="text-ellipsis">
-        {!wallet.walletClient && !session()
+        {!wallet.walletClient
           ? "CONNECT"
           : !session()
           ? "LOGIN"
-          : firstLastChars(session()?.address ?? "", 6, 6)}
+          : firstLastChars(wallet?.address ?? "", 6, 6)}
       </div>
     </button>
   );

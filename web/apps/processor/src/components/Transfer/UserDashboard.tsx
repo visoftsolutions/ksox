@@ -37,7 +37,7 @@ export default function UserDasboard(props: { search?: string }) {
       </p>
       <div class="relative">
         <div class="absolute inset-0 overflow-y-auto">
-          <div class="grid grid-flow-row gap-4">
+          <div class="grid gap-4">
             <Index each={users()}>
               {(element) => (
                 <A

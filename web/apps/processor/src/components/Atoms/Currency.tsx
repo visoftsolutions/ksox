@@ -56,11 +56,7 @@ export default function Currency(props: ICurrency) {
     >
       <div class="flex justify-between">
         <div class="m-4 flex">
-          <Picture
-            src={props.asset.icon_path}
-            alt="test"
-            size={42}
-          />
+          <Picture src={props.asset.icon_path} alt="test" size={42} />
           <div class="ml-4">
             <p class="text-r-light-text dark:text-r-dark-text font-sans font-bold">
               {props.asset.name}

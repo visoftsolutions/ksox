@@ -15,6 +15,7 @@ import {
 } from "~/components/providers/SelectedAssetProvider";
 import { createEffect, createMemo } from "solid-js";
 import { SelectedUserProvider } from "~/components/providers/SelectedUserProvider";
+import { useWallet } from "@packages/components/providers/WalletProvider";
 
 export default function Index() {
   const assets = useAssets();
@@ -48,10 +49,9 @@ export default function Index() {
                 </div>
               </div>
             </div>
-            <div class="xl:hidden block row-start-2 row-end-3">
-              <Nav />
-            </div>
+            <div class="xl:hidden h-[62px] row-start-2 row-end-3"></div>
           </main>
+          <Nav class="xl:hidden fixed bottom-0 left-0 right-0" />
         </SelectedAssetProvider>
       </AssetsProvider>
     </SessionProvider>

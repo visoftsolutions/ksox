@@ -29,7 +29,9 @@ export const handleDeposit = async ({
   });
 
   if (response) {
-    console.log(await wallet.publicClient?.waitForTransactionReceipt({ hash: response }));
+    console.log(
+      await wallet.publicClient?.waitForTransactionReceipt({ hash: response }),
+    );
     await wallet.walletClient?.writeContract({
       chain: wallet.selected_network.network,
       address: treasuryAddress as Address,

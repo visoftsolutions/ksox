@@ -9,11 +9,11 @@ import { Match, Switch } from "solid-js";
 import { joinPaths } from "solid-start/islands/server-router";
 import { base } from "~/root";
 
-export default function SideNavigation() {
+export default function SideNavigation(props: { class: string }) {
   const nav = useNav();
   const colorMode = useColorMode();
   return (
-    <div class="grid grid-cols-2">
+    <div class={`grid grid-cols-2 ${props.class}`}>
       <A href="/">
         <NavButton
           name="Home"
