@@ -2,7 +2,6 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/interfaces/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
@@ -80,16 +79,17 @@ contract Treasury is Ownable, EIP712 {
     emit Deposit(owner, publicKey_, weth_, amount);
   }
 
-  function depositPermit(address token, uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
+  function deposit(address token, uint256 amount) external {
     require(!isFrozen_, "Treasury: contract is fronzen");
+    require(amount > 0, "Treasury: amount should be greater than zero");
     address owner = address(msg.sender);
-    IERC20Permit(token).permit(owner, address(this), amount, deadline, v, r, s);
     IERC20(token).transferFrom(owner, address(this), amount);
     emit Deposit(owner, publicKey_, token, amount);
   }
 
-  function withdrawPermit(address token, uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s, address to) external {
+  function withdraw(address token, uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s, address to) external {
     require(!isFrozen_, "Treasury: contract is fronzen");
+    require(amount > 0, "Treasury: amount should be greater than zero");
     address owner = address(msg.sender);
     uint256 nonce = _useNonce(owner);
 

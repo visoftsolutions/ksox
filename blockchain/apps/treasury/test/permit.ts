@@ -147,7 +147,7 @@ describe("Permit Deposit & Permit Withdraw Mechanisms", function () {
       );
       await treasury
         .connect(user)
-        .depositPermit(tokenAddress, value, deadline, v, r, s);
+        .deposit(tokenAddress, value, deadline, v, r, s);
       expect(await token.balanceOf(treasury)).to.equal(value);
     });
 
@@ -192,7 +192,7 @@ describe("Permit Deposit & Permit Withdraw Mechanisms", function () {
         );
         await treasury
           .connect(user)
-          .depositPermit(tokenAddress, value, deadline, v, r, s);
+          .deposit(tokenAddress, value, deadline, v, r, s);
       }
       expect(await token.balanceOf(treasury)).to.equal(value);
       {
@@ -233,7 +233,7 @@ describe("Permit Deposit & Permit Withdraw Mechanisms", function () {
         );
         await treasury
           .connect(user)
-          .withdrawPermit(tokenAddress, value, deadline, v, r, s, otherUser);
+          .withdraw(tokenAddress, value, deadline, v, r, s, otherUser);
       }
       expect(await token.balanceOf(treasury)).to.equal(0);
       expect(await token.balanceOf(otherUser)).to.equal(value);
@@ -289,7 +289,7 @@ describe("Permit Deposit & Permit Withdraw Mechanisms", function () {
         );
         await treasury
           .connect(user)
-          .withdrawPermit(tokenAddress, value, deadline, v, r, s, otherUser);
+          .withdraw(tokenAddress, value, deadline, v, r, s, otherUser);
       }
       expect(await weth.balanceOf(treasuryAddress)).to.equal(0);
       expect(await weth.balanceOf(otherUser.address)).to.equal(value);

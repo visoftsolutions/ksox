@@ -7,7 +7,12 @@ DECLARE
 BEGIN
    FOR asset IN SELECT * FROM assets
    LOOP
-      INSERT INTO "valuts" ("user_id","asset_id","balance") VALUES ('00000000-0000-0000-0000-000000000000', asset.id, '{"Infinite":"Positive"}');
+      INSERT INTO "valuts" ("user_id", "asset_id", "balance")
+         VALUES ('00000000-0000-0000-0000-000000000000', asset.id, '{"Infinite":"Positive"}')
+         ON CONFLICT (user_id, asset_id)
+         DO UPDATE SET
+            asset_id = EXCLUDED.asset_id,
+            balance = EXCLUDED.balance;
    END LOOP;
 END; $$;
 
@@ -19,6 +24,11 @@ DECLARE
 BEGIN
    FOR asset IN SELECT * FROM assets
    LOOP
-      INSERT INTO "valuts" ("user_id","asset_id","balance") VALUES ('ce3876ba-15b7-4409-8cf2-035fcc9d8687', asset.id, '{"Finite":{"numer":"0","denom":"1"}}');
+      INSERT INTO "valuts" ("user_id", "asset_id", "balance")
+         VALUES ('ce3876ba-15b7-4409-8cf2-035fcc9d8687', asset.id, '{"Finite":{"numer":"0","denom":"1"}}')
+         ON CONFLICT (user_id, asset_id)
+         DO UPDATE SET
+            asset_id = EXCLUDED.asset_id,
+            balance = EXCLUDED.balance;
    END LOOP;
 END; $$;

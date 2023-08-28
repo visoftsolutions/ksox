@@ -45,9 +45,9 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://pay.ksox.finance/",
+        target: "http://localhost:8080/",
         changeOrigin: true,
-        // rewrite: (path) => path.replace(/^\/api/, ""),
+        rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },
   },

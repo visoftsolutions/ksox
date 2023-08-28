@@ -24,7 +24,7 @@ export default function DepositDashboard() {
     Fraction.parse({ numer: 0, denom: 1 }),
   );
   const wallet = useWallet();
-  const treasury_address = useContractAddress();
+  const treasuryAddress = useContractAddress();
   const [transfers, setTransfers] = createStore<ITransferElement[]>([]);
 
   let eventsource: EventSource | undefined;
@@ -86,13 +86,13 @@ export default function DepositDashboard() {
           text="Deposit"
           onClick={async () => {
             const asset = selectedAsset();
-            const treasury = treasury_address!();
+            const treasury = treasuryAddress!();
             if (asset && treasury) {
               await handleDeposit({
                 asset: asset,
                 amount: amount(),
                 wallet,
-                treasury_address: treasury,
+                treasuryAddress: treasury,
               });
             }
           }}

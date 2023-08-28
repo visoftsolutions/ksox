@@ -9,73 +9,34 @@ interface HandleDepositProps {
   asset: Asset;
   amount: Fraction;
   wallet: WalletProvider;
-  treasury_address: string;
+  treasuryAddress: string;
 }
 
 export const handleDeposit = async ({
   asset,
   amount,
   wallet,
-  treasury_address,
+  treasuryAddress,
 }: HandleDepositProps) => {
   const value = fToBigint(fmul(asset.decimals, amount));
-  const nonce = (await wallet.publicClient?.readContract({
+  const response = await wallet.walletClient?.writeContract({
+    chain: wallet.selected_network.network,
     address: asset.address as Address,
     abi: ERC20_ABI,
-    functionName: "nonces",
+    functionName: "approve",
     account: wallet.address as Address,
-    args: [wallet.address as Address],
-  })) as bigint;
-
-  const deadline = BigInt(
-    Math.floor((new Date().getTime() + 60 * 1000) / 1000),
-  );
-
-  const domain = {
-    name: asset.name,
-    version: "1",
-    chainId: BigInt(wallet.selected_network.network.id),
-    verifyingContract: asset.address as Address,
-  };
-
-  const permit = {
-    owner: wallet.address as Address,
-    spender: treasury_address as Address,
-    value,
-    nonce,
-    deadline,
-  };
-
-  const signature = await wallet.walletClient?.signTypedData({
-    account: wallet.address as Address,
-    domain,
-    types: {
-      Permit: [
-        { name: "owner", type: "address" },
-        { name: "spender", type: "address" },
-        { name: "value", type: "uint256" },
-        { name: "nonce", type: "uint256" },
-        { name: "deadline", type: "uint256" },
-      ],
-      EIP712Domain: [
-        { name: "name", type: "string" },
-        { name: "version", type: "string" },
-        { name: "chainId", type: "uint256" },
-        { name: "verifyingContract", type: "address" },
-      ],
-    },
-    primaryType: "Permit",
-    message: permit,
+    args: [treasuryAddress as Address, value],
   });
-  if (signature) {
-    const { r, s, v } = splitSig(signature);
+
+  if (response) {
+    console.log(await wallet.publicClient?.waitForTransactionReceipt({ hash: response }));
     await wallet.walletClient?.writeContract({
       chain: wallet.selected_network.network,
-      address: treasury_address as Address,
+      address: treasuryAddress as Address,
       abi: TREASURY_ABI,
-      functionName: "depositPermit",
+      functionName: "deposit",
       account: wallet.address as Address,
-      args: [asset.address as Address, value, deadline, v, r, s],
+      args: [asset.address as Address, value],
     });
   }
 };

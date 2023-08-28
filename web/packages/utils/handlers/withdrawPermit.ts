@@ -15,7 +15,7 @@ interface HandleWithdrawProps {
   asset: Asset;
   amount: Fraction;
   wallet: WalletProvider;
-  treasury_address: string;
+  treasuryAddress: string;
 }
 
 export const handleWithdraw = async ({
@@ -23,7 +23,7 @@ export const handleWithdraw = async ({
   asset,
   amount,
   wallet,
-  treasury_address,
+  treasuryAddress,
 }: HandleWithdrawProps) => {
   const value = fToBigint(fmul(asset.decimals, amount));
   const deadline = new Date(new Date().getTime() + 60 * 1000);
@@ -50,9 +50,9 @@ export const handleWithdraw = async ({
   const { r, s, v } = splitSig(response.response);
   await wallet.walletClient?.writeContract({
     chain: wallet.selected_network.network,
-    address: treasury_address as Address,
+    address: treasuryAddress as Address,
     abi: TREASURY_ABI,
-    functionName: "withdrawPermit",
+    functionName: "withdraw",
     account: wallet.address as Address,
     args: [
       asset.address as Address,

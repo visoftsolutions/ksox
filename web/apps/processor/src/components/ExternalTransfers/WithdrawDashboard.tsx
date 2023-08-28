@@ -25,7 +25,7 @@ export default function WithdrawDashboard() {
   );
   const wallet = useWallet();
   const [withdrawAddress, setWithdrawAddress] = createSignal(wallet.address!);
-  const treasury_address = useContractAddress();
+  const treasuryAddress = useContractAddress();
   const [transfers, setTransfers] = createStore<ITransferElement[]>([]);
 
   let eventsource: EventSource | undefined;
@@ -87,14 +87,14 @@ export default function WithdrawDashboard() {
           text="Withdraw"
           onClick={async () => {
             const asset = selectedAsset();
-            const treasury = treasury_address!();
+            const treasury = treasuryAddress!();
             if (asset && treasury) {
               await handleWithdraw({
                 address_value: withdrawAddress(),
                 asset: asset,
                 amount: amount(),
                 wallet,
-                treasury_address: treasury,
+                treasuryAddress: treasury,
               });
             }
           }}
