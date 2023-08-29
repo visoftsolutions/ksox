@@ -65,6 +65,14 @@ pub async fn submit<'t>(
 
     // apply order
     if let Some(order) = matching.order {
+        let mut valut =
+            ValutsManager::get_or_create(transaction, &order.maker_id, &order.quote_asset_id)
+                .await?;
+        valut.balance = valut
+            .balance
+            .checked_sub(&Value::Finite(order.quote_asset_volume_left.to_owned()))
+            .ok_or(SubmitRequestError::CheckedAddFailed)?;
+        ValutsManager::update(transaction, valut).await?;
         OrdersManager::insert(transaction, order).await?;
     }
 
