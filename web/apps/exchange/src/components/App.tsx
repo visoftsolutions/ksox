@@ -7,7 +7,7 @@ import { Dynamic } from "solid-js/web";
 import CreateState from "~/components/App/State";
 import { useMarket } from "~/components/providers/MarketProvider";
 import { useSession } from "@packages/components/providers/SessionProvider";
-import { usePrecision } from "@packages/components/providers/PrecisionProvider";
+import { usePrecision } from "@packages/components/providers/OldPrecisionProvider";
 
 export default function App() {
   const market = useMarket();

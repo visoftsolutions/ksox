@@ -4,7 +4,7 @@ import { Outlet } from "solid-start";
 import MainMenu from "~/components/MainMenu";
 import SideMenu from "~/components/SideMenu";
 import { SessionProvider } from "@packages/components/providers/SessionProvider";
-import { PrecisionProvider } from "@packages/components/providers/PrecisionProvider";
+import { PrecisionProvider } from "@packages/components/providers/OldPrecisionProvider";
 import { api } from "~/root";
 
 export default function Index() {

@@ -3,7 +3,7 @@ import { joinPaths } from "solid-start/islands/server-router";
 import { Index, Match, Switch, createMemo, createSignal } from "solid-js";
 import { useAssets } from "@packages/components/providers/AssetsProvider";
 import SearchInput from "~/components/Inputs/SearchInput";
-import { usePrecision } from "@packages/components/providers/PrecisionProvider";
+import { usePrecision } from "@packages/components/providers/OldPrecisionProvider";
 import { Dynamic } from "solid-js/web";
 import CreateAssetInfo from "~/components/Assets/AssetInfo";
 import { Asset } from "@packages/types/asset";

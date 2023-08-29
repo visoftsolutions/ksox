@@ -71,7 +71,7 @@ export default function BuyForm(props: {
           {props.available_balance?.Finite != undefined
             ? format(
                 ev(props.available_balance.Finite),
-                formatTemplate(props.precision ?? 2),
+                formatTemplate(3),
               )
             : "---"}
           {props.market?.quote_asset?.symbol ?? "---"}
@@ -89,7 +89,7 @@ export default function BuyForm(props: {
               : { numer: 0n, denom: 1n },
           );
         }}
-        precision={props.precision ?? 2}
+        precision={3}
         left={"Price"}
         right={props.market?.quote_asset?.symbol ?? "---"}
       />
@@ -117,7 +117,7 @@ export default function BuyForm(props: {
             fmul(quote_asset_volume, finv(max_quote_asset_volume)),
           );
         }}
-        precision={props.precision ?? 2}
+        precision={3}
         left={"Quantity"}
         right={props.market?.base_asset?.symbol ?? "---"}
       />
@@ -158,7 +158,7 @@ export default function BuyForm(props: {
             fmul(quote_asset_volume, finv(max_quote_asset_volume)),
           );
         }}
-        precision={props.precision ?? 2}
+        precision={3}
         left={"Value"}
         right={props.market?.quote_asset?.symbol ?? "---"}
       />
