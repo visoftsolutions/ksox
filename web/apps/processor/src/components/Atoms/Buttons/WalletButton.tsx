@@ -19,11 +19,11 @@ export default function WalletButton(props: {
   const wallet = useWallet();
   const session = useSession();
 
-  createEffect(async () => {
-    if (wallet.walletClient && untrack(() => !session())) {
-      setSession(await login(props.api_url, wallet.walletClient));
-    }
-  });
+  // createEffect(async () => {
+  //   if (wallet.walletClient && untrack(() => !session())) {
+  //     setSession(await login(props.api_url, wallet.walletClient));
+  //   }
+  // });
 
   return (
     <button
