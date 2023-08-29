@@ -1,7 +1,6 @@
 import { format } from "numerable";
 import { Show, createSignal, onCleanup, onMount } from "solid-js";
-import { joinPaths } from "solid-start/islands/server-router";
-import { api, base } from "~/root";
+import { api } from "~/root";
 import { Asset } from "@packages/types/asset";
 import { Fraction, ev } from "@packages/types/primitives/fraction";
 import { Valut } from "@packages/types/valut";
@@ -54,10 +53,7 @@ export function AssetInfo(props: {
     <div class="row-start-1 row-end-2 grid grid-cols-[36px_1fr] items-center justify-start overflow-clip px-4">
       <div class="col-start-1 col-end-2 mr-2">
         <img
-          src={joinPaths(
-            base,
-            "/gfx/asset_icons/" + props.asset?.symbol.toLowerCase() + ".svg",
-          )}
+          src={props.asset?.icon_path}
           width="28px"
           height="28px"
         />
@@ -66,7 +62,7 @@ export function AssetInfo(props: {
         <div class="row-start-1 row-end-2 text-ellipsis text-white">{`${props.asset?.name} (${props.asset?.symbol})`}</div>
         <div class="row-start-2 row-end-3 text-ellipsis text-orderbook-item">
           {balance()
-            ? format(ev(balance()!), formatTemplate(props.precision ?? 3))
+            ? format(ev(balance()!), formatTemplate(3))
             : "---"}
         </div>
       </div>

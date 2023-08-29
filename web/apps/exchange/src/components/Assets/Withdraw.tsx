@@ -67,7 +67,7 @@ export function Withdraw(props: { asset: Asset; precision: number }) {
                 asset: asset,
                 amount: amount(),
                 wallet,
-                treasury_address: treasury,
+                treasuryAddress: treasury,
               });
             }
           }}

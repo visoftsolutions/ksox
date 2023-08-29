@@ -69,7 +69,7 @@ export function Deposit(props: { asset: Asset; precision: number }) {
                 asset: props.asset,
                 amount: amount(),
                 wallet,
-                treasury_address: treasury,
+                treasuryAddress: treasury,
               });
             }
           }}
