@@ -15,6 +15,7 @@ pub struct Order {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct OrderGet {
     pub id: Uuid,
+    pub maker_id: Uuid,
     pub price: Fraction,
     pub quote_asset_volume_left: Fraction,
     pub maker_fee: Fraction,

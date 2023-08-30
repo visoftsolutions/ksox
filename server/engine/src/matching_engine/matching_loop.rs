@@ -105,6 +105,7 @@ pub async fn matching_loop(
             quote_asset_id: quote_asset.id,
             base_asset_id: base_asset.id,
             taker_id: user_id,
+            maker_id: maker_order.maker_id,
             taker_presentation: presentation,
             order_id: maker_order.id,
             taker_price: Fraction::one()

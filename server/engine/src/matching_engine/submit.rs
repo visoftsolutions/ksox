@@ -160,6 +160,7 @@ pub async fn submit<'t>(
                 quote_asset_id: trade_insert.quote_asset_id,
                 base_asset_id: trade_insert.base_asset_id,
                 taker_id: trade_insert.taker_id,
+                maker_id: trade_insert.maker_id,
                 taker_presentation: trade_insert.taker_presentation,
                 order_id: trade_insert.order_id,
                 taker_price: trade_insert.taker_price,

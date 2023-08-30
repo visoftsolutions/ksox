@@ -45,6 +45,7 @@ impl OrdersManager {
             r#"
             SELECT
                 id,
+                maker_id,
                 price as "price: Fraction",
                 quote_asset_volume_left as "quote_asset_volume_left: Fraction",
                 maker_fee as "maker_fee: Fraction"
