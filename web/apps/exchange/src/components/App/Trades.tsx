@@ -94,8 +94,8 @@ export function Trades(props: {
         (data) => {
           setTradesState("trades", (prev) =>
             [
-              ...prev,
               ...z.array(PublicTrade).parse(data).map(convertTrade),
+              ...prev,
             ].slice(0, props.capacity),
           );
         },
