@@ -1,10 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            INSERT INTO spot.trades\n                (quote_asset_id, base_asset_id, taker_id, taker_presentation, order_id, price, taker_quote_volume, maker_quote_volume, taker_quote_volume_transfer_id, maker_quote_volume_transfer_id, last_modification_at, created_at)\n            VALUES\n                ($1, $2, $3, $4, $5, $6::fraction, $7::fraction, $8::fraction, $9, $10, $11, $12)\n            ",
+  "query": "\n            INSERT INTO spot.trades\n                (quote_asset_id, base_asset_id, taker_id, maker_id, taker_presentation, order_id, price, taker_quote_volume, maker_quote_volume, taker_quote_volume_transfer_id, maker_quote_volume_transfer_id, last_modification_at, created_at)\n            VALUES\n                ($1, $2, $3, $4, $5, $6, $7::fraction, $8::fraction, $9::fraction, $10, $11, $12, $13)\n            ",
   "describe": {
     "columns": [],
     "parameters": {
       "Left": [
+        "Uuid",
         "Uuid",
         "Uuid",
         "Uuid",
@@ -69,5 +70,5 @@
     },
     "nullable": []
   },
-  "hash": "c3aff902f4e9a31d582a385edefd48b51d57a2113352c1f09212f31dd6082bbf"
+  "hash": "1f1b816db023d607e9d721f34afecbef338415ce249a6e320a33bbde9ca95dfa"
 }
