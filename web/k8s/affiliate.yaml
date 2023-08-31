@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-affiliate-deployment
+  namespace: ksox-finance
+  labels:
+    app: web-affiliate
+spec:
+  selector:
+    matchLabels:
+      app: web-affiliate
+  template:
+    metadata:
+      labels:
+        app: web-affiliate
+    spec:
+      containers:
+        - name: web-affiliate
+          image: registry.internal.visoft.solutions/web-affiliate
+          envFrom:
+            - secretRef:
+                name: secrets
+            - configMapRef:
+                name: settings
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: 50Mi
+              cpu: 50m
+            limits:
+              memory: 300Mi
+              cpu: 100m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-affiliate-service
+  namespace: ksox-finance
+spec:
+  selector:
+    app: web-affiliate
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-affiliate-ingress
+  namespace: ksox-finance
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
+spec:
+  ingressClassName: ingress-nginx-external
+  tls:
+    - hosts:
+        - ksox.finance
+        - www.ksox.finance
+      secretName: ksox-finance-tls
+  rules:
+    - host: www.ksox.finance
+      http:
+        paths:
+          - path: /affiliate(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: web-affiliate-service
+                port:
+                  number: 80
