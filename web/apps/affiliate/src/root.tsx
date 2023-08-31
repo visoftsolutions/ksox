@@ -13,7 +13,7 @@ import {
   Title,
 } from "solid-start";
 import "~/root.css";
-import { Nav, NavProvider, setNav } from "~/components/providers/NavProvider";
+import { NavProvider } from "~/components/providers/NavProvider";
 import { joinPaths } from "solid-start/islands/server-router";
 import { WalletProvider } from "@packages/components/providers/WalletProvider";
 
@@ -66,13 +66,7 @@ export default function Root() {
             <NavProvider>
               <WalletProvider projectId={projectId}>
                 <Routes>
-                  <Route path="/" component={Index}>
-                    <Route
-                      path={"/:code"}
-                      element={<Index />}
-                      preload={() => setNav(Nav.Landing)}
-                    />
-                  </Route>
+                  <Route path="/:code" component={Index} />
                   <FileRoutes />
                 </Routes>
               </WalletProvider>
