@@ -51,4 +51,5 @@ export default defineConfig({
       },
     },
   },
+  base: "/affiliate",
 });
