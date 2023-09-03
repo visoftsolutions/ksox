@@ -24,7 +24,6 @@ export default function WithdrawDashboard() {
     Fraction.parse({ numer: 0, denom: 1 }),
   );
   const wallet = useWallet();
-  const [withdrawAddress, setWithdrawAddress] = createSignal(wallet.address!);
   const treasuryAddress = useContractAddress();
   const [transfers, setTransfers] = createStore<ITransferElement[]>([]);
 
@@ -90,7 +89,7 @@ export default function WithdrawDashboard() {
             const treasury = treasuryAddress!();
             if (asset && treasury) {
               await handleWithdraw({
-                address_value: withdrawAddress(),
+                address_value: wallet.address!,
                 asset: asset,
                 amount: amount(),
                 wallet,
